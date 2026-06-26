@@ -24,6 +24,7 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "check-types": "turbo check-types",
+    "format": "biome check --write --linter-enabled=false .",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F server dev",
     "db:push": "turbo -F @my-better-t-app/db db:push",

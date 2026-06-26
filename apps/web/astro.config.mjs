@@ -1,7 +1,8 @@
-import node from "@astrojs/node";
+import { fileURLToPath } from "node:url"
+import node from "@astrojs/node"
 // @ts-check
-import tailwindcss from "@tailwindcss/vite";
-import { defineConfig, envField } from "astro/config";
+import tailwindcss from "@tailwindcss/vite"
+import { defineConfig, envField } from "astro/config"
 
 // https://astro.build/config
 export default defineConfig({
@@ -18,5 +19,10 @@ export default defineConfig({
   },
   vite: {
     plugins: [tailwindcss()],
+    resolve: {
+      alias: {
+        "@": fileURLToPath(new URL("./src", import.meta.url)),
+      },
+    },
   },
-});
+})

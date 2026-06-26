@@ -1,5 +1,5 @@
 ---
-import { authClient } from "../lib/auth-client";
+import { authClient } from "@/lib/auth-client"
 ---
 
 <div class="mx-auto mt-10 w-full max-w-md p-6">
@@ -7,7 +7,9 @@ import { authClient } from "../lib/auth-client";
 
   <form id="signup-form" class="space-y-4">
     <div class="space-y-1">
-      <label for="name" class="block text-sm font-medium text-neutral-300">Name</label>
+      <label for="name" class="block text-sm font-medium text-neutral-300"
+        >Name</label
+      >
       <input
         id="name"
         name="name"
@@ -15,11 +17,13 @@ import { authClient } from "../lib/auth-client";
         required
         class="w-full rounded-lg border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-white placeholder-neutral-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         placeholder="John Doe"
-      />
+      >
     </div>
 
     <div class="space-y-1">
-      <label for="email" class="block text-sm font-medium text-neutral-300">Email</label>
+      <label for="email" class="block text-sm font-medium text-neutral-300"
+        >Email</label
+      >
       <input
         id="email"
         name="email"
@@ -27,11 +31,13 @@ import { authClient } from "../lib/auth-client";
         required
         class="w-full rounded-lg border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-white placeholder-neutral-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         placeholder="you@example.com"
-      />
+      >
     </div>
 
     <div class="space-y-1">
-      <label for="password" class="block text-sm font-medium text-neutral-300">Password</label>
+      <label for="password" class="block text-sm font-medium text-neutral-300"
+        >Password</label
+      >
       <input
         id="password"
         name="password"
@@ -40,7 +46,7 @@ import { authClient } from "../lib/auth-client";
         minlength="8"
         class="w-full rounded-lg border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-white placeholder-neutral-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
         placeholder="••••••••"
-      />
+      >
       <p class="text-xs text-neutral-500">Must be at least 8 characters</p>
     </div>
 
@@ -62,45 +68,48 @@ import { authClient } from "../lib/auth-client";
 </div>
 
 <script>
-  import { authClient } from "../lib/auth-client";
+import { authClient } from "@/lib/auth-client"
 
-  const form = document.getElementById("signup-form") as HTMLFormElement;
-  const nameInput = document.getElementById("name") as HTMLInputElement;
-  const emailInput = document.getElementById("email") as HTMLInputElement;
-  const passwordInput = document.getElementById("password") as HTMLInputElement;
-  const formError = document.getElementById("form-error") as HTMLParagraphElement;
-  const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+const form = document.getElementById("signup-form") as HTMLFormElement
+const nameInput = document.getElementById("name") as HTMLInputElement
+const emailInput = document.getElementById("email") as HTMLInputElement
+const passwordInput = document.getElementById("password") as HTMLInputElement
+const formError = document.getElementById("form-error") as HTMLParagraphElement
+const submitButton = form.querySelector(
+  'button[type="submit"]'
+) as HTMLButtonElement
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    
-    formError.classList.add("hidden");
-    submitButton.disabled = true;
-    submitButton.textContent = "Creating account...";
+form.addEventListener("submit", async (e) => {
+  e.preventDefault()
 
-    try {
-      await authClient.signUp.email(
-        {
-          name: nameInput.value,
-          email: emailInput.value,
-          password: passwordInput.value,
+  formError.classList.add("hidden")
+  submitButton.disabled = true
+  submitButton.textContent = "Creating account..."
+
+  try {
+    await authClient.signUp.email(
+      {
+        name: nameInput.value,
+        email: emailInput.value,
+        password: passwordInput.value,
+      },
+      {
+        onSuccess: () => {
+          window.location.href = "/dashboard"
         },
-        {
-          onSuccess: () => {
-            window.location.href = "/dashboard";
-          },
-          onError: (ctx) => {
-            formError.textContent = ctx.error.message || "Sign up failed. Please try again.";
-            formError.classList.remove("hidden");
-          },
-        }
-      );
-    } catch (error) {
-      formError.textContent = "An unexpected error occurred.";
-      formError.classList.remove("hidden");
-    } finally {
-      submitButton.disabled = false;
-      submitButton.textContent = "Sign Up";
-    }
-  });
+        onError: (ctx) => {
+          formError.textContent =
+            ctx.error.message || "Sign up failed. Please try again."
+          formError.classList.remove("hidden")
+        },
+      }
+    )
+  } catch (error) {
+    formError.textContent = "An unexpected error occurred."
+    formError.classList.remove("hidden")
+  } finally {
+    submitButton.disabled = false
+    submitButton.textContent = "Sign Up"
+  }
+})
 </script>

@@ -52,3 +52,19 @@ coverage
 .cache
 tmp
 temp
+
+# Claude
+.claude/
+.claude.lock
+
+# Agents
+.agents/
+.agents.lock
+
+# Node
+.node_modules/
+.node_modules.lock
+
+# Bun
+.bun/
+.bun.lock

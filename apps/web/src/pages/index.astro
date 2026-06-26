@@ -1,6 +1,6 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import { orpc } from "../lib/orpc";
+import Layout from "@/layouts/Layout.astro"
+import { orpc } from "@/lib/orpc"
 
 const TITLE_TEXT = `
  ██████╗ ███████╗████████╗████████╗███████╗██████╗
@@ -16,7 +16,7 @@ const TITLE_TEXT = `
     ██║       ╚════██║   ██║   ██╔══██║██║     ██╔═██╗
     ██║       ███████║   ██║   ██║  ██║╚██████╗██║  ██╗
     ╚═╝       ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
- `;
+ `
 ---
 
 <Layout title="my-better-t-app">
@@ -27,7 +27,9 @@ const TITLE_TEXT = `
         <h2 class="mb-2 font-medium text-white">API Status</h2>
         <div class="flex items-center gap-2" id="api-status">
           <div class="h-2 w-2 rounded-full bg-orange-400" id="status-dot"></div>
-          <span class="text-sm text-neutral-400" id="status-text">Checking...</span>
+          <span class="text-sm text-neutral-400" id="status-text"
+            >Checking...</span
+          >
         </div>
       </section>
     </div>
@@ -35,21 +37,21 @@ const TITLE_TEXT = `
 </Layout>
 
 <script>
-  import { orpc } from "../lib/orpc";
+import { orpc } from "@/lib/orpc"
 
-  const statusDot = document.getElementById("status-dot")!;
-  const statusText = document.getElementById("status-text")!;
+const statusDot = document.getElementById("status-dot")!
+const statusText = document.getElementById("status-text")!
 
-  async function checkHealth() {
-    try {
-      const data = await orpc.healthCheck();
-      statusDot.className = "h-2 w-2 rounded-full bg-green-500";
-      statusText.textContent = "Connected";
-    } catch (error) {
-      statusDot.className = "h-2 w-2 rounded-full bg-red-500";
-      statusText.textContent = "Disconnected";
-    }
+async function checkHealth() {
+  try {
+    const data = await orpc.healthCheck()
+    statusDot.className = "h-2 w-2 rounded-full bg-green-500"
+    statusText.textContent = "Connected"
+  } catch (error) {
+    statusDot.className = "h-2 w-2 rounded-full bg-red-500"
+    statusText.textContent = "Disconnected"
   }
+}
 
-  checkHealth();
+checkHealth()
 </script>

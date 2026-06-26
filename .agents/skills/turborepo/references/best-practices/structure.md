@@ -95,7 +95,7 @@ Package tasks enable Turborepo to:
 
 ```json
 {
-  "$schema": "https://v2-9-17-canary-1.turborepo.dev/schema.json",
+  "$schema": "https://v2-9-8.turborepo.dev/schema.json",
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -117,7 +117,7 @@ With `futureFlags.globalConfiguration`, global settings move under a `global` ke
 
 ```json
 {
-  "$schema": "https://v2-9-17-canary-1.turborepo.dev/schema.json",
+  "$schema": "https://v2-9-8.turborepo.dev/schema.json",
   "futureFlags": { "globalConfiguration": true },
   "global": {
     "inputs": ["tsconfig.json"],
@@ -282,7 +282,7 @@ packages/
 ```js
 // apps/web/.eslintrc.js
 module.exports = {
-  extends: ["@repo/eslint-config/next"],
+  extends: ["@repo/eslint-config/next"]
 };
 ```
 

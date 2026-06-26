@@ -73,7 +73,7 @@ When you run `turbo run lint`, Turborepo finds all packages with a `lint` script
 
 ```json
 {
-  "$schema": "https://v2-9-17-canary-1.turborepo.dev/schema.json",
+  "$schema": "https://v2-9-8.turborepo.dev/schema.json",
   "globalEnv": ["CI"],
   "globalDependencies": ["tsconfig.json"],
   "tasks": {
@@ -97,7 +97,7 @@ When the `globalConfiguration` future flag is enabled, global options move under
 
 ```json
 {
-  "$schema": "https://v2-9-17-canary-1.turborepo.dev/schema.json",
+  "$schema": "https://v2-9-8.turborepo.dev/schema.json",
   "futureFlags": { "globalConfiguration": true },
   "global": {
     "inputs": ["tsconfig.json"],
@@ -228,8 +228,8 @@ Use `turbo.jsonc` extension to add comments with IDE support:
   "tasks": {
     "build": {
       // Next.js outputs
-      "outputs": [".next/**", "!.next/cache/**"],
-    },
-  },
+      "outputs": [".next/**", "!.next/cache/**"]
+    }
+  }
 }
 ```
