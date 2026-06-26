@@ -23,7 +23,7 @@ services:
     build:
       context: .
       dockerfile: apps/server/Dockerfile
-      container_name: server
+    container_name: server
     init: true
     expose:
       - "3000"
