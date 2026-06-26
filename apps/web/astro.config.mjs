@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url"
 import node from "@astrojs/node"
+import react from "@astrojs/react"
 // @ts-check
 import tailwindcss from "@tailwindcss/vite"
 import { defineConfig, envField } from "astro/config"
@@ -8,6 +9,7 @@ import { defineConfig, envField } from "astro/config"
 export default defineConfig({
   output: "server",
   adapter: node({ mode: "standalone" }),
+
   env: {
     schema: {
       PUBLIC_SERVER_URL: envField.string({
@@ -17,7 +19,16 @@ export default defineConfig({
       }),
     },
   },
+
   vite: {
+    server: {
+      proxy: {
+        "/rpc": {
+          target: "http://localhost:3000",
+          changeOrigin: true,
+        },
+      },
+    },
     plugins: [tailwindcss()],
     resolve: {
       alias: {
@@ -25,4 +36,6 @@ export default defineConfig({
       },
     },
   },
+
+  integrations: [react()],
 })
