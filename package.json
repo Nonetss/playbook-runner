@@ -1,5 +1,5 @@
 {
-  "name": "my-better-t-app",
+  "name": "none.stack",
   "private": true,
   "workspaces": {
     "packages": [
@@ -27,10 +27,10 @@
     "format": "biome check --write --linter-enabled=false .",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F server dev",
-    "db:push": "turbo -F @my-better-t-app/db db:push",
-    "db:studio": "turbo -F @my-better-t-app/db db:studio",
-    "db:generate": "turbo -F @my-better-t-app/db db:generate",
-    "db:migrate": "turbo -F @my-better-t-app/db db:migrate",
+    "db:push": "turbo -F @none.stack/db db:push",
+    "db:studio": "turbo -F @none.stack/db db:studio",
+    "db:generate": "turbo -F @none.stack/db db:generate",
+    "db:migrate": "turbo -F @none.stack/db db:migrate",
     "docker:build": "docker compose build",
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",
@@ -38,13 +38,13 @@
     "check": "biome check --write ."
   },
   "dependencies": {
-    "@my-better-t-app/env": "workspace:*",
+    "@none.stack/env": "workspace:*",
     "dotenv": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
-    "@my-better-t-app/config": "workspace:*",
+    "@none.stack/config": "workspace:*",
     "@types/bun": "catalog:",
     "turbo": "^2.9.16",
     "typescript": "catalog:"

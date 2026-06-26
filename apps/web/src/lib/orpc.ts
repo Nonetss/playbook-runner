@@ -1,5 +1,5 @@
 import { PUBLIC_SERVER_URL } from "astro:env/client"
-import type { AppRouterClient } from "@my-better-t-app/api/routers/index"
+import type { AppRouterClient } from "@none.stack/api/routers/index"
 import { createORPCClient } from "@orpc/client"
 import { RPCLink } from "@orpc/client/fetch"
 

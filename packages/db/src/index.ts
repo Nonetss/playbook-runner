@@ -1,4 +1,4 @@
-import { env } from "@my-better-t-app/env/server"
+import { env } from "@none.stack/env/server"
 import { drizzle } from "drizzle-orm/node-postgres"
 
 import * as schema from "@/schema"

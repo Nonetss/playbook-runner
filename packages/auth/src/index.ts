@@ -1,6 +1,6 @@
-import { createDb } from "@my-better-t-app/db"
-import * as schema from "@my-better-t-app/db/schema/auth"
-import { env } from "@my-better-t-app/env/server"
+import { createDb } from "@none.stack/db"
+import * as schema from "@none.stack/db/schema/auth"
+import { env } from "@none.stack/env/server"
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 

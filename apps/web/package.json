@@ -14,8 +14,8 @@
     "@astrojs/react": "^6.0.0",
     "@base-ui/react": "^1.6.0",
     "@fontsource-variable/geist": "^5.2.9",
-    "@my-better-t-app/api": "workspace:*",
-    "@my-better-t-app/env": "workspace:*",
+    "@none.stack/api": "workspace:*",
+    "@none.stack/env": "workspace:*",
     "@orpc/client": "catalog:",
     "@tailwindcss/typography": "^0.5.20",
     "@types/react": "^19.2.17",
@@ -34,7 +34,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@my-better-t-app/config": "workspace:*",
+    "@none.stack/config": "workspace:*",
     "@tailwindcss/vite": "^4.1.18",
     "tailwindcss": "^4.1.18",
     "typescript": "catalog:"

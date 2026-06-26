@@ -1,4 +1,4 @@
-# my-better-t-app
+# none.stack
 
 This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines Astro, Hono, ORPC, and more.
 
@@ -66,7 +66,7 @@ Environment variables are read from each app's `.env` file (baked into web build
 ## Project Structure
 
 ```
-my-better-t-app/
+none.stack/
 ├── apps/
 │   ├── web/         # Frontend application (Astro)
 │   └── server/      # Backend API (Hono, ORPC)
