@@ -1,0 +1,84 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Dashboard - my-better-t-app">
+  <div id="dashboard-content" class="hidden">
+    <main class="mx-auto max-w-4xl px-4 py-8">
+      <div class="rounded-xl border border-neutral-800 bg-neutral-900/50 p-8">
+        <h1 class="text-3xl font-bold text-white mb-6">Dashboard</h1>
+        
+        <div class="space-y-4">
+          <div class="rounded-lg bg-neutral-800/50 p-4">
+            <p class="text-sm text-neutral-400">Welcome back,</p>
+            <p id="user-name" class="text-xl font-medium text-white">Loading...</p>
+          </div>
+          
+          <div class="rounded-lg bg-neutral-800/50 p-4">
+            <p class="text-sm text-neutral-400 mb-2">Email</p>
+            <p id="user-email" class="text-white">Loading...</p>
+          </div>
+
+          <div class="rounded-lg bg-neutral-800/50 p-4">
+            <p class="text-sm text-neutral-400 mb-2">Server Message</p>
+            <p id="api-message" class="text-white">Loading...</p>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="loading" class="flex h-[calc(100vh-4rem)] items-center justify-center">
+    <p class="text-neutral-400">Loading...</p>
+  </div>
+
+  <div id="redirect" class="hidden flex h-[calc(100vh-4rem)] items-center justify-center">
+    <p class="text-neutral-400">Redirecting to login...</p>
+  </div>
+</Layout>
+
+<script>
+  import { authClient } from "../lib/auth-client";
+  import { orpc } from "../lib/orpc";
+
+  const dashboardContent = document.getElementById("dashboard-content")!;
+  const loading = document.getElementById("loading")!;
+  const redirect = document.getElementById("redirect")!;
+  const userName = document.getElementById("user-name")!;
+  const userEmail = document.getElementById("user-email")!;
+  const apiMessage = document.getElementById("api-message")!;
+
+  async function init() {
+    try {
+      const { data: session } = await authClient.getSession();
+      
+      if (!session?.user) {
+        loading.classList.add("hidden");
+        redirect.classList.remove("hidden");
+        window.location.href = "/login";
+        return;
+      }
+
+      userName.textContent = session.user.name || "User";
+      userEmail.textContent = session.user.email || "";
+
+      try {
+        const data = await orpc.privateData();
+        apiMessage.textContent = data.message || "Connected to server";
+      } catch (e) {
+        apiMessage.textContent = "Failed to load server data";
+      }
+
+
+      loading.classList.add("hidden");
+      dashboardContent.classList.remove("hidden");
+    } catch (error) {
+      loading.classList.add("hidden");
+      redirect.classList.remove("hidden");
+      window.location.href = "/login";
+    }
+  }
+
+  init();
+</script>
