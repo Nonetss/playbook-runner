@@ -1,0 +1,17 @@
+{
+	admin off
+	auto_https off
+}
+
+:80 {
+	encode zstd gzip
+
+	# Better Auth / Hono API surface. Override the upstream with
+	# BACKEND_UPSTREAM (defaults to the compose service name).
+	reverse_proxy /rpc/* {$BACKEND_UPSTREAM:server:3000}
+
+	reverse_proxy /api/* {$BACKEND_UPSTREAM:server:3000}
+
+	# Astro SSR, running in this same container
+	reverse_proxy /* 127.0.0.1:4321
+}

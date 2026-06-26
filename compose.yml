@@ -1,4 +1,4 @@
-name: my-better-t-app
+name: none.stack
 
 services:
   web:
@@ -6,11 +6,11 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        PUBLIC_SERVER_URL: http://server:3000
+        PUBLIC_SERVER_URL: http://localhost:3000
     container_name: web
     init: true
     ports:
-      - "3001:3001"
+      - "4321:80"
     env_file:
       - path: apps/web/.env
         required: false
