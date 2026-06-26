@@ -1,50 +1,25 @@
+import type { User } from "better-auth/types"
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { authClient } from "@/lib/auth-client"
 import { orpc } from "@/lib/orpc"
 
 export function DashboardContent() {
-  const [user, setUser] = useState<{ name?: string; email?: string } | null>(
-    null
-  )
   const [apiMessage, setApiMessage] = useState("Loading...")
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-    async function init() {
-      try {
-        const { data: session } = await authClient.getSession()
-
-        if (!session?.user) {
-          window.location.href = "/login"
-          return
-        }
-
-        setUser(session.user)
-
-        try {
-          const data = await orpc.privateData()
-          setApiMessage(data.message || "Connected to server")
-        } catch {
-          setApiMessage("Failed to load server data")
-        }
-      } catch {
-        window.location.href = "/login"
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    init()
+    // Esta es la forma de obtener la session del usuario desde el cliente
+    authClient.getSession().then(({ data: session }) => {
+      setUser(session?.user || null)
+    })
+    orpc
+      .privateData()
+      .then((data: { message: string }) =>
+        setApiMessage(data.message || "Connected to server")
+      )
+      .catch(() => setApiMessage("Failed to load server data"))
   }, [])
-
-  if (loading) {
-    return (
-      <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    )
-  }
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
@@ -63,7 +38,7 @@ export function DashboardContent() {
           <Card>
             <CardContent className="pt-4">
               <p className="text-sm text-muted-foreground mb-1">Email</p>
-              <p>{user?.email}</p>
+              <p className="text-xl font-medium">{user?.email || "User"}</p>
             </CardContent>
           </Card>
 

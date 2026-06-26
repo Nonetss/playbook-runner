@@ -1,6 +1,20 @@
 ---
-import { DashboardContent } from "@/components/features/test/DashboardContent"
+import { DashboardContent } from "@/components/features/try/DashboardContent"
 import Layout from "@/layouts/Layout.astro"
+import { authServer } from "@/lib/auth-server"
+
+// Astro.locals es la forma de obtener las variables de contexto en Astro
+// En este caso, la session y el user
+const { user, session } = Astro.locals
+console.log(user, session)
+
+const serverSession = await authServer.getSession({
+  fetchOptions: {
+    headers: Object.fromEntries(Astro.request.headers.entries()),
+  },
+})
+
+if (!serverSession) return Astro.redirect("/login")
 ---
 
 <Layout title="Dashboard - none.stack">

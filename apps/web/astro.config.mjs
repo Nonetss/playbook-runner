@@ -17,6 +17,11 @@ export default defineConfig({
         context: "client",
         default: "http://localhost:3000",
       }),
+      BETTER_AUTH_URL: envField.string({
+        access: "public",
+        context: "server",
+        default: "http://localhost:3000",
+      }),
     },
   },
 
@@ -31,7 +36,11 @@ export default defineConfig({
           target: "http://localhost:3000",
           changeOrigin: true,
         },
-        "/api-reference": {
+        "/scalar": {
+          target: "http://localhost:3000",
+          changeOrigin: true,
+        },
+        "/openapi.json": {
           target: "http://localhost:3000",
           changeOrigin: true,
         },

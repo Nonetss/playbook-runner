@@ -25,8 +25,8 @@ services:
       dockerfile: apps/server/Dockerfile
       container_name: server
     init: true
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     env_file:
       - path: apps/server/.env
         required: false
