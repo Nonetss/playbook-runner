@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { orpc } from "@/lib/orpc"
+import { cn } from "@/lib/utils"
 
-export function ApiStatus() {
+export function ApiStatus({ className }: { className?: string }) {
   const [status, setStatus] = useState<
     "checking" | "connected" | "disconnected"
   >("checking")
@@ -29,7 +30,7 @@ export function ApiStatus() {
         : "Checking..."
 
   return (
-    <Card>
+    <Card className={cn("w-full max-w-md", className)}>
       <CardHeader>
         <CardTitle className="text-base font-medium">API Status</CardTitle>
       </CardHeader>
