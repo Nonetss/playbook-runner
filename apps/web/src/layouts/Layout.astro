@@ -1,6 +1,6 @@
 ---
 import "@/styles/global.css"
-import Header from "@/components/Header.astro"
+import { Header } from "@/components/features/global/Header"
 
 interface Props {
   title?: string
@@ -18,8 +18,8 @@ const { title = "my-better-t-app" } = Astro.props
     <meta name="generator" content={Astro.generator}>
     <title>{title}</title>
   </head>
-  <body class="min-h-screen bg-neutral-950 text-white">
-    <Header />
+  <body class="min-h-screen bg-background text-foreground">
+    <Header client:load />
     <slot />
   </body>
 </html>
