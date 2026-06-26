@@ -5,13 +5,13 @@
     "": {
       "name": "my-better-t-app",
       "dependencies": {
-        "@my-better-t-app/env": "workspace:*",
+        "@none.stack/env": "workspace:*",
         "dotenv": "catalog:",
         "zod": "catalog:",
       },
       "devDependencies": {
         "@biomejs/biome": "^2.4.16",
-        "@my-better-t-app/config": "workspace:*",
+        "@none.stack/config": "workspace:*",
         "@types/bun": "catalog:",
         "turbo": "^2.9.16",
         "typescript": "catalog:",
@@ -20,10 +20,10 @@
     "apps/server": {
       "name": "server",
       "dependencies": {
-        "@my-better-t-app/api": "workspace:*",
-        "@my-better-t-app/auth": "workspace:*",
-        "@my-better-t-app/db": "workspace:*",
-        "@my-better-t-app/env": "workspace:*",
+        "@none.stack/api": "workspace:*",
+        "@none.stack/auth": "workspace:*",
+        "@none.stack/db": "workspace:*",
+        "@none.stack/env": "workspace:*",
         "@orpc/openapi": "catalog:",
         "@orpc/server": "catalog:",
         "@orpc/zod": "catalog:",
@@ -33,7 +33,7 @@
         "zod": "catalog:",
       },
       "devDependencies": {
-        "@my-better-t-app/config": "workspace:*",
+        "@none.stack/config": "workspace:*",
         "@types/bun": "catalog:",
         "tsdown": "^0.21.9",
         "typescript": "catalog:",
@@ -47,8 +47,8 @@
         "@astrojs/react": "^6.0.0",
         "@base-ui/react": "^1.6.0",
         "@fontsource-variable/geist": "^5.2.9",
-        "@my-better-t-app/api": "workspace:*",
-        "@my-better-t-app/env": "workspace:*",
+        "@none.stack/api": "workspace:*",
+        "@none.stack/env": "workspace:*",
         "@orpc/client": "catalog:",
         "@tailwindcss/typography": "^0.5.20",
         "@types/react": "^19.2.17",
@@ -67,18 +67,18 @@
         "zod": "catalog:",
       },
       "devDependencies": {
-        "@my-better-t-app/config": "workspace:*",
+        "@none.stack/config": "workspace:*",
         "@tailwindcss/vite": "^4.1.18",
         "tailwindcss": "^4.1.18",
         "typescript": "catalog:",
       },
     },
     "packages/api": {
-      "name": "@my-better-t-app/api",
+      "name": "@none.stack/api",
       "dependencies": {
-        "@my-better-t-app/auth": "workspace:*",
-        "@my-better-t-app/db": "workspace:*",
-        "@my-better-t-app/env": "workspace:*",
+        "@none.stack/auth": "workspace:*",
+        "@none.stack/db": "workspace:*",
+        "@none.stack/env": "workspace:*",
         "@orpc/client": "catalog:",
         "@orpc/openapi": "catalog:",
         "@orpc/server": "catalog:",
@@ -87,47 +87,47 @@
         "zod": "catalog:",
       },
       "devDependencies": {
-        "@my-better-t-app/config": "workspace:*",
+        "@none.stack/config": "workspace:*",
         "hono": "catalog:",
         "typescript": "catalog:",
       },
     },
     "packages/auth": {
-      "name": "@my-better-t-app/auth",
+      "name": "@none.stack/auth",
       "dependencies": {
-        "@my-better-t-app/db": "workspace:*",
-        "@my-better-t-app/env": "workspace:*",
+        "@none.stack/db": "workspace:*",
+        "@none.stack/env": "workspace:*",
         "better-auth": "catalog:",
         "dotenv": "catalog:",
         "zod": "catalog:",
       },
       "devDependencies": {
-        "@my-better-t-app/config": "workspace:*",
+        "@none.stack/config": "workspace:*",
         "typescript": "catalog:",
       },
     },
     "packages/config": {
-      "name": "@my-better-t-app/config",
+      "name": "@none.stack/config",
       "version": "0.0.0",
     },
     "packages/db": {
-      "name": "@my-better-t-app/db",
+      "name": "@none.stack/db",
       "dependencies": {
-        "@my-better-t-app/env": "workspace:*",
+        "@none.stack/env": "workspace:*",
         "dotenv": "catalog:",
         "drizzle-orm": "^0.45.1",
         "pg": "^8.17.1",
         "zod": "catalog:",
       },
       "devDependencies": {
-        "@my-better-t-app/config": "workspace:*",
+        "@none.stack/config": "workspace:*",
         "@types/pg": "^8.16.0",
         "drizzle-kit": "^0.31.8",
         "typescript": "catalog:",
       },
     },
     "packages/env": {
-      "name": "@my-better-t-app/env",
+      "name": "@none.stack/env",
       "version": "0.0.0",
       "dependencies": {
         "@t3-oss/env-core": "^0.13.1",
@@ -135,7 +135,7 @@
         "zod": "catalog:",
       },
       "devDependencies": {
-        "@my-better-t-app/config": "workspace:*",
+        "@none.stack/config": "workspace:*",
         "@types/bun": "catalog:",
         "typescript": "catalog:",
       },
@@ -456,16 +456,6 @@
 
     "@modelcontextprotocol/sdk": ["@modelcontextprotocol/sdk@1.29.0", "", { "dependencies": { "@hono/node-server": "^1.19.9", "ajv": "^8.17.1", "ajv-formats": "^3.0.1", "content-type": "^1.0.5", "cors": "^2.8.5", "cross-spawn": "^7.0.5", "eventsource": "^3.0.2", "eventsource-parser": "^3.0.0", "express": "^5.2.1", "express-rate-limit": "^8.2.1", "hono": "^4.11.4", "jose": "^6.1.3", "json-schema-typed": "^8.0.2", "pkce-challenge": "^5.0.0", "raw-body": "^3.0.0", "zod": "^3.25 || ^4.0", "zod-to-json-schema": "^3.25.1" }, "peerDependencies": { "@cfworker/json-schema": "^4.1.1" }, "optionalPeers": ["@cfworker/json-schema"] }, "sha512-zo37mZA9hJWpULgkRpowewez1y6ML5GsXJPY8FI0tBBCd77HEvza4jDqRKOXgHNn867PVGCyTdzqpz0izu5ZjQ=="],
 
-    "@my-better-t-app/api": ["@my-better-t-app/api@workspace:packages/api"],
-
-    "@my-better-t-app/auth": ["@my-better-t-app/auth@workspace:packages/auth"],
-
-    "@my-better-t-app/config": ["@my-better-t-app/config@workspace:packages/config"],
-
-    "@my-better-t-app/db": ["@my-better-t-app/db@workspace:packages/db"],
-
-    "@my-better-t-app/env": ["@my-better-t-app/env@workspace:packages/env"],
-
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@1.1.6", "", { "dependencies": { "@tybys/wasm-util": "^0.10.3" }, "peerDependencies": { "@emnapi/core": "^1.7.1", "@emnapi/runtime": "^1.7.1" } }, "sha512-ZLv/JdUfkvOy9eCnnBaGfiO+XimbjebAeO+MRQqD/B+FR1tnRN0tpKSJHRbE8sFfS6aqsXZ67TQjfwfsxULVbg=="],
 
     "@noble/ciphers": ["@noble/ciphers@2.2.0", "", {}, "sha512-Z6pjIZ/8IJcCGzb2S/0Px5J81yij85xASuk1teLNeg75bfT07MV3a/O2Mtn1I2se43k3lkVEcFaR10N4cgQcZA=="],
@@ -477,6 +467,16 @@
     "@nodelib/fs.stat": ["@nodelib/fs.stat@2.0.5", "", {}, "sha512-RkhPPp2zrqDAQA/2jNhnztcPAlv64XdhIp7a7454A5ovI7Bukxgt7MX7udwAu3zg1DcpPU0rz3VV1SeaqvY4+A=="],
 
     "@nodelib/fs.walk": ["@nodelib/fs.walk@1.2.8", "", { "dependencies": { "@nodelib/fs.scandir": "2.1.5", "fastq": "^1.6.0" } }, "sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg=="],
+
+    "@none.stack/api": ["@none.stack/api@workspace:packages/api"],
+
+    "@none.stack/auth": ["@none.stack/auth@workspace:packages/auth"],
+
+    "@none.stack/config": ["@none.stack/config@workspace:packages/config"],
+
+    "@none.stack/db": ["@none.stack/db@workspace:packages/db"],
+
+    "@none.stack/env": ["@none.stack/env@workspace:packages/env"],
 
     "@opentelemetry/semantic-conventions": ["@opentelemetry/semantic-conventions@1.41.1", "", {}, "sha512-/UhIkaZgPutTFmQ7RnIJGgDXZmtEJ7Dvi86xNTFWcnRxVRNk/aotsqDJYeEvDP+FSMB2SdW+pQzNMcWP0rwuNA=="],
 

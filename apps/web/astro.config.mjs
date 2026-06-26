@@ -1,10 +1,9 @@
 import { fileURLToPath } from "node:url"
 import node from "@astrojs/node"
 import react from "@astrojs/react"
-import { fontProviders } from "@fontsource/font-providers"
 // @ts-check
 import tailwindcss from "@tailwindcss/vite"
-import { defineConfig, envField } from "astro/config"
+import { defineConfig, envField, fontProviders } from "astro/config"
 
 // https://astro.build/config
 export default defineConfig({
@@ -25,6 +24,10 @@ export default defineConfig({
     server: {
       proxy: {
         "/rpc": {
+          target: "http://localhost:3000",
+          changeOrigin: true,
+        },
+        "/api": {
           target: "http://localhost:3000",
           changeOrigin: true,
         },
