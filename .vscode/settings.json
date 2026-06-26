@@ -22,6 +22,6 @@
   "files.exclude": {
     "**/.claude": true,
     "**/.agents": true,
-    "**/.node_modules": true
+    "**/node_modules": true
   }
 }
