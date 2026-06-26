@@ -29,7 +29,10 @@ app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw))
 export const apiHandler = new OpenAPIHandler(appRouter, {
   plugins: [
     new OpenAPIReferencePlugin({
+      docsProvider: "scalar",
       schemaConverters: [new ZodToJsonSchemaConverter()],
+      docsPath: "/scalar",
+      specPath: "/openapi.json",
     }),
   ],
   interceptors: [
@@ -60,7 +63,6 @@ app.use("/*", async (c, next) => {
   }
 
   const apiResult = await apiHandler.handle(c.req.raw, {
-    prefix: "/api-reference",
     context: context,
   })
 

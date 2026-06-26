@@ -31,6 +31,10 @@ export default defineConfig({
           target: "http://localhost:3000",
           changeOrigin: true,
         },
+        "/api-reference": {
+          target: "http://localhost:3000",
+          changeOrigin: true,
+        },
       },
     },
     plugins: [tailwindcss()],
