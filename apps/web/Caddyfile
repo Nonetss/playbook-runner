@@ -10,10 +10,18 @@
 :80 {
     encode zstd gzip
 
-    handle /rpc/*    { import backend }
-    handle /api/*    { import backend }
-    handle /scalar*  { import backend }
-    handle /openapi.json { import backend }
+    handle /rpc/* {
+        import backend
+    }
+    handle /api/* {
+        import backend
+    }
+    handle /scalar* {
+        import backend
+    }
+    handle /openapi.json {
+        import backend
+    }
 
     handle {
         reverse_proxy 127.0.0.1:4321

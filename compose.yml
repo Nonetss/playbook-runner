@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        PUBLIC_SERVER_URL: http://localhost:3000
+        PUBLIC_SERVER_URL: http://localhost:4321
     container_name: web
     init: true
     ports:
@@ -14,6 +14,8 @@ services:
     env_file:
       - path: apps/web/.env
         required: false
+    environment:
+      BETTER_AUTH_URL: http://server:3000
     depends_on:
       server:
         condition: service_healthy
@@ -31,7 +33,7 @@ services:
       - path: apps/server/.env
         required: false
     environment:
-      CORS_ORIGIN: http://localhost:3000
+      CORS_ORIGIN: http://localhost:4321
     healthcheck:
       test:
         [

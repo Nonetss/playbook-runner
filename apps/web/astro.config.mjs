@@ -17,11 +17,6 @@ export default defineConfig({
         context: "client",
         default: "http://localhost:3000",
       }),
-      BETTER_AUTH_URL: envField.string({
-        access: "public",
-        context: "server",
-        default: "http://localhost:3000",
-      }),
     },
   },
 
