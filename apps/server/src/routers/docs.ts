@@ -13,6 +13,26 @@ const handler = new OpenAPIHandler(appRouter, {
       schemaConverters: [new ZodToJsonSchemaConverter()],
       docsPath: "/scalar",
       specPath: "/openapi.json",
+      specGenerateOptions: {
+        servers: [{ url: "/rpc" }],
+        info: { title: "API", version: "1.0.0" },
+        security: [{ ApiKey: [] }, { BearerAuth: [] }],
+        components: {
+          securitySchemes: {
+            ApiKey: {
+              type: "apiKey",
+              in: "header",
+              name: "x-api-key",
+              description: "API key — pass your key in the x-api-key header",
+            },
+            BearerAuth: {
+              type: "http",
+              scheme: "bearer",
+              description: "Session token — pass your session token as Bearer",
+            },
+          },
+        },
+      },
     }),
   ],
   interceptors: [onError((error) => console.error(error))],
@@ -22,7 +42,7 @@ const router = new Hono()
 
 const docsMiddleware: Parameters<typeof router.use>[1] = async (c, next) => {
   const context = await createContext({ context: c })
-  const result = await handler.handle(c.req.raw, { prefix: "/rpc", context })
+  const result = await handler.handle(c.req.raw, { prefix: "/", context })
   if (result.matched)
     return c.newResponse(result.response.body, result.response)
   await next()
