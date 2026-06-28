@@ -11,6 +11,7 @@
   },
   "scripts": {},
   "dependencies": {
+    "@better-auth/api-key": "^1.6.22",
     "@none.stack/db": "workspace:*",
     "@none.stack/env": "workspace:*",
     "better-auth": "catalog:",

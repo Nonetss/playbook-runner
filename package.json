@@ -15,7 +15,7 @@
       "@orpc/server": "^1.13.14",
       "@orpc/openapi": "^1.13.14",
       "@orpc/zod": "^1.13.14",
-      "better-auth": "1.6.11",
+      "better-auth": "1.6.22",
       "@orpc/client": "^1.13.14"
     }
   },
@@ -38,6 +38,7 @@
     "check": "biome check --write ."
   },
   "dependencies": {
+    "@better-auth/core": "^1.6.22",
     "@none.stack/env": "workspace:*",
     "dotenv": "catalog:",
     "zod": "catalog:"

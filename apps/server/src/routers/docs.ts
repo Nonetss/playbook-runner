@@ -22,7 +22,7 @@ const router = new Hono()
 
 const docsMiddleware: Parameters<typeof router.use>[1] = async (c, next) => {
   const context = await createContext({ context: c })
-  const result = await handler.handle(c.req.raw, { prefix: "/", context })
+  const result = await handler.handle(c.req.raw, { prefix: "/rpc", context })
   if (result.matched)
     return c.newResponse(result.response.body, result.response)
   await next()

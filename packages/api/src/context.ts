@@ -1,4 +1,4 @@
-import { auth } from "@none.stack/auth"
+import type { auth } from "@none.stack/auth"
 import type { Context as HonoContext } from "hono"
 
 export type CreateContextOptions = {
@@ -6,13 +6,14 @@ export type CreateContextOptions = {
 }
 
 export async function createContext({ context }: CreateContextOptions) {
-  const session = await auth.api.getSession({
-    headers: context.req.raw.headers,
-  })
-  return {
-    auth: null,
-    session,
-  }
+  const user = (context.get("user") ?? null) as
+    | typeof auth.$Infer.Session.user
+    | null
+  const session = (context.get("session") ?? null) as
+    | typeof auth.$Infer.Session.session
+    | null
+
+  return { user, session }
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>
