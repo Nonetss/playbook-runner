@@ -4,11 +4,7 @@
   "exclude": ["dist"],
   "compilerOptions": {
     "paths": {
-      "@/*": [
-        "./src/*",
-        "../../packages/api/src/*",
-        "../../packages/db/src/*"
-      ]
+      "@/*": ["./src/*", "../../packages/api/src/*", "../../packages/db/src/*"]
     },
     "jsx": "react-jsx",
     "jsxImportSource": "react"

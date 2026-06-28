@@ -11,11 +11,7 @@ function ApiStatusContent({ className }: { className?: string }) {
     })
   )
 
-  const status = isPending
-    ? "checking"
-    : isError
-      ? "disconnected"
-      : "connected"
+  const status = isPending ? "checking" : isError ? "disconnected" : "connected"
 
   const dot =
     status === "connected"
