@@ -9,7 +9,9 @@ import { defineConfig, envField, fontProviders } from "astro/config"
 export default defineConfig({
   output: "server",
   adapter: node({ mode: "standalone" }),
-
+  prefetch: {
+    defaultStrategy: "viewport",
+  },
   env: {
     schema: {
       PUBLIC_SERVER_URL: envField.string({

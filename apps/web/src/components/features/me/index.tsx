@@ -1,11 +1,12 @@
+import type { Session, User } from "better-auth"
 import { Calendar, Hash, Mail, ShieldCheck, UserCircle2 } from "lucide-react"
 import type React from "react"
 import { Badge } from "@/components/ui/badge"
-import { authClient } from "@/lib/auth-client"
 
-type SessionUser = NonNullable<
-  ReturnType<typeof authClient.useSession>["data"]
->["user"]
+type ProfilePageProps = {
+  user: User
+  session: Session
+}
 
 const AVATAR_COLORS = [
   "bg-blue-500/15 text-blue-700 dark:text-blue-400",
@@ -28,41 +29,7 @@ function ProfileHeader() {
   )
 }
 
-function ProfileCardSkeleton() {
-  return (
-    <div className="rounded-md border bg-card overflow-hidden">
-      {/* header — avatar + nombre + email + badges */}
-      <div className="bg-primary/5 p-6 border-b flex items-center gap-4">
-        <div className="h-16 w-16 rounded-md bg-muted animate-pulse shrink-0" />
-        <div className="min-w-0 space-y-2">
-          <div className="h-5 w-36 bg-muted rounded animate-pulse" />
-          <div className="h-4 w-52 bg-muted rounded animate-pulse" />
-          <div className="flex items-center gap-2 mt-1.5">
-            <div className="h-5 w-20 bg-muted rounded-md animate-pulse" />
-          </div>
-        </div>
-      </div>
-
-      {/* filas de detalle — igual que DetailRow: icono + label (w-28) + valor */}
-      <div className="p-2">
-        {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className="flex items-center gap-3 px-4 py-3 rounded-md mx-2"
-          >
-            <div className="bg-primary/10 p-2 rounded-md shrink-0">
-              <div className="h-4 w-4 bg-muted rounded animate-pulse" />
-            </div>
-            <div className="h-4 w-28 bg-muted rounded animate-pulse shrink-0" />
-            <div className="h-4 w-40 bg-muted rounded animate-pulse" />
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function ProfileCard({ user }: { user: SessionUser }) {
+function ProfileCard({ user }: { user: User }) {
   const displayName =
     user.name?.trim() ||
     (typeof user.email === "string" ? user.email.split("@")[0] : null) ||
@@ -174,19 +141,12 @@ function DetailRow({
   )
 }
 
-export function ProfilePage() {
-  const { data: session, isPending } = authClient.useSession()
-  const user = session?.user
-
+export function ProfilePage({ user, session: _session }: ProfilePageProps) {
   return (
     <main className="flex-1 p-6">
       <div className="max-w-2xl mx-auto space-y-4">
         <ProfileHeader />
-        {isPending ? (
-          <ProfileCardSkeleton />
-        ) : user ? (
-          <ProfileCard user={user} />
-        ) : null}
+        {user ? <ProfileCard user={user} /> : null}
       </div>
     </main>
   )
