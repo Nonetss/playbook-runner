@@ -9,7 +9,7 @@ build
 *.tsbuildinfo
 
 # Generated files
-apps/web/src/routeTree.gen.ts
+apps/frontend/src/routeTree.gen.ts
 
 # Environment variables
 .env

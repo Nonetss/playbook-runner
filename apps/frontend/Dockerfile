@@ -10,11 +10,11 @@ RUN --mount=type=cache,target=/root/.bun/install/cache bun install
 ARG PUBLIC_SERVER_URL
 ENV PUBLIC_SERVER_URL=${PUBLIC_SERVER_URL}
 ENV NODE_ENV=production
-RUN cd apps/web && bun run build
+RUN cd apps/frontend && bun run build
 ENV SKIP_ENV_VALIDATION=
 
-COPY apps/web/Caddyfile /etc/caddy/Caddyfile
-COPY apps/web/start.sh /start.sh
+COPY apps/frontend/Caddyfile /etc/caddy/Caddyfile
+COPY apps/frontend/start.sh /start.sh
 RUN chmod +x /start.sh
 
 # Astro SSR escucha solo en localhost; Caddy expone el 80

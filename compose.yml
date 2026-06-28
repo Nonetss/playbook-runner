@@ -1,36 +1,36 @@
 name: none.stack
 
 services:
-  web:
+  frontend:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: apps/frontend/Dockerfile
       args:
         PUBLIC_SERVER_URL: http://localhost:4321
-    container_name: web
+    container_name: frontend
     init: true
     ports:
       - "4321:80"
     env_file:
-      - path: apps/web/.env
+      - path: apps/frontend/.env
         required: false
     environment:
-      BETTER_AUTH_URL: http://server:3000
+      BETTER_AUTH_URL: http://backend:3000
     depends_on:
-      server:
+      backend:
         condition: service_healthy
     restart: unless-stopped
 
-  server:
+  backend:
     build:
       context: .
-      dockerfile: apps/server/Dockerfile
-    container_name: server
+      dockerfile: apps/backend/Dockerfile
+    container_name: backend
     init: true
     expose:
       - "3000"
     env_file:
-      - path: apps/server/.env
+      - path: apps/backend/.env
         required: false
     environment:
       CORS_ORIGIN: http://localhost:4321

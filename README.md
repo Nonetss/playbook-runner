@@ -29,7 +29,7 @@ bun install
 This project uses PostgreSQL with Drizzle ORM.
 
 1. Make sure you have a PostgreSQL database set up.
-2. Update your `apps/server/.env` file with your PostgreSQL connection details.
+2. Update your `apps/backend/.env` file with your PostgreSQL connection details.
 
 3. Apply the schema to your database:
 
@@ -50,7 +50,7 @@ The API is running at [http://localhost:3000](http://localhost:3000).
 
 ### Docker Compose
 
-- Target: web + server
+- Target: frontend + backend
 - Config: `docker-compose.yml` (app Dockerfiles live in `apps/*/Dockerfile`)
 - Build images: bun run docker:build
 - Start: bun run docker:up
@@ -68,8 +68,8 @@ Environment variables are read from each app's `.env` file (baked into web build
 ```
 none.stack/
 ├── apps/
-│   ├── web/         # Frontend application (Astro)
-│   └── server/      # Backend API (Hono, ORPC)
+│   ├── frontend/    # Frontend application (Astro)
+│   └── backend/     # Backend API (Hono, ORPC)
 ├── packages/
 │   ├── api/         # API layer / business logic
 │   ├── auth/        # Authentication configuration & logic
@@ -80,8 +80,8 @@ none.stack/
 
 - `bun run dev`: Start all applications in development mode
 - `bun run build`: Build all applications
-- `bun run dev:web`: Start only the web application
-- `bun run dev:server`: Start only the server
+- `bun run dev:frontend`: Start only the frontend application
+- `bun run dev:backend`: Start only the backend
 - `bun run check-types`: Check TypeScript types across all apps
 - `bun run db:push`: Push schema changes to database
 - `bun run db:generate`: Generate database client/types
