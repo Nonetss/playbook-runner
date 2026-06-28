@@ -53,8 +53,12 @@ The system SHALL resolve the current session on every request and expose the aut
 - **THEN** the middleware SHALL set `user` and `session` to `null`
 
 ### Requirement: Authentication client SDK
-The system SHALL provide a client authentication instance configured with the public server URL so the frontend can call auth, API key, and admin operations.
+The system SHALL provide a client authentication instance configured with the public server URL so the frontend can call auth, API key, and admin operations. The client MUST expose a reactive session hook so UI components re-render when the session changes.
 
 #### Scenario: Client targets the configured server
 - **WHEN** the auth client issues a request
 - **THEN** it SHALL send the request to the configured `PUBLIC_SERVER_URL`
+
+#### Scenario: Components observe the session reactively
+- **WHEN** a component subscribes to the session via the client's session hook
+- **THEN** it SHALL receive the current user and re-render when the authentication state changes
