@@ -66,8 +66,11 @@ const hasSession = !!user && !!session
           navLinks={navLinks}
         />
       )}
-    <main transition:animate={fade({ duration: "0.2s" })}>
+    <div
+      class="flex flex-1 flex-col"
+      transition:animate={fade({ duration: "0.2s" })}
+    >
       <slot />
-    </main>
+    </div>
   </body>
 </html>

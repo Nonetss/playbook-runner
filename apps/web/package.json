@@ -10,6 +10,7 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/check": "^0.9.9",
     "@astrojs/node": "^11.0.0",
     "@astrojs/react": "^6.0.0",
     "@base-ui/react": "^1.6.0",
@@ -40,6 +41,6 @@
     "@none.stack/config": "workspace:*",
     "@tailwindcss/vite": "^4.1.18",
     "tailwindcss": "^4.1.18",
-    "typescript": "catalog:"
+    "typescript": "^6.0.3"
   }
 }
