@@ -13,7 +13,7 @@ export async function createContext({ context }: CreateContextOptions) {
     | typeof auth.$Infer.Session.session
     | null
 
-  return { user, session }
+  return { user, session, headers: context.req.raw.headers }
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>
