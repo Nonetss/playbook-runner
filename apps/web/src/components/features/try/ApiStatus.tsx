@@ -1,19 +1,21 @@
-import { useEffect, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { QueryProvider } from "@/components/providers/query-provider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { orpc } from "@/lib/orpc"
 import { cn } from "@/lib/utils"
 
-export function ApiStatus({ className }: { className?: string }) {
-  const [status, setStatus] = useState<
-    "checking" | "connected" | "disconnected"
-  >("checking")
+function ApiStatusContent({ className }: { className?: string }) {
+  const { isPending, isError } = useQuery(
+    orpc.healthCheck.queryOptions({
+      retry: false,
+    })
+  )
 
-  useEffect(() => {
-    orpc
-      .healthCheck()
-      .then(() => setStatus("connected"))
-      .catch(() => setStatus("disconnected"))
-  }, [])
+  const status = isPending
+    ? "checking"
+    : isError
+      ? "disconnected"
+      : "connected"
 
   const dot =
     status === "connected"
@@ -41,5 +43,13 @@ export function ApiStatus({ className }: { className?: string }) {
         </div>
       </CardContent>
     </Card>
+  )
+}
+
+export function ApiStatus({ className }: { className?: string }) {
+  return (
+    <QueryProvider>
+      <ApiStatusContent className={className} />
+    </QueryProvider>
   )
 }

@@ -1,25 +1,22 @@
-import type { User } from "better-auth/types"
-import { useEffect, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { QueryProvider } from "@/components/providers/query-provider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { authClient } from "@/lib/auth-client"
 import { orpc } from "@/lib/orpc"
 
-export function DashboardContent() {
-  const [apiMessage, setApiMessage] = useState("Loading...")
-  const [user, setUser] = useState<User | null>(null)
+function DashboardContentInner() {
+  const { data: session } = authClient.useSession()
+  const user = session?.user
 
-  useEffect(() => {
-    // Esta es la forma de obtener la session del usuario desde el cliente
-    authClient.getSession().then(({ data: session }) => {
-      setUser(session?.user || null)
-    })
-    orpc
-      .privateData()
-      .then((data: { message: string }) =>
-        setApiMessage(data.message || "Connected to server")
-      )
-      .catch(() => setApiMessage("Failed to load server data"))
-  }, [])
+  const { data, isPending, isError } = useQuery(
+    orpc.privateData.queryOptions()
+  )
+
+  const apiMessage = isPending
+    ? "Loading..."
+    : isError
+      ? "Failed to load server data"
+      : data?.message || "Connected to server"
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
@@ -53,5 +50,13 @@ export function DashboardContent() {
         </CardContent>
       </Card>
     </main>
+  )
+}
+
+export function DashboardContent() {
+  return (
+    <QueryProvider>
+      <DashboardContentInner />
+    </QueryProvider>
   )
 }

@@ -16,7 +16,8 @@
       "@orpc/openapi": "^1.13.14",
       "@orpc/zod": "^1.13.14",
       "better-auth": "1.6.22",
-      "@orpc/client": "^1.13.14"
+      "@orpc/client": "^1.13.14",
+      "@orpc/tanstack-query": "^1.13.14"
     }
   },
   "type": "module",
