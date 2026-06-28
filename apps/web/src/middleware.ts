@@ -10,9 +10,14 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next()
   }
 
+  let refreshedCookie: string | null = null
+
   const sessionResult = await authServer.getSession({
     fetchOptions: {
       headers: Object.fromEntries(context.request.headers.entries()),
+      onSuccess: (ctx) => {
+        refreshedCookie = ctx.response.headers.get("set-cookie")
+      },
     },
   })
 
@@ -25,5 +30,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.session = session
   context.locals.user = user
 
-  return next()
+  const response = await next()
+
+  if (refreshedCookie) {
+    response.headers.append("set-cookie", refreshedCookie)
+  }
+
+  return response
 })

@@ -18,6 +18,12 @@ export function createAuth() {
     emailAndPassword: {
       enabled: true,
     },
+    session: {
+      cookieCache: {
+        enabled: true,
+        maxAge: 5 * 60,
+      },
+    },
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,
     advanced: {
