@@ -1,7 +1,7 @@
 ---
 import "@/styles/global.css"
 import { Font } from "astro:assets"
-import { ClientRouter } from "astro:transitions"
+import { ClientRouter, fade } from "astro:transitions"
 import { NavbarAuthenticated } from "@/components/features/global/navbar-authenticated"
 import { NavbarGuest } from "@/components/features/global/navbar-guest"
 
@@ -54,10 +54,11 @@ const hasSession = !!user && !!session
   </head>
   <body class="flex min-h-screen flex-col">
     {guestNavbar || !hasSession ? (
-        <NavbarGuest client:load nameApp="NONE.STACK"  />
+        <NavbarGuest client:load transition:persist nameApp="NONE.STACK"  />
       ) : (
         <NavbarAuthenticated
           client:load
+          transition:persist
           user={user}
           session={session}
           nameApp="NONE.STACK"
@@ -65,6 +66,8 @@ const hasSession = !!user && !!session
           navLinks={navLinks}
         />
       )}
-    <slot />
+    <main transition:animate={fade({ duration: "0.2s" })}>
+      <slot />
+    </main>
   </body>
 </html>
