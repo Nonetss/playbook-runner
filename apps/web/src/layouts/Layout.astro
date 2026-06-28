@@ -1,25 +1,65 @@
 ---
 import "@/styles/global.css"
-import { Header } from "@/components/features/global/Header"
+import { Font } from "astro:assets"
+import { ClientRouter } from "astro:transitions"
+import { NavbarAuthenticated } from "@/components/features/global/navbar-authenticated"
+import { NavbarGuest } from "@/components/features/global/navbar-guest"
 
-interface Props {
-  title?: string
+interface NavLink {
+  href: string
+  label: string
 }
 
-const { title = "none.stack" } = Astro.props
+interface Props {
+  title: string
+  navLinks?: NavLink[]
+  /** Páginas públicas (login / registro): barra sin enlaces de la app ni ajustes. */
+  guestNavbar?: boolean
+}
+
+const {
+  title,
+  guestNavbar = false,
+  navLinks = [
+    { href: "/", label: "Inicio" },
+    { href: "/dashboard", label: "Dashboard" },
+  ],
+} = Astro.props
 ---
 
-<!doctype html>
-<html lang="es-ES" class="dark">
+<html lang="es">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <meta name="generator" content={Astro.generator}>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <Font cssVariable="--font-bricolage" />
+    <Font cssVariable="--font-instrument" />
     <title>{title}</title>
+    <ClientRouter />
+    <script is:inline>
+    function applyTheme() {
+      const stored = localStorage.getItem("theme")
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches
+      const theme = stored ?? (prefersDark ? "dark" : "dark")
+      document.documentElement.classList.toggle("dark", theme === "dark")
+    }
+    applyTheme()
+    document.addEventListener("astro:after-swap", applyTheme)
+    </script>
+    <link rel="icon" href="/logo.webp" type="image/webp">
   </head>
-  <body class="min-h-screen bg-background text-foreground">
-    <Header client:load />
+  <body class="flex min-h-screen flex-col">
+    {guestNavbar ? (
+        <NavbarGuest client:load nameApp="NONE.STACK" />
+      ) : (
+        <NavbarAuthenticated
+          client:load
+          nameApp="NONE.STACK"
+          currentPath={Astro.url.pathname}
+          navLinks={navLinks}
+        />
+      )}
     <slot />
   </body>
 </html>
