@@ -1,0 +1,56 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches:
+      - "v*"
+      - "main"
+
+env:
+  IMAGE_TAG: ${{ github.ref_name }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: backend
+            suffix: -backend
+            dockerfile: apps/backend/Dockerfile
+          - name: frontend
+            suffix: -frontend
+            dockerfile: apps/frontend/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Gitea Registry
+        env:
+          REGISTRY_PASS: ${{ secrets.MY_PASSWORD }}
+          REGISTRY_USER: ${{ secrets.DOCKER_USERNAME || github.actor }}
+        run: |
+          REGISTRY_DOMAIN=$(echo "${{ github.server_url }}" | awk -F[/:] '{print $4}')
+          if [ -z "$REGISTRY_PASS" ]; then
+            echo "::error::Falta el secreto MY_PASSWORD (PAT con package:write)."
+            exit 1
+          fi
+          echo "$REGISTRY_PASS" | docker login "$REGISTRY_DOMAIN" -u "$REGISTRY_USER" --password-stdin
+
+      - name: Build and Push ${{ matrix.name }}
+        run: |
+          REGISTRY_DOMAIN=$(echo "${{ github.server_url }}" | awk -F[/:] '{print $4}')
+          IMAGE_ID=$(echo "$REGISTRY_DOMAIN/${{ github.repository }}${{ matrix.suffix }}" | tr '[:upper:]' '[:lower:]')
+          SHA=$(echo "${{ github.sha }}" | cut -c1-8)
+
+          echo "Building ${{ matrix.name }} image: $IMAGE_ID — tag: $IMAGE_TAG sha: $SHA"
+
+          docker build . \
+            -f "${{ matrix.dockerfile }}" \
+            -t "$IMAGE_ID:latest" \
+            -t "$IMAGE_ID:$IMAGE_TAG" \
+            -t "$IMAGE_ID:$IMAGE_TAG-$SHA"
+
+          docker push "$IMAGE_ID:latest"
+          docker push "$IMAGE_ID:$IMAGE_TAG"
+          docker push "$IMAGE_ID:$IMAGE_TAG-$SHA"
