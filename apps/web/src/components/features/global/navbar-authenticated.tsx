@@ -1,3 +1,4 @@
+import type { Session, User } from "better-auth"
 import { Settings } from "lucide-react"
 import type { NavbarNavLink } from "@/components/features/global/navbar-mobile-menu"
 import { NavbarMobileMenu } from "@/components/features/global/navbar-mobile-menu"
@@ -6,6 +7,8 @@ import { UserNav } from "@/components/features/global/user-nav"
 import { cn } from "@/lib/utils"
 
 export interface NavbarAuthenticatedProps {
+  user: User
+  session: Session
   nameApp: string
   navLinks: NavbarNavLink[]
   currentPath: string
@@ -24,6 +27,8 @@ function linkClassName(active: boolean) {
 }
 
 export function NavbarAuthenticated({
+  user,
+  session: _session,
   nameApp,
   navLinks,
   currentPath,
@@ -63,7 +68,7 @@ export function NavbarAuthenticated({
         {/* Mobile/tablet: < lg - mobile menu */}
         <div className="flex lg:hidden shrink-0 items-center gap-1.5 sm:gap-2">
           <ThemeToggle className="relative right-0 top-0 translate-y-0" />
-          <UserNav />
+          <UserNav user={user} />
           <a href="/config" aria-label="Configuración" className={triggerClass}>
             <Settings className="size-4 shrink-0" aria-hidden />
           </a>
@@ -73,7 +78,7 @@ export function NavbarAuthenticated({
         {/* Desktop: lg+ actions */}
         <div className="hidden lg:flex shrink-0 items-center gap-2">
           <ThemeToggle className="relative right-0 top-0 translate-y-0" />
-          <UserNav />
+          <UserNav user={user} />
           <a href="/config" aria-label="Configuración" className={triggerClass}>
             <Settings className="size-4 shrink-0" aria-hidden />
           </a>

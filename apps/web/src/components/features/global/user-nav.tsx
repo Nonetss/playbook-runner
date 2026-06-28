@@ -1,4 +1,11 @@
-import { LogIn, LogOut, Shield, User, UserCircle2 } from "lucide-react"
+import type { User } from "better-auth"
+import {
+  LogIn,
+  LogOut,
+  Shield,
+  UserCircle2,
+  User as UserIcon,
+} from "lucide-react"
 import { useEffect, useState } from "react"
 import {
   DropdownMenu,
@@ -14,10 +21,11 @@ import { authClient } from "@/lib/auth-client"
 const triggerClass =
   "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground flex h-9 w-9 items-center justify-center border transition-colors outline-none data-[state=open]:bg-secondary data-[state=open]:text-foreground"
 
-export function UserNav() {
-  const { data: session } = authClient.useSession()
-  const user = session?.user
+export interface UserNavProps {
+  user: User | null
+}
 
+export function UserNav({ user }: UserNavProps) {
   const [isAdminRoute, setIsAdminRoute] = useState(false)
   const [mounted, setMounted] = useState(false)
   useEffect(() => {
@@ -46,7 +54,7 @@ export function UserNav() {
         aria-label="Menú de cuenta"
         className={triggerClass}
       >
-        <User className="size-4 shrink-0" aria-hidden />
+        <UserIcon className="size-4 shrink-0" aria-hidden />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={8} className="min-w-56 w-56">
         <DropdownMenuGroup>

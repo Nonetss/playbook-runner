@@ -25,6 +25,9 @@ const {
     { href: "/dashboard", label: "Dashboard" },
   ],
 } = Astro.props
+
+const { user, session } = Astro.locals
+const hasSession = !!user && !!session
 ---
 
 <html lang="es">
@@ -50,14 +53,17 @@ const {
     <link rel="icon" href="/logo.webp" type="image/webp">
   </head>
   <body class="flex min-h-screen flex-col">
-    {guestNavbar ? (
-        <NavbarGuest client:load nameApp="NONE.STACK" />
+    {guestNavbar || !hasSession ? (
+        <NavbarGuest client:load nameApp="NONE.STACK" transition:persist />
       ) : (
         <NavbarAuthenticated
           client:load
+          user={user}
+          session={session}
           nameApp="NONE.STACK"
           currentPath={Astro.url.pathname}
           navLinks={navLinks}
+          transition:persist
         />
       )}
     <slot />
