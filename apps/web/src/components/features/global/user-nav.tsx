@@ -27,13 +27,11 @@ export interface UserNavProps {
 
 export function UserNav({ user }: UserNavProps) {
   const [isAdminRoute, setIsAdminRoute] = useState(false)
-  const [mounted, setMounted] = useState(false)
   useEffect(() => {
-    setMounted(true)
     setIsAdminRoute(window.location.pathname.startsWith("/admin"))
   }, [])
 
-  if (!mounted || !user) {
+  if (!user) {
     return (
       <a href="/login" aria-label="Iniciar sesión" className={triggerClass}>
         <LogIn className="size-4 shrink-0" aria-hidden />
@@ -92,8 +90,7 @@ export function UserNav({ user }: UserNavProps) {
         <DropdownMenuItem
           variant="destructive"
           className="cursor-pointer gap-2"
-          onSelect={async (e) => {
-            e.preventDefault()
+          onClick={async () => {
             await authClient.signOut()
             window.location.href = "/login"
           }}
