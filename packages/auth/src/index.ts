@@ -27,7 +27,7 @@ export function createAuth() {
         httpOnly: true,
       },
     },
-    plugins: [admin(), apiKey()],
+    plugins: [admin(), apiKey({ enableSessionForAPIKeys: true })],
   })
 }
 
