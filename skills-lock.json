@@ -11,6 +11,11 @@
       "sourceType": "autoskills-registry",
       "computedHash": "2afd3a02edf4374598ce471dabb1ab5638851dbf7b82d0bb36f1019331eafb54"
     },
+    "bash-defensive-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "autoskills-registry",
+      "computedHash": "1f566c2d9c3b50a784b05d08f6b08ebfeb31f038e4d4173f2d488484edb058a6"
+    },
     "best-practices": {
       "source": "better-auth/skills",
       "sourceType": "autoskills-registry",
