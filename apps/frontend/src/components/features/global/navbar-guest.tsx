@@ -10,7 +10,7 @@ export function NavbarGuest({ nameApp }: NavbarGuestProps) {
       <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 md:gap-4 md:px-6">
         <a
           href="/"
-          className="flex shrink-0 items-center gap-2 font-mono text-sm font-semibold tracking-wide text-foreground transition-transform duration-300 hover:scale-110"
+          className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground transition-opacity duration-200 hover:opacity-80"
         >
           <img
             src="/logo.webp"

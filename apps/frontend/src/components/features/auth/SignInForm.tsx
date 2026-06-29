@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -42,13 +43,16 @@ export function SignInForm() {
   }
 
   return (
-    <Card className="mx-auto w-full max-w-md">
+    <Card className="mx-auto w-full max-w-sm">
       <CardHeader>
-        <CardTitle className="text-center text-3xl">Welcome Back</CardTitle>
+        <CardTitle className="text-2xl">Iniciar sesión</CardTitle>
+        <CardDescription>
+          Introduce tu email para acceder a tu cuenta
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
@@ -60,8 +64,8 @@ export function SignInForm() {
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="password">Password</Label>
+          <div className="space-y-2">
+            <Label htmlFor="password">Contraseña</Label>
             <Input
               id="password"
               type="password"
@@ -74,14 +78,14 @@ export function SignInForm() {
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <Button type="submit" className="w-full" size="lg" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Entrando..." : "Entrar"}
           </Button>
         </form>
       </CardContent>
-      <CardFooter className="justify-center">
-        <a href="/signup" className="text-sm text-primary hover:underline">
-          Need an account? Sign Up
+      <CardFooter className="flex-col gap-2">
+        <a href="/signup" className="text-sm text-muted-foreground hover:text-primary">
+          ¿No tienes cuenta? Regístrate
         </a>
       </CardFooter>
     </Card>

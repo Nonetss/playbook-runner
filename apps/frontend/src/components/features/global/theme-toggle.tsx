@@ -53,7 +53,7 @@ export const ThemeToggle = ({ className }: ThemeToggleProps) => {
       onClick={toggle}
       aria-label="Cambiar tema"
       className={cn(
-        "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground flex h-9 w-9 items-center justify-center border transition-colors",
+        "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex size-9 items-center justify-center rounded-md border shadow-xs transition-colors",
         className
       )}
     >

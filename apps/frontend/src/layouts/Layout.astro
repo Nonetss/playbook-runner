@@ -1,6 +1,5 @@
 ---
 import "@/styles/global.css"
-import { Font } from "astro:assets"
 import { ClientRouter, fade } from "astro:transitions"
 import { NavbarAuthenticated } from "@/components/features/global/navbar-authenticated"
 import { NavbarGuest } from "@/components/features/global/navbar-guest"
@@ -34,8 +33,6 @@ const hasSession = !!user && !!session
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <Font cssVariable="--font-bricolage" />
-    <Font cssVariable="--font-instrument" />
     <title>{title}</title>
     <ClientRouter />
     <script is:inline>
@@ -44,7 +41,7 @@ const hasSession = !!user && !!session
       const prefersDark = window.matchMedia(
         "(prefers-color-scheme: dark)"
       ).matches
-      const theme = stored ?? (prefersDark ? "dark" : "dark")
+      const theme = stored ?? (prefersDark ? "dark" : "light")
       document.documentElement.classList.toggle("dark", theme === "dark")
     }
     applyTheme()

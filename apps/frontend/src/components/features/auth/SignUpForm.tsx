@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -43,14 +44,17 @@ export function SignUpForm() {
   }
 
   return (
-    <Card className="mx-auto w-full max-w-md">
+    <Card className="mx-auto w-full max-w-sm">
       <CardHeader>
-        <CardTitle className="text-center text-3xl">Create Account</CardTitle>
+        <CardTitle className="text-2xl">Crear cuenta</CardTitle>
+        <CardDescription>
+          Introduce tu email para crear tu cuenta
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="name">Name</Label>
+          <div className="space-y-2">
+            <Label htmlFor="name">Nombre</Label>
             <Input
               id="name"
               type="text"
@@ -61,7 +65,7 @@ export function SignUpForm() {
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
@@ -73,8 +77,8 @@ export function SignUpForm() {
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="password">Password</Label>
+          <div className="space-y-2">
+            <Label htmlFor="password">Contraseña</Label>
             <Input
               id="password"
               type="password"
@@ -91,14 +95,14 @@ export function SignUpForm() {
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <Button type="submit" className="w-full" size="lg" disabled={loading}>
-            {loading ? "Creating account..." : "Sign Up"}
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Creando cuenta..." : "Crear cuenta"}
           </Button>
         </form>
       </CardContent>
-      <CardFooter className="justify-center">
-        <a href="/login" className="text-sm text-primary hover:underline">
-          Already have an account? Sign In
+      <CardFooter className="flex-col gap-2">
+        <a href="/login" className="text-sm text-muted-foreground hover:text-primary">
+          ¿Ya tienes cuenta? Inicia sesión
         </a>
       </CardFooter>
     </Card>

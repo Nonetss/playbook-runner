@@ -19,7 +19,7 @@ import {
 import { authClient } from "@/lib/auth-client"
 
 const triggerClass =
-  "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground flex h-9 w-9 items-center justify-center border transition-colors outline-none data-[state=open]:bg-secondary data-[state=open]:text-foreground"
+  "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex size-9 items-center justify-center rounded-md border shadow-xs transition-colors outline-none data-[state=open]:bg-accent data-[state=open]:text-accent-foreground"
 
 export interface UserNavProps {
   user: User | null
