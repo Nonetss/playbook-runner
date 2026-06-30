@@ -3,10 +3,19 @@ import { authServer } from "@/lib/auth-server"
 
 const publicPaths = ["/login", "/signup", "/scalar", "/openapi.json"]
 
+// Paths that never need an auth check. Anything matching is forwarded as-is
+// (next()) so the Astro adapter / Caddy can serve it (or 404) without a
+// session lookup or /login redirect.
+const assetPrefixes = ["/_astro/", "/_actions/", "/favicon"]
+
+function isAsset(path: string): boolean {
+  return assetPrefixes.some((p) => path.startsWith(p))
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
   const path = context.url.pathname
 
-  if (publicPaths.some((p) => path.startsWith(p))) {
+  if (publicPaths.some((p) => path.startsWith(p)) || isAsset(path)) {
     return next()
   }
 
