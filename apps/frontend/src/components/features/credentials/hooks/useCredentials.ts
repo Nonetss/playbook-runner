@@ -9,11 +9,11 @@ const useInvalidateCredentials = () => {
       queryClient.invalidateQueries({
         queryKey: orpc.credentials.list.queryKey(),
       }),
-    detail: (id: string) =>
+    detail: (id: number) =>
       queryClient.invalidateQueries({
         queryKey: orpc.credentials.get.queryKey({ input: { id } }),
       }),
-    all: (id?: string) => {
+    all: (id?: number) => {
       queryClient.invalidateQueries({
         queryKey: orpc.credentials.list.queryKey(),
       })
@@ -30,11 +30,14 @@ export const useCredentialsList = () => {
   return useQuery(orpc.credentials.list.queryOptions())
 }
 
-export const useCredentialGet = (id: string) => {
+export const useCredentialGet = (
+  id: number,
+  options?: { enabled?: boolean }
+) => {
   return useQuery(
     orpc.credentials.get.queryOptions({
       input: { id },
-      enabled: !!id,
+      enabled: !!id && (options?.enabled ?? true),
     })
   )
 }
