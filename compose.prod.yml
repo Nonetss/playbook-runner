@@ -13,7 +13,7 @@
 #   docker compose -f compose.prod.yml --env-file .env up -d
 # ─────────────────────────────────────────────────────────────────────────────
 
-name: none.stack.prod
+name: playbook-runner
 
 services:
   ansible:
