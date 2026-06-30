@@ -1,6 +1,7 @@
 import { auth } from "@none.stack/auth"
 import type { RouterClient } from "@orpc/server"
 import { protectedProcedure, publicProcedure } from "@/index"
+import { credentialsRouter } from "@/routers/credentials"
 
 export const appRouter = {
   healthCheck: publicProcedure
@@ -42,6 +43,8 @@ export const appRouter = {
         user: context.user,
       }
     }),
+
+  credentials: credentialsRouter,
 }
 export type AppRouter = typeof appRouter
 export type AppRouterClient = RouterClient<typeof appRouter>
