@@ -210,10 +210,14 @@ function FieldRow({
       ) : (
         <Input
           id={id}
+          type={field.type === "number" ? "number" : "text"}
           required={field.required}
           disabled={disabled}
           placeholder={field.placeholder}
           value={stringValue}
+          min={field.min}
+          max={field.max}
+          step={field.step}
           onChange={(e) => onChange(e.target.value)}
           className={field.inputClassName}
         />

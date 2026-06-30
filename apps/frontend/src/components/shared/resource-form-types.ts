@@ -1,10 +1,11 @@
 /**
  * A single input field in a resource form.
  *
- * The renderer maps `type` to the matching `<Input>` (text), `<textarea>` or
- * native `<select>` variant. Multi-line content (YAML, SSH keys) should use
- * `type: "textarea"`. Select fields require `options` and render the first
- * option as an empty placeholder when provided.
+ * The renderer maps `type` to the matching `<Input>` (text), `<Input
+ * type="number">`, `<textarea>` or native `<select>` variant. Multi-line
+ * content (YAML, SSH keys) should use `type: "textarea"`. Select fields
+ * require `options` and render the first option as an empty placeholder when
+ * provided.
  *
  * Required fields render the native `required` attribute; `placeholder` is
  * shown when the field is empty.
@@ -19,10 +20,16 @@ export type SelectOption = {
 export interface FieldDefinition {
   name: string
   label: string
-  type?: "text" | "textarea" | "select"
+  type?: "text" | "textarea" | "select" | "number"
   placeholder?: string
   required?: boolean
   rows?: number
+  /** Min value for `type: "number"`. */
+  min?: number
+  /** Max value for `type: "number"`. */
+  max?: number
+  /** Step for `type: "number"`. Defaults to 1. */
+  step?: number
   /** Options for `type: "select"`. The empty-string value is rendered as the placeholder. */
   options?: ReadonlyArray<SelectOption>
   /** Optional className merged onto the input element (e.g. monospace). */
