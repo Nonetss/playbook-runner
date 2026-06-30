@@ -1,0 +1,1 @@
+ALTER TABLE "inventory_devices" ADD COLUMN "port_ssh" integer DEFAULT 22 NOT NULL;

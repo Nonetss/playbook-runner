@@ -1,5 +1,12 @@
 import { sql } from "drizzle-orm"
-import { cidr, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
+import {
+  cidr,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core"
 import { credentials } from "./credentials"
 
 export const inventoryGroups = pgTable("inventory_groups", {
@@ -19,6 +26,7 @@ export const inventoryDevices = pgTable("inventory_devices", {
   name: text().notNull(),
   description: text(),
   ipAddress: cidr("ip_address").notNull(),
+  portSSH: integer("port_ssh").notNull().default(22),
 
   credentialId: uuid("credential_id").references(() => credentials.id, {
     onDelete: "set null",
