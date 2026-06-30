@@ -1,5 +1,5 @@
 {
-  "extends": "@none.stack/config/tsconfig.base.json",
+  "extends": "@playbook-runner/config/tsconfig.base.json",
   "compilerOptions": {
     "declaration": true,
     "declarationMap": true,

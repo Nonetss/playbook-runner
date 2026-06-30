@@ -1,10 +1,10 @@
-import { db } from "@none.stack/db"
+import { db } from "@playbook-runner/db"
 import {
   jobRuns,
   jobs,
   type NewJob,
   type NewJobRun,
-} from "@none.stack/db/schema/jobs"
+} from "@playbook-runner/db/schema/jobs"
 import { asc, desc, eq } from "drizzle-orm"
 
 export const jobsHandler = {

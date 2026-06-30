@@ -1,4 +1,4 @@
-import { db } from "@none.stack/db"
+import { db } from "@playbook-runner/db"
 import {
   inventoryDeviceGroups,
   inventoryDevices,
@@ -6,7 +6,7 @@ import {
   type NewInventoryDevice,
   type NewInventoryDeviceGroup,
   type NewInventoryGroup,
-} from "@none.stack/db/schema/inventory"
+} from "@playbook-runner/db/schema/inventory"
 import { and, asc, eq } from "drizzle-orm"
 
 export const inventoryGroupHandler = {

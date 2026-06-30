@@ -50,6 +50,6 @@ export default defineConfig({
   format: "esm",
   outDir: "./dist",
   clean: true,
-  noExternal: [/@none.stack\/.*/],
+  noExternal: [/@playbook-runner\/.*/],
   plugins: [monorepoAliasPlugin()],
 })

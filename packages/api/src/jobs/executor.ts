@@ -1,6 +1,6 @@
-import { db } from "@none.stack/db"
-import { jobRuns, jobs } from "@none.stack/db/schema/jobs"
-import { env } from "@none.stack/env/server"
+import { db } from "@playbook-runner/db"
+import { jobRuns, jobs } from "@playbook-runner/db/schema/jobs"
+import { env } from "@playbook-runner/env/server"
 import { eq } from "drizzle-orm"
 import { type RunInventorySelection, runHandler } from "@/handlers/run"
 

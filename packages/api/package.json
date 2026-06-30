@@ -1,5 +1,5 @@
 {
-  "name": "@none.stack/api",
+  "name": "@playbook-runner/api",
   "type": "module",
   "exports": {
     ".": {
@@ -11,9 +11,9 @@
   },
   "scripts": {},
   "dependencies": {
-    "@none.stack/auth": "workspace:*",
-    "@none.stack/db": "workspace:*",
-    "@none.stack/env": "workspace:*",
+    "@playbook-runner/auth": "workspace:*",
+    "@playbook-runner/db": "workspace:*",
+    "@playbook-runner/env": "workspace:*",
     "@orpc/client": "catalog:",
     "@orpc/openapi": "catalog:",
     "@orpc/server": "catalog:",
@@ -24,7 +24,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@none.stack/config": "workspace:*",
+    "@playbook-runner/config": "workspace:*",
     "@types/pg": "^8.20.0",
     "drizzle-kit": "^1.0.0-rc.4",
     "hono": "catalog:",

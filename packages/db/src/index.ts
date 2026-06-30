@@ -1,4 +1,4 @@
-import { env } from "@none.stack/env/server"
+import { env } from "@playbook-runner/env/server"
 import { drizzle } from "drizzle-orm/node-postgres"
 
 import { relations } from "@/relations"

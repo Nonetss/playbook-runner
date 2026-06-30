@@ -10,10 +10,10 @@
     "start": "bun run dist/index.mjs"
   },
   "dependencies": {
-    "@none.stack/api": "workspace:*",
-    "@none.stack/auth": "workspace:*",
-    "@none.stack/db": "workspace:*",
-    "@none.stack/env": "workspace:*",
+    "@playbook-runner/api": "workspace:*",
+    "@playbook-runner/auth": "workspace:*",
+    "@playbook-runner/db": "workspace:*",
+    "@playbook-runner/env": "workspace:*",
     "@orpc/openapi": "catalog:",
     "@orpc/server": "catalog:",
     "@orpc/zod": "catalog:",
@@ -23,7 +23,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@none.stack/config": "workspace:*",
+    "@playbook-runner/config": "workspace:*",
     "@types/bun": "catalog:",
     "tsdown": "^0.21.9",
     "typescript": "catalog:"

@@ -1,4 +1,4 @@
-import type { auth } from "@none.stack/auth"
+import type { auth } from "@playbook-runner/auth"
 import type { Context as HonoContext } from "hono"
 
 export type CreateContextOptions = {

@@ -1,4 +1,4 @@
-import { env } from "@none.stack/env/server"
+import { env } from "@playbook-runner/env/server"
 import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { logger } from "hono/logger"

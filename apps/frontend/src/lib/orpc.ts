@@ -1,7 +1,7 @@
-import type { AppRouterClient } from "@none.stack/api/routers/index"
 import { createORPCClient } from "@orpc/client"
 import { RPCLink } from "@orpc/client/fetch"
 import { createTanstackQueryUtils } from "@orpc/tanstack-query"
+import type { AppRouterClient } from "@playbook-runner/api/routers/index"
 
 export const link = new RPCLink({
   // Resolved lazily per request so it always targets the current browser

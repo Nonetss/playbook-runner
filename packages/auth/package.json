@@ -1,5 +1,5 @@
 {
-  "name": "@none.stack/auth",
+  "name": "@playbook-runner/auth",
   "type": "module",
   "exports": {
     ".": {
@@ -12,14 +12,14 @@
   "scripts": {},
   "dependencies": {
     "@better-auth/api-key": "^1.6.22",
-    "@none.stack/db": "workspace:*",
-    "@none.stack/env": "workspace:*",
+    "@playbook-runner/db": "workspace:*",
+    "@playbook-runner/env": "workspace:*",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@none.stack/config": "workspace:*",
+    "@playbook-runner/config": "workspace:*",
     "typescript": "catalog:"
   }
 }

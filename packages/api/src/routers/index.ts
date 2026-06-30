@@ -1,5 +1,5 @@
-import { auth } from "@none.stack/auth"
 import type { RouterClient } from "@orpc/server"
+import { auth } from "@playbook-runner/auth"
 import { protectedProcedure, publicProcedure } from "@/index"
 import { credentialsRouter } from "@/routers/credentials"
 import { inventoryRouter } from "@/routers/inventory"

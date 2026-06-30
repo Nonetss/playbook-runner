@@ -1,5 +1,5 @@
 {
-  "name": "@none.stack/db",
+  "name": "@playbook-runner/db",
   "type": "module",
   "exports": {
     ".": {
@@ -17,14 +17,14 @@
     "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
-    "@none.stack/env": "workspace:*",
+    "@playbook-runner/env": "workspace:*",
     "dotenv": "catalog:",
     "drizzle-orm": "^1.0.0-rc.4",
     "pg": "^8.17.1",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@none.stack/config": "workspace:*",
+    "@playbook-runner/config": "workspace:*",
     "@types/pg": "^8.16.0",
     "drizzle-kit": "^1.0.0-rc.4",
     "typescript": "catalog:"

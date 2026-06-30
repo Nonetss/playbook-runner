@@ -1,10 +1,10 @@
-import { db } from "@none.stack/db"
-import { credentials } from "@none.stack/db/schema/credentials"
+import { db } from "@playbook-runner/db"
+import { credentials } from "@playbook-runner/db/schema/credentials"
 import {
   inventoryDeviceGroups,
   inventoryDevices,
-} from "@none.stack/db/schema/inventory"
-import { playbooks } from "@none.stack/db/schema/playbooks"
+} from "@playbook-runner/db/schema/inventory"
+import { playbooks } from "@playbook-runner/db/schema/playbooks"
 import { eq, inArray } from "drizzle-orm"
 
 export type RunInventorySelection = {

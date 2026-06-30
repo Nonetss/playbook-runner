@@ -1,4 +1,4 @@
-import { auth } from "@none.stack/auth"
+import { auth } from "@playbook-runner/auth"
 import { Hono } from "hono"
 
 const router = new Hono()

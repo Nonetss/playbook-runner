@@ -1,8 +1,8 @@
-import { db } from "@none.stack/db"
+import { db } from "@playbook-runner/db"
 import {
   credentials,
   type NewCredential,
-} from "@none.stack/db/schema/credentials"
+} from "@playbook-runner/db/schema/credentials"
 import { asc, eq } from "drizzle-orm"
 
 export const credentialsHandler = {

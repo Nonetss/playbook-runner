@@ -1,9 +1,9 @@
-import { createContext } from "@none.stack/api/context"
-import { appRouter } from "@none.stack/api/routers/index"
 import { OpenAPIHandler } from "@orpc/openapi/fetch"
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins"
 import { onError } from "@orpc/server"
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4"
+import { createContext } from "@playbook-runner/api/context"
+import { appRouter } from "@playbook-runner/api/routers/index"
 import { Hono } from "hono"
 
 const handler = new OpenAPIHandler(appRouter, {

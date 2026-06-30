@@ -1,5 +1,8 @@
-import { db } from "@none.stack/db"
-import { type NewPlaybook, playbooks } from "@none.stack/db/schema/playbooks"
+import { db } from "@playbook-runner/db"
+import {
+  type NewPlaybook,
+  playbooks,
+} from "@playbook-runner/db/schema/playbooks"
 import { asc, eq } from "drizzle-orm"
 
 export const playbooksHandler = {

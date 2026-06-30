@@ -13,18 +13,13 @@ import {
 import { useCredentialsList } from "@/components/features/credentials/hooks/useCredentials"
 import { useDevicesList } from "@/components/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/components/features/inventory/hooks/useGroups"
-import type { Job } from "@/components/features/jobs/types"
 import { useJobsList } from "@/components/features/jobs/hooks/useJobs"
+import type { Job } from "@/components/features/jobs/types"
 import { usePlaybooksList } from "@/components/features/playbooks/hooks/usePlaybooks"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { authClient } from "@/lib/auth-client"
 
 function StatCard({
@@ -60,13 +55,7 @@ function StatCard({
   )
 }
 
-function JobRow({
-  job,
-  playbookName,
-}: {
-  job: Job
-  playbookName?: string
-}) {
+function JobRow({ job, playbookName }: { job: Job; playbookName?: string }) {
   return (
     <a
       href={`/jobs/${job.id}`}
@@ -241,9 +230,7 @@ function DashboardPageInner() {
                   key={job.id}
                   job={job}
                   playbookName={
-                    job.playbookId
-                      ? playbookMap.get(job.playbookId)
-                      : undefined
+                    job.playbookId ? playbookMap.get(job.playbookId) : undefined
                   }
                 />
               ))}

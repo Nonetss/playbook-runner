@@ -1,4 +1,4 @@
-import { auth } from "@none.stack/auth"
+import { auth } from "@playbook-runner/auth"
 import { createMiddleware } from "hono/factory"
 
 export type AuthVariables = {
