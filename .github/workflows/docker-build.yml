@@ -57,3 +57,16 @@ jobs:
           docker push "$IMAGE_ID:latest"
           docker push "$IMAGE_ID:$IMAGE_TAG"
           docker push "$IMAGE_ID:$IMAGE_TAG-$SHA"
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Komodo pull-redeploy
+        env:
+          KOMODO_API_KEY: ${{ secrets.KOMODO }}
+        run: |
+          curl -fsS -X POST https://komodo-cd.sanjuandediosmalaga.es/api/v0/deploy \
+            -H "x-api-key: $KOMODO_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"stack":"playbook-runner","action":"pull-redeploy"}'
