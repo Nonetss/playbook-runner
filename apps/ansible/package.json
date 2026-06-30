@@ -1,0 +1,10 @@
+{
+  "name": "ansible",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "uv run fastapi dev",
+    "start": "uv run fastapi run"
+  }
+}
