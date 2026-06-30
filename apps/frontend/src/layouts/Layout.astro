@@ -3,6 +3,7 @@ import "@/styles/global.css"
 import { ClientRouter, fade } from "astro:transitions"
 import { NavbarAuthenticated } from "@/components/features/global/navbar-authenticated"
 import { NavbarGuest } from "@/components/features/global/navbar-guest"
+import { Toaster } from "@/components/ui/sonner"
 
 interface Props {
   title: string
@@ -62,5 +63,6 @@ const hasSession = !!user && !!session
     >
       <slot />
     </div>
+    <Toaster client:load transition:persist />
   </body>
 </html>
