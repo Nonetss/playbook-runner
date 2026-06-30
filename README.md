@@ -4,10 +4,27 @@ A self-hosted web UI to manage and run [Ansible](https://www.ansible.com/)
 playbooks against your inventory — without the operational weight of AWX or
 Ansible Tower.
 
-If you've ever SSH'd into a box, `ansible-playbook site.yml` and tail the
-output in another terminal, this app gives you a browser tab and a database
+If you've ever SSH'd into a box, run `ansible-playbook site.yml` and tailed
+the output in another terminal, this app gives you a browser tab and a database
 for all of that: playbooks, SSH credentials, devices, groups, scheduled
 runs, and a live log of every execution.
+
+## Screenshots
+
+**Dashboard** — at a glance: jobs, playbooks, devices, and credentials, with
+quick-access shortcuts to the most common actions.
+
+![Dashboard](img/inicio.png)
+
+**New job** — pick a playbook, select target groups or individual devices, set
+an optional cron schedule, tune forks, and inject extra variables.
+
+![New job](img/new-jobs.png)
+
+**Live execution** — output streams into the browser as ansible-runner emits
+it. The inventory panel on the right shows which hosts are in scope.
+
+![Playbook execution](img/playbooks-exe.png)
 
 ## What you can do with it
 
