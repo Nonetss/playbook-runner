@@ -4,7 +4,10 @@ import { RPCLink } from "@orpc/client/fetch"
 import { createTanstackQueryUtils } from "@orpc/tanstack-query"
 
 export const link = new RPCLink({
-  url: `${window.location.origin}/rpc`,
+  // Resolved lazily per request so it always targets the current browser
+  // origin (avoids touching `window` during SSR). Caddy (prod) / Vite (dev)
+  // proxy `/rpc` to the backend, keeping every call same-origin and CORS-free.
+  url: () => `${window.location.origin}/rpc`,
   fetch(url, options) {
     return fetch(url, {
       ...options,
