@@ -29,10 +29,7 @@ export const env = createEnv({
     // for non-local environments. Password MUST be at least 8 chars
     // (Better Auth's minPasswordLength).
     SEED_ADMIN_EMAIL: z.email().default("admin@playbook-runner.local"),
-    SEED_ADMIN_PASSWORD: z
-      .string()
-      .min(8)
-      .default("admin1234"),
+    SEED_ADMIN_PASSWORD: z.string().min(8).default("admin1234"),
     SEED_ADMIN_NAME: z.string().default("Admin"),
   },
   runtimeEnv: process.env,

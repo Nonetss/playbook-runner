@@ -52,9 +52,7 @@ export function SignInForm() {
         callbackURL: "/",
       })
     } catch (ctx: unknown) {
-      setError(
-        "SSO no disponible: configura GENERIC_OAUTH_* en el backend."
-      )
+      setError("SSO no disponible: configura GENERIC_OAUTH_* en el backend.")
       setOauthLoading(false)
     }
   }

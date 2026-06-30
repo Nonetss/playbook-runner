@@ -9,8 +9,16 @@ import { admin, genericOAuth } from "better-auth/plugins"
 const GENERIC_OAUTH_PROVIDER_ID = "generic"
 
 function buildGenericOAuthPlugin() {
-  const { GENERIC_OAUTH_CLIENT_ID, GENERIC_OAUTH_CLIENT_SECRET, GENERIC_OAUTH_ISSUER } = env
-  if (!GENERIC_OAUTH_CLIENT_ID || !GENERIC_OAUTH_CLIENT_SECRET || !GENERIC_OAUTH_ISSUER) {
+  const {
+    GENERIC_OAUTH_CLIENT_ID,
+    GENERIC_OAUTH_CLIENT_SECRET,
+    GENERIC_OAUTH_ISSUER,
+  } = env
+  if (
+    !GENERIC_OAUTH_CLIENT_ID ||
+    !GENERIC_OAUTH_CLIENT_SECRET ||
+    !GENERIC_OAUTH_ISSUER
+  ) {
     return null
   }
   return genericOAuth({
