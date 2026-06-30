@@ -6,7 +6,7 @@
 # - Only the frontend publishes a host port; backend and ansible stay internal
 #   (reachable on the network as `backend:3000` and `ansible:8000`).
 # - Image refs come from the root .env (see .env.example) and are pulled from
-#   the Gitea registry — no local build.
+#   the GitHub Container Registry (ghcr.io) — no local build.
 #
 # Usage:
 #   cp .env.example .env  # fill in secrets
