@@ -28,7 +28,7 @@ export function SignInForm() {
         { email, password },
         {
           onSuccess: () => {
-            window.location.href = "/dashboard"
+            window.location.href = "/"
           },
           onError: (ctx) => {
             setError(ctx.error.message || "Sign in failed. Please try again.")

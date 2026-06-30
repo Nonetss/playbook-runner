@@ -6,5 +6,5 @@ const { id } = Astro.params
 ---
 
 <Layout title="Grupo">
-  <GroupDetailPage client:load id={id} />
+  <GroupDetailPage client:only="react" id={id} />
 </Layout>

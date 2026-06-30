@@ -20,6 +20,14 @@ export const env = createEnv({
     // Set to "0" to disable the in-process job scheduler (e.g. when running
     // multiple backend replicas and only one should schedule).
     JOB_SCHEDULER_ENABLED: z.enum(["0", "1"]).default("1"),
+
+    GENERIC_OAUTH_PROVIDER_ID: z.string().default(""),
+    GENERIC_OAUTH_CLIENT_ID: z.string().default(""),
+    GENERIC_OAUTH_CLIENT_SECRET: z.string().default(""),
+    GENERIC_OAUTH_ISSUER: z.url().default(""),
+    GENERIC_OAUTH_SCOPES: z
+      .array(z.string())
+      .default(["openid", "profile", "email"]),
   },
   runtimeEnv: process.env,
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

@@ -6,5 +6,5 @@ const { id } = Astro.params
 ---
 
 <Layout title="Editar job">
-  <JobFormPage client:load id={id} />
+  <JobFormPage client:only="react" id={id} />
 </Layout>

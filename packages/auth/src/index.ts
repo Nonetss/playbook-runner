@@ -4,7 +4,7 @@ import * as schema from "@none.stack/db/schema/auth"
 import { env } from "@none.stack/env/server"
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
-import { admin } from "better-auth/plugins"
+import { admin, genericOAuth } from "better-auth/plugins"
 
 export function createAuth() {
   const db = createDb()
@@ -33,7 +33,21 @@ export function createAuth() {
         httpOnly: true,
       },
     },
-    plugins: [admin(), apiKey({ enableSessionForAPIKeys: true })],
+    plugins: [
+      admin(),
+      apiKey({ enableSessionForAPIKeys: true }),
+      genericOAuth({
+        config: [
+          {
+            providerId: env.GENERIC_OAUTH_PROVIDER_ID ?? "",
+            clientId: env.GENERIC_OAUTH_CLIENT_ID ?? "",
+            clientSecret: env.GENERIC_OAUTH_CLIENT_SECRET ?? "",
+            discoveryUrl: `${env.GENERIC_OAUTH_ISSUER}/.well-known/openid-configuration`,
+            scopes: ["openid", "profile", "email"],
+          },
+        ],
+      }),
+    ],
   })
 }
 
