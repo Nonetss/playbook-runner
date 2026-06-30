@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { orpc } from "@/lib/orpc"
 
 const useInvalidateDeviceGroups = () => {
@@ -44,14 +45,14 @@ const useInvalidateDeviceGroups = () => {
 }
 
 export const useDeviceGroupsList = () => {
-  return useQuery(orpc.inventory.deviceGroups.list.queryOptions())
+  return useHydratedQuery(orpc.inventory.deviceGroups.list.queryOptions())
 }
 
 export const useDeviceGroupsByDevice = (
   deviceId: string,
   options?: { enabled?: boolean }
 ) => {
-  return useQuery(
+  return useHydratedQuery(
     orpc.inventory.deviceGroups.listByDevice.queryOptions({
       input: { deviceId },
       enabled: !!deviceId && (options?.enabled ?? true),
@@ -63,7 +64,7 @@ export const useDeviceGroupsByGroup = (
   groupId: string,
   options?: { enabled?: boolean }
 ) => {
-  return useQuery(
+  return useHydratedQuery(
     orpc.inventory.deviceGroups.listByGroup.queryOptions({
       input: { groupId },
       enabled: !!groupId && (options?.enabled ?? true),

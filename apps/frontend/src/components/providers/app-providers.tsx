@@ -13,7 +13,8 @@ import { getQueryClient } from "@/lib/query-client"
  * Instead each island that uses react-query / confirm wraps itself with
  * `AppProviders`. They all share the same QueryClient because `getQueryClient`
  * returns a browser singleton, so the cache is shared across islands and Astro
- * page swaps.
+ * page swaps. List/detail hooks use `useHydratedQuery` so SSR markup matches
+ * the first client paint even when that cache is already warm.
  *
  * The `<Toaster />` is NOT mounted here on purpose: sonner toasts are a global
  * store, so a single `<Toaster />` island is mounted once in `Layout.astro`.

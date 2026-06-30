@@ -1,11 +1,11 @@
-import { useQuery } from "@tanstack/react-query"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { orpc } from "@/lib/orpc"
 import { cn } from "@/lib/utils"
 
 function ApiStatusInner({ className }: { className?: string }) {
-  const { isPending, isError } = useQuery(
+  const { isPending, isError } = useHydratedQuery(
     orpc.healthCheck.queryOptions({
       retry: false,
     })

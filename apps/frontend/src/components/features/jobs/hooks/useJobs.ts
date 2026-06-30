@@ -1,17 +1,18 @@
 "use client"
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import type { InventoryItem, Job } from "@/components/features/jobs/types"
+import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { useResourceMutation } from "@/hooks/useResourceMutation"
 import { orpc } from "@/lib/orpc"
 import { notifyError, notifySuccess } from "@/lib/toast"
 
 // ── Queries ──────────────────────────────────────────────────────────────────
 
-export const useJobsList = () => useQuery(orpc.jobs.list.queryOptions())
+export const useJobsList = () => useHydratedQuery(orpc.jobs.list.queryOptions())
 
 export const useJobGet = (id: string, options?: { enabled?: boolean }) =>
-  useQuery(
+  useHydratedQuery(
     orpc.jobs.get.queryOptions({
       input: { id },
       enabled: !!id && (options?.enabled ?? true),
@@ -26,7 +27,7 @@ export const useJobRunsList = (
   jobId: string,
   options?: { enabled?: boolean; live?: boolean }
 ) =>
-  useQuery(
+  useHydratedQuery(
     orpc.jobs.runs.list.queryOptions({
       input: { jobId },
       enabled: !!jobId && (options?.enabled ?? true),
@@ -36,7 +37,7 @@ export const useJobRunsList = (
 
 /** Fetch a single run; polls while it is still `running`. */
 export const useJobRunGet = (id: string, options?: { enabled?: boolean }) =>
-  useQuery(
+  useHydratedQuery(
     orpc.jobs.runs.get.queryOptions({
       input: { id },
       enabled: !!id && (options?.enabled ?? true),

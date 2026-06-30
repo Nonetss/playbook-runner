@@ -1,19 +1,20 @@
 "use client"
 
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation } from "@tanstack/react-query"
 import type {
   InventoryDevice,
   InventoryDeviceList,
 } from "@/components/features/inventory/types"
+import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { useResourceMutation } from "@/hooks/useResourceMutation"
 import { orpc } from "@/lib/orpc"
 
 export const useDevicesList = () => {
-  return useQuery(orpc.inventory.devices.list.queryOptions())
+  return useHydratedQuery(orpc.inventory.devices.list.queryOptions())
 }
 
 export const useDeviceGet = (id: string, options?: { enabled?: boolean }) => {
-  return useQuery(
+  return useHydratedQuery(
     orpc.inventory.devices.get.queryOptions({
       input: { id },
       enabled: !!id && (options?.enabled ?? true),

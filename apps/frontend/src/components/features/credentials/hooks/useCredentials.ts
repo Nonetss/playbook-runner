@@ -1,19 +1,19 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
 import type { Credential } from "@/components/features/credentials/types"
+import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { useResourceMutation } from "@/hooks/useResourceMutation"
 import { orpc } from "@/lib/orpc"
 
 export const useCredentialsList = () => {
-  return useQuery(orpc.credentials.list.queryOptions())
+  return useHydratedQuery(orpc.credentials.list.queryOptions())
 }
 
 export const useCredentialGet = (
   id: number,
   options?: { enabled?: boolean }
 ) => {
-  return useQuery(
+  return useHydratedQuery(
     orpc.credentials.get.queryOptions({
       input: { id },
       enabled: !!id && (options?.enabled ?? true),

@@ -1,16 +1,16 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
 import type { Playbook } from "@/components/features/playbooks/types"
+import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { useResourceMutation } from "@/hooks/useResourceMutation"
 import { orpc } from "@/lib/orpc"
 
 export const usePlaybooksList = () => {
-  return useQuery(orpc.playbooks.list.queryOptions())
+  return useHydratedQuery(orpc.playbooks.list.queryOptions())
 }
 
 export const usePlaybookGet = (id: string, options?: { enabled?: boolean }) => {
-  return useQuery(
+  return useHydratedQuery(
     orpc.playbooks.get.queryOptions({
       input: { id },
       enabled: !!id && (options?.enabled ?? true),

@@ -21,7 +21,7 @@ export const client: AppRouterClient = createORPCClient(link)
 
 /**
  * TanStack Query utils generated from the oRPC router. Use in components via
- * `useQuery(orpc.someProcedure.queryOptions())` /
+ * `useHydratedQuery(orpc.someProcedure.queryOptions())` /
  * `useMutation(orpc.someProcedure.mutationOptions())`.
  */
 export const orpc = createTanstackQueryUtils(client)

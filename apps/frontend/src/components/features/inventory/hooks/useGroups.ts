@@ -1,19 +1,20 @@
 "use client"
 
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation } from "@tanstack/react-query"
 import type {
   InventoryGroup,
   InventoryGroupList,
 } from "@/components/features/inventory/types"
+import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { useResourceMutation } from "@/hooks/useResourceMutation"
 import { orpc } from "@/lib/orpc"
 
 export const useGroupsList = () => {
-  return useQuery(orpc.inventory.groups.list.queryOptions())
+  return useHydratedQuery(orpc.inventory.groups.list.queryOptions())
 }
 
 export const useGroupGet = (id: string, options?: { enabled?: boolean }) => {
-  return useQuery(
+  return useHydratedQuery(
     orpc.inventory.groups.get.queryOptions({
       input: { id },
       enabled: !!id && (options?.enabled ?? true),

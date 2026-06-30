@@ -1,6 +1,6 @@
-import { useQuery } from "@tanstack/react-query"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { authClient } from "@/lib/auth-client"
 import { orpc } from "@/lib/orpc"
 
@@ -8,7 +8,7 @@ function DashboardContentInner() {
   const { data: session } = authClient.useSession()
   const user = session?.user
 
-  const { data, isPending, isError } = useQuery(orpc.privateData.queryOptions())
+  const { data, isPending, isError } = useHydratedQuery(orpc.privateData.queryOptions())
 
   const apiMessage = isPending
     ? "Loading..."
