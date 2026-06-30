@@ -14,11 +14,12 @@ import rpcRouter from "@/routers/rpc"
 import { seed } from "@/scripts/seed"
 
 // Both dev (bun runs the source from apps/backend/src) and prod
-// (tsdown bundle at apps/backend/dist) sit two directories below
-// packages/db, so the same relative path works in both.
+// (tsdown bundle at apps/backend/dist) sit three directories below
+// the repo root, and packages/db sits at <root>/packages/db, so
+// ../../../packages/db/src/migrations resolves correctly in both.
 const migrationsFolder = resolve(
   dirname(fileURLToPath(import.meta.url)),
-  "../../packages/db/src/migrations"
+  "../../../packages/db/src/migrations"
 )
 
 async function bootstrap() {
