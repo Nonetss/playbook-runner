@@ -187,7 +187,9 @@ export function JobRunOutput({
           ))
         )}
         {running ? (
-          <span className="mt-1 inline-block animate-pulse text-zinc-400">▋</span>
+          <span className="mt-1 inline-block animate-pulse text-zinc-400">
+            ▋
+          </span>
         ) : null}
       </div>
     </div>

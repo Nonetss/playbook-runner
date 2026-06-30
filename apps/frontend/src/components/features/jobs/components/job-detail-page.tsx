@@ -161,7 +161,10 @@ function JobDetailPageInner({ id }: { id: string }) {
                 <span>Ejecución manual</span>
               )}
               {!job.enabled ? (
-                <Badge variant="outline" className="text-muted-foreground text-xs">
+                <Badge
+                  variant="outline"
+                  className="text-muted-foreground text-xs"
+                >
                   Desactivado
                 </Badge>
               ) : null}
@@ -207,8 +210,8 @@ function JobDetailPageInner({ id }: { id: string }) {
             <div className="rounded-xl border border-dashed bg-card px-4 py-8 text-center">
               <p className="text-muted-foreground text-sm">
                 Aún no hay ejecuciones. Pulsa{" "}
-                <span className="font-medium">Ejecutar ahora</span> o espera a la
-                próxima ejecución programada.
+                <span className="font-medium">Ejecutar ahora</span> o espera a
+                la próxima ejecución programada.
               </p>
             </div>
           ) : (
@@ -234,7 +237,9 @@ function JobDetailPageInner({ id }: { id: string }) {
                         </span>
                       </div>
                       <div className="text-muted-foreground mt-1.5 flex items-center justify-between gap-2 text-xs">
-                        <span>{formatDateTime(run.startedAt ?? run.createdAt)}</span>
+                        <span>
+                          {formatDateTime(run.startedAt ?? run.createdAt)}
+                        </span>
                         <span className="font-mono">{formatDuration(run)}</span>
                       </div>
                     </button>

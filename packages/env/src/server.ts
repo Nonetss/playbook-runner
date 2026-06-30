@@ -19,9 +19,7 @@ export const env = createEnv({
     INTERNAL_TOKEN: z.string().default(""),
     // Set to "0" to disable the in-process job scheduler (e.g. when running
     // multiple backend replicas and only one should schedule).
-    JOB_SCHEDULER_ENABLED: z
-      .enum(["0", "1"])
-      .default("1"),
+    JOB_SCHEDULER_ENABLED: z.enum(["0", "1"]).default("1"),
   },
   runtimeEnv: process.env,
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

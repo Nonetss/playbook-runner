@@ -1,10 +1,6 @@
 "use client"
 
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import type { InventoryItem, Job } from "@/components/features/jobs/types"
 import { useResourceMutation } from "@/hooks/useResourceMutation"
 import { orpc } from "@/lib/orpc"
@@ -156,7 +152,10 @@ export const useJobUpdate = () =>
       }) as Promise<Job>,
     listKey,
     applyOptimistic: applyUpdate,
-    messages: { success: "Job actualizado", error: "No se pudo actualizar el job" },
+    messages: {
+      success: "Job actualizado",
+      error: "No se pudo actualizar el job",
+    },
   })
 
 export const useJobDelete = () =>
@@ -169,8 +168,7 @@ export const useJobDelete = () =>
 
 export const useJobToggleEnabled = () =>
   useResourceMutation<{ id: string; enabled: boolean }, Job, Job[]>({
-    mutationFn: (input) =>
-      orpc.jobs.toggleEnabled.call(input) as Promise<Job>,
+    mutationFn: (input) => orpc.jobs.toggleEnabled.call(input) as Promise<Job>,
     listKey,
     applyOptimistic: applyToggle,
     messages: {

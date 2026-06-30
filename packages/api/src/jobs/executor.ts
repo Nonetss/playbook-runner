@@ -33,7 +33,8 @@ async function consumeSse(
     const dataLines: string[] = []
     for (const line of frame.split("\n")) {
       if (line.startsWith("event:")) eventName = line.slice(6).trim()
-      else if (line.startsWith("data:")) dataLines.push(line.slice(5).trimStart())
+      else if (line.startsWith("data:"))
+        dataLines.push(line.slice(5).trimStart())
     }
     if (dataLines.length === 0) return
     try {
@@ -69,7 +70,11 @@ async function streamRun(job: typeof jobs.$inferSelect): Promise<RunOutcome> {
 
   const inventory = (job.inventoryJson ?? []) as RunInventorySelection[]
   if (inventory.length === 0) {
-    return { events: [], ok: false, error: "El job no tiene inventario seleccionado" }
+    return {
+      events: [],
+      ok: false,
+      error: "El job no tiene inventario seleccionado",
+    }
   }
 
   let bundle: Awaited<ReturnType<typeof runHandler.resolveRun>>

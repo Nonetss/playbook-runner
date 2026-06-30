@@ -141,7 +141,9 @@ export function JobCard({
               <span className="font-medium">{playbookName}</span>
             </p>
           ) : (
-            <p className="text-muted-foreground text-sm italic">Sin playbook asignado</p>
+            <p className="text-muted-foreground text-sm italic">
+              Sin playbook asignado
+            </p>
           )}
           <p className="text-muted-foreground text-xs">
             {inventoryCount === 0

@@ -6,7 +6,13 @@ type SwitchProps = Omit<React.ComponentProps<"button">, "onChange"> & {
   onCheckedChange?: (checked: boolean) => void
 }
 
-function Switch({ checked, onCheckedChange, className, disabled, ...props }: SwitchProps) {
+function Switch({
+  checked,
+  onCheckedChange,
+  className,
+  disabled,
+  ...props
+}: SwitchProps) {
   return (
     <button
       type="button"
