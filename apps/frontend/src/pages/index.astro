@@ -1,10 +1,17 @@
 ---
-import { ApiStatus } from "@/components/features/try/ApiStatus"
+import { DashboardPage } from "@/components/features/dashboard/dashboard-page"
 import Layout from "@/layouts/Layout.astro"
+import { authServer } from "@/lib/auth-server"
+
+const serverSession = await authServer.getSession({
+  fetchOptions: {
+    headers: Object.fromEntries(Astro.request.headers.entries()),
+  },
+})
+
+if (!serverSession) return Astro.redirect("/login")
 ---
 
-<Layout title="Home">
-  <main class="flex h-screen flex-col items-center justify-center">
-    <ApiStatus client:load />
-  </main>
+<Layout title="Inicio">
+  <DashboardPage client:load />
 </Layout>
