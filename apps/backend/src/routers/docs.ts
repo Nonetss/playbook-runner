@@ -14,7 +14,7 @@ const handler = new OpenAPIHandler(appRouter, {
       docsPath: "/scalar",
       specPath: "/openapi.json",
       specGenerateOptions: {
-        servers: [{ url: "/rpc" }],
+        servers: [{ url: "/api" }],
         info: { title: "API", version: "1.0.0" },
         security: [{ ApiKey: [] }, { BearerAuth: [] }],
         components: {
@@ -51,5 +51,15 @@ const docsMiddleware: Parameters<typeof router.use>[1] = async (c, next) => {
 router.use("/scalar", docsMiddleware)
 router.use("/scalar/*", docsMiddleware)
 router.use("/openapi.json", docsMiddleware)
+
+const apiMiddleware: Parameters<typeof router.use>[1] = async (c, next) => {
+  const context = await createContext({ context: c })
+  const result = await handler.handle(c.req.raw, { prefix: "/api", context })
+  if (result.matched)
+    return c.newResponse(result.response.body, result.response)
+  await next()
+}
+
+router.use("/api/*", apiMiddleware)
 
 export default router
