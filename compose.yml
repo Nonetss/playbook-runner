@@ -27,8 +27,6 @@ services:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
-      args:
-        PUBLIC_SERVER_URL: http://localhost:4321
     container_name: frontend
     init: true
     ports:
