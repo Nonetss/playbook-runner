@@ -1,8 +1,5 @@
-"use client"
-
 import { useQueryClient } from "@tanstack/react-query"
 import type { Session, User } from "better-auth"
-import { Settings } from "lucide-react"
 import type { NavbarNavLink } from "@/components/features/global/navbar-mobile-menu"
 import { NavbarMobileMenu } from "@/components/features/global/navbar-mobile-menu"
 import { ThemeToggle } from "@/components/features/global/theme-toggle"

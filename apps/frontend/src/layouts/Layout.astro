@@ -15,6 +15,7 @@ const navLinks = [
   { href: "/credentials", label: "Credenciales" },
   { href: "/inventory", label: "Inventario" },
   { href: "/playbooks", label: "Playbooks" },
+  { href: "/jobs", label: "Jobs" },
 ]
 
 const { title, guestNavbar = false } = Astro.props
@@ -45,14 +46,14 @@ const hasSession = !!user && !!session
   </head>
   <body class="flex min-h-screen flex-col">
     {guestNavbar || !hasSession ? (
-        <NavbarGuest client:load transition:persist nameApp="NONE.STACK"  />
+        <NavbarGuest client:load transition:persist nameApp="ANSIBLE.AUTO"  />
       ) : (
         <NavbarAuthenticated
           client:load
           transition:persist
           user={user}
           session={session}
-          nameApp="NONE.STACK"
+          nameApp="ANSIBLE.AUTO"
           currentPath={Astro.url.pathname}
           navLinks={navLinks}
         />
