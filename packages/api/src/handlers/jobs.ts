@@ -17,6 +17,14 @@ export const jobsHandler = {
     return db.select().from(jobs).orderBy(asc(jobs.createdAt))
   },
 
+  /** Enabled jobs that carry a cron expression — the scheduler's source set. */
+  listScheduled: async () => {
+    return db
+      .select({ id: jobs.id, cronExpression: jobs.cronExpression })
+      .from(jobs)
+      .where(eq(jobs.enabled, true))
+  },
+
   get: async (id: string) => {
     const j = await db.select().from(jobs).where(eq(jobs.id, id))
     return j[0] ?? null

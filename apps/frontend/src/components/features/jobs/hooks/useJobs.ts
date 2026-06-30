@@ -1,9 +1,14 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
-import type { InventoryItem, Job, JobRun } from "@/components/features/jobs/types"
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
+import type { InventoryItem, Job } from "@/components/features/jobs/types"
 import { useResourceMutation } from "@/hooks/useResourceMutation"
 import { orpc } from "@/lib/orpc"
+import { notifyError, notifySuccess } from "@/lib/toast"
 
 // ── Queries ──────────────────────────────────────────────────────────────────
 
@@ -17,11 +22,30 @@ export const useJobGet = (id: string, options?: { enabled?: boolean }) =>
     })
   )
 
-export const useJobRunsList = (jobId: string, options?: { enabled?: boolean }) =>
+/**
+ * List a job's runs. While `live` is on, polls so a freshly-triggered run
+ * flips from `running` to its terminal status without a manual refresh.
+ */
+export const useJobRunsList = (
+  jobId: string,
+  options?: { enabled?: boolean; live?: boolean }
+) =>
   useQuery(
     orpc.jobs.runs.list.queryOptions({
       input: { jobId },
       enabled: !!jobId && (options?.enabled ?? true),
+      refetchInterval: options?.live ? 3000 : false,
+    })
+  )
+
+/** Fetch a single run; polls while it is still `running`. */
+export const useJobRunGet = (id: string, options?: { enabled?: boolean }) =>
+  useQuery(
+    orpc.jobs.runs.get.queryOptions({
+      input: { id },
+      enabled: !!id && (options?.enabled ?? true),
+      refetchInterval: (query) =>
+        query.state.data?.status === "running" ? 2000 : false,
     })
   )
 
@@ -155,25 +179,24 @@ export const useJobToggleEnabled = () =>
     },
   })
 
-export const useJobRunCreate = () =>
-  useResourceMutation<{ jobId: string }, JobRun, JobRun[]>({
-    mutationFn: (input) =>
-      orpc.jobs.runs.create.call(input) as Promise<JobRun>,
-    listKey: orpc.jobs.runs.list.queryKey({ input: { jobId: "" } }),
-    applyOptimistic: (current, input) => {
-      if (!current) return current
-      const run: JobRun = {
-        id: `__optimistic_${Date.now()}`,
-        jobId: input.jobId,
-        status: "pending",
-        startedAt: null,
-        finishedAt: null,
-        createdAt: new Date().toISOString(),
-      }
-      return [run, ...current]
+/**
+ * Trigger an immediate run of a job. The backend records the run and streams
+ * the playbook in the background, so this resolves quickly with the new run id;
+ * the runs list (polling while `live`) then reflects progress.
+ */
+export const useJobRun = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { id: string }) =>
+      orpc.jobs.run.call(input) as Promise<{ runId: string | null }>,
+    onSuccess: (_data, input) => {
+      notifySuccess("Ejecución iniciada")
+      queryClient.invalidateQueries({
+        queryKey: orpc.jobs.runs.list.queryKey({ input: { jobId: input.id } }),
+      })
     },
-    messages: {
-      success: "Ejecución registrada",
-      error: "No se pudo registrar la ejecución",
+    onError: (error: Error) => {
+      notifyError("No se pudo ejecutar el job", error.message)
     },
   })
+}

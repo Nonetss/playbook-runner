@@ -1,0 +1,10 @@
+---
+import { JobDetailPage } from "@/components/features/jobs/components/job-detail-page"
+import Layout from "@/layouts/Layout.astro"
+
+const { id } = Astro.params
+---
+
+<Layout title="Job">
+  <JobDetailPage client:load id={id} />
+</Layout>

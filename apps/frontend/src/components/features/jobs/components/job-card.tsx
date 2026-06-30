@@ -1,6 +1,7 @@
 import {
   BriefcaseIcon,
   Clock,
+  History,
   MoreHorizontal,
   Pencil,
   Play,
@@ -30,6 +31,7 @@ type JobCardProps = {
   onEdit: (job: Job) => void
   onDelete: (id: string) => void
   onRun: (job: Job) => void
+  onView: (job: Job) => void
   onToggleEnabled: (id: string, enabled: boolean) => void
   isDeleting?: boolean
   isTogglingEnabled?: boolean
@@ -41,6 +43,7 @@ export function JobCard({
   onEdit,
   onDelete,
   onRun,
+  onView,
   onToggleEnabled,
   isDeleting = false,
   isTogglingEnabled = false,
@@ -84,7 +87,14 @@ export function JobCard({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onRun(job)} disabled={!job.playbookId}>
+                <DropdownMenuItem onClick={() => onView(job)}>
+                  <History className="size-4" />
+                  Ver ejecuciones
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onRun(job)}
+                  disabled={!job.playbookId}
+                >
                   <Play className="size-4" />
                   Ejecutar ahora
                 </DropdownMenuItem>
@@ -147,11 +157,11 @@ export function JobCard({
           variant="outline"
           size="sm"
           className="mt-auto w-full"
-          onClick={() => onRun(job)}
-          disabled={isDeleting || !job.playbookId}
+          onClick={() => onView(job)}
+          disabled={isDeleting}
         >
-          <Play className="size-4" />
-          Ejecutar ahora
+          <History className="size-4" />
+          Ver ejecuciones
         </Button>
       </CardContent>
     </Card>

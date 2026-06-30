@@ -83,7 +83,20 @@ function NavbarAuthenticatedInner({
             height={32}
             className="shrink-0"
           />
-          <span className="hidden sm:inline">{nameApp}</span>
+          <span className="flex flex-col leading-none">
+            {nameApp.split(" ").map((word, index) => (
+              <span
+                key={`${word}-${index}`}
+                className={cn(
+                  index === 0
+                    ? "text-sm font-bold tracking-tight"
+                    : "text-[10px] font-medium text-muted-foreground uppercase tracking-widest"
+                )}
+              >
+                {word}
+              </span>
+            ))}
+          </span>
         </a>
 
         {/* Desktop: lg+ - show links normally */}

@@ -4,6 +4,7 @@ import { BriefcaseIcon } from "lucide-react"
 import { JobCard } from "@/components/features/jobs/components/job-card"
 import {
   useJobDelete,
+  useJobRun,
   useJobsList,
   useJobToggleEnabled,
 } from "@/components/features/jobs/hooks/useJobs"
@@ -20,6 +21,7 @@ function JobsPageInner() {
   const { data: playbooks = [] } = usePlaybooksList()
   const deleteJob = useJobDelete()
   const toggleEnabled = useJobToggleEnabled()
+  const runJob = useJobRun()
   const confirm = useConfirm()
 
   const playbookMap = Object.fromEntries(playbooks.map((p) => [p.id, p.name]))
@@ -32,9 +34,15 @@ function JobsPageInner() {
     window.location.href = `/jobs/${job.id}/edit`
   }
 
-  function goToRun(job: Job) {
+  function goToDetail(job: Job) {
+    window.location.href = `/jobs/${job.id}`
+  }
+
+  async function handleRunNow(job: Job) {
     if (!job.playbookId) return
-    window.location.href = `/playbooks/${job.playbookId}/run`
+    await runJob.mutateAsync({ id: job.id })
+    // Jump to the detail page so the user can watch the run's output.
+    window.location.href = `/jobs/${job.id}`
   }
 
   async function handleDelete(id: string) {
@@ -109,7 +117,8 @@ function JobsPageInner() {
                 }
                 onEdit={goToEdit}
                 onDelete={handleDelete}
-                onRun={goToRun}
+                onRun={handleRunNow}
+                onView={goToDetail}
                 onToggleEnabled={handleToggleEnabled}
                 isDeleting={isDeletingId === job.id}
                 isTogglingEnabled={isTogglingId === job.id}
