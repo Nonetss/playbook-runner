@@ -1,72 +1,86 @@
-name: none.stack
+# ─────────────────────────────────────────────────────────────────────────────
+# Production compose overlay.
+#
+# - Services talk to each other over the docker network via service-name DNS
+#   (no localhost). See BACKEND_URL / ANSIBLE_URL / BETTER_AUTH_URL below.
+# - Only the frontend publishes a host port; backend and ansible stay internal
+#   (reachable on the network as `backend:3000` and `ansible:8000`).
+# - Image refs come from the root .env (see .env.example) and are pulled from
+#   the Gitea registry — no local build.
+#
+# Usage:
+#   cp .env.example .env  # fill in secrets
+#   docker compose -f compose.prod.yml --env-file .env up -d
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: none.stack.prod
 
 services:
   ansible:
-    build:
-      context: ./apps/ansible
-      dockerfile: Dockerfile
+    image: ${ANSIBLE_IMAGE:?ANSIBLE_IMAGE is required}:${ANSIBLE_IMAGE_TAG:-latest}
+    pull_policy: always
     container_name: ansible
     init: true
-    env_file:
-      - path: apps/ansible/.env
-        required: false
+    restart: unless-stopped
+    env_file: .env
     environment:
       BACKEND_URL: http://backend:3000
-      ANSIBLE_PLAYBOOK_PATH: /app/playbook
-      ANSIBLE_SSH_KEY: /app/playbook/ssh_key
-    volumes:
-      - ./apps/ansible/playbook:/app/playbook
-    ports:
-      - "8000:8000"
-    depends_on:
-      backend:
-        condition: service_healthy
-    restart: unless-stopped
-
-  frontend:
-    build:
-      context: .
-      dockerfile: apps/frontend/Dockerfile
-      args:
-        PUBLIC_SERVER_URL: http://localhost:4321
-    container_name: frontend
-    init: true
-    ports:
-      - "4321:80"
-    env_file:
-      - path: apps/frontend/.env
-        required: false
-    environment:
-      BETTER_AUTH_URL: http://backend:3000
-    depends_on:
-      backend:
-        condition: service_healthy
-    restart: unless-stopped
-
-  backend:
-    build:
-      context: .
-      dockerfile: apps/backend/Dockerfile
-    container_name: backend
-    init: true
+      ANSIBLE_HOST_KEY_CHECKING: "false"
     expose:
-      - "3000"
-    env_file:
-      - path: apps/backend/.env
-        required: false
-    environment:
-      CORS_ORIGIN: http://localhost:4321
-      ANSIBLE_URL: http://ansible:8000
+      - "8000"
+    depends_on:
+      backend:
+        condition: service_healthy
     healthcheck:
       test:
-        [
-          "CMD",
-          "node",
-          "-e",
-          "fetch('http://localhost:3000/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
-        ]
-      interval: 10s
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/openapi.json').read()"
+      interval: 30s
       timeout: 5s
-      retries: 5
-      start_period: 10s
+      retries: 3
+      start_period: 20s
+
+  backend:
+    image: ${BACKEND_IMAGE:?BACKEND_IMAGE is required}:${BACKEND_IMAGE_TAG:-latest}
+    pull_policy: always
+    container_name: backend
+    init: true
     restart: unless-stopped
+    env_file: .env
+    environment:
+      BETTER_AUTH_URL: http://backend:3000
+      ANSIBLE_URL: http://ansible:8000
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4321}
+      NODE_ENV: production
+    expose:
+      - "3000"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:3000/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  frontend:
+    image: ${FRONTEND_IMAGE:?FRONTEND_IMAGE is required}:${FRONTEND_IMAGE_TAG:-latest}
+    pull_policy: always
+    container_name: frontend
+    init: true
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      BETTER_AUTH_URL: http://backend:3000
+      PUBLIC_SERVER_URL: ${PUBLIC_SERVER_URL:-http://localhost:4321}
+    ports:
+      - "${FRONTEND_PORT:-4321}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+      ansible:
+        condition: service_healthy

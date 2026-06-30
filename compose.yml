@@ -1,4 +1,4 @@
-name: none.stack
+name: playbook-runner
 
 services:
   ansible:
@@ -58,13 +58,7 @@ services:
       CORS_ORIGIN: http://localhost:4321
       ANSIBLE_URL: http://ansible:8000
     healthcheck:
-      test:
-        [
-          "CMD",
-          "node",
-          "-e",
-          "fetch('http://localhost:3000/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
-        ]
+      test: [ "CMD", "node", "-e", "fetch('http://localhost:3000/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))" ]
       interval: 10s
       timeout: 5s
       retries: 5
