@@ -4,7 +4,7 @@
 }
 
 (backend) {
-    reverse_proxy {$BACKEND_UPSTREAM:server:3000}
+    reverse_proxy {$BACKEND_UPSTREAM:backend:3000}
 }
 
 :80 {
