@@ -110,9 +110,6 @@ function NavbarAuthenticatedInner({
         <div className="flex lg:hidden shrink-0 items-center gap-1.5 sm:gap-2">
           <ThemeToggle className="relative right-0 top-0 translate-y-0" />
           <UserNav user={user} />
-          <a href="/config" aria-label="Configuración" className={triggerClass}>
-            <Settings className="size-4 shrink-0" aria-hidden />
-          </a>
           <NavbarMobileMenu
             navLinks={navLinks}
             currentPath={currentPath}
@@ -124,9 +121,6 @@ function NavbarAuthenticatedInner({
         <div className="hidden lg:flex shrink-0 items-center gap-2">
           <ThemeToggle className="relative right-0 top-0 translate-y-0" />
           <UserNav user={user} />
-          <a href="/config" aria-label="Configuración" className={triggerClass}>
-            <Settings className="size-4 shrink-0" aria-hidden />
-          </a>
         </div>
       </nav>
     </header>
