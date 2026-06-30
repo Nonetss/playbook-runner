@@ -12,9 +12,11 @@ The Ansible microservice already proves it can execute and stream a hardcoded pl
 ## Capabilities
 
 ### New Capabilities
+
 - `playbook-execution`: The Ansible service capability that turns a playbook + inventory selection into a streamed `ansible-runner` execution, including resolving the run via the backend, materializing playbook/key files, and emitting SSE events.
 
 ### Modified Capabilities
+
 - `rpc-api`: Add an authenticated "resolve run" procedure that returns a playbook's content together with its selection's de-duplicated hosts and their credentials, for consumption by the Ansible service.
 
 ## Impact

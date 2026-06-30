@@ -14,6 +14,7 @@ Las primeras features (inventario, credenciales, playbooks) ya tienen endpoints 
 ## Capabilities
 
 ### New Capabilities
+
 - `interaction-feedback`: notificaciones (toasts) y diálogos de confirmación reusables como única vía de feedback al usuario para acciones y errores.
 - `app-data-layer`: caché de datos global y compartida entre secciones, con optimistic updates y prefetch para una navegación fluida.
 - `resource-crud-framework`: primitivas de UI compartidas para listar, crear, editar y borrar recursos de forma consistente en todas las features.

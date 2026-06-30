@@ -9,12 +9,14 @@ Restricciones: no tocar API ni DB; mantener Astro como framework; el design syst
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Feedback inmediato y consistente de toda acción (toasts de éxito/error) y confirmaciones propias (sin diálogos nativos).
 - Sensación de instantaneidad: optimistic updates + caché compartida entre secciones + prefetch.
 - Reducir boilerplate con primitivas CRUD compartidas reutilizadas por las tres features.
 - Migración incremental, feature por feature, sin romper lo existente.
 
 **Non-Goals:**
+
 - No se cambia ningún contrato de API ni el schema de DB.
 - No se migra a una SPA pura ni se abandona Astro.
 - No se rediseña visualmente el producto; se mantiene el look actual.
@@ -23,29 +25,38 @@ Restricciones: no tocar API ni DB; mantener Astro como framework; el design syst
 ## Decisions
 
 ### 1. Toasts con `sonner`, montado una sola vez
+
 Se añade `sonner` y se monta un único `<Toaster />`. Como Astro remonta islas por página, el `Toaster` se incluye dentro del shell React compartido (ver decisión 2) para que viva una sola vez por sesión de navegación. API: `toast.success` / `toast.error` desde un helper común.
+
 - **Alternativa descartada**: toast casero con contexto React → reinventar accesibilidad, colas y animaciones sin ganancia.
 
 ### 2. QueryClient global compartido vía shell React persistente
+
 Se crea un componente raíz (`AppProviders`) que monta `QueryClientProvider` (con un QueryClient **singleton** de módulo, no por render) + `<Toaster />`, y se renderiza una vez en `Layout.astro` con `client:load` y `transition:persist`, envolviendo el contenido. Las islas de feature dejan de montar su propio `QueryProvider` y pasan a asumir que el provider ya existe.
+
 - `lib/query-client.ts` se ajusta para devolver siempre la **misma** instancia en el navegador (singleton), de modo que la caché persista entre swaps de Astro.
 - **Alternativa descartada**: un provider por página con `persistQueryClient` a `localStorage` → más complejidad y riesgo de datos obsoletos; el singleton en cliente basta porque el shell persiste.
 - **Riesgo a verificar**: la interacción `transition:persist` + islas React. Si persistir el shell completo da problemas, fallback: QueryClient singleton de módulo compartido por todas las islas (la caché se comparte aunque el provider se remonte, porque la instancia es la misma).
 
 ### 3. Helper de mutación optimista compartido
+
 Un hook `useResourceMutation` (o conjunto de factories en cada `useX` hook) que encapsula el patrón `onMutate` (cancelar queries, snapshot, update optimista de la lista en caché), `onError` (rollback + `toast.error`), `onSuccess` (`toast.success`) y `onSettled` (invalidate). Los hooks actuales (`useDevices`, `useGroups`, `useCredentials`, `usePlaybooks`) se reescriben sobre este helper.
+
 - **Alternativa descartada**: optimistic ad-hoc en cada hook → duplicación y divergencia, justo lo que queremos evitar.
 
 ### 4. `ConfirmDialog` reusable
+
 Componente sobre el `Dialog` existente que recibe título, descripción, label de confirmar y un callback async; gestiona el estado de "ejecutando". Sustituye los 9 usos de `window.confirm/alert`. Un hook `useConfirm()` opcional para invocarlo imperativamente.
 
 ### 5. Primitivas CRUD compartidas en `components/shared`
+
 - `ResourcePage`: cabecera (título + descripción), botón de crear, y slots para lista/estados.
 - `ResourceListState`: encapsula loading / error (con reintento) / vacío (con CTA) de forma uniforme.
 - `ResourceFormModal`: modal genérico que toma una definición de campos (`{ name, label, placeholder, required, type }[]`), maneja estado, envío y errores, y delega en la mutación. Los form-modals actuales se reexpresan como definiciones de campos.
 - Migración por capas: primero las primitivas, luego se migra **una** feature (inventario, la más completa) como referencia, después credenciales y playbooks.
 
 ### 6. Prefetch al hover en el navbar
+
 En `NavbarAuthenticated`, cada nav link dispara `queryClient.prefetchQuery(...)` de la lista principal de su sección en `onMouseEnter`. Usa el QueryClient compartido de la decisión 2.
 
 ## Risks / Trade-offs
