@@ -17,7 +17,6 @@ export default defineConfig({
       PUBLIC_SERVER_URL: envField.string({
         access: "public",
         context: "client",
-        default: "http://localhost:3000",
       }),
     },
   },
