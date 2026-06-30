@@ -29,6 +29,7 @@
     "dev:frontend": "turbo -F frontend dev",
     "dev:backend": "turbo -F backend dev",
     "db:push": "turbo -F @none.stack/db db:push",
+    "db:pull": "turbo -F @none.stack/db db:pull",
     "db:studio": "turbo -F @none.stack/db db:studio",
     "db:generate": "turbo -F @none.stack/db db:generate",
     "db:migrate": "turbo -F @none.stack/db db:migrate",

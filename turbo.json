@@ -20,6 +20,9 @@
     "db:push": {
       "cache": false
     },
+    "db:pull": {
+      "cache": false
+    },
     "db:generate": {
       "cache": false
     },
