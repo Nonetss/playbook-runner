@@ -1,0 +1,10 @@
+---
+import { JobFormPage } from "@/components/features/jobs/components/job-form-page"
+import Layout from "@/layouts/Layout.astro"
+
+const { id } = Astro.params
+---
+
+<Layout title="Editar job">
+  <JobFormPage client:load id={id} />
+</Layout>
