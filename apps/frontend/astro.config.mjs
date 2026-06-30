@@ -3,7 +3,8 @@ import node from "@astrojs/node"
 import react from "@astrojs/react"
 // @ts-check
 import tailwindcss from "@tailwindcss/vite"
-import { defineConfig } from "astro/config"
+import { defineConfig, envField } from "astro/config"
+
 
 // https://astro.build/config
 export default defineConfig({
@@ -12,6 +13,16 @@ export default defineConfig({
   prefetch: {
     defaultStrategy: "viewport",
   },
+  env: {
+    schema: {
+      PUBLIC_SERVER_URL: envField.string({
+        access: "public",
+        context: "client",
+        default: "http://localhost:4321",
+      }),
+    },
+  },  
+
   vite: {
     server: {
       proxy: {
