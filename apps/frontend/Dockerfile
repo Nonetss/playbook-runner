@@ -1,37 +1,23 @@
-# syntax=docker/dockerfile:1.7
-#
-# Multi-stage build:
-#   build   — installs deps, runs `bun run build`, produces dist/
-#   runtime — caddy + bun (for SSR) + the built dist/
-
-# ─── build ──────────────────────────────────────────────────────────────────
-FROM oven/bun:1 AS build
-
-ENV SKIP_ENV_VALIDATION=1 \
-    NODE_ENV=production
-
+FROM node:24-slim AS base
+COPY --from=oven/bun:1 /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=caddy:2-alpine /usr/bin/caddy /usr/local/bin/caddy
 WORKDIR /app
+ENV SKIP_ENV_VALIDATION=1
 
-COPY package.json bun.lock turbo.json ./
-COPY packages ./packages
-COPY apps ./apps
+COPY . .
+RUN --mount=type=cache,target=/root/.bun/install/cache bun install
 
-RUN --mount=type=cache,target=/root/.bun/install/cache bun install --frozen-lockfile
+ENV NODE_ENV=production
 RUN cd apps/frontend && bun run build
+ENV SKIP_ENV_VALIDATION=
 
-
-# ─── runtime ────────────────────────────────────────────────────────────────
-FROM caddy:2-alpine AS runtime
-
-COPY --from=build /usr/local/bin/bun /usr/local/bin/bun
-
-WORKDIR /app
-
-COPY --from=build /app/apps/frontend/dist /app/apps/frontend/dist
-COPY --from=build /app/apps/frontend/Caddyfile /etc/caddy/Caddyfile
-COPY --from=build /app/apps/frontend/start.sh /start.sh
+COPY apps/frontend/Caddyfile /etc/caddy/Caddyfile
+COPY apps/frontend/start.sh /start.sh
 RUN chmod +x /start.sh
 
-EXPOSE 80
+# Astro SSR escucha solo en localhost; Caddy expone el 80
+ENV HOST=127.0.0.1
+ENV PORT=4321
 
+EXPOSE 80
 CMD ["/start.sh"]

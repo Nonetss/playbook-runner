@@ -50,9 +50,6 @@ export default defineConfig({
   format: "esm",
   outDir: "./dist",
   clean: true,
-  // Bundle every dependency (workspace packages AND npm deps like drizzle-orm
-  // and pg) into a single dist/index.mjs so the runtime image needs no
-  // node_modules at all. node: builtins stay external automatically.
-  noExternal: /.*/,
+  noExternal: [/@playbook-runner\/.*/],
   plugins: [monorepoAliasPlugin()],
 })
