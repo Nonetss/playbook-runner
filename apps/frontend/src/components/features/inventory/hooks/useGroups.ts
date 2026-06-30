@@ -30,10 +30,7 @@ export const useGroupsList = () => {
   return useQuery(orpc.inventory.groups.list.queryOptions())
 }
 
-export const useGroupGet = (
-  id: string,
-  options?: { enabled?: boolean }
-) => {
+export const useGroupGet = (id: string, options?: { enabled?: boolean }) => {
   return useQuery(
     orpc.inventory.groups.get.queryOptions({
       input: { id },

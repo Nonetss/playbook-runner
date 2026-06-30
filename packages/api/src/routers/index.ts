@@ -3,6 +3,7 @@ import type { RouterClient } from "@orpc/server"
 import { protectedProcedure, publicProcedure } from "@/index"
 import { credentialsRouter } from "@/routers/credentials"
 import { inventoryRouter } from "@/routers/inventory"
+import { playbooksRouter } from "@/routers/playbooks"
 
 export const appRouter = {
   healthCheck: publicProcedure
@@ -47,6 +48,7 @@ export const appRouter = {
 
   credentials: credentialsRouter,
   inventory: inventoryRouter,
+  playbooks: playbooksRouter,
 }
 export type AppRouter = typeof appRouter
 export type AppRouterClient = RouterClient<typeof appRouter>

@@ -84,7 +84,10 @@ export function SignInForm() {
         </form>
       </CardContent>
       <CardFooter className="flex-col gap-2">
-        <a href="/signup" className="text-sm text-muted-foreground hover:text-primary">
+        <a
+          href="/signup"
+          className="text-sm text-muted-foreground hover:text-primary"
+        >
           ¿No tienes cuenta? Regístrate
         </a>
       </CardFooter>

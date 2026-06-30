@@ -101,7 +101,10 @@ export function SignUpForm() {
         </form>
       </CardContent>
       <CardFooter className="flex-col gap-2">
-        <a href="/login" className="text-sm text-muted-foreground hover:text-primary">
+        <a
+          href="/login"
+          className="text-sm text-muted-foreground hover:text-primary"
+        >
           ¿Ya tienes cuenta? Inicia sesión
         </a>
       </CardFooter>

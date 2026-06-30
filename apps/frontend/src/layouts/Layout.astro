@@ -4,28 +4,19 @@ import { ClientRouter, fade } from "astro:transitions"
 import { NavbarAuthenticated } from "@/components/features/global/navbar-authenticated"
 import { NavbarGuest } from "@/components/features/global/navbar-guest"
 
-interface NavLink {
-  href: string
-  label: string
-}
-
 interface Props {
   title: string
-  navLinks?: NavLink[]
-  /** Páginas públicas (login / registro): barra sin enlaces de la app ni ajustes. */
   guestNavbar?: boolean
 }
 
-const {
-  title,
-  guestNavbar = false,
-  navLinks = [
-    { href: "/", label: "Inicio" },
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/credentials", label: "Credenciales" },
-    { href: "/inventory", label: "Inventario" },
-  ],
-} = Astro.props
+const navLinks = [
+  { href: "/", label: "Inicio" },
+  { href: "/credentials", label: "Credenciales" },
+  { href: "/inventory", label: "Inventario" },
+  { href: "/playbooks", label: "Playbooks" },
+]
+
+const { title, guestNavbar = false } = Astro.props
 
 const { user, session } = Astro.locals
 const hasSession = !!user && !!session

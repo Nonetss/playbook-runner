@@ -1,21 +1,28 @@
 import { Plus, Server } from "lucide-react"
 import { DeviceCard } from "@/components/features/inventory/components/device-card"
-import type { InventoryDevice } from "@/components/features/inventory/types"
+import type {
+  InventoryDevice,
+  InventoryGroup,
+} from "@/components/features/inventory/types"
 import { Button } from "@/components/ui/button"
 
 type DeviceListProps = {
   devices: InventoryDevice[]
+  groupsByDevice: Map<string, InventoryGroup[]>
   onCreate: () => void
   onEdit: (device: InventoryDevice) => void
   onDelete: (id: string) => void
+  onManageGroups: (device: InventoryDevice) => void
   deletingId?: string | null
 }
 
 export function DeviceList({
   devices,
+  groupsByDevice,
   onCreate,
   onEdit,
   onDelete,
+  onManageGroups,
   deletingId = null,
 }: DeviceListProps) {
   if (devices.length === 0) {
@@ -42,8 +49,10 @@ export function DeviceList({
         <DeviceCard
           key={device.id}
           device={device}
+          groups={groupsByDevice.get(device.id) ?? []}
           onEdit={onEdit}
           onDelete={onDelete}
+          onManageGroups={onManageGroups}
           isDeleting={deletingId === device.id}
         />
       ))}

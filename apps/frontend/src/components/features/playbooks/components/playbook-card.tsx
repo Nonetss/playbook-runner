@@ -1,8 +1,5 @@
-import { Link2, MoreHorizontal, Pencil, Server, Trash2 } from "lucide-react"
-import type {
-  InventoryDevice,
-  InventoryGroup,
-} from "@/components/features/inventory/types"
+import { BookText, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import type { Playbook } from "@/components/features/playbooks/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,36 +16,42 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-type GroupCardProps = {
-  group: InventoryGroup
-  devices: InventoryDevice[]
-  onEdit: (group: InventoryGroup) => void
+type PlaybookCardProps = {
+  playbook: Playbook
+  onEdit: (playbook: Playbook) => void
   onDelete: (id: string) => void
-  onManageDevices: (group: InventoryGroup) => void
   isDeleting?: boolean
 }
 
-export function GroupCard({
-  group,
-  devices,
+export function PlaybookCard({
+  playbook,
   onEdit,
   onDelete,
-  onManageDevices,
   isDeleting = false,
-}: GroupCardProps) {
+}: PlaybookCardProps) {
+  const updatedAt = playbook.updatedAt
+    ? new Date(playbook.updatedAt).toLocaleDateString("es-ES", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    : null
+
   return (
     <Card className="gap-4 py-4">
       <CardHeader className="px-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
             <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-md">
-              <Server className="size-4" />
+              <BookText className="size-4" />
             </div>
             <div className="min-w-0">
-              <CardTitle className="truncate text-base">{group.name}</CardTitle>
-              {group.description && (
+              <CardTitle className="truncate text-base">
+                {playbook.name}
+              </CardTitle>
+              {playbook.description && (
                 <CardDescription className="truncate">
-                  {group.description}
+                  {playbook.description}
                 </CardDescription>
               )}
             </div>
@@ -59,24 +62,20 @@ export function GroupCard({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label={`Acciones para ${group.name}`}
+                aria-label={`Acciones para ${playbook.name}`}
                 disabled={isDeleting}
               >
                 <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(group)}>
+              <DropdownMenuItem onClick={() => onEdit(playbook)}>
                 <Pencil className="size-4" />
                 Editar
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onManageDevices(group)}>
-                <Link2 className="size-4" />
-                Gestionar dispositivos
-              </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
-                onClick={() => onDelete(group.id)}
+                onClick={() => onDelete(playbook.id)}
               >
                 <Trash2 className="size-4" />
                 Eliminar
@@ -87,31 +86,20 @@ export function GroupCard({
       </CardHeader>
 
       <CardContent className="space-y-3 px-4">
-        {devices.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="secondary" className="font-mono text-xs">
+            YAML
+          </Badge>
+          {updatedAt && (
             <span className="text-muted-foreground text-xs">
-              {devices.length} dispositivo{devices.length === 1 ? "" : "s"}:
+              Actualizado el {updatedAt}
             </span>
-            {devices.slice(0, 4).map((device) => (
-              <Badge key={device.id} variant="outline" className="text-xs">
-                {device.name}
-              </Badge>
-            ))}
-            {devices.length > 4 ? (
-              <span className="text-muted-foreground text-xs">
-                +{devices.length - 4}
-              </span>
-            ) : null}
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => onManageDevices(group)}
-            className="text-muted-foreground hover:text-foreground text-xs underline-offset-4 hover:underline"
-          >
-            Añadir dispositivos
-          </button>
-        )}
+          )}
+        </div>
+
+        <p className="text-muted-foreground line-clamp-3 font-mono text-xs whitespace-pre-wrap">
+          {playbook.content}
+        </p>
       </CardContent>
     </Card>
   )

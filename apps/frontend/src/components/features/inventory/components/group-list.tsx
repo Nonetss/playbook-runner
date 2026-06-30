@@ -1,21 +1,28 @@
 import { Folder, Plus } from "lucide-react"
 import { GroupCard } from "@/components/features/inventory/components/group-card"
-import type { InventoryGroup } from "@/components/features/inventory/types"
+import type {
+  InventoryDevice,
+  InventoryGroup,
+} from "@/components/features/inventory/types"
 import { Button } from "@/components/ui/button"
 
 type GroupListProps = {
   groups: InventoryGroup[]
+  devicesByGroup: Map<string, InventoryDevice[]>
   onCreate: () => void
   onEdit: (group: InventoryGroup) => void
   onDelete: (id: string) => void
+  onManageDevices: (group: InventoryGroup) => void
   deletingId?: string | null
 }
 
 export function GroupList({
   groups,
+  devicesByGroup,
   onCreate,
   onEdit,
   onDelete,
+  onManageDevices,
   deletingId = null,
 }: GroupListProps) {
   if (groups.length === 0) {
@@ -42,8 +49,10 @@ export function GroupList({
         <GroupCard
           key={group.id}
           group={group}
+          devices={devicesByGroup.get(group.id) ?? []}
           onEdit={onEdit}
           onDelete={onDelete}
+          onManageDevices={onManageDevices}
           isDeleting={deletingId === group.id}
         />
       ))}

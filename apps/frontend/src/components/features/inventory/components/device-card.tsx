@@ -1,5 +1,8 @@
-import { MoreHorizontal, Pencil, Server, Trash2 } from "lucide-react"
-import type { InventoryDevice } from "@/components/features/inventory/types"
+import { Folder, Link2, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import type {
+  InventoryDevice,
+  InventoryGroup,
+} from "@/components/features/inventory/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,15 +21,19 @@ import {
 
 type DeviceCardProps = {
   device: InventoryDevice
+  groups: InventoryGroup[]
   onEdit: (device: InventoryDevice) => void
   onDelete: (id: string) => void
+  onManageGroups: (device: InventoryDevice) => void
   isDeleting?: boolean
 }
 
 export function DeviceCard({
   device,
+  groups,
   onEdit,
   onDelete,
+  onManageGroups,
   isDeleting = false,
 }: DeviceCardProps) {
   return (
@@ -35,7 +42,7 @@ export function DeviceCard({
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
             <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-md">
-              <Server className="size-4" />
+              <Folder className="size-4" />
             </div>
             <div className="min-w-0">
               <CardTitle className="truncate text-base">
@@ -65,6 +72,10 @@ export function DeviceCard({
                 <Pencil className="size-4" />
                 Editar
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onManageGroups(device)}>
+                <Link2 className="size-4" />
+                Gestionar grupos
+              </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
                 onClick={() => onDelete(device.id)}
@@ -84,10 +95,23 @@ export function DeviceCard({
           </Badge>
         </div>
 
-        {device.description && (
-          <p className="text-muted-foreground text-xs">
-            {device.description}
-          </p>
+        {groups.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-muted-foreground text-xs">Grupos:</span>
+            {groups.map((group) => (
+              <Badge key={group.id} variant="outline" className="text-xs">
+                {group.name}
+              </Badge>
+            ))}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onManageGroups(device)}
+            className="text-muted-foreground hover:text-foreground text-xs underline-offset-4 hover:underline"
+          >
+            Asignar a un grupo
+          </button>
         )}
       </CardContent>
     </Card>

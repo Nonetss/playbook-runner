@@ -30,10 +30,7 @@ export const useDevicesList = () => {
   return useQuery(orpc.inventory.devices.list.queryOptions())
 }
 
-export const useDeviceGet = (
-  id: string,
-  options?: { enabled?: boolean }
-) => {
+export const useDeviceGet = (id: string, options?: { enabled?: boolean }) => {
   return useQuery(
     orpc.inventory.devices.get.queryOptions({
       input: { id },

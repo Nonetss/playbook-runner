@@ -161,7 +161,8 @@ export const inventoryRouter = {
     assign: protectedProcedure
       .route({
         summary: "Assign a device to a group",
-        description: "Creates a relation between an inventory device and a group.",
+        description:
+          "Creates a relation between an inventory device and a group.",
         tags: ["Inventory"],
         method: "POST",
       })
@@ -216,7 +217,8 @@ export const inventoryRouter = {
     unassign: protectedProcedure
       .route({
         summary: "Unassign a device from a group",
-        description: "Removes the relation between an inventory device and a group.",
+        description:
+          "Removes the relation between an inventory device and a group.",
         tags: ["Inventory"],
         method: "DELETE",
       })

@@ -17,7 +17,5 @@ export type InventoryDeviceList = Awaited<
 >
 
 export type InventoryDeviceGroup = NonNullable<
-  Awaited<
-    ReturnType<AppRouterClient["inventory"]["deviceGroups"]["assign"]>
-  >
+  Awaited<ReturnType<AppRouterClient["inventory"]["deviceGroups"]["assign"]>>
 >

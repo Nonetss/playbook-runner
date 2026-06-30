@@ -1,8 +1,8 @@
 import { sql } from "drizzle-orm"
-import { integer, pgTable, text, timestamp } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
 
 export const playbooks = pgTable("playbooks", {
-  id: integer().primaryKey(),
+  id: uuid().defaultRandom().primaryKey(),
   name: text().notNull(),
   description: text(),
   content: text().notNull(),
