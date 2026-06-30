@@ -8,8 +8,29 @@ import { admin, genericOAuth } from "better-auth/plugins"
 
 const GENERIC_OAUTH_PROVIDER_ID = "generic"
 
+function buildGenericOAuthPlugin() {
+  const { GENERIC_OAUTH_CLIENT_ID, GENERIC_OAUTH_CLIENT_SECRET, GENERIC_OAUTH_ISSUER } = env
+  if (!GENERIC_OAUTH_CLIENT_ID || !GENERIC_OAUTH_CLIENT_SECRET || !GENERIC_OAUTH_ISSUER) {
+    return null
+  }
+  return genericOAuth({
+    config: [
+      {
+        providerId: GENERIC_OAUTH_PROVIDER_ID,
+        clientId: GENERIC_OAUTH_CLIENT_ID,
+        clientSecret: GENERIC_OAUTH_CLIENT_SECRET,
+        discoveryUrl: `${GENERIC_OAUTH_ISSUER}/.well-known/openid-configuration`,
+        scopes: ["openid", "profile", "email"],
+      },
+    ],
+  })
+}
+
 export function createAuth() {
   const db = createDb()
+
+  const oauthPlugin = buildGenericOAuthPlugin()
+  const oauthEnabled = oauthPlugin !== null
 
   return betterAuth({
     database: drizzleAdapter(db, {
@@ -18,12 +39,14 @@ export function createAuth() {
     }),
     trustedOrigins: [env.CORS_ORIGIN],
     emailAndPassword: {
-      enabled: false,
+      enabled: true,
+      autoSignIn: true,
+      minPasswordLength: 8,
     },
     account: {
       accountLinking: {
         enabled: true,
-        trustedProviders: [GENERIC_OAUTH_PROVIDER_ID],
+        trustedProviders: oauthEnabled ? [GENERIC_OAUTH_PROVIDER_ID] : [],
         // SSO corporativo es la fuente de verdad; no exigir emailVerified local previo.
         requireLocalEmailVerified: false,
       },
@@ -46,17 +69,7 @@ export function createAuth() {
     plugins: [
       admin(),
       apiKey({ enableSessionForAPIKeys: true }),
-      genericOAuth({
-        config: [
-          {
-            providerId: GENERIC_OAUTH_PROVIDER_ID,
-            clientId: env.GENERIC_OAUTH_CLIENT_ID ?? "",
-            clientSecret: env.GENERIC_OAUTH_CLIENT_SECRET ?? "",
-            discoveryUrl: `${env.GENERIC_OAUTH_ISSUER}/.well-known/openid-configuration`,
-            scopes: ["openid", "profile", "email"],
-          },
-        ],
-      }),
+      ...(oauthPlugin ? [oauthPlugin] : []),
     ],
   })
 }
