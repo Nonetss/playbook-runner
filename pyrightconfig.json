@@ -1,0 +1,16 @@
+{
+  "include": ["apps/agent/app"],
+  "exclude": [
+    "**/.venv",
+    "**/__pycache__",
+    "**/.ruff_cache",
+    "**/.pytest_cache",
+    "**/build",
+    "**/dist"
+  ],
+  "venvPath": "apps/ansible",
+  "venv": ".venv",
+  "extraPaths": ["apps/ansible"],
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "basic"
+}
