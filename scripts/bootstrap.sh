@@ -13,6 +13,23 @@
 
 set -Eeuo pipefail
 
+# ── Refuse to run from stdin (curl | bash) ───────────────────────────────────
+# When piped from stdin, BASH_SOURCE[0] is empty, so dirname/cd blow up.
+# Bail early with the right one-liner instead of failing halfway through.
+if [[ -z "${BASH_SOURCE[0]:-}" || "${BASH_SOURCE[0]}" == "bash" || "${BASH_SOURCE[0]}" == "/dev/stdin" ]]; then
+    cat <<'EOF' >&2
+Este script no puede ejecutarse desde stdin (curl ... | bash).
+
+Descargá primero a un archivo y ejecutá desde ahí:
+
+    curl -fsSL <URL> -o /tmp/pb-bootstrap.sh
+    bash /tmp/pb-bootstrap.sh
+
+(Las instrucciones exactas están en el README.)
+EOF
+    exit 1
+fi
+
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd -P)"
 cd "$PROJECT_ROOT"

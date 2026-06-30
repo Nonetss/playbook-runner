@@ -12,14 +12,19 @@ runs, and a live log of every execution.
 ## TL;DR — install on a server
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/v0.0.6/scripts/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/v0.0.6/scripts/bootstrap.sh -o /tmp/pb-bootstrap.sh \
+  && bash /tmp/pb-bootstrap.sh \
+  && rm -f /tmp/pb-bootstrap.sh
 ```
 
-That fetches `scripts/bootstrap.sh`, asks you for the admin user/password and a
-few more things, generates secrets with `openssl`, writes a `.env`, pulls the
+That downloads `scripts/bootstrap.sh`, asks you for the admin user/password and
+a few more things, generates secrets with `openssl`, writes a `.env`, pulls the
 images from `ghcr.io`, and brings the stack up. You end up with everything
 running at `http://<your-host>:4321` (or whatever port you chose). See
 [Quick start (production)](#quick-start-production) for the manual version.
+
+> The script refuses to run when piped via `curl ... | bash` because that
+> leaves `BASH_SOURCE` empty. Download to a file first, as shown above.
 
 ## Screenshots
 
