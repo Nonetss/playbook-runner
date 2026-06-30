@@ -6,5 +6,5 @@ const { id } = Astro.params
 ---
 
 <Layout title="Ejecutar playbook">
-  <RunPlaybookPage client:only="react" id={id} />
+  <RunPlaybookPage client:load id={id} />
 </Layout>

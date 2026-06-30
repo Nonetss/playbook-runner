@@ -8,5 +8,5 @@ if (!user || !session) return Astro.redirect("/login")
 ---
 
 <Layout title="Mi perfil">
-  <ProfilePage user={user} session={session} client:only="react" />
+  <ProfilePage user={user} session={session} client:load />
 </Layout>
