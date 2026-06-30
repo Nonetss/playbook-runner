@@ -7,6 +7,7 @@ import { DeviceFormModal } from "@/components/features/inventory/components/devi
 import { DeviceList } from "@/components/features/inventory/components/device-list"
 import { GroupFormModal } from "@/components/features/inventory/components/group-form-modal"
 import { GroupList } from "@/components/features/inventory/components/group-list"
+import { PingDeviceModal } from "@/components/features/inventory/components/ping-device-modal"
 import { RelationsDialog } from "@/components/features/inventory/components/relations-dialog"
 import { useDeviceGroupsList } from "@/components/features/inventory/hooks/useDeviceGroups"
 import {
@@ -65,6 +66,7 @@ function InventoryPageInner() {
   const [editingDevice, setEditingDevice] = useState<InventoryDevice | null>(
     null
   )
+  const [pingDevice, setPingDevice] = useState<InventoryDevice | null>(null)
 
   const [relationsTarget, setRelationsTarget] = useState<RelationsTarget>(null)
 
@@ -133,6 +135,10 @@ function InventoryPageInner() {
   function handleDeviceModalOpenChange(open: boolean) {
     setDeviceModalOpen(open)
     if (!open) setEditingDevice(null)
+  }
+
+  function openPingDevice(device: InventoryDevice) {
+    setPingDevice(device)
   }
 
   function openManageDeviceGroups(device: InventoryDevice) {
@@ -277,6 +283,13 @@ function InventoryPageInner() {
             onOpenChange={handleDeviceModalOpenChange}
             device={editingDevice}
           />
+          <PingDeviceModal
+            open={!!pingDevice}
+            onOpenChange={(open) => {
+              if (!open) setPingDevice(null)
+            }}
+            device={pingDevice}
+          />
           <ResourceListState
             isPending={devicesPending}
             isError={devicesError}
@@ -299,6 +312,7 @@ function InventoryPageInner() {
                 onEdit={openEditDevice}
                 onDelete={handleDeleteDevice}
                 onManageGroups={openManageDeviceGroups}
+                onPing={openPingDevice}
                 deletingId={
                   deleteDevice.isPending
                     ? (deleteDevice.variables?.id ?? null)

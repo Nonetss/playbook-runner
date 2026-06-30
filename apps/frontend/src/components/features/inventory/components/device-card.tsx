@@ -4,6 +4,7 @@ import {
   Link2,
   MoreHorizontal,
   Pencil,
+  Radio,
   Trash2,
 } from "lucide-react"
 import type {
@@ -38,6 +39,7 @@ type DeviceCardProps = {
   onEdit: (device: InventoryDevice) => void
   onDelete: (id: string) => void
   onManageGroups: (device: InventoryDevice) => void
+  onPing: (device: InventoryDevice) => void
   isDeleting?: boolean
 }
 
@@ -48,6 +50,7 @@ export function DeviceCard({
   onEdit,
   onDelete,
   onManageGroups,
+  onPing,
   isDeleting = false,
 }: DeviceCardProps) {
   return (
@@ -89,6 +92,10 @@ export function DeviceCard({
               <DropdownMenuItem onClick={() => onManageGroups(device)}>
                 <Link2 className="size-4" />
                 Gestionar grupos
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onPing(device)}>
+                <Radio className="size-4" />
+                Ping
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"

@@ -19,6 +19,7 @@ type DeviceListProps = {
   onEdit: (device: InventoryDevice) => void
   onDelete: (id: string) => void
   onManageGroups: (device: InventoryDevice) => void
+  onPing: (device: InventoryDevice) => void
   deletingId?: string | null
 }
 
@@ -30,6 +31,7 @@ export function DeviceList({
   onEdit,
   onDelete,
   onManageGroups,
+  onPing,
   deletingId = null,
 }: DeviceListProps) {
   if (devices.length === 0 && onCreate) {
@@ -65,6 +67,7 @@ export function DeviceList({
           onEdit={onEdit}
           onDelete={onDelete}
           onManageGroups={onManageGroups}
+          onPing={onPing}
           isDeleting={deletingId === device.id}
         />
       ))}
