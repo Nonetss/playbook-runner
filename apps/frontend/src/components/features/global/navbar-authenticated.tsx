@@ -16,9 +16,6 @@ export interface NavbarAuthenticatedProps {
   currentPath: string
 }
 
-const triggerClass =
-  "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex size-9 items-center justify-center rounded-md border shadow-xs transition-colors"
-
 function linkClassName(active: boolean) {
   return cn(
     "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
