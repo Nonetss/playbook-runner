@@ -76,7 +76,11 @@ prompt_secret() {
     local label="$1" value=""
     while [[ -z "$value" ]]; do
         read -r -s -p "$(printf '%s: ' "$label")" value </dev/tty
-        echo
+        # El newline va a /dev/tty, no a stdout: si fuera a stdout lo capturaría
+        # el $(...) que envuelve esta función y se colaría en el password.
+        echo >/dev/tty
+        # Defensa extra: nada de CR/LF dentro del valor.
+        value="${value//[$'\r\n']/}"
     done
     printf '%s' "$value"
 }
