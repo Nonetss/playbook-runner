@@ -1,5 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+/* Sonner ships its structural CSS (toaster positioning, stacking, sizing) and
+   injects it into <head> at runtime. Astro's <ClientRouter /> swaps the <head>
+   on every navigation, wiping that injected tag and leaving toasts unstyled.
+   Importing it here bakes it into the bundled stylesheet so it always persists. */
+@import "sonner/dist/styles.css";
 @import "@fontsource-variable/outfit";
 @import "@fontsource-variable/geist-mono";
 
