@@ -5,8 +5,9 @@
 #   (no localhost). See BACKEND_URL / ANSIBLE_URL / BETTER_AUTH_URL below.
 # - Only the frontend publishes a host port; backend and ansible stay internal
 #   (reachable on the network as `backend:3000` and `ansible:8000`).
-# - Image refs come from the root .env (see .env.example) and are pulled from
-#   the GitHub Container Registry (ghcr.io) — no local build.
+# - Images are pulled from GitHub Container Registry (ghcr.io/nonetss/...).
+#   No local build, no *_IMAGE env vars — only the *_IMAGE_TAG is overridable
+#   in .env (e.g. pin to v0.0.5 by setting ANSIBLE_IMAGE_TAG=v0.0.5).
 #
 # Usage:
 #   cp .env.example .env  # fill in secrets
@@ -17,7 +18,7 @@ name: playbook-runner
 
 services:
   ansible:
-    image: ${ANSIBLE_IMAGE:?ANSIBLE_IMAGE is required}:${ANSIBLE_IMAGE_TAG:-latest}
+    image: ghcr.io/nonetss/playbook-runner-ansible:${ANSIBLE_IMAGE_TAG:-latest}
     pull_policy: always
     container_name: ansible
     init: true
@@ -43,7 +44,7 @@ services:
       start_period: 20s
 
   backend:
-    image: ${BACKEND_IMAGE:?BACKEND_IMAGE is required}:${BACKEND_IMAGE_TAG:-latest}
+    image: ghcr.io/nonetss/playbook-runner-backend:${BACKEND_IMAGE_TAG:-latest}
     pull_policy: always
     container_name: backend
     init: true
@@ -68,7 +69,7 @@ services:
       start_period: 20s
 
   frontend:
-    image: ${FRONTEND_IMAGE:?FRONTEND_IMAGE is required}:${FRONTEND_IMAGE_TAG:-latest}
+    image: ghcr.io/nonetss/playbook-runner-frontend:${FRONTEND_IMAGE_TAG:-latest}
     pull_policy: always
     container_name: frontend
     init: true
