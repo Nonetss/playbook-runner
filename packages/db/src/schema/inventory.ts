@@ -5,6 +5,7 @@ export const inventoryGroups = pgTable("inventory_groups", {
   id: uuid().defaultRandom().primaryKey(),
   name: text().notNull(),
   description: text(),
+
   createdAt: timestamp("created_at").default(sql`now()`),
   updatedAt: timestamp("updated_at").default(sql`now()`),
 })
