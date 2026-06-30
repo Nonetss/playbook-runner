@@ -21,13 +21,9 @@ export const env = createEnv({
     // multiple backend replicas and only one should schedule).
     JOB_SCHEDULER_ENABLED: z.enum(["0", "1"]).default("1"),
 
-    GENERIC_OAUTH_PROVIDER_ID: z.string().default(""),
-    GENERIC_OAUTH_CLIENT_ID: z.string().default(""),
-    GENERIC_OAUTH_CLIENT_SECRET: z.string().default(""),
-    GENERIC_OAUTH_ISSUER: z.url().default(""),
-    GENERIC_OAUTH_SCOPES: z
-      .array(z.string())
-      .default(["openid", "profile", "email"]),
+    GENERIC_OAUTH_CLIENT_ID: z.string().optional(),
+    GENERIC_OAUTH_CLIENT_SECRET: z.string().optional(),
+    GENERIC_OAUTH_ISSUER: z.url().optional(),
   },
   runtimeEnv: process.env,
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

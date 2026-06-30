@@ -50,7 +50,7 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      BETTER_AUTH_URL: http://backend:3000
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?BETTER_AUTH_URL is required (public URL, e.g. https://your-domain.com)}
       ANSIBLE_URL: http://ansible:8000
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4321}
       NODE_ENV: production

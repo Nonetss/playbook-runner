@@ -6,6 +6,8 @@ import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { admin, genericOAuth } from "better-auth/plugins"
 
+const GENERIC_OAUTH_PROVIDER_ID = "generic"
+
 export function createAuth() {
   const db = createDb()
 
@@ -16,7 +18,15 @@ export function createAuth() {
     }),
     trustedOrigins: [env.CORS_ORIGIN],
     emailAndPassword: {
-      enabled: true,
+      enabled: false,
+    },
+    account: {
+      accountLinking: {
+        enabled: true,
+        trustedProviders: [GENERIC_OAUTH_PROVIDER_ID],
+        // SSO corporativo es la fuente de verdad; no exigir emailVerified local previo.
+        requireLocalEmailVerified: false,
+      },
     },
     session: {
       cookieCache: {
@@ -39,7 +49,7 @@ export function createAuth() {
       genericOAuth({
         config: [
           {
-            providerId: env.GENERIC_OAUTH_PROVIDER_ID ?? "",
+            providerId: GENERIC_OAUTH_PROVIDER_ID,
             clientId: env.GENERIC_OAUTH_CLIENT_ID ?? "",
             clientSecret: env.GENERIC_OAUTH_CLIENT_SECRET ?? "",
             discoveryUrl: `${env.GENERIC_OAUTH_ISSUER}/.well-known/openid-configuration`,
