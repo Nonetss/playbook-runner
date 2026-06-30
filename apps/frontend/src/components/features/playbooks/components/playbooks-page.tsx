@@ -1,4 +1,6 @@
-import { Plus } from "lucide-react"
+"use client"
+
+import { BookText } from "lucide-react"
 import { useState } from "react"
 import { PlaybookFormModal } from "@/components/features/playbooks/components/playbook-form-modal"
 import { PlaybookList } from "@/components/features/playbooks/components/playbook-list"
@@ -7,12 +9,21 @@ import {
   usePlaybooksList,
 } from "@/components/features/playbooks/hooks/usePlaybooks"
 import type { Playbook } from "@/components/features/playbooks/types"
-import { QueryProvider } from "@/components/providers/query-provider"
-import { Button } from "@/components/ui/button"
+import { AppProviders } from "@/components/providers/app-providers"
+import { ResourceListState } from "@/components/shared/resource-list-state"
+import { ResourcePage } from "@/components/shared/resource-page"
+import { useConfirm } from "@/hooks/useConfirm"
+import { notifyError } from "@/lib/toast"
 
 function PlaybooksPageInner() {
-  const { data: playbooks = [], isPending, isError } = usePlaybooksList()
+  const {
+    data: playbooks = [],
+    isPending,
+    isError,
+    refetch,
+  } = usePlaybooksList()
   const deletePlaybook = usePlaybookDelete()
+  const confirm = useConfirm()
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editingPlaybook, setEditingPlaybook] = useState<Playbook | null>(null)
@@ -37,69 +48,74 @@ function PlaybooksPageInner() {
   async function handleDelete(id: string) {
     const playbook = playbooks.find((item) => item.id === id)
     const label = playbook?.name ?? "este playbook"
-    const confirmed = window.confirm(
-      `¿Seguro que quieres eliminar "${label}"? Esta acción no se puede deshacer.`
-    )
+    const confirmed = await confirm({
+      title: `Eliminar "${label}"`,
+      description: "Esta acción no se puede deshacer.",
+      confirmLabel: "Eliminar",
+      cancelLabel: "Cancelar",
+      variant: "destructive",
+    })
 
     if (!confirmed) return
 
     try {
       await deletePlaybook.mutateAsync({ id })
-    } catch {
-      window.alert("No se pudo eliminar el playbook.")
+    } catch (err) {
+      notifyError(
+        "No se pudo eliminar el playbook",
+        err instanceof Error ? err.message : undefined
+      )
     }
   }
 
   return (
-    <main className="mx-auto max-w-5xl flex-1 p-6">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Playbooks</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Gestiona tus playbooks de Ansible para automatizar despliegues y
-            tareas.
-          </p>
-        </div>
-
-        <Button onClick={openCreateModal}>
-          <Plus className="size-4" />
-          Nuevo playbook
-        </Button>
-      </div>
-
-      {isPending ? (
-        <p className="text-muted-foreground text-sm">Cargando playbooks...</p>
-      ) : isError ? (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          No se pudieron cargar los playbooks.
-        </div>
-      ) : (
-        <PlaybookList
-          playbooks={playbooks}
-          onCreate={openCreateModal}
-          onEdit={openEditModal}
-          onDelete={handleDelete}
-          deletingId={
-            deletePlaybook.isPending
-              ? (deletePlaybook.variables?.id ?? null)
-              : null
-          }
-        />
-      )}
-
+    <ResourcePage
+      title="Playbooks"
+      description="Gestiona tus playbooks de Ansible para automatizar despliegues y tareas."
+      createLabel="Nuevo playbook"
+      onCreate={openCreateModal}
+    >
       <PlaybookFormModal
         open={modalOpen}
         onOpenChange={handleModalOpenChange}
         playbook={editingPlaybook}
       />
-    </main>
+
+      <ResourceListState
+        isPending={isPending}
+        isError={isError}
+        onRetry={() => refetch()}
+        items={playbooks}
+        empty={{
+          title: "Sin playbooks",
+          description:
+            "Crea tu primer playbook para empezar a automatizar tus tareas.",
+          ctaLabel: "Nuevo playbook",
+          onCta: openCreateModal,
+          icon: <BookText className="size-5" />,
+        }}
+      >
+        {(items) => (
+          <PlaybookList
+            playbooks={items}
+            onEdit={openEditModal}
+            onDelete={handleDelete}
+            deletingId={
+              deletePlaybook.isPending
+                ? (deletePlaybook.variables?.id ?? null)
+                : null
+            }
+          />
+        )}
+      </ResourceListState>
+    </ResourcePage>
   )
 }
 
 export function PlaybooksPage() {
   return (
-    <QueryProvider>
+    <AppProviders>
       <PlaybooksPageInner />
-    </QueryProvider>
+    </AppProviders>
   )
 }

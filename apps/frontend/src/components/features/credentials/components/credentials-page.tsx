@@ -1,4 +1,6 @@
-import { Plus } from "lucide-react"
+"use client"
+
+import { KeyRound } from "lucide-react"
 import { useState } from "react"
 import { CredentialFormModal } from "@/components/features/credentials/components/credential-form-modal"
 import { CredentialList } from "@/components/features/credentials/components/credential-list"
@@ -7,12 +9,21 @@ import {
   useCredentialsList,
 } from "@/components/features/credentials/hooks/useCredentials"
 import type { Credential } from "@/components/features/credentials/types"
-import { QueryProvider } from "@/components/providers/query-provider"
-import { Button } from "@/components/ui/button"
+import { AppProviders } from "@/components/providers/app-providers"
+import { ResourceListState } from "@/components/shared/resource-list-state"
+import { ResourcePage } from "@/components/shared/resource-page"
+import { useConfirm } from "@/hooks/useConfirm"
+import { notifyError } from "@/lib/toast"
 
 function CredentialsPageInner() {
-  const { data: credentials = [], isPending, isError } = useCredentialsList()
+  const {
+    data: credentials = [],
+    isPending,
+    isError,
+    refetch,
+  } = useCredentialsList()
   const deleteCredential = useCredentialDelete()
+  const confirm = useConfirm()
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editingCredential, setEditingCredential] = useState<Credential | null>(
@@ -39,70 +50,74 @@ function CredentialsPageInner() {
   async function handleDelete(id: number) {
     const credential = credentials.find((item) => item.id === id)
     const label = credential?.name ?? "esta credencial"
-    const confirmed = window.confirm(
-      `¿Seguro que quieres eliminar "${label}"? Esta acción no se puede deshacer.`
-    )
+    const confirmed = await confirm({
+      title: `Eliminar "${label}"`,
+      description: "Esta acción no se puede deshacer.",
+      confirmLabel: "Eliminar",
+      cancelLabel: "Cancelar",
+      variant: "destructive",
+    })
 
     if (!confirmed) return
 
     try {
       await deleteCredential.mutateAsync({ id })
-    } catch {
-      window.alert("No se pudo eliminar la credencial.")
+    } catch (err) {
+      notifyError(
+        "No se pudo eliminar la credencial",
+        err instanceof Error ? err.message : undefined
+      )
     }
   }
 
   return (
-    <main className="mx-auto max-w-5xl flex-1 p-6">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Credenciales</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Gestiona tus claves SSH para despliegues y automatización.
-          </p>
-        </div>
-
-        <Button onClick={openCreateModal}>
-          <Plus className="size-4" />
-          Nueva credencial
-        </Button>
-      </div>
-
-      {isPending ? (
-        <p className="text-muted-foreground text-sm">
-          Cargando credenciales...
-        </p>
-      ) : isError ? (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          No se pudieron cargar las credenciales.
-        </div>
-      ) : (
-        <CredentialList
-          credentials={credentials}
-          onCreate={openCreateModal}
-          onEdit={openEditModal}
-          onDelete={handleDelete}
-          deletingId={
-            deleteCredential.isPending
-              ? (deleteCredential.variables?.id ?? null)
-              : null
-          }
-        />
-      )}
-
+    <ResourcePage
+      title="Credenciales"
+      description="Gestiona tus claves SSH para despliegues y automatización."
+      createLabel="Nueva credencial"
+      onCreate={openCreateModal}
+    >
       <CredentialFormModal
         open={modalOpen}
         onOpenChange={handleModalOpenChange}
         credential={editingCredential}
       />
-    </main>
+
+      <ResourceListState
+        isPending={isPending}
+        isError={isError}
+        onRetry={() => refetch()}
+        items={credentials}
+        empty={{
+          title: "Sin credenciales",
+          description:
+            "Añade tu primera credencial SSH para conectar con tus servidores.",
+          ctaLabel: "Nueva credencial",
+          onCta: openCreateModal,
+          icon: <KeyRound className="size-5" />,
+        }}
+      >
+        {(items) => (
+          <CredentialList
+            credentials={items}
+            onEdit={openEditModal}
+            onDelete={handleDelete}
+            deletingId={
+              deleteCredential.isPending
+                ? (deleteCredential.variables?.id ?? null)
+                : null
+            }
+          />
+        )}
+      </ResourceListState>
+    </ResourcePage>
   )
 }
 
 export function CredentialsPage() {
   return (
-    <QueryProvider>
+    <AppProviders>
       <CredentialsPageInner />
-    </QueryProvider>
+    </AppProviders>
   )
 }

@@ -1,30 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+"use client"
+
+import { useQuery } from "@tanstack/react-query"
+import type { Playbook } from "@/components/features/playbooks/types"
+import { useResourceMutation } from "@/hooks/useResourceMutation"
 import { orpc } from "@/lib/orpc"
-
-const useInvalidatePlaybooks = () => {
-  const queryClient = useQueryClient()
-
-  return {
-    list: () =>
-      queryClient.invalidateQueries({
-        queryKey: orpc.playbooks.list.queryKey(),
-      }),
-    detail: (id: string) =>
-      queryClient.invalidateQueries({
-        queryKey: orpc.playbooks.get.queryKey({ input: { id } }),
-      }),
-    all: (id?: string) => {
-      queryClient.invalidateQueries({
-        queryKey: orpc.playbooks.list.queryKey(),
-      })
-      if (id) {
-        queryClient.invalidateQueries({
-          queryKey: orpc.playbooks.get.queryKey({ input: { id } }),
-        })
-      }
-    },
-  }
-}
 
 export const usePlaybooksList = () => {
   return useQuery(orpc.playbooks.list.queryOptions())
@@ -39,32 +18,96 @@ export const usePlaybookGet = (id: string, options?: { enabled?: boolean }) => {
   )
 }
 
-export const usePlaybookCreate = () => {
-  const invalidate = useInvalidatePlaybooks()
+const listKey = orpc.playbooks.list.queryKey()
 
-  return useMutation(
-    orpc.playbooks.create.mutationOptions({
-      onSuccess: () => invalidate.list(),
-    })
+function applyCreateOptimistic(
+  current: Playbook[] | undefined,
+  input: { name: string; description?: string; content: string }
+) {
+  if (!current) return current
+  const optimistic = {
+    id: `__optimistic_${Date.now()}`,
+    name: input.name,
+    description: input.description ?? "",
+    content: input.content,
+  } as unknown as Playbook
+  return [...current, optimistic]
+}
+
+function applyUpdateOptimistic(
+  current: Playbook[] | undefined,
+  input: { id: string; name: string; description?: string; content: string }
+) {
+  if (!current) return current
+  return current.map((playbook) =>
+    playbook.id === input.id
+      ? {
+          ...playbook,
+          name: input.name,
+          description: input.description ?? playbook.description ?? null,
+          content: input.content,
+        }
+      : playbook
   )
 }
 
-export const usePlaybookUpdate = () => {
-  const invalidate = useInvalidatePlaybooks()
-
-  return useMutation(
-    orpc.playbooks.update.mutationOptions({
-      onSuccess: (_, { id }) => invalidate.all(id),
-    })
-  )
+function applyDeleteOptimistic(
+  current: Playbook[] | undefined,
+  input: { id: string }
+) {
+  if (!current) return current
+  return current.filter((playbook) => playbook.id !== input.id)
 }
 
-export const usePlaybookDelete = () => {
-  const invalidate = useInvalidatePlaybooks()
+export const usePlaybookCreate = () =>
+  useResourceMutation<
+    { name: string; description?: string; content: string },
+    Playbook,
+    Playbook[]
+  >({
+    mutationFn: (input) =>
+      orpc.playbooks.create.call({
+        name: input.name,
+        description: input.description ?? "",
+        content: input.content,
+      }) as Promise<Playbook>,
+    listKey,
+    applyOptimistic: applyCreateOptimistic,
+    messages: {
+      success: "Playbook creado",
+      error: "No se pudo crear el playbook",
+    },
+  })
 
-  return useMutation(
-    orpc.playbooks.delete.mutationOptions({
-      onSuccess: (_, { id }) => invalidate.all(id),
-    })
-  )
-}
+export const usePlaybookUpdate = () =>
+  useResourceMutation<
+    { id: string; name: string; description?: string; content: string },
+    Playbook,
+    Playbook[]
+  >({
+    mutationFn: (input) =>
+      orpc.playbooks.update.call({
+        id: input.id,
+        name: input.name,
+        description: input.description ?? "",
+        content: input.content,
+      }) as Promise<Playbook>,
+    listKey,
+    applyOptimistic: applyUpdateOptimistic,
+    messages: {
+      success: "Playbook actualizado",
+      error: "No se pudo actualizar el playbook",
+    },
+  })
+
+export const usePlaybookDelete = () =>
+  useResourceMutation<{ id: string }, Playbook, Playbook[]>({
+    mutationFn: (input) =>
+      orpc.playbooks.delete.call(input) as Promise<Playbook>,
+    listKey,
+    applyOptimistic: applyDeleteOptimistic,
+    messages: {
+      success: "Playbook eliminado",
+      error: "No se pudo eliminar el playbook",
+    },
+  })
