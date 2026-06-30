@@ -42,7 +42,7 @@ export const credentialsRouter = {
       tags: ["Credentials"],
       method: "GET",
     })
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ id: z.number() }))
     .handler(async ({ input }) => {
       const credential = await credentialsHandler.get(input.id)
       return credential ?? null
@@ -57,7 +57,7 @@ export const credentialsRouter = {
     })
     .input(
       z.object({
-        id: z.string(),
+        id: z.number(),
         name: z.string(),
         username: z.string(),
         privateKey: z.string(),
@@ -76,7 +76,7 @@ export const credentialsRouter = {
       tags: ["Credentials"],
       method: "DELETE",
     })
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ id: z.number() }))
     .handler(async ({ input }) => {
       const credential = await credentialsHandler.delete(input.id)
       return credential ?? null
