@@ -3,6 +3,7 @@ import type { RouterClient } from "@orpc/server"
 import { protectedProcedure, publicProcedure } from "@/index"
 import { credentialsRouter } from "@/routers/credentials"
 import { inventoryRouter } from "@/routers/inventory"
+import { jobsRouter } from "@/routers/jobs"
 import { playbooksRouter } from "@/routers/playbooks"
 import { runRouter } from "@/routers/run"
 
@@ -49,6 +50,7 @@ export const appRouter = {
 
   credentials: credentialsRouter,
   inventory: inventoryRouter,
+  jobs: jobsRouter,
   playbooks: playbooksRouter,
   run: runRouter,
 }
