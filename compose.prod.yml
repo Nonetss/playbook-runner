@@ -16,7 +16,11 @@
 # Usage:
 #   cp .env.example .env  # fill in POSTGRES_PASSWORD, BETTER_AUTH_*, etc.
 #   docker compose -f compose.prod.yml --env-file .env up -d
-#   docker compose -f compose.prod.yml --env-file .env exec backend bun run db:seed
+#
+# The 'init-db' one-shot service runs `bun run db:push && bun run db:seed`
+# the first time the stack comes up (waits for the postgres healthcheck,
+# then exits). Both commands are idempotent, so it's safe to leave it in
+# the compose file for every deploy.
 # ─────────────────────────────────────────────────────────────────────────────
 
 name: playbook-runner
@@ -41,6 +45,21 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+
+  # One-shot init: applies Drizzle schema and creates the default admin
+  # user the first time the stack comes up. Idempotent — safe to leave in
+  # the compose file forever, it will only re-run when the postgres volume
+  # is wiped or the schema/seed changes.
+  init-db:
+    image: ghcr.io/nonetss/playbook-runner-backend:${BACKEND_IMAGE_TAG:-latest}
+    container_name: init-db
+    init: true
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    command: ["sh", "-c", "bun run db:push && bun run db:seed"]
 
   ansible:
     image: ghcr.io/nonetss/playbook-runner-ansible:${ANSIBLE_IMAGE_TAG:-latest}
@@ -84,6 +103,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      init-db:
+        condition: service_completed_successfully
     healthcheck:
       test:
         - CMD
