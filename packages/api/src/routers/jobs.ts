@@ -94,7 +94,7 @@ export const jobsRouter = {
     })
     .input(z.object({ id: z.string() }))
     .handler(async ({ input }) => {
-      const runId = await executeJob(input.id, "manual")
+      const runId = await startJobRun(input.id, "manual")
       return { runId }
     }),
 

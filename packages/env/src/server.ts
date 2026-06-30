@@ -11,6 +11,17 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),
+    // Base URL of the ansible execution service (FastAPI). Used by the job
+    // scheduler to trigger runs.
+    ANSIBLE_URL: z.url().default("http://localhost:8000"),
+    // Shared secret guarding the ansible service's internal run endpoint. Must
+    // match the ansible app's INTERNAL_TOKEN.
+    INTERNAL_TOKEN: z.string().default(""),
+    // Set to "0" to disable the in-process job scheduler (e.g. when running
+    // multiple backend replicas and only one should schedule).
+    JOB_SCHEDULER_ENABLED: z
+      .enum(["0", "1"])
+      .default("1"),
   },
   runtimeEnv: process.env,
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

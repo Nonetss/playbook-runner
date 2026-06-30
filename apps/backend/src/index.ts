@@ -2,6 +2,7 @@ import { env } from "@none.stack/env/server"
 import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { logger } from "hono/logger"
+import { startJobScheduler } from "@/jobs/scheduler"
 import { type AuthVariables, sessionMiddleware } from "@/middlewares/auth"
 import authRouter from "@/routers/auth"
 import docsRouter from "@/routers/docs"
@@ -26,5 +27,8 @@ app.route("/", rpcRouter)
 app.route("/", docsRouter)
 
 app.get("/", (c) => c.text("OK"))
+
+// Kick off the in-process job scheduler (cron-driven playbook runs).
+startJobScheduler()
 
 export default app
