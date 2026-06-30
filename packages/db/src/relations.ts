@@ -79,7 +79,9 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.user.id,
     }),
   },
-  credentials: {},
+  credentials: {
+    inventoryDevices: r.many.inventoryDevices(),
+  },
   playbooks: {},
   inventoryDeviceGroups: {
     device: r.one.inventoryDevices({
@@ -93,6 +95,10 @@ export const relations = defineRelations(schema, (r) => ({
   },
   inventoryDevices: {
     inventoryDeviceGroups: r.many.inventoryDeviceGroups(),
+    credential: r.one.credentials({
+      from: r.inventoryDevices.credentialId,
+      to: r.credentials.id,
+    }),
   },
   inventoryGroups: {
     inventoryDeviceGroups: r.many.inventoryDeviceGroups(),

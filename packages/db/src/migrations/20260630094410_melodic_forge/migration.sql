@@ -1,0 +1,2 @@
+ALTER TABLE "inventory_devices" ADD COLUMN "credential_id" uuid;--> statement-breakpoint
+ALTER TABLE "inventory_devices" ADD CONSTRAINT "inventory_devices_credential_id_credentials_id_fkey" FOREIGN KEY ("credential_id") REFERENCES "credentials"("id") ON DELETE SET NULL;

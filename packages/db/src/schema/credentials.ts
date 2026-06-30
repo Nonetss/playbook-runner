@@ -7,6 +7,7 @@ export const credentials = pgTable("credentials", {
   username: text().notNull(),
   privateKey: text("private_key").notNull(),
   publicKey: text("public_key").notNull(),
+
   createdAt: timestamp("created_at").default(sql`now()`),
   updatedAt: timestamp("updated_at").default(sql`now()`),
 })
