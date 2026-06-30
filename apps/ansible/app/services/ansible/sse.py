@@ -22,13 +22,32 @@ def event_payload(event: AnsibleEvent) -> dict[str, object]:
     """Reduce un evento de ansible-runner a un payload amigable para el cliente."""
     data = event.get("event_data", {})
     res = data.get("res", {})
-    return {
-        "event": event.get("event", ""),
+    event_name = event.get("event", "")
+
+    payload: dict[str, object] = {
+        "event": event_name,
         "host": data.get("host"),
+        "play": data.get("play"),
         "task": data.get("task"),
+        "task_action": data.get("task_action"),
         "changed": res.get("changed"),
         "msg": res.get("msg"),
+        "stdout": res.get("stdout"),
+        "stderr": res.get("stderr"),
+        "rc": res.get("rc"),
     }
+
+    # playbook_on_stats lleva contadores por host en event_data (no en res).
+    if event_name == "playbook_on_stats":
+        payload["stats"] = {
+            "ok": data.get("ok", {}),
+            "changed": data.get("changed", {}),
+            "failures": data.get("failures", {}),
+            "dark": data.get("dark", {}),
+            "skipped": data.get("skipped", {}),
+        }
+
+    return payload
 
 
 async def stream_runner_events(
