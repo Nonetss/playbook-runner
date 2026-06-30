@@ -1,4 +1,5 @@
 export * from "@/schema/auth"
 export * from "@/schema/credentials"
 export * from "@/schema/inventory"
+export * from "@/schema/jobs"
 export * from "@/schema/playbooks"
