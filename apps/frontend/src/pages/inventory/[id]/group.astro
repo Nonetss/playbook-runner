@@ -1,0 +1,10 @@
+---
+import { GroupDetailPage } from "@/components/features/inventory/components/group-detail-page"
+import Layout from "@/layouts/Layout.astro"
+
+const { id } = Astro.params
+---
+
+<Layout title="Grupo - none.stack">
+  <GroupDetailPage client:load id={id} />
+</Layout>

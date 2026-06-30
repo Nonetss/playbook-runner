@@ -1,4 +1,11 @@
-import { Link2, MoreHorizontal, Pencil, Server, Trash2 } from "lucide-react"
+import {
+  Link2,
+  MoreHorizontal,
+  Pencil,
+  Server,
+  Settings2,
+  Trash2,
+} from "lucide-react"
 import type {
   InventoryDevice,
   InventoryGroup,
@@ -86,7 +93,7 @@ export function GroupCard({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-3 px-4">
+      <CardContent className="flex flex-1 flex-col gap-3 px-4">
         {devices.length > 0 ? (
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-muted-foreground text-xs">
@@ -104,14 +111,23 @@ export function GroupCard({
             ) : null}
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={() => onManageDevices(group)}
-            className="text-muted-foreground hover:text-foreground text-xs underline-offset-4 hover:underline"
-          >
-            Añadir dispositivos
-          </button>
+          <p className="text-muted-foreground text-xs">
+            Sin dispositivos asignados.
+          </p>
         )}
+
+        <Button
+          asChild
+          variant="outline"
+          size="sm"
+          className="mt-auto w-full"
+          disabled={isDeleting}
+        >
+          <a href={`/inventory/${group.id}/group`}>
+            <Settings2 className="size-4" />
+            Gestionar
+          </a>
+        </Button>
       </CardContent>
     </Card>
   )
