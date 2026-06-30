@@ -23,6 +23,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from app.api.deps import CurrentUser
+from app.core.config import settings
 from app.services.ansible.backend_client import (
     ResolverBackendUnreachableError,
     ResolverCredentiallessError,
@@ -52,6 +53,8 @@ class Inventory(BaseModel):
 class RunRequest(BaseModel):
     playbookId: UUID
     inventory: list[Inventory]
+    forks: int = 1
+    extravars: dict[str, str] = {}
 
 
 async def _run_stream(
@@ -87,12 +90,18 @@ async def _run_stream(
 
     materialized = materialize(bundle)
     try:
+        extravars = {
+            "ansible_user": settings.ansible_user,
+            "ansible_become_user": settings.ansible_become_user,
+            **run_request.extravars,
+        }
         config = AnsibleRunnerConfig(
             playbook=materialized.playbook_path.name,
             private_data_dir=str(materialized.run_dir),
             project_dir=str(materialized.run_dir),
             inventory=materialized.inventory,
-            forks=1,
+            forks=run_request.forks,
+            extravars=extravars,
             event_handler=log_event_handler,
         )
         runner = AnsibleRunner(config)
