@@ -29,7 +29,7 @@ export function SignUpForm() {
         { name, email, password },
         {
           onSuccess: () => {
-            window.location.href = "/dashboard"
+            window.location.href = "/"
           },
           onError: (ctx) => {
             setError(ctx.error.message || "Sign up failed. Please try again.")

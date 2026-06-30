@@ -29,7 +29,7 @@ export function SignInForm() {
         { email, password },
         {
           onSuccess: () => {
-            window.location.href = "/dashboard"
+            window.location.href = "/"
           },
           onError: (ctx) => {
             setError(ctx.error.message || "No se pudo iniciar sesión.")
