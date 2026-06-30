@@ -1,0 +1,353 @@
+"use client"
+
+import {
+  AlertTriangle,
+  Check,
+  CheckCircle2,
+  Folder,
+  Loader2,
+  Play,
+  Server,
+  XCircle,
+} from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useDevicesList } from "@/components/features/inventory/hooks/useDevices"
+import { useGroupsList } from "@/components/features/inventory/hooks/useGroups"
+import {
+  type RunEvent,
+  type RunSelection,
+  useRunPlaybook,
+} from "@/components/features/playbooks/hooks/useRunPlaybook"
+import type { Playbook } from "@/components/features/playbooks/types"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { cn } from "@/lib/utils"
+
+type RunPlaybookModalProps = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  playbook: Playbook | null
+}
+
+type Tone = "ok" | "changed" | "fail" | "muted" | "info"
+
+function describeEvent(event: RunEvent): { text: string; tone: Tone } | null {
+  const host = event.host ? `${event.host}: ` : ""
+  switch (event.event) {
+    case "playbook_on_play_start":
+      return { text: "▶ Play iniciado", tone: "info" }
+    case "playbook_on_task_start":
+      return { text: `· ${event.task ?? "Tarea"}`, tone: "muted" }
+    case "runner_on_ok":
+      return event.changed
+        ? { text: `${host}changed`, tone: "changed" }
+        : { text: `${host}ok`, tone: "ok" }
+    case "runner_on_skipped":
+      return { text: `${host}skipped`, tone: "muted" }
+    case "runner_on_failed":
+      return { text: `${host}failed — ${event.msg ?? ""}`.trim(), tone: "fail" }
+    case "runner_on_unreachable":
+      return {
+        text: `${host}unreachable — ${event.msg ?? ""}`.trim(),
+        tone: "fail",
+      }
+    case "playbook_on_stats":
+      return { text: "■ Resumen", tone: "info" }
+    default:
+      return null
+  }
+}
+
+const toneClass: Record<Tone, string> = {
+  ok: "text-emerald-600 dark:text-emerald-400",
+  changed: "text-amber-600 dark:text-amber-400",
+  fail: "text-destructive",
+  info: "text-foreground",
+  muted: "text-muted-foreground",
+}
+
+type ToggleRowProps = {
+  name: string
+  description?: string | null
+  icon: typeof Server
+  selected: boolean
+  onToggle: () => void
+}
+
+function ToggleRow({
+  name,
+  description,
+  icon: Icon,
+  selected,
+  onToggle,
+}: ToggleRowProps) {
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="hover:bg-accent flex w-full items-center gap-3 rounded-md border border-transparent px-3 py-2 text-left text-sm transition-colors"
+      >
+        <span
+          className={cn(
+            "flex size-4 shrink-0 items-center justify-center rounded-sm border",
+            selected
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-input"
+          )}
+        >
+          {selected ? <Check className="size-3" /> : null}
+        </span>
+        <Icon className="text-muted-foreground size-4 shrink-0" />
+        <span className="min-w-0 flex-1 truncate">
+          <span className="block truncate font-medium">{name}</span>
+          {description ? (
+            <span className="text-muted-foreground block truncate text-xs">
+              {description}
+            </span>
+          ) : null}
+        </span>
+      </button>
+    </li>
+  )
+}
+
+export function RunPlaybookModal({
+  open,
+  onOpenChange,
+  playbook,
+}: RunPlaybookModalProps) {
+  const { data: groups = [] } = useGroupsList()
+  const { data: devices = [] } = useDevicesList()
+  const { phase, events, result, errorMessage, start, reset } = useRunPlaybook()
+
+  const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set())
+  const [selectedDevices, setSelectedDevices] = useState<Set<string>>(new Set())
+
+  const consoleRef = useRef<HTMLDivElement>(null)
+
+  // Reset selection and stream state whenever the modal is (re)opened or the
+  // target playbook changes.
+  useEffect(() => {
+    if (!open) return
+    setSelectedGroups(new Set())
+    setSelectedDevices(new Set())
+    reset()
+  }, [open, playbook?.id, reset])
+
+  // Auto-scroll the console to the latest event.
+  useEffect(() => {
+    const el = consoleRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [events.length])
+
+  const selectionCount = selectedGroups.size + selectedDevices.size
+
+  function toggle(set: Set<string>, id: string): Set<string> {
+    const next = new Set(set)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    return next
+  }
+
+  function handleRun() {
+    if (!playbook || selectionCount === 0) return
+    const inventory: RunSelection[] = [
+      ...[...selectedGroups].map((id) => ({ id, type: "group" as const })),
+      ...[...selectedDevices].map((id) => ({ id, type: "device" as const })),
+    ]
+    start(playbook.id, inventory)
+  }
+
+  const isRunning = phase === "running"
+  const visibleEvents = useMemo(
+    () => events.map(describeEvent).filter((e) => e !== null),
+    [events]
+  )
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Ejecutar "{playbook?.name}"</DialogTitle>
+          <DialogDescription>
+            {phase === "idle"
+              ? "Elige los grupos y dispositivos contra los que ejecutar el playbook."
+              : "Salida de la ejecución en tiempo real."}
+          </DialogDescription>
+        </DialogHeader>
+
+        {phase === "idle" ? (
+          <div className="space-y-4">
+            {groups.length > 0 ? (
+              <div>
+                <p className="text-muted-foreground mb-1 text-xs font-medium uppercase">
+                  Grupos
+                </p>
+                <ul className="space-y-1">
+                  {groups.map((group) => (
+                    <ToggleRow
+                      key={group.id}
+                      name={group.name}
+                      description={group.description}
+                      icon={Folder}
+                      selected={selectedGroups.has(group.id)}
+                      onToggle={() =>
+                        setSelectedGroups((s) => toggle(s, group.id))
+                      }
+                    />
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {devices.length > 0 ? (
+              <div>
+                <p className="text-muted-foreground mb-1 text-xs font-medium uppercase">
+                  Dispositivos
+                </p>
+                <ul className="space-y-1">
+                  {devices.map((device) => (
+                    <ToggleRow
+                      key={device.id}
+                      name={device.name}
+                      description={device.ipAddress}
+                      icon={Server}
+                      selected={selectedDevices.has(device.id)}
+                      onToggle={() =>
+                        setSelectedDevices((s) => toggle(s, device.id))
+                      }
+                    />
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {groups.length === 0 && devices.length === 0 ? (
+              <div className="rounded-xl border border-dashed bg-card px-4 py-8 text-center text-sm">
+                <p className="text-muted-foreground">
+                  No hay inventario disponible. Crea grupos o dispositivos
+                  primero.
+                </p>
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div
+              ref={consoleRef}
+              className="bg-muted/40 max-h-72 overflow-y-auto rounded-lg border p-3 font-mono text-xs"
+            >
+              {visibleEvents.length === 0 && isRunning ? (
+                <p className="text-muted-foreground flex items-center gap-2">
+                  <Loader2 className="size-3 animate-spin" />
+                  Iniciando ejecución…
+                </p>
+              ) : (
+                visibleEvents.map((line, i) => (
+                  <p
+                    // biome-ignore lint/suspicious/noArrayIndexKey: append-only log
+                    key={i}
+                    className={cn("whitespace-pre-wrap", toneClass[line.tone])}
+                  >
+                    {line.text}
+                  </p>
+                ))
+              )}
+            </div>
+
+            {phase === "error" ? (
+              <div className="border-destructive/30 bg-destructive/5 text-destructive flex items-start gap-2 rounded-lg border px-3 py-2 text-sm">
+                <XCircle className="mt-0.5 size-4 shrink-0" />
+                <span>{errorMessage}</span>
+              </div>
+            ) : null}
+
+            {phase === "done" && result ? (
+              <div
+                className={cn(
+                  "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm",
+                  result.ok
+                    ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400"
+                    : "border-amber-500/30 bg-amber-500/5 text-amber-600 dark:text-amber-400"
+                )}
+              >
+                {result.ok ? (
+                  <CheckCircle2 className="size-4 shrink-0" />
+                ) : (
+                  <AlertTriangle className="size-4 shrink-0" />
+                )}
+                <span>
+                  Ejecución finalizada — estado{" "}
+                  <span className="font-medium">{result.status}</span> (rc=
+                  {result.rc ?? "?"})
+                </span>
+              </div>
+            ) : null}
+          </div>
+        )}
+
+        <DialogFooter>
+          {phase === "idle" ? (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                onClick={handleRun}
+                disabled={selectionCount === 0}
+              >
+                <Play className="size-4" />
+                Ejecutar
+                {selectionCount > 0 ? (
+                  <Badge variant="secondary" className="ml-1">
+                    {selectionCount}
+                  </Badge>
+                ) : null}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isRunning}
+                onClick={reset}
+              >
+                Volver
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isRunning}
+                onClick={() => onOpenChange(false)}
+              >
+                {isRunning ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Ejecutando…
+                  </>
+                ) : (
+                  "Cerrar"
+                )}
+              </Button>
+            </>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}

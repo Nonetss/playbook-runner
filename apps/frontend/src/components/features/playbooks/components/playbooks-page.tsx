@@ -4,6 +4,7 @@ import { BookText } from "lucide-react"
 import { useState } from "react"
 import { PlaybookFormModal } from "@/components/features/playbooks/components/playbook-form-modal"
 import { PlaybookList } from "@/components/features/playbooks/components/playbook-list"
+import { RunPlaybookModal } from "@/components/features/playbooks/components/run-playbook-modal"
 import {
   usePlaybookDelete,
   usePlaybooksList,
@@ -27,6 +28,21 @@ function PlaybooksPageInner() {
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editingPlaybook, setEditingPlaybook] = useState<Playbook | null>(null)
+
+  const [runModalOpen, setRunModalOpen] = useState(false)
+  const [runningPlaybook, setRunningPlaybook] = useState<Playbook | null>(null)
+
+  function openRunModal(playbook: Playbook) {
+    setRunningPlaybook(playbook)
+    setRunModalOpen(true)
+  }
+
+  function handleRunModalOpenChange(open: boolean) {
+    setRunModalOpen(open)
+    if (!open) {
+      setRunningPlaybook(null)
+    }
+  }
 
   function openCreateModal() {
     setEditingPlaybook(null)
@@ -81,6 +97,12 @@ function PlaybooksPageInner() {
         playbook={editingPlaybook}
       />
 
+      <RunPlaybookModal
+        open={runModalOpen}
+        onOpenChange={handleRunModalOpenChange}
+        playbook={runningPlaybook}
+      />
+
       <ResourceListState
         isPending={isPending}
         isError={isError}
@@ -100,6 +122,7 @@ function PlaybooksPageInner() {
             playbooks={items}
             onEdit={openEditModal}
             onDelete={handleDelete}
+            onRun={openRunModal}
             deletingId={
               deletePlaybook.isPending
                 ? (deletePlaybook.variables?.id ?? null)

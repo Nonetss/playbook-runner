@@ -5,6 +5,7 @@ type PlaybookListProps = {
   playbooks: Playbook[]
   onEdit: (playbook: Playbook) => void
   onDelete: (id: string) => void
+  onRun: (playbook: Playbook) => void
   deletingId?: string | null
 }
 
@@ -12,6 +13,7 @@ export function PlaybookList({
   playbooks,
   onEdit,
   onDelete,
+  onRun,
   deletingId = null,
 }: PlaybookListProps) {
   return (
@@ -22,6 +24,7 @@ export function PlaybookList({
           playbook={playbook}
           onEdit={onEdit}
           onDelete={onDelete}
+          onRun={onRun}
           isDeleting={deletingId === playbook.id}
         />
       ))}

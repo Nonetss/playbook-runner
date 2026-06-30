@@ -1,4 +1,4 @@
-import { BookText, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { BookText, MoreHorizontal, Pencil, Play, Trash2 } from "lucide-react"
 import type { Playbook } from "@/components/features/playbooks/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -20,6 +20,7 @@ type PlaybookCardProps = {
   playbook: Playbook
   onEdit: (playbook: Playbook) => void
   onDelete: (id: string) => void
+  onRun: (playbook: Playbook) => void
   isDeleting?: boolean
 }
 
@@ -27,6 +28,7 @@ export function PlaybookCard({
   playbook,
   onEdit,
   onDelete,
+  onRun,
   isDeleting = false,
 }: PlaybookCardProps) {
   const updatedAt = playbook.updatedAt
@@ -69,6 +71,10 @@ export function PlaybookCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onRun(playbook)}>
+                <Play className="size-4" />
+                Ejecutar
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(playbook)}>
                 <Pencil className="size-4" />
                 Editar
@@ -100,6 +106,17 @@ export function PlaybookCard({
         <p className="text-muted-foreground line-clamp-3 font-mono text-xs whitespace-pre-wrap">
           {playbook.content}
         </p>
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={() => onRun(playbook)}
+          disabled={isDeleting}
+        >
+          <Play className="size-4" />
+          Ejecutar
+        </Button>
       </CardContent>
     </Card>
   )

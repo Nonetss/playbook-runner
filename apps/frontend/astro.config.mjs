@@ -33,6 +33,13 @@ export default defineConfig({
           target: "http://localhost:3000",
           changeOrigin: true,
         },
+        // Ansible microservice (playbook execution). It runs on its own port,
+        // so it is exposed same-origin under the /ansible prefix, which is
+        // stripped before proxying (e.g. /ansible/api/v0/run -> /api/v0/run).
+        "/ansible": {
+          target: "http://localhost:8000",
+          changeOrigin: true,
+        },
         "/scalar": {
           target: "http://localhost:3000",
           changeOrigin: true,

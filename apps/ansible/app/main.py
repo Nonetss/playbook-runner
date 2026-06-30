@@ -5,7 +5,7 @@ from app.api.routes import routes
 
 app = FastAPI()
 
-app.include_router(routes.router)
+app.include_router(routes.router, prefix="/ansible")
 
 
 @app.get("/scalar", include_in_schema=False)
