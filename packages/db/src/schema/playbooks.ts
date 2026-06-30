@@ -1,13 +1,13 @@
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
+import { sql } from "drizzle-orm"
+import { integer, pgTable, text, timestamp } from "drizzle-orm/pg-core"
 
 export const playbooks = pgTable("playbooks", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull(),
-  description: text("description"),
-  content: text("content").notNull(),
-
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  id: integer().primaryKey(),
+  name: text().notNull(),
+  description: text(),
+  content: text().notNull(),
+  createdAt: timestamp("created_at").default(sql`now()`),
+  updatedAt: timestamp("updated_at").default(sql`now()`),
 })
 
 export type Playbook = typeof playbooks.$inferSelect
