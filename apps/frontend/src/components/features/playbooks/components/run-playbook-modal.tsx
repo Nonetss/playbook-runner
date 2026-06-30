@@ -7,7 +7,9 @@ import {
   Folder,
   Loader2,
   Play,
+  Plus,
   Server,
+  Trash2,
   XCircle,
 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -29,6 +31,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 
 type RunPlaybookModalProps = {
@@ -131,6 +135,10 @@ export function RunPlaybookModal({
 
   const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set())
   const [selectedDevices, setSelectedDevices] = useState<Set<string>>(new Set())
+  const [forks, setForks] = useState(1)
+  const [extravars, setExtravars] = useState<{ key: string; value: string }[]>(
+    []
+  )
 
   const consoleRef = useRef<HTMLDivElement>(null)
 
@@ -140,6 +148,8 @@ export function RunPlaybookModal({
     if (!open) return
     setSelectedGroups(new Set())
     setSelectedDevices(new Set())
+    setForks(1)
+    setExtravars([])
     reset()
   }, [open, playbook?.id, reset])
 
@@ -164,7 +174,13 @@ export function RunPlaybookModal({
       ...[...selectedGroups].map((id) => ({ id, type: "group" as const })),
       ...[...selectedDevices].map((id) => ({ id, type: "device" as const })),
     ]
-    start(playbook.id, inventory)
+    const extravarMap = Object.fromEntries(
+      extravars.filter((e) => e.key.trim()).map((e) => [e.key.trim(), e.value])
+    )
+    start(playbook.id, inventory, {
+      forks,
+      extravars: extravarMap,
+    })
   }
 
   const isRunning = phase === "running"
@@ -239,6 +255,86 @@ export function RunPlaybookModal({
                 </p>
               </div>
             ) : null}
+
+            <div className="space-y-3 border-t pt-3">
+              <p className="text-muted-foreground text-xs font-medium uppercase">
+                Opciones
+              </p>
+
+              <div className="flex items-center gap-3">
+                <Label htmlFor="run-forks" className="w-16 shrink-0 text-sm">
+                  Forks
+                </Label>
+                <Input
+                  id="run-forks"
+                  type="number"
+                  min={1}
+                  max={500}
+                  value={forks}
+                  onChange={(e) =>
+                    setForks(Math.max(1, Number.parseInt(e.target.value) || 1))
+                  }
+                  className="w-24"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-muted-foreground text-xs font-medium">
+                  Variables extra
+                </p>
+                {extravars.map((entry, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: order-stable list
+                  <div key={i} className="flex items-center gap-2">
+                    <Input
+                      placeholder="VARIABLE"
+                      value={entry.key}
+                      onChange={(e) =>
+                        setExtravars((prev) =>
+                          prev.map((x, j) =>
+                            j === i ? { ...x, key: e.target.value } : x
+                          )
+                        )
+                      }
+                      className="font-mono text-xs"
+                    />
+                    <Input
+                      placeholder="valor"
+                      value={entry.value}
+                      onChange={(e) =>
+                        setExtravars((prev) =>
+                          prev.map((x, j) =>
+                            j === i ? { ...x, value: e.target.value } : x
+                          )
+                        )
+                      }
+                      className="font-mono text-xs"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="shrink-0"
+                      onClick={() =>
+                        setExtravars((prev) => prev.filter((_, j) => j !== i))
+                      }
+                    >
+                      <Trash2 className="text-muted-foreground size-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setExtravars((prev) => [...prev, { key: "", value: "" }])
+                  }
+                >
+                  <Plus className="size-3" />
+                  Añadir variable
+                </Button>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="space-y-3">

@@ -1,9 +1,7 @@
 "use client"
 
 import { BookText } from "lucide-react"
-import { useState } from "react"
 import { PlaybookList } from "@/components/features/playbooks/components/playbook-list"
-import { RunPlaybookModal } from "@/components/features/playbooks/components/run-playbook-modal"
 import {
   usePlaybookDelete,
   usePlaybooksList,
@@ -25,19 +23,8 @@ function PlaybooksPageInner() {
   const deletePlaybook = usePlaybookDelete()
   const confirm = useConfirm()
 
-  const [runModalOpen, setRunModalOpen] = useState(false)
-  const [runningPlaybook, setRunningPlaybook] = useState<Playbook | null>(null)
-
-  function openRunModal(playbook: Playbook) {
-    setRunningPlaybook(playbook)
-    setRunModalOpen(true)
-  }
-
-  function handleRunModalOpenChange(open: boolean) {
-    setRunModalOpen(open)
-    if (!open) {
-      setRunningPlaybook(null)
-    }
+  function goToRun(playbook: Playbook) {
+    window.location.href = `/playbooks/${playbook.id}/run`
   }
 
   function goToCreate() {
@@ -78,12 +65,6 @@ function PlaybooksPageInner() {
       createLabel="Nuevo playbook"
       onCreate={goToCreate}
     >
-      <RunPlaybookModal
-        open={runModalOpen}
-        onOpenChange={handleRunModalOpenChange}
-        playbook={runningPlaybook}
-      />
-
       <ResourceListState
         isPending={isPending}
         isError={isError}
@@ -103,7 +84,7 @@ function PlaybooksPageInner() {
             playbooks={items}
             onEdit={goToEdit}
             onDelete={handleDelete}
-            onRun={openRunModal}
+            onRun={goToRun}
             deletingId={
               deletePlaybook.isPending
                 ? (deletePlaybook.variables?.id ?? null)

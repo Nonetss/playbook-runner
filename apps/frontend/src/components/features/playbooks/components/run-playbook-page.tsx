@@ -1,0 +1,576 @@
+"use client"
+
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Check,
+  CheckCircle2,
+  Folder,
+  Loader2,
+  Play,
+  Plus,
+  Server,
+  Trash2,
+  XCircle,
+} from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useDevicesList } from "@/components/features/inventory/hooks/useDevices"
+import { useGroupsList } from "@/components/features/inventory/hooks/useGroups"
+import { usePlaybookGet } from "@/components/features/playbooks/hooks/usePlaybooks"
+import {
+  type RunEvent,
+  type RunSelection,
+  useRunPlaybook,
+} from "@/components/features/playbooks/hooks/useRunPlaybook"
+import { AppProviders } from "@/components/providers/app-providers"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils"
+
+// ── terminal ──────────────────────────────────────────────────────────────────
+
+type Tone = "ok" | "changed" | "fail" | "muted" | "info" | "header" | "dim"
+type TerminalLine = { text: string; tone: Tone }
+
+const SEP = "*".repeat(72)
+const SEP_TASK = "-".repeat(72)
+
+function sep(label: string, char = "*") {
+  const prefix = `${label} `
+  const fill = char.repeat(Math.max(0, 72 - prefix.length))
+  return `${prefix}${fill}`
+}
+
+function lines(...items: TerminalLine[]): TerminalLine[] {
+  return items
+}
+
+function describeEvent(event: RunEvent): TerminalLine[] {
+  switch (event.event) {
+    case "playbook_on_start":
+      return lines({ text: sep("PLAYBOOK"), tone: "header" })
+
+    case "playbook_on_play_start":
+      return lines(
+        { text: "", tone: "dim" },
+        { text: sep(`PLAY [${event.play ?? ""}]`), tone: "header" }
+      )
+
+    case "playbook_on_task_start": {
+      const label = event.task_action
+        ? `TASK [${event.task ?? ""}]`
+        : `TASK [${event.task ?? ""}]`
+      return lines(
+        { text: "", tone: "dim" },
+        { text: sep(label, "-"), tone: "muted" }
+      )
+    }
+
+    case "runner_on_start":
+      return lines({ text: `  → [${event.host ?? ""}] iniciando`, tone: "dim" })
+
+    case "runner_on_ok": {
+      const result: TerminalLine[] = event.changed
+        ? [{ text: `changed: [${event.host ?? ""}]`, tone: "changed" }]
+        : [{ text: `ok: [${event.host ?? ""}]`, tone: "ok" }]
+      if (event.stdout) {
+        for (const line of event.stdout.split("\n")) {
+          if (line) result.push({ text: `  ${line}`, tone: "dim" })
+        }
+      }
+      return result
+    }
+
+    case "runner_on_skipped":
+      return lines({ text: `skipping: [${event.host ?? ""}]`, tone: "muted" })
+
+    case "runner_on_failed": {
+      const result: TerminalLine[] = [
+        { text: `fatal: [${event.host ?? ""}]: FAILED!`, tone: "fail" },
+      ]
+      if (event.msg) {
+        result.push({ text: `  msg: ${event.msg}`, tone: "fail" })
+      }
+      if (event.rc != null) {
+        result.push({ text: `  rc: ${event.rc}`, tone: "fail" })
+      }
+      if (event.stdout) {
+        result.push({ text: "  stdout:", tone: "muted" })
+        for (const line of event.stdout.split("\n")) {
+          if (line) result.push({ text: `    ${line}`, tone: "dim" })
+        }
+      }
+      if (event.stderr) {
+        result.push({ text: "  stderr:", tone: "fail" })
+        for (const line of event.stderr.split("\n")) {
+          if (line) result.push({ text: `    ${line}`, tone: "fail" })
+        }
+      }
+      return result
+    }
+
+    case "runner_on_unreachable": {
+      const result: TerminalLine[] = [
+        { text: `fatal: [${event.host ?? ""}]: UNREACHABLE!`, tone: "fail" },
+      ]
+      if (event.msg) {
+        result.push({ text: `  msg: ${event.msg}`, tone: "fail" })
+      }
+      return result
+    }
+
+    case "runner_item_on_ok":
+      return lines({
+        text: event.changed
+          ? `  changed: [${event.host ?? ""}] (item)`
+          : `  ok: [${event.host ?? ""}] (item)`,
+        tone: event.changed ? "changed" : "ok",
+      })
+
+    case "runner_item_on_failed":
+      return lines({
+        text: `  failed: [${event.host ?? ""}] (item) — ${event.msg ?? ""}`,
+        tone: "fail",
+      })
+
+    case "playbook_on_stats": {
+      if (!event.stats)
+        return lines(
+          { text: "", tone: "dim" },
+          { text: sep("PLAY RECAP"), tone: "header" }
+        )
+
+      const { ok, changed, failures, dark, skipped } = event.stats
+      const hosts = Array.from(
+        new Set([
+          ...Object.keys(ok),
+          ...Object.keys(changed),
+          ...Object.keys(failures),
+          ...Object.keys(dark),
+          ...Object.keys(skipped),
+        ])
+      ).sort()
+
+      const result: TerminalLine[] = [
+        { text: "", tone: "dim" },
+        { text: sep("PLAY RECAP"), tone: "header" },
+      ]
+
+      for (const host of hosts) {
+        const o = ok[host] ?? 0
+        const c = changed[host] ?? 0
+        const f = failures[host] ?? 0
+        const d = dark[host] ?? 0
+        const s = skipped[host] ?? 0
+        const tone: Tone = f > 0 || d > 0 ? "fail" : c > 0 ? "changed" : "ok"
+        const stats = `ok=${o}  changed=${c}  unreachable=${d}  failed=${f}  skipped=${s}`
+        result.push({
+          text: `${host.padEnd(36)}: ${stats}`,
+          tone,
+        })
+      }
+
+      return result
+    }
+
+    default:
+      return []
+  }
+}
+
+const toneClass: Record<Tone, string> = {
+  header: "text-zinc-100 font-semibold",
+  ok: "text-emerald-400",
+  changed: "text-amber-400",
+  fail: "text-red-400",
+  info: "text-zinc-300",
+  muted: "text-zinc-400",
+  dim: "text-zinc-600",
+}
+
+// ── ToggleRow ─────────────────────────────────────────────────────────────────
+
+type ToggleRowProps = {
+  name: string
+  description?: string | null
+  icon: typeof Server
+  selected: boolean
+  onToggle: () => void
+}
+
+function ToggleRow({
+  name,
+  description,
+  icon: Icon,
+  selected,
+  onToggle,
+}: ToggleRowProps) {
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="hover:bg-accent flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors"
+      >
+        <span
+          className={cn(
+            "flex size-3.5 shrink-0 items-center justify-center rounded-sm border",
+            selected
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-input"
+          )}
+        >
+          {selected ? <Check className="size-2.5" /> : null}
+        </span>
+        <Icon className="text-muted-foreground size-3.5 shrink-0" />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-medium leading-tight">
+            {name}
+          </span>
+          {description ? (
+            <span className="text-muted-foreground block truncate text-xs">
+              {description}
+            </span>
+          ) : null}
+        </span>
+      </button>
+    </li>
+  )
+}
+
+// ── RunPlaybookPageInner ──────────────────────────────────────────────────────
+
+function RunPlaybookPageInner({ id }: { id: string }) {
+  const { data: playbook, isPending: playbookLoading } = usePlaybookGet(id)
+  const { data: groups = [] } = useGroupsList()
+  const { data: devices = [] } = useDevicesList()
+  const { phase, events, result, errorMessage, start, reset } = useRunPlaybook()
+
+  const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set())
+  const [selectedDevices, setSelectedDevices] = useState<Set<string>>(new Set())
+  const [forks, setForks] = useState(1)
+  const [extravars, setExtravars] = useState<{ key: string; value: string }[]>(
+    []
+  )
+
+  const terminalRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = terminalRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [events.length])
+
+  const selectionCount = selectedGroups.size + selectedDevices.size
+  const isRunning = phase === "running"
+
+  function toggle(set: Set<string>, id: string): Set<string> {
+    const next = new Set(set)
+    next.has(id) ? next.delete(id) : next.add(id)
+    return next
+  }
+
+  function handleRun() {
+    if (!playbook || selectionCount === 0) return
+    const inventory: RunSelection[] = [
+      ...[...selectedGroups].map((id) => ({ id, type: "group" as const })),
+      ...[...selectedDevices].map((id) => ({ id, type: "device" as const })),
+    ]
+    const extravarMap = Object.fromEntries(
+      extravars.filter((e) => e.key.trim()).map((e) => [e.key.trim(), e.value])
+    )
+    start(playbook.id, inventory, { forks, extravars: extravarMap })
+  }
+
+  // Flatten all events into a single ordered list of terminal lines.
+  const terminalLines = useMemo(() => events.flatMap(describeEvent), [events])
+
+  return (
+    <main className="flex w-full flex-1 flex-col overflow-hidden">
+      {/* Header */}
+      <div className="flex shrink-0 items-center gap-3 border-b px-6 py-3">
+        <Button asChild variant="ghost" size="icon-sm" aria-label="Volver">
+          <a href="/playbooks">
+            <ArrowLeft className="size-4" />
+          </a>
+        </Button>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-base font-semibold leading-tight">
+            {playbookLoading
+              ? "Cargando…"
+              : (playbook?.name ?? "Playbook no encontrado")}
+          </h1>
+          <p className="text-muted-foreground text-xs">
+            Ejecución del playbook
+          </p>
+        </div>
+        {phase !== "idle" ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={reset}
+            disabled={isRunning}
+          >
+            Nueva ejecución
+          </Button>
+        ) : null}
+      </div>
+
+      {/* Body */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* ── Terminal ── */}
+        <div className="flex flex-1 flex-col overflow-hidden bg-zinc-950 p-5">
+          <div
+            ref={terminalRef}
+            className="flex-1 overflow-y-auto font-mono text-xs leading-[1.6]"
+          >
+            {phase === "idle" ? (
+              <p className="select-none text-zinc-600">
+                Configura el inventario y pulsa{" "}
+                <span className="text-zinc-400">Ejecutar</span> para ver la
+                salida aquí.
+              </p>
+            ) : terminalLines.length === 0 && isRunning ? (
+              <p className="flex items-center gap-2 text-zinc-500">
+                <Loader2 className="size-3 animate-spin" />
+                Iniciando ejecución…
+              </p>
+            ) : (
+              terminalLines.map((line, i) => (
+                <p
+                  // biome-ignore lint/suspicious/noArrayIndexKey: append-only log
+                  key={i}
+                  className={cn("whitespace-pre-wrap", toneClass[line.tone])}
+                >
+                  {line.text || " "}
+                </p>
+              ))
+            )}
+
+            {isRunning ? (
+              <span className="mt-1 inline-block animate-pulse text-zinc-400">
+                ▋
+              </span>
+            ) : null}
+          </div>
+
+          {/* Result / error banners */}
+          {phase === "error" ? (
+            <div className="mt-3 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400">
+              <XCircle className="mt-0.5 size-3.5 shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          ) : null}
+
+          {phase === "done" && result ? (
+            <div
+              className={cn(
+                "mt-3 flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs",
+                result.ok
+                  ? "border-emerald-900/50 bg-emerald-950/40 text-emerald-400"
+                  : "border-amber-900/50 bg-amber-950/40 text-amber-400"
+              )}
+            >
+              {result.ok ? (
+                <CheckCircle2 className="size-3.5 shrink-0" />
+              ) : (
+                <AlertTriangle className="size-3.5 shrink-0" />
+              )}
+              <span>
+                Ejecución finalizada — estado{" "}
+                <span className="font-semibold">{result.status}</span> (rc=
+                {result.rc ?? "?"})
+              </span>
+            </div>
+          ) : null}
+        </div>
+
+        {/* ── Options panel ── */}
+        <div className="flex w-72 shrink-0 flex-col gap-5 overflow-y-auto border-l p-4">
+          {/* Inventory */}
+          <div className="space-y-3">
+            <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+              Inventario
+            </p>
+
+            {groups.length > 0 ? (
+              <div className="space-y-1">
+                <p className="text-muted-foreground px-2 text-xs font-medium">
+                  Grupos
+                </p>
+                <ul className="space-y-0.5">
+                  {groups.map((group) => (
+                    <ToggleRow
+                      key={group.id}
+                      name={group.name}
+                      description={group.description}
+                      icon={Folder}
+                      selected={selectedGroups.has(group.id)}
+                      onToggle={() =>
+                        setSelectedGroups((s) => toggle(s, group.id))
+                      }
+                    />
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {devices.length > 0 ? (
+              <div className="space-y-1">
+                <p className="text-muted-foreground px-2 text-xs font-medium">
+                  Dispositivos
+                </p>
+                <ul className="space-y-0.5">
+                  {devices.map((device) => (
+                    <ToggleRow
+                      key={device.id}
+                      name={device.name}
+                      description={device.ipAddress}
+                      icon={Server}
+                      selected={selectedDevices.has(device.id)}
+                      onToggle={() =>
+                        setSelectedDevices((s) => toggle(s, device.id))
+                      }
+                    />
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {groups.length === 0 && devices.length === 0 ? (
+              <p className="text-muted-foreground px-2 text-xs">
+                No hay inventario. Crea grupos o dispositivos primero.
+              </p>
+            ) : null}
+          </div>
+
+          {/* Options */}
+          <div className="space-y-3 border-t pt-3">
+            <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+              Opciones
+            </p>
+
+            <div className="flex items-center gap-2">
+              <Label htmlFor="run-forks" className="w-14 shrink-0 text-xs">
+                Forks
+              </Label>
+              <Input
+                id="run-forks"
+                type="number"
+                min={1}
+                max={500}
+                value={forks}
+                onChange={(e) =>
+                  setForks(Math.max(1, Number.parseInt(e.target.value) || 1))
+                }
+                className="h-7 w-20 text-xs"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-xs font-medium">Variables extra</p>
+              {extravars.map((entry, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: order-stable list
+                <div key={i} className="flex items-center gap-1.5">
+                  <Input
+                    placeholder="VARIABLE"
+                    value={entry.key}
+                    onChange={(e) =>
+                      setExtravars((prev) =>
+                        prev.map((x, j) =>
+                          j === i ? { ...x, key: e.target.value } : x
+                        )
+                      )
+                    }
+                    className="h-7 font-mono text-xs"
+                  />
+                  <Input
+                    placeholder="valor"
+                    value={entry.value}
+                    onChange={(e) =>
+                      setExtravars((prev) =>
+                        prev.map((x, j) =>
+                          j === i ? { ...x, value: e.target.value } : x
+                        )
+                      )
+                    }
+                    className="h-7 font-mono text-xs"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-7 shrink-0"
+                    onClick={() =>
+                      setExtravars((prev) => prev.filter((_, j) => j !== i))
+                    }
+                  >
+                    <Trash2 className="text-muted-foreground size-3.5" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() =>
+                  setExtravars((prev) => [...prev, { key: "", value: "" }])
+                }
+              >
+                <Plus className="size-3" />
+                Añadir variable
+              </Button>
+            </div>
+          </div>
+
+          {/* Run button */}
+          <div className="mt-auto border-t pt-4">
+            <Button
+              className="w-full"
+              onClick={handleRun}
+              disabled={isRunning || selectionCount === 0 || !playbook}
+            >
+              {isRunning ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Ejecutando…
+                </>
+              ) : (
+                <>
+                  <Play className="size-4" />
+                  Ejecutar
+                  {selectionCount > 0 ? (
+                    <Badge variant="secondary" className="ml-1">
+                      {selectionCount}
+                    </Badge>
+                  ) : null}
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </main>
+  )
+}
+
+export function RunPlaybookPage({ id }: { id?: string }) {
+  if (!id) {
+    return (
+      <AppProviders>
+        <main className="flex flex-1 items-center justify-center p-6">
+          <p className="text-muted-foreground text-sm">
+            Playbook no encontrado.
+          </p>
+        </main>
+      </AppProviders>
+    )
+  }
+  return (
+    <AppProviders>
+      <RunPlaybookPageInner id={id} />
+    </AppProviders>
+  )
+}

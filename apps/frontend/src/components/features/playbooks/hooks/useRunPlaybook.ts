@@ -10,9 +10,21 @@ export type RunSelection = {
 export type RunEvent = {
   event: string
   host: string | null
+  play: string | null
   task: string | null
+  task_action: string | null
   changed: boolean | null
   msg: string | null
+  stdout: string | null
+  stderr: string | null
+  rc: number | null
+  stats: {
+    ok: Record<string, number>
+    changed: Record<string, number>
+    failures: Record<string, number>
+    dark: Record<string, number>
+    skipped: Record<string, number>
+  } | null
 }
 
 /** Terminal payload of a finished run. */
@@ -63,8 +75,13 @@ function parseFrame(frame: string, handlers: StreamHandlers): void {
   }
 }
 
+export type RunOptions = {
+  forks?: number
+  extravars?: Record<string, string>
+}
+
 async function streamRun(
-  body: { playbookId: string; inventory: RunSelection[] },
+  body: { playbookId: string; inventory: RunSelection[] } & RunOptions,
   handlers: StreamHandlers
 ): Promise<void> {
   const res = await fetch(RUN_URL, {
@@ -124,7 +141,11 @@ export function useRunPlaybook() {
   const abortRef = useRef<AbortController | null>(null)
 
   const start = useCallback(
-    async (playbookId: string, inventory: RunSelection[]) => {
+    async (
+      playbookId: string,
+      inventory: RunSelection[],
+      options?: RunOptions
+    ) => {
       abortRef.current?.abort()
       const controller = new AbortController()
       abortRef.current = controller
@@ -137,7 +158,7 @@ export function useRunPlaybook() {
       let settled = false
       try {
         await streamRun(
-          { playbookId, inventory },
+          { playbookId, inventory, ...options },
           {
             onEvent: (event) => setEvents((prev) => [...prev, event]),
             onDone: (res) => {
