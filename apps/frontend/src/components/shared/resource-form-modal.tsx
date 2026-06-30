@@ -186,6 +186,27 @@ function FieldRow({
           onChange={(e) => onChange(e.target.value)}
           className={cn(TEXTAREA_BASE_CLASS, field.inputClassName)}
         />
+      ) : field.type === "select" ? (
+        <select
+          id={id}
+          required={field.required}
+          disabled={disabled}
+          value={stringValue}
+          onChange={(e) => onChange(e.target.value)}
+          className={cn(
+            "h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30",
+            field.inputClassName
+          )}
+        >
+          {field.placeholder ? (
+            <option value="">{field.placeholder}</option>
+          ) : null}
+          {(field.options ?? []).map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
       ) : (
         <Input
           id={id}
