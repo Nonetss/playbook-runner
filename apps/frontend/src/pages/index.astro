@@ -13,5 +13,5 @@ if (!serverSession) return Astro.redirect("/login")
 ---
 
 <Layout title="Inicio">
-  <DashboardPage client:only="react" />
+  <DashboardPage client:load />
 </Layout>

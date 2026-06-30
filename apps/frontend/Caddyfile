@@ -7,6 +7,10 @@
     reverse_proxy {$BACKEND_UPSTREAM:backend:3000}
 }
 
+(ansible) {
+    reverse_proxy {$ANSIBLE_UPSTREAM:ansible:8000}
+}
+
 :80 {
     encode zstd gzip
 
@@ -21,6 +25,10 @@
     }
     handle /openapi.json {
         import backend
+    }
+
+    handle /ansible/* {
+        import ansible
     }
 
     handle {
