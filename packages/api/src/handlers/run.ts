@@ -145,9 +145,7 @@ export const runHandler = {
    * (ping, ad-hoc tasks) that don't go through a stored playbook. Returns
    * the same host shape as `resolveRun` but for exactly one device.
    */
-  resolveDevice: async (
-    deviceId: string
-  ): Promise<ResolvedRunHost> => {
+  resolveDevice: async (deviceId: string): Promise<ResolvedRunHost> => {
     const rows = await db
       .select({
         deviceId: inventoryDevices.id,

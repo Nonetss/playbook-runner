@@ -42,10 +42,7 @@ export function NavbarMobileMenu({
             </button>
           }
         />
-        <SheetContent
-          side="right"
-          className="gap-0 p-0 sm:max-w-xs"
-        >
+        <SheetContent side="right" className="gap-0 p-0 sm:max-w-xs">
           <SheetHeader className="border-border border-b px-4 py-4 pr-12 text-left">
             <SheetTitle className="font-mono text-sm font-semibold tracking-wide">
               Navegación
