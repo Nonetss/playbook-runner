@@ -98,6 +98,12 @@ gen_secret() {
     openssl rand -base64 48 | tr -d '\n'
 }
 
+# Password que va dentro de una URL (DATABASE_URL): sin caracteres que haya
+# que escapar (/, +, =). Hex es siempre URL-safe.
+gen_password() {
+    openssl rand -hex 32
+}
+
 # ── Inputs ───────────────────────────────────────────────────────────────────
 log "Configuración — respondé las preguntas."
 echo
@@ -160,7 +166,9 @@ fi
 
 # ── Generar secretos ─────────────────────────────────────────────────────────
 log "Generando secretos con openssl..."
-POSTGRES_PASSWORD=$(gen_secret)
+POSTGRES_DB=playbook_runner
+POSTGRES_USER=playbook_runner
+POSTGRES_PASSWORD=$(gen_password)
 BETTER_AUTH_SECRET=$(gen_secret)
 INTERNAL_TOKEN=$(gen_secret)
 ok "Secretos generados (POSTGRES_PASSWORD, BETTER_AUTH_SECRET, INTERNAL_TOKEN)"
@@ -185,15 +193,16 @@ FRONTEND_IMAGE_TAG=latest
 FRONTEND_PORT=$FRONTEND_PORT
 CORS_ORIGIN=$PUBLIC_URL
 
-# ── PostgreSQL (solo se usa con el servicio postgres de compose.prod.yml) ─────
-POSTGRES_DB=playbook_runner
-POSTGRES_USER=playbook_runner
+# ── PostgreSQL (solo se usa con el servicio postgres de compose.yml) ──────────
+POSTGRES_DB=$POSTGRES_DB
+POSTGRES_USER=$POSTGRES_USER
 POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 
 # ── Backend ──────────────────────────────────────────────────────────────────
-# Si usás una DB externa (RDS, Cloud SQL, etc.) reemplazá esta URL
-# y borrá el servicio postgres de compose.prod.yml.
-DATABASE_URL=postgresql://\${POSTGRES_USER}:\${POSTGRES_PASSWORD}@postgres:5432/\${POSTGRES_DB}
+# OJO: docker compose NO interpola \${...} dentro de env_file, así que la URL
+# va con los valores ya resueltos. Si usás una DB externa (RDS, Cloud SQL, …)
+# reemplazá esta línea y borrá el servicio postgres de compose.yml.
+DATABASE_URL=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:5432/$POSTGRES_DB
 
 BETTER_AUTH_URL=$PUBLIC_URL
 BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET
@@ -219,14 +228,15 @@ EOF
 chmod 600 "$ENV_FILE"
 ok ".env escrito en $ENV_FILE (permisos 600)"
 
-# ── compose.prod.yml ─────────────────────────────────────────────────────────
-# Si corremos sueltos (curl | bash) no hay compose.prod.yml en la carpeta, así
-# que lo bajamos. Si ya existe (repo clonado), lo respetamos.
-COMPOSE_FILE="$TARGET_DIR/compose.prod.yml"
+# ── compose.yml ──────────────────────────────────────────────────────────────
+# Lo guardamos como compose.yml (no compose.prod.yml) para que `docker compose
+# up -d` lo tome solo, sin -f. Si corremos sueltos (curl | bash) lo bajamos del
+# repo; si ya existe en la carpeta, lo respetamos.
+COMPOSE_FILE="$TARGET_DIR/compose.yml"
 if [[ ! -f "$COMPOSE_FILE" ]]; then
-    log "Descargando compose.prod.yml ($PB_REF)..."
+    log "Descargando compose.yml ($PB_REF)..."
     curl -fsSL "$RAW_BASE/compose.prod.yml" -o "$COMPOSE_FILE"
-    ok "compose.prod.yml descargado en $COMPOSE_FILE"
+    ok "compose.yml descargado en $COMPOSE_FILE"
 fi
 
 # ── Levantar stack ───────────────────────────────────────────────────────────
@@ -244,6 +254,6 @@ if prompt_confirm "¿Levantar el stack ahora con docker compose?"; then
     ok "Listo. El backend migra y siembra el admin solo en su arranque."
     ok "En ~1-2 min andá a $PUBLIC_URL y logueate con $ADMIN_EMAIL"
 else
-    note "Cuando quieras arrancar:"
-    note "  docker compose -f compose.prod.yml --env-file .env up -d"
+    note "Cuando quieras arrancar (desde esta carpeta):"
+    note "  docker compose up -d"
 fi
