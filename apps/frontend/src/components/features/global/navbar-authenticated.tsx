@@ -71,7 +71,7 @@ function NavbarAuthenticatedInner({
 
   return (
     <header className="border-border bg-background sticky top-0 z-50 w-full border-b">
-      <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 md:gap-4 md:px-6">
+      <nav className="flex h-14 w-full items-center justify-between gap-3 px-4 md:gap-4 md:px-6 lg:px-8">
         <a
           href="/"
           className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground transition-opacity duration-200 hover:opacity-80"
