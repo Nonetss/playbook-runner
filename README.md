@@ -1,94 +1,106 @@
-# none.stack
+# playbook-runner
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines Astro, Hono, ORPC, and more.
+Web UI for managing and executing [Ansible](https://www.ansible.com/) playbooks
+against inventory hosts, with scheduled jobs, credential management, and live
+run streaming.
+
+Built as a small monorepo with three services:
+
+- `apps/frontend` — Astro + React SSR
+- `apps/backend` — Hono + oRPC + Better Auth + Drizzle (PostgreSQL)
+- `apps/ansible` — Python FastAPI microservice that wraps `ansible-runner`
 
 ## Features
 
-- **TypeScript** - For type safety and improved developer experience
-- **Astro** - The web framework for content-driven websites
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **Hono** - Lightweight, performant server framework
-- **oRPC** - End-to-end type-safe APIs with OpenAPI integration
-- **Bun** - Runtime environment
-- **Drizzle** - TypeScript-first ORM
-- **PostgreSQL** - Database engine
-- **Authentication** - Better-Auth
-- **Biome** - Linting and formatting
-- **Turborepo** - Optimized monorepo build system
+- **TypeScript everywhere** — strict types from DB to RPC client
+- **Astro** SSR frontend with **React** islands
+- **TailwindCSS** + shadcn/ui components
+- **Hono** backend with **oRPC** end-to-end type-safe procedures
+- **Better Auth** with OAuth/OIDC SSO
+- **Drizzle** ORM on PostgreSQL
+- **Bun** runtime and package manager
+- **Biome** for linting and formatting
+- **Turborepo** monorepo pipeline
+- **Docker Compose** for local dev and production
 
-## Getting Started
-
-First, install the dependencies:
+## Quick start
 
 ```bash
 bun install
-```
-
-## Database Setup
-
-This project uses PostgreSQL with Drizzle ORM.
-
-1. Make sure you have a PostgreSQL database set up.
-2. Update your `apps/backend/.env` file with your PostgreSQL connection details.
-
-3. Apply the schema to your database:
-
-```bash
+cp .env.example .env          # fill in the secrets
+cp apps/backend/.env.example apps/backend/.env
+cp apps/frontend/.env.example apps/frontend/.env
 bun run db:push
-```
-
-Then, run the development server:
-
-```bash
 bun run dev
 ```
 
-Open [http://localhost:4321](http://localhost:4321) in your browser to see the web application.
-The API is running at [http://localhost:3000](http://localhost:3000).
+Then open:
 
-## Deployment
+- Web app: <http://localhost:4321>
+- API: <http://localhost:3000>
 
-### Docker Compose
-
-- Target: frontend + backend
-- Config: `docker-compose.yml` (app Dockerfiles live in `apps/*/Dockerfile`)
-- Build images: bun run docker:build
-- Start: bun run docker:up
-- Logs: bun run docker:logs
-- Stop: bun run docker:down
-
-Environment variables are read from each app's `.env` file (baked into web builds for public variables) and overridden in `docker-compose.yml` for container networking.
-
-## Git Hooks and Formatting
-
-- Run checks: `bun run check`
-
-## Project Structure
+## Project structure
 
 ```
-none.stack/
+playbook-runner/
 ├── apps/
-│   ├── frontend/    # Frontend application (Astro)
-│   └── backend/     # Backend API (Hono, ORPC)
-├── packages/
-│   ├── api/         # API layer / business logic
-│   ├── auth/        # Authentication configuration & logic
-│   └── db/          # Database schema & queries
+│   ├── frontend/    # Astro + React UI
+│   ├── backend/     # Hono API + oRPC procedures
+│   └── ansible/     # Python service wrapping ansible-runner
+└── packages/
+    ├── api/         # oRPC routers and handlers
+    ├── auth/        # Better Auth configuration
+    ├── config/      # Shared tsconfig base
+    ├── db/          # Drizzle schema and migrations
+    └── env/         # Zod-validated environment variables
 ```
 
-## Available Scripts
+## Database
 
-- `bun run dev`: Start all applications in development mode
-- `bun run build`: Build all applications
-- `bun run dev:frontend`: Start only the frontend application
-- `bun run dev:backend`: Start only the backend
-- `bun run check-types`: Check TypeScript types across all apps
-- `bun run db:push`: Push schema changes to database
-- `bun run db:generate`: Generate database client/types
-- `bun run db:migrate`: Run database migrations
-- `bun run db:studio`: Open database studio UI
-- `bun run check`: Run Biome formatting and linting
-- `bun run docker:build`: Build the Docker Compose images
-- `bun run docker:up`: Build and start the Docker Compose stack
-- `bun run docker:logs`: Tail logs from the Docker Compose stack
-- `bun run docker:down`: Stop the Docker Compose stack
+PostgreSQL is required. Drizzle migrations live in `packages/db/src/migrations`.
+
+```bash
+bun run db:push          # apply schema (dev)
+bun run db:generate      # create a new migration from schema changes
+bun run db:migrate       # apply pending migrations
+bun run db:studio        # open Drizzle Studio
+```
+
+## Docker
+
+`compose.yml` builds the three images from the local sources (dev workflow).
+
+```bash
+bun run docker:build     # build images
+bun run docker:up        # build and start the stack
+bun run docker:logs      # tail logs
+bun run docker:down      # stop the stack
+```
+
+For production, `compose.prod.yml` pulls prebuilt images from a container
+registry (defaults to `ghcr.io` — see `.env.example`) instead of building from
+source. The CI in `.github/workflows/docker-build.yml` pushes those images on
+pushes to `main` and to `v*` branches.
+
+## Scripts
+
+| Command | What it does |
+| --- | --- |
+| `bun run dev` | Start all apps in dev mode |
+| `bun run build` | Build all apps |
+| `bun run dev:frontend` | Start only the frontend |
+| `bun run dev:backend` | Start only the backend |
+| `bun run check-types` | Type-check the monorepo |
+| `bun run db:push` | Apply DB schema |
+| `bun run db:generate` | Generate a new Drizzle migration |
+| `bun run db:migrate` | Apply Drizzle migrations |
+| `bun run db:studio` | Open Drizzle Studio |
+| `bun run check` | Run Biome lint/format |
+| `bun run docker:build` | Build Docker images |
+| `bun run docker:up` | Start Docker Compose stack |
+| `bun run docker:logs` | Tail Docker logs |
+| `bun run docker:down` | Stop Docker Compose stack |
+
+## License
+
+See [LICENSE](./LICENSE).
