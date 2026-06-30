@@ -1,5 +1,5 @@
 {
-  "name": "none.stack",
+  "name": "playbook-runner",
   "private": true,
   "workspaces": {
     "packages": [
@@ -28,11 +28,11 @@
     "format": "biome check --write --linter-enabled=false .",
     "dev:frontend": "turbo -F frontend dev",
     "dev:backend": "turbo -F backend dev",
-    "db:push": "turbo -F @none.stack/db db:push",
-    "db:pull": "turbo -F @none.stack/db db:pull",
-    "db:studio": "turbo -F @none.stack/db db:studio",
-    "db:generate": "turbo -F @none.stack/db db:generate",
-    "db:migrate": "turbo -F @none.stack/db db:migrate",
+    "db:push": "turbo -F @playbook-runner/db db:push",
+    "db:pull": "turbo -F @playbook-runner/db db:pull",
+    "db:studio": "turbo -F @playbook-runner/db db:studio",
+    "db:generate": "turbo -F @playbook-runner/db db:generate",
+    "db:migrate": "turbo -F @playbook-runner/db db:migrate",
     "docker:build": "docker compose build",
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",
@@ -41,13 +41,13 @@
   },
   "dependencies": {
     "@better-auth/core": "^1.6.22",
-    "@none.stack/env": "workspace:*",
+    "@playbook-runner/env": "workspace:*",
     "dotenv": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
-    "@none.stack/config": "workspace:*",
+    "@playbook-runner/config": "workspace:*",
     "@types/bun": "catalog:",
     "turbo": "^2.9.16",
     "typescript": "catalog:"
