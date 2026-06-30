@@ -38,7 +38,7 @@ export function CredentialCard({
     : null
 
   return (
-    <Card className="h-full gap-4 py-4">
+    <Card className="h-full min-w-0 gap-4 overflow-hidden py-4">
       <CardHeader className="px-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
@@ -83,7 +83,7 @@ export function CredentialCard({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-3 px-4">
+      <CardContent className="min-w-0 space-y-3 overflow-hidden px-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="font-mono text-xs">
             SSH
@@ -95,7 +95,10 @@ export function CredentialCard({
           )}
         </div>
 
-        <p className="text-muted-foreground truncate font-mono text-xs">
+        <p
+          className="text-muted-foreground line-clamp-3 min-w-0 break-all font-mono text-xs sm:line-clamp-1 sm:truncate"
+          title={credential.publicKey}
+        >
           {credential.publicKey}
         </p>
       </CardContent>

@@ -12,5 +12,9 @@ const subscribe = () => () => {}
  * browser cache populated by another island or navbar prefetch.
  */
 export function useHydrated() {
-  return useSyncExternalStore(subscribe, () => true, () => false)
+  return useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false
+  )
 }

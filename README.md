@@ -9,6 +9,18 @@ the output in another terminal, this app gives you a browser tab and a database
 for all of that: playbooks, SSH credentials, devices, groups, scheduled
 runs, and a live log of every execution.
 
+## TL;DR — install on a server
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/nonetss/playbook-runner/main/scripts/bootstrap.sh | bash
+```
+
+That fetches `scripts/bootstrap.sh`, asks you for the admin user/password and a
+few more things, generates secrets with `openssl`, writes a `.env`, pulls the
+images from `ghcr.io`, and brings the stack up. You end up with everything
+running at `http://<your-host>:4321` (or whatever port you chose). See
+[Quick start (production)](#quick-start-production) for the manual version.
+
 ## Screenshots
 
 **Dashboard** — at a glance: jobs, playbooks, devices, and credentials, with

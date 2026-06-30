@@ -8,7 +8,9 @@ function DashboardContentInner() {
   const { data: session } = authClient.useSession()
   const user = session?.user
 
-  const { data, isPending, isError } = useHydratedQuery(orpc.privateData.queryOptions())
+  const { data, isPending, isError } = useHydratedQuery(
+    orpc.privateData.queryOptions()
+  )
 
   const apiMessage = isPending
     ? "Loading..."
