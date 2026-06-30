@@ -1,30 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+"use client"
+
+import { useMutation, useQuery } from "@tanstack/react-query"
+import type {
+  InventoryDevice,
+  InventoryDeviceList,
+} from "@/components/features/inventory/types"
+import { useResourceMutation } from "@/hooks/useResourceMutation"
 import { orpc } from "@/lib/orpc"
-
-const useInvalidateDevices = () => {
-  const queryClient = useQueryClient()
-
-  return {
-    list: () =>
-      queryClient.invalidateQueries({
-        queryKey: orpc.inventory.devices.list.queryKey(),
-      }),
-    detail: (id: string) =>
-      queryClient.invalidateQueries({
-        queryKey: orpc.inventory.devices.get.queryKey({ input: { id } }),
-      }),
-    all: (id?: string) => {
-      queryClient.invalidateQueries({
-        queryKey: orpc.inventory.devices.list.queryKey(),
-      })
-      if (id) {
-        queryClient.invalidateQueries({
-          queryKey: orpc.inventory.devices.get.queryKey({ input: { id } }),
-        })
-      }
-    },
-  }
-}
 
 export const useDevicesList = () => {
   return useQuery(orpc.inventory.devices.list.queryOptions())
@@ -39,32 +21,99 @@ export const useDeviceGet = (id: string, options?: { enabled?: boolean }) => {
   )
 }
 
-export const useDeviceCreate = () => {
-  const invalidate = useInvalidateDevices()
+const listKey = orpc.inventory.devices.list.queryKey()
 
-  return useMutation(
-    orpc.inventory.devices.create.mutationOptions({
-      onSuccess: () => invalidate.list(),
-    })
+function applyCreateOptimistic(
+  current: InventoryDeviceList | undefined,
+  input: { name: string; description?: string; ipAddress: string }
+) {
+  if (!current) return current
+  const optimistic = {
+    id: `__optimistic_${Date.now()}`,
+    name: input.name,
+    description: input.description ?? null,
+    ipAddress: input.ipAddress,
+  } as unknown as InventoryDevice
+  return [...current, optimistic]
+}
+
+function applyUpdateOptimistic(
+  current: InventoryDeviceList | undefined,
+  input: { id: string; name: string; description?: string; ipAddress: string }
+) {
+  if (!current) return current
+  return current.map((device) =>
+    device.id === input.id
+      ? {
+          ...device,
+          name: input.name,
+          description: input.description ?? device.description ?? null,
+          ipAddress: input.ipAddress,
+        }
+      : device
   )
 }
 
-export const useDeviceUpdate = () => {
-  const invalidate = useInvalidateDevices()
-
-  return useMutation(
-    orpc.inventory.devices.update.mutationOptions({
-      onSuccess: (_, { id }) => invalidate.all(id),
-    })
-  )
+function applyDeleteOptimistic(
+  current: InventoryDeviceList | undefined,
+  input: { id: string }
+) {
+  if (!current) return current
+  return current.filter((device) => device.id !== input.id)
 }
 
-export const useDeviceDelete = () => {
-  const invalidate = useInvalidateDevices()
+export const useDeviceCreate = () =>
+  useResourceMutation<
+    { name: string; description?: string; ipAddress: string },
+    InventoryDevice,
+    InventoryDeviceList
+  >({
+    mutationFn: (input) =>
+      orpc.inventory.devices.create.call(input) as Promise<InventoryDevice>,
+    listKey,
+    applyOptimistic: applyCreateOptimistic,
+    messages: {
+      success: "Dispositivo creado",
+      error: "No se pudo crear el dispositivo",
+    },
+  })
 
-  return useMutation(
-    orpc.inventory.devices.delete.mutationOptions({
-      onSuccess: (_, { id }) => invalidate.all(id),
-    })
-  )
+export const useDeviceUpdate = () =>
+  useResourceMutation<
+    { id: string; name: string; description?: string; ipAddress: string },
+    InventoryDevice,
+    InventoryDeviceList
+  >({
+    mutationFn: (input) =>
+      orpc.inventory.devices.update.call(input) as Promise<InventoryDevice>,
+    listKey,
+    applyOptimistic: applyUpdateOptimistic,
+    messages: {
+      success: "Dispositivo actualizado",
+      error: "No se pudo actualizar el dispositivo",
+    },
+  })
+
+export const useDeviceDelete = () =>
+  useResourceMutation<{ id: string }, InventoryDevice, InventoryDeviceList>({
+    mutationFn: (input) =>
+      orpc.inventory.devices.delete.call(input) as Promise<InventoryDevice>,
+    listKey,
+    applyOptimistic: applyDeleteOptimistic,
+    messages: {
+      success: "Dispositivo eliminado",
+      error: "No se pudo eliminar el dispositivo",
+    },
+  })
+
+/**
+ * Plain mutation hook kept for relations and other actions that don't touch
+ * the device list directly. Caller is responsible for toasts.
+ */
+export function useDeviceAssign() {
+  return useMutation(orpc.inventory.deviceGroups.assign.mutationOptions())
+}
+
+export function useDeviceUnassign() {
+  return useMutation(orpc.inventory.deviceGroups.unassign.mutationOptions())
 }

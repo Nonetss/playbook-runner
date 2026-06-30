@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { notifyError, notifySuccess } from "@/lib/toast"
 
 type Kind = "deviceGroups" | "groupDevices"
 
@@ -94,18 +95,21 @@ export function RelationsDialog({
             ? { deviceId: entityId, groupId: option.id }
             : { groupId: entityId, deviceId: option.id }
         )
+        notifySuccess("Asignación eliminada")
       } else {
         await assign.mutateAsync(
           isDevice
             ? { deviceId: entityId, groupId: option.id }
             : { groupId: entityId, deviceId: option.id }
         )
+        notifySuccess("Asignación creada")
       }
-    } catch {
-      window.alert(
+    } catch (err) {
+      notifyError(
         isSelected
-          ? "No se pudo quitar la asignación."
-          : "No se pudo crear la asignación."
+          ? "No se pudo quitar la asignación"
+          : "No se pudo crear la asignación",
+        err instanceof Error ? err.message : undefined
       )
     }
   }

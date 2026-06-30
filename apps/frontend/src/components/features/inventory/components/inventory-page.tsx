@@ -1,3 +1,5 @@
+"use client"
+
 import { Folder, Plus, Server } from "lucide-react"
 import { useMemo, useState } from "react"
 import { DeviceFormModal } from "@/components/features/inventory/components/device-form-modal"
@@ -19,8 +21,11 @@ import type {
   InventoryDeviceGroup,
   InventoryGroup,
 } from "@/components/features/inventory/types"
-import { QueryProvider } from "@/components/providers/query-provider"
+import { AppProviders } from "@/components/providers/app-providers"
+import { ResourceListState } from "@/components/shared/resource-list-state"
 import { Button } from "@/components/ui/button"
+import { useConfirm } from "@/hooks/useConfirm"
+import { notifyError } from "@/lib/toast"
 import { cn } from "@/lib/utils"
 
 type Tab = "groups" | "devices"
@@ -37,15 +42,19 @@ function InventoryPageInner() {
     data: groups = [],
     isPending: groupsPending,
     isError: groupsError,
+    refetch: refetchGroups,
   } = useGroupsList()
   const {
     data: devices = [],
     isPending: devicesPending,
     isError: devicesError,
+    refetch: refetchDevices,
   } = useDevicesList()
   const { data: deviceGroups = [] } = useDeviceGroupsList()
   const deleteGroup = useGroupDelete()
   const deleteDevice = useDeviceDelete()
+
+  const confirm = useConfirm()
 
   const [groupModalOpen, setGroupModalOpen] = useState(false)
   const [editingGroup, setEditingGroup] = useState<InventoryGroup | null>(null)
@@ -135,30 +144,44 @@ function InventoryPageInner() {
   async function handleDeleteGroup(id: string) {
     const group = groups.find((item) => item.id === id)
     const label = group?.name ?? "este grupo"
-    const confirmed = window.confirm(
-      `¿Seguro que quieres eliminar "${label}"? Esta acción no se puede deshacer.`
-    )
+    const confirmed = await confirm({
+      title: `Eliminar "${label}"`,
+      description: "Esta acción no se puede deshacer.",
+      confirmLabel: "Eliminar",
+      cancelLabel: "Cancelar",
+      variant: "destructive",
+    })
     if (!confirmed) return
 
     try {
       await deleteGroup.mutateAsync({ id })
-    } catch {
-      window.alert("No se pudo eliminar el grupo.")
+    } catch (err) {
+      notifyError(
+        "No se pudo eliminar el grupo",
+        err instanceof Error ? err.message : undefined
+      )
     }
   }
 
   async function handleDeleteDevice(id: string) {
     const device = devices.find((item) => item.id === id)
     const label = device?.name ?? "este dispositivo"
-    const confirmed = window.confirm(
-      `¿Seguro que quieres eliminar "${label}"? Esta acción no se puede deshacer.`
-    )
+    const confirmed = await confirm({
+      title: `Eliminar "${label}"`,
+      description: "Esta acción no se puede deshacer.",
+      confirmLabel: "Eliminar",
+      cancelLabel: "Cancelar",
+      variant: "destructive",
+    })
     if (!confirmed) return
 
     try {
       await deleteDevice.mutateAsync({ id })
-    } catch {
-      window.alert("No se pudo eliminar el dispositivo.")
+    } catch (err) {
+      notifyError(
+        "No se pudo eliminar el dispositivo",
+        err instanceof Error ? err.message : undefined
+      )
     }
   }
 
@@ -208,34 +231,40 @@ function InventoryPageInner() {
               Nuevo grupo
             </Button>
           </div>
-
-          {groupsPending ? (
-            <p className="text-muted-foreground text-sm">Cargando grupos...</p>
-          ) : groupsError ? (
-            <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-              No se pudieron cargar los grupos.
-            </div>
-          ) : (
-            <GroupList
-              groups={groups}
-              devicesByGroup={devicesByGroup}
-              onCreate={openCreateGroup}
-              onEdit={openEditGroup}
-              onDelete={handleDeleteGroup}
-              onManageDevices={openManageGroupDevices}
-              deletingId={
-                deleteGroup.isPending
-                  ? (deleteGroup.variables?.id ?? null)
-                  : null
-              }
-            />
-          )}
-
           <GroupFormModal
             open={groupModalOpen}
             onOpenChange={handleGroupModalOpenChange}
             group={editingGroup}
           />
+          <ResourceListState
+            isPending={groupsPending}
+            isError={groupsError}
+            onRetry={() => refetchGroups()}
+            items={groups}
+            empty={{
+              title: "Sin grupos",
+              description:
+                "Crea tu primer grupo para empezar a organizar dispositivos.",
+              ctaLabel: "Nuevo grupo",
+              onCta: openCreateGroup,
+              icon: <Folder className="size-5" />,
+            }}
+          >
+            {(items) => (
+              <GroupList
+                groups={items}
+                devicesByGroup={devicesByGroup}
+                onEdit={openEditGroup}
+                onDelete={handleDeleteGroup}
+                onManageDevices={openManageGroupDevices}
+                deletingId={
+                  deleteGroup.isPending
+                    ? (deleteGroup.variables?.id ?? null)
+                    : null
+                }
+              />
+            )}
+          </ResourceListState>
         </>
       ) : (
         <>
@@ -245,36 +274,40 @@ function InventoryPageInner() {
               Nuevo dispositivo
             </Button>
           </div>
-
-          {devicesPending ? (
-            <p className="text-muted-foreground text-sm">
-              Cargando dispositivos...
-            </p>
-          ) : devicesError ? (
-            <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-              No se pudieron cargar los dispositivos.
-            </div>
-          ) : (
-            <DeviceList
-              devices={devices}
-              groupsByDevice={groupsByDevice}
-              onCreate={openCreateDevice}
-              onEdit={openEditDevice}
-              onDelete={handleDeleteDevice}
-              onManageGroups={openManageDeviceGroups}
-              deletingId={
-                deleteDevice.isPending
-                  ? (deleteDevice.variables?.id ?? null)
-                  : null
-              }
-            />
-          )}
-
           <DeviceFormModal
             open={deviceModalOpen}
             onOpenChange={handleDeviceModalOpenChange}
             device={editingDevice}
           />
+          <ResourceListState
+            isPending={devicesPending}
+            isError={devicesError}
+            onRetry={() => refetchDevices()}
+            items={devices}
+            empty={{
+              title: "Sin dispositivos",
+              description:
+                "Añade tu primer dispositivo para empezar a gestionar el inventario.",
+              ctaLabel: "Nuevo dispositivo",
+              onCta: openCreateDevice,
+              icon: <Server className="size-5" />,
+            }}
+          >
+            {(items) => (
+              <DeviceList
+                devices={items}
+                groupsByDevice={groupsByDevice}
+                onEdit={openEditDevice}
+                onDelete={handleDeleteDevice}
+                onManageGroups={openManageDeviceGroups}
+                deletingId={
+                  deleteDevice.isPending
+                    ? (deleteDevice.variables?.id ?? null)
+                    : null
+                }
+              />
+            )}
+          </ResourceListState>
         </>
       )}
 
@@ -306,8 +339,8 @@ function InventoryPageInner() {
 
 export function InventoryPage() {
   return (
-    <QueryProvider>
+    <AppProviders>
       <InventoryPageInner />
-    </QueryProvider>
+    </AppProviders>
   )
 }

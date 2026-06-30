@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 type GroupListProps = {
   groups: InventoryGroup[]
   devicesByGroup: Map<string, InventoryDevice[]>
-  onCreate: () => void
+  onCreate?: () => void
   onEdit: (group: InventoryGroup) => void
   onDelete: (id: string) => void
   onManageDevices: (group: InventoryGroup) => void
@@ -25,7 +25,7 @@ export function GroupList({
   onManageDevices,
   deletingId = null,
 }: GroupListProps) {
-  if (groups.length === 0) {
+  if (groups.length === 0 && onCreate) {
     return (
       <div className="rounded-xl border border-dashed bg-card px-6 py-12 text-center">
         <div className="bg-primary/10 text-primary mx-auto mb-4 flex size-12 items-center justify-center rounded-full">
