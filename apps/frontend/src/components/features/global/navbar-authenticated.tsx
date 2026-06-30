@@ -121,13 +121,13 @@ function NavbarAuthenticatedInner({
 
         {/* Mobile/tablet: < lg - mobile menu */}
         <div className="flex lg:hidden shrink-0 items-center gap-1.5 sm:gap-2">
-          <ThemeToggle className="relative right-0 top-0 translate-y-0" />
-          <UserNav user={user} />
           <NavbarMobileMenu
             navLinks={navLinks}
             currentPath={currentPath}
             onPrefetch={handlePrefetch}
           />
+          <ThemeToggle className="relative right-0 top-0 translate-y-0" />
+          <UserNav user={user} />
         </div>
 
         {/* Desktop: lg+ actions */}

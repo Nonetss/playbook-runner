@@ -20,6 +20,9 @@ interface NavbarMobileMenuProps {
   onPrefetch?: (href: string) => () => void
 }
 
+const triggerClass =
+  "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex size-9 shrink-0 items-center justify-center rounded-md border shadow-xs transition-colors outline-none data-[state=open]:bg-accent data-[state=open]:text-accent-foreground"
+
 export function NavbarMobileMenu({
   navLinks,
   currentPath,
@@ -31,17 +34,12 @@ export function NavbarMobileMenu({
     <div className="shrink-0 lg:hidden">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger
-          render={
-            <button
-              type="button"
-              aria-label="Abrir menú de navegación"
-              aria-haspopup="dialog"
-              className="border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground flex h-9 w-9 shrink-0 items-center justify-center border transition-colors"
-            >
-              <Menu className="size-4 shrink-0" aria-hidden />
-            </button>
-          }
-        />
+          type="button"
+          aria-label="Abrir menú de navegación"
+          className={triggerClass}
+        >
+          <Menu className="size-4 shrink-0" aria-hidden />
+        </SheetTrigger>
         <SheetContent side="right" className="gap-0 p-0 sm:max-w-xs">
           <SheetHeader className="border-border border-b px-4 py-4 pr-12 text-left">
             <SheetTitle className="font-mono text-sm font-semibold tracking-wide">
