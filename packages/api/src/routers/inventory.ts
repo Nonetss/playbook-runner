@@ -17,6 +17,7 @@ const deviceInput = z.object({
   name: z.string(),
   description: z.string().optional(),
   ipAddress: z.string(),
+  portSSH: z.number().int().min(1).max(65535).optional(),
   credentialId: uuidSchema.nullable().optional(),
 })
 
