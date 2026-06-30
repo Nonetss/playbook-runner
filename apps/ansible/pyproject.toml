@@ -9,3 +9,8 @@ dependencies = [
     "fastapi[standard]>=0.138.2",
     "scalar-fastapi>=1.8.2",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.20",
+]

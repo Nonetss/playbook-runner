@@ -19,13 +19,46 @@
   "[markdown]": {
     "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
   },
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    }
+  },
+  "python.defaultInterpreterPath": "apps/ansible/.venv/bin/python",
+  "python.analysis.extraPaths": ["apps/ansible"],
+  "python.analysis.typeCheckingMode": "basic",
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.cwd": "apps/ansible",
   "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true,
+    "**/.venv": true,
+    ".claude": true,
+    "**/.agents": true,
+    "**/node_modules": true,
+    "**/.astro": true,
+    "**/dist": true
+  },
+  "search.exclude": {
+    "apps/ansible/.venv/**": true,
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true,
+    "**/.venv": true,
     "**/.claude": true,
     "**/.agents": true,
     "**/node_modules": true,
-    "**/dist": true,
-    "**/.turbo": true,
-    "**/.bun": true,
-    "**/.astro": true
-  }
+    "**/dist": true
+  },
+  "cursorpyright.analysis.extraPaths": ["apps/ansible"],
+  "cursorpyright.analysis.typeCheckingMode": "basic",
+  "[dockercompose]": {
+    "editor.defaultFormatter": "ms-azuretools.vscode-containers"
+  },
+  "python-envs.pythonProjects": []
 }
