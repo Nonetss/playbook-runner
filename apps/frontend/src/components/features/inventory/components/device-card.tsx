@@ -1,4 +1,11 @@
-import { Folder, Link2, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import {
+  Folder,
+  KeyRound,
+  Link2,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from "lucide-react"
 import type {
   InventoryDevice,
   InventoryGroup,
@@ -19,9 +26,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+type CredentialSummary = {
+  id: string
+  name: string
+}
+
 type DeviceCardProps = {
   device: InventoryDevice
   groups: InventoryGroup[]
+  credential?: CredentialSummary | null
   onEdit: (device: InventoryDevice) => void
   onDelete: (id: string) => void
   onManageGroups: (device: InventoryDevice) => void
@@ -31,6 +44,7 @@ type DeviceCardProps = {
 export function DeviceCard({
   device,
   groups,
+  credential = null,
   onEdit,
   onDelete,
   onManageGroups,
@@ -93,6 +107,12 @@ export function DeviceCard({
           <Badge variant="secondary" className="font-mono text-xs">
             {device.ipAddress}
           </Badge>
+          {credential ? (
+            <Badge variant="outline" className="gap-1 text-xs">
+              <KeyRound className="size-3" />
+              {credential.name}
+            </Badge>
+          ) : null}
         </div>
 
         {groups.length > 0 ? (

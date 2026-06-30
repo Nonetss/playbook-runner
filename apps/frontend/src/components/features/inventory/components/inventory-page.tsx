@@ -2,6 +2,7 @@
 
 import { Folder, Plus, Server } from "lucide-react"
 import { useMemo, useState } from "react"
+import { useCredentialsList } from "@/components/features/credentials/hooks/useCredentials"
 import { DeviceFormModal } from "@/components/features/inventory/components/device-form-modal"
 import { DeviceList } from "@/components/features/inventory/components/device-list"
 import { GroupFormModal } from "@/components/features/inventory/components/group-form-modal"
@@ -51,6 +52,7 @@ function InventoryPageInner() {
     refetch: refetchDevices,
   } = useDevicesList()
   const { data: deviceGroups = [] } = useDeviceGroupsList()
+  const { data: credentials = [] } = useCredentialsList()
   const deleteGroup = useGroupDelete()
   const deleteDevice = useDeviceDelete()
 
@@ -73,6 +75,16 @@ function InventoryPageInner() {
   const devicesById = useMemo(
     () => new Map(devices.map((device) => [device.id, device])),
     [devices]
+  )
+  const credentialsById = useMemo(
+    () =>
+      new Map(
+        credentials.map((credential) => [
+          credential.id,
+          { id: credential.id, name: credential.name },
+        ])
+      ),
+    [credentials]
   )
 
   const { groupsByDevice, devicesByGroup } = useMemo(() => {
@@ -297,6 +309,7 @@ function InventoryPageInner() {
               <DeviceList
                 devices={items}
                 groupsByDevice={groupsByDevice}
+                credentialsById={credentialsById}
                 onEdit={openEditDevice}
                 onDelete={handleDeleteDevice}
                 onManageGroups={openManageDeviceGroups}

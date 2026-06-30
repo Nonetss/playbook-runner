@@ -1,5 +1,7 @@
 "use client"
 
+import { useMemo } from "react"
+import { useCredentialsList } from "@/components/features/credentials/hooks/useCredentials"
 import {
   useDeviceCreate,
   useDeviceUpdate,
@@ -12,38 +14,14 @@ export type DeviceFormValues = {
   name: string
   description?: string
   ipAddress: string
+  credentialId?: string | null
 }
 
 const emptyValues: DeviceFormValues = {
   name: "",
   description: "",
   ipAddress: "",
-}
-
-const definition: ResourceFormDefinition<DeviceFormValues> = {
-  fields: [
-    { name: "name", label: "Nombre", placeholder: "web-01", required: true },
-    {
-      name: "ipAddress",
-      label: "Dirección IP",
-      placeholder: "192.168.1.10",
-      required: true,
-    },
-    {
-      name: "description",
-      label: "Descripción",
-      placeholder: "Servidor web principal",
-    },
-  ],
-  defaultValues: emptyValues,
-  valuesFromEntity: (entity) => {
-    const device = entity as InventoryDevice
-    return {
-      name: device.name,
-      description: device.description ?? "",
-      ipAddress: device.ipAddress,
-    }
-  },
+  credentialId: "",
 }
 
 export type DeviceFormModalProps = {
@@ -61,6 +39,50 @@ export function DeviceFormModal({
   const createDevice = useDeviceCreate()
   const updateDevice = useDeviceUpdate()
   const mutation = isEditing ? updateDevice : createDevice
+
+  const { data: credentials = [] } = useCredentialsList()
+  const credentialOptions = useMemo(
+    () =>
+      credentials.map((credential) => ({
+        value: credential.id,
+        label: credential.name,
+      })),
+    [credentials]
+  )
+
+  const definition: ResourceFormDefinition<DeviceFormValues> = {
+    fields: [
+      { name: "name", label: "Nombre", placeholder: "web-01", required: true },
+      {
+        name: "ipAddress",
+        label: "Dirección IP",
+        placeholder: "192.168.1.10",
+        required: true,
+      },
+      {
+        name: "description",
+        label: "Descripción",
+        placeholder: "Servidor web principal",
+      },
+      {
+        name: "credentialId",
+        label: "Credencial",
+        type: "select",
+        placeholder: "Sin credencial asignada",
+        options: credentialOptions,
+      },
+    ],
+    defaultValues: emptyValues,
+    valuesFromEntity: (entity) => {
+      const d = entity as InventoryDevice
+      return {
+        name: d.name,
+        description: d.description ?? "",
+        ipAddress: d.ipAddress,
+        credentialId: d.credentialId ?? "",
+      }
+    },
+  }
 
   return (
     <ResourceFormModal<DeviceFormValues>
@@ -84,6 +106,7 @@ export function DeviceFormModal({
           name: values.name,
           description: values.description || undefined,
           ipAddress: values.ipAddress,
+          credentialId: values.credentialId ? values.credentialId : null,
         }
         if (isEditing && device) {
           await updateDevice.mutateAsync({ id: device.id, ...payload })

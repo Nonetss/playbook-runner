@@ -6,9 +6,15 @@ import type {
 } from "@/components/features/inventory/types"
 import { Button } from "@/components/ui/button"
 
+type CredentialSummary = {
+  id: string
+  name: string
+}
+
 type DeviceListProps = {
   devices: InventoryDevice[]
   groupsByDevice: Map<string, InventoryGroup[]>
+  credentialsById: Map<string, CredentialSummary>
   onCreate?: () => void
   onEdit: (device: InventoryDevice) => void
   onDelete: (id: string) => void
@@ -19,6 +25,7 @@ type DeviceListProps = {
 export function DeviceList({
   devices,
   groupsByDevice,
+  credentialsById,
   onCreate,
   onEdit,
   onDelete,
@@ -50,6 +57,11 @@ export function DeviceList({
           key={device.id}
           device={device}
           groups={groupsByDevice.get(device.id) ?? []}
+          credential={
+            device.credentialId
+              ? (credentialsById.get(device.credentialId) ?? null)
+              : null
+          }
           onEdit={onEdit}
           onDelete={onDelete}
           onManageGroups={onManageGroups}

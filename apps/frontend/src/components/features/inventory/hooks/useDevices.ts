@@ -23,9 +23,16 @@ export const useDeviceGet = (id: string, options?: { enabled?: boolean }) => {
 
 const listKey = orpc.inventory.devices.list.queryKey()
 
+type DeviceMutationInput = {
+  name: string
+  description?: string
+  ipAddress: string
+  credentialId?: string | null
+}
+
 function applyCreateOptimistic(
   current: InventoryDeviceList | undefined,
-  input: { name: string; description?: string; ipAddress: string }
+  input: DeviceMutationInput
 ) {
   if (!current) return current
   const optimistic = {
@@ -33,13 +40,14 @@ function applyCreateOptimistic(
     name: input.name,
     description: input.description ?? null,
     ipAddress: input.ipAddress,
+    credentialId: input.credentialId ?? null,
   } as unknown as InventoryDevice
   return [...current, optimistic]
 }
 
 function applyUpdateOptimistic(
   current: InventoryDeviceList | undefined,
-  input: { id: string; name: string; description?: string; ipAddress: string }
+  input: { id: string } & DeviceMutationInput
 ) {
   if (!current) return current
   return current.map((device) =>
@@ -49,6 +57,10 @@ function applyUpdateOptimistic(
           name: input.name,
           description: input.description ?? device.description ?? null,
           ipAddress: input.ipAddress,
+          credentialId:
+            input.credentialId !== undefined
+              ? input.credentialId
+              : device.credentialId,
         }
       : device
   )
@@ -64,7 +76,7 @@ function applyDeleteOptimistic(
 
 export const useDeviceCreate = () =>
   useResourceMutation<
-    { name: string; description?: string; ipAddress: string },
+    DeviceMutationInput,
     InventoryDevice,
     InventoryDeviceList
   >({
@@ -80,7 +92,7 @@ export const useDeviceCreate = () =>
 
 export const useDeviceUpdate = () =>
   useResourceMutation<
-    { id: string; name: string; description?: string; ipAddress: string },
+    { id: string } & DeviceMutationInput,
     InventoryDevice,
     InventoryDeviceList
   >({
