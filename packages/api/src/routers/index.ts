@@ -4,6 +4,7 @@ import { protectedProcedure, publicProcedure } from "@/index"
 import { credentialsRouter } from "@/routers/credentials"
 import { inventoryRouter } from "@/routers/inventory"
 import { playbooksRouter } from "@/routers/playbooks"
+import { runRouter } from "@/routers/run"
 
 export const appRouter = {
   healthCheck: publicProcedure
@@ -49,6 +50,7 @@ export const appRouter = {
   credentials: credentialsRouter,
   inventory: inventoryRouter,
   playbooks: playbooksRouter,
+  run: runRouter,
 }
 export type AppRouter = typeof appRouter
 export type AppRouterClient = RouterClient<typeof appRouter>
