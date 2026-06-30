@@ -3,20 +3,45 @@
 #
 # - Services talk to each other over the docker network via service-name DNS
 #   (no localhost). See BACKEND_URL / ANSIBLE_URL / BETTER_AUTH_URL below.
-# - Only the frontend publishes a host port; backend and ansible stay internal
-#   (reachable on the network as `backend:3000` and `ansible:8000`).
+# - Only the frontend publishes a host port; backend, ansible, and postgres
+#   stay internal (reachable on the network as `backend:3000`, `ansible:8000`,
+#   `postgres:5432`).
 # - Images are pulled from GitHub Container Registry (ghcr.io/nonetss/...).
 #   No local build, no *_IMAGE env vars — only the *_IMAGE_TAG is overridable
 #   in .env (e.g. pin to v0.0.5 by setting ANSIBLE_IMAGE_TAG=v0.0.5).
+# - PostgreSQL is bundled with a named volume (postgres_data) so data survives
+#   `docker compose down` / `up` cycles. Use an external managed DB instead
+#   by deleting this service and pointing DATABASE_URL at it.
 #
 # Usage:
-#   cp .env.example .env  # fill in secrets
+#   cp .env.example .env  # fill in POSTGRES_PASSWORD, BETTER_AUTH_*, etc.
 #   docker compose -f compose.prod.yml --env-file .env up -d
+#   docker compose -f compose.prod.yml --env-file .env exec backend bun run db:seed
 # ─────────────────────────────────────────────────────────────────────────────
 
 name: playbook-runner
 
 services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres
+    init: true
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-playbook_runner}
+      POSTGRES_USER: ${POSTGRES_USER:-playbook_runner}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   ansible:
     image: ghcr.io/nonetss/playbook-runner-ansible:${ANSIBLE_IMAGE_TAG:-latest}
     pull_policy: always
@@ -57,6 +82,9 @@ services:
       NODE_ENV: production
     expose:
       - "3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test:
         - CMD
@@ -84,3 +112,6 @@ services:
         condition: service_healthy
       ansible:
         condition: service_healthy
+
+volumes:
+  postgres_data:

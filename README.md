@@ -96,9 +96,23 @@ bun run docker:down      # stop the stack
 ```
 
 For production, `compose.prod.yml` pulls prebuilt images from a container
-registry (defaults to `ghcr.io` — see `.env.example`) instead of building from
-source. The CI in `.github/workflows/docker-build.yml` pushes those images on
-pushes to `main` and to `v*` branches.
+registry (defaults to `ghcr.io/nonetss` — see `.env.example`) instead of
+building from source. The CI in `.github/workflows/docker-build.yml` pushes
+those images on pushes to `main` and to `v*` branches. `compose.prod.yml`
+bundles a `postgres` service with a named volume (`postgres_data`) so a
+single `docker compose up -d` is enough for a full deploy.
+
+First-time setup on a fresh server:
+
+```bash
+cp .env.example .env            # set POSTGRES_PASSWORD, BETTER_AUTH_*, etc.
+docker compose -f compose.prod.yml --env-file .env up -d
+docker compose -f compose.prod.yml --env-file .env exec backend bun run db:push
+docker compose -f compose.prod.yml --env-file .env exec backend bun run db:seed
+```
+
+To use an external managed DB instead, delete the `postgres` service from
+`compose.prod.yml` and point `DATABASE_URL` at it.
 
 ## Scripts
 
