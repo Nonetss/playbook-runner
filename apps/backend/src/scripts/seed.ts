@@ -4,7 +4,7 @@ import { user } from "@playbook-runner/db/schema/auth"
 import { env } from "@playbook-runner/env/server"
 import { eq } from "drizzle-orm"
 
-async function main() {
+export async function seed() {
   console.log("Seeding database…")
 
   const db = createDb()
@@ -37,10 +37,3 @@ async function main() {
     "  Set SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD in .env to override."
   )
 }
-
-main()
-  .then(() => process.exit(0))
-  .catch((err) => {
-    console.error("✗ Seed failed:", err)
-    process.exit(1)
-  })

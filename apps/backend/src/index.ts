@@ -1,4 +1,8 @@
+import { db } from "@playbook-runner/db"
 import { env } from "@playbook-runner/env/server"
+import { migrate } from "drizzle-orm/node-postgres/migrator"
+import { dirname, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
 import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { logger } from "hono/logger"
@@ -7,6 +11,26 @@ import { type AuthVariables, sessionMiddleware } from "@/middlewares/auth"
 import authRouter from "@/routers/auth"
 import docsRouter from "@/routers/docs"
 import rpcRouter from "@/routers/rpc"
+import { seed } from "@/scripts/seed"
+
+// Both dev (bun runs the source from apps/backend/src) and prod
+// (tsdown bundle at apps/backend/dist) sit two directories below
+// packages/db, so the same relative path works in both.
+const migrationsFolder = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../packages/db/src/migrations"
+)
+
+async function bootstrap() {
+  console.log("[migrate] applying Drizzle migrations…")
+  await migrate(db, { migrationsFolder })
+  console.log("[migrate] schema is up to date")
+
+  await seed()
+
+  // Kick off the in-process job scheduler (cron-driven playbook runs).
+  startJobScheduler()
+}
 
 const app = new Hono<{ Variables: AuthVariables }>()
 
@@ -28,7 +52,9 @@ app.route("/", docsRouter)
 
 app.get("/", (c) => c.text("OK"))
 
-// Kick off the in-process job scheduler (cron-driven playbook runs).
-startJobScheduler()
+bootstrap().catch((err) => {
+  console.error("[bootstrap] failed:", err)
+  process.exit(1)
+})
 
 export default app
