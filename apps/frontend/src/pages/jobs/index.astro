@@ -1,7 +1,8 @@
 ---
+import { JobsPage } from "@/components/features/jobs/components/jobs-page"
 import Layout from "@/layouts/Layout.astro"
 ---
 
 <Layout title="Jobs">
-  <div>Jobs</div>
+  <JobsPage client:load />
 </Layout>
