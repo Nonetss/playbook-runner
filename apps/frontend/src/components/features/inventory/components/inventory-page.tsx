@@ -1,0 +1,220 @@
+import { Folder, Plus, Server } from "lucide-react"
+import { useState } from "react"
+import { DeviceFormModal } from "@/components/features/inventory/components/device-form-modal"
+import { DeviceList } from "@/components/features/inventory/components/device-list"
+import { GroupFormModal } from "@/components/features/inventory/components/group-form-modal"
+import { GroupList } from "@/components/features/inventory/components/group-list"
+import {
+  useDeviceDelete,
+  useDevicesList,
+} from "@/components/features/inventory/hooks/useDevices"
+import {
+  useGroupDelete,
+  useGroupsList,
+} from "@/components/features/inventory/hooks/useGroups"
+import type {
+  InventoryDevice,
+  InventoryGroup,
+} from "@/components/features/inventory/types"
+import { QueryProvider } from "@/components/providers/query-provider"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+
+type Tab = "groups" | "devices"
+
+function InventoryPageInner() {
+  const [tab, setTab] = useState<Tab>("groups")
+
+  const { data: groups = [], isPending: groupsPending, isError: groupsError } =
+    useGroupsList()
+  const { data: devices = [], isPending: devicesPending, isError: devicesError } =
+    useDevicesList()
+  const deleteGroup = useGroupDelete()
+  const deleteDevice = useDeviceDelete()
+
+  const [groupModalOpen, setGroupModalOpen] = useState(false)
+  const [editingGroup, setEditingGroup] = useState<InventoryGroup | null>(null)
+
+  const [deviceModalOpen, setDeviceModalOpen] = useState(false)
+  const [editingDevice, setEditingDevice] = useState<InventoryDevice | null>(
+    null
+  )
+
+  function openCreateGroup() {
+    setEditingGroup(null)
+    setGroupModalOpen(true)
+  }
+  function openEditGroup(group: InventoryGroup) {
+    setEditingGroup(group)
+    setGroupModalOpen(true)
+  }
+  function handleGroupModalOpenChange(open: boolean) {
+    setGroupModalOpen(open)
+    if (!open) setEditingGroup(null)
+  }
+
+  function openCreateDevice() {
+    setEditingDevice(null)
+    setDeviceModalOpen(true)
+  }
+  function openEditDevice(device: InventoryDevice) {
+    setEditingDevice(device)
+    setDeviceModalOpen(true)
+  }
+  function handleDeviceModalOpenChange(open: boolean) {
+    setDeviceModalOpen(open)
+    if (!open) setEditingDevice(null)
+  }
+
+  async function handleDeleteGroup(id: string) {
+    const group = groups.find((item) => item.id === id)
+    const label = group?.name ?? "este grupo"
+    const confirmed = window.confirm(
+      `¿Seguro que quieres eliminar "${label}"? Esta acción no se puede deshacer.`
+    )
+    if (!confirmed) return
+
+    try {
+      await deleteGroup.mutateAsync({ id })
+    } catch {
+      window.alert("No se pudo eliminar el grupo.")
+    }
+  }
+
+  async function handleDeleteDevice(id: string) {
+    const device = devices.find((item) => item.id === id)
+    const label = device?.name ?? "este dispositivo"
+    const confirmed = window.confirm(
+      `¿Seguro que quieres eliminar "${label}"? Esta acción no se puede deshacer.`
+    )
+    if (!confirmed) return
+
+    try {
+      await deleteDevice.mutateAsync({ id })
+    } catch {
+      window.alert("No se pudo eliminar el dispositivo.")
+    }
+  }
+
+  return (
+    <main className="mx-auto max-w-5xl flex-1 p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">Inventario</h1>
+        <p className="text-muted-foreground mt-1 text-sm">
+          Gestiona los grupos y dispositivos de tu inventario Ansible.
+        </p>
+      </div>
+
+      <div className="mb-6 inline-flex rounded-md border bg-card p-1">
+        <button
+          type="button"
+          onClick={() => setTab("groups")}
+          className={cn(
+            "inline-flex items-center gap-2 rounded-sm px-3 py-1.5 text-sm font-medium transition-colors",
+            tab === "groups"
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Folder className="size-4" />
+          Grupos
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("devices")}
+          className={cn(
+            "inline-flex items-center gap-2 rounded-sm px-3 py-1.5 text-sm font-medium transition-colors",
+            tab === "devices"
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Server className="size-4" />
+          Dispositivos
+        </button>
+      </div>
+
+      {tab === "groups" ? (
+        <>
+          <div className="mb-4 flex justify-end">
+            <Button onClick={openCreateGroup}>
+              <Plus className="size-4" />
+              Nuevo grupo
+            </Button>
+          </div>
+
+          {groupsPending ? (
+            <p className="text-muted-foreground text-sm">Cargando grupos...</p>
+          ) : groupsError ? (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              No se pudieron cargar los grupos.
+            </div>
+          ) : (
+            <GroupList
+              groups={groups}
+              onCreate={openCreateGroup}
+              onEdit={openEditGroup}
+              onDelete={handleDeleteGroup}
+              deletingId={
+                deleteGroup.isPending
+                  ? (deleteGroup.variables?.id ?? null)
+                  : null
+              }
+            />
+          )}
+
+          <GroupFormModal
+            open={groupModalOpen}
+            onOpenChange={handleGroupModalOpenChange}
+            group={editingGroup}
+          />
+        </>
+      ) : (
+        <>
+          <div className="mb-4 flex justify-end">
+            <Button onClick={openCreateDevice}>
+              <Plus className="size-4" />
+              Nuevo dispositivo
+            </Button>
+          </div>
+
+          {devicesPending ? (
+            <p className="text-muted-foreground text-sm">
+              Cargando dispositivos...
+            </p>
+          ) : devicesError ? (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              No se pudieron cargar los dispositivos.
+            </div>
+          ) : (
+            <DeviceList
+              devices={devices}
+              onCreate={openCreateDevice}
+              onEdit={openEditDevice}
+              onDelete={handleDeleteDevice}
+              deletingId={
+                deleteDevice.isPending
+                  ? (deleteDevice.variables?.id ?? null)
+                  : null
+              }
+            />
+          )}
+
+          <DeviceFormModal
+            open={deviceModalOpen}
+            onOpenChange={handleDeviceModalOpenChange}
+            device={editingDevice}
+          />
+        </>
+      )}
+    </main>
+  )
+}
+
+export function InventoryPage() {
+  return (
+    <QueryProvider>
+      <InventoryPageInner />
+    </QueryProvider>
+  )
+}
