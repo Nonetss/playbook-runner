@@ -14,6 +14,7 @@ export type DeviceFormValues = {
   name: string
   description?: string
   ipAddress: string
+  portSSH?: string
   credentialId?: string | null
 }
 
@@ -21,6 +22,7 @@ const emptyValues: DeviceFormValues = {
   name: "",
   description: "",
   ipAddress: "",
+  portSSH: "22",
   credentialId: "",
 }
 
@@ -60,6 +62,14 @@ export function DeviceFormModal({
         required: true,
       },
       {
+        name: "portSSH",
+        label: "Puerto SSH",
+        type: "number",
+        placeholder: "22",
+        min: 1,
+        max: 65535,
+      },
+      {
         name: "description",
         label: "Descripción",
         placeholder: "Servidor web principal",
@@ -79,6 +89,7 @@ export function DeviceFormModal({
         name: d.name,
         description: d.description ?? "",
         ipAddress: d.ipAddress,
+        portSSH: String(d.portSSH ?? 22),
         credentialId: d.credentialId ?? "",
       }
     },
@@ -102,10 +113,12 @@ export function DeviceFormModal({
       editingSubmitLabel="Guardar cambios"
       formId="device-form"
       onSubmit={async (values) => {
+        const parsedPort = values.portSSH ? Number(values.portSSH) : NaN
         const payload = {
           name: values.name,
           description: values.description || undefined,
           ipAddress: values.ipAddress,
+          portSSH: Number.isFinite(parsedPort) ? parsedPort : undefined,
           credentialId: values.credentialId ? values.credentialId : null,
         }
         if (isEditing && device) {

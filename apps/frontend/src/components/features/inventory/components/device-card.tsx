@@ -106,6 +106,9 @@ export function DeviceCard({
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="font-mono text-xs">
             {device.ipAddress}
+            {device.portSSH && device.portSSH !== 22
+              ? `:${device.portSSH}`
+              : ""}
           </Badge>
           {credential ? (
             <Badge variant="outline" className="gap-1 text-xs">

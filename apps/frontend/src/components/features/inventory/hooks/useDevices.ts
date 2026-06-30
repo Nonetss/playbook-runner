@@ -27,6 +27,7 @@ type DeviceMutationInput = {
   name: string
   description?: string
   ipAddress: string
+  portSSH?: number
   credentialId?: string | null
 }
 
@@ -40,6 +41,7 @@ function applyCreateOptimistic(
     name: input.name,
     description: input.description ?? null,
     ipAddress: input.ipAddress,
+    portSSH: input.portSSH ?? 22,
     credentialId: input.credentialId ?? null,
   } as unknown as InventoryDevice
   return [...current, optimistic]
@@ -57,6 +59,7 @@ function applyUpdateOptimistic(
           name: input.name,
           description: input.description ?? device.description ?? null,
           ipAddress: input.ipAddress,
+          portSSH: input.portSSH ?? device.portSSH ?? 22,
           credentialId:
             input.credentialId !== undefined
               ? input.credentialId
