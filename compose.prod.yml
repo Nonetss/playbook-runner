@@ -76,7 +76,6 @@ services:
     env_file: .env
     environment:
       BETTER_AUTH_URL: http://backend:3000
-      PUBLIC_SERVER_URL: ${PUBLIC_SERVER_URL:-http://localhost:4321}
     ports:
       - "${FRONTEND_PORT:-4321}:80"
     depends_on:

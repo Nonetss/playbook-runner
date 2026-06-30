@@ -7,8 +7,6 @@ ENV SKIP_ENV_VALIDATION=1
 COPY . .
 RUN --mount=type=cache,target=/root/.bun/install/cache bun install
 
-ARG PUBLIC_SERVER_URL
-ENV PUBLIC_SERVER_URL=${PUBLIC_SERVER_URL}
 ENV NODE_ENV=production
 RUN cd apps/frontend && bun run build
 ENV SKIP_ENV_VALIDATION=

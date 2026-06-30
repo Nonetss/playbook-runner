@@ -1,11 +1,10 @@
-import { PUBLIC_SERVER_URL } from "astro:env/client"
 import type { AppRouterClient } from "@none.stack/api/routers/index"
 import { createORPCClient } from "@orpc/client"
 import { RPCLink } from "@orpc/client/fetch"
 import { createTanstackQueryUtils } from "@orpc/tanstack-query"
 
 export const link = new RPCLink({
-  url: `${PUBLIC_SERVER_URL}/rpc`,
+  url: "/rpc",
   fetch(url, options) {
     return fetch(url, {
       ...options,
