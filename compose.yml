@@ -1,6 +1,28 @@
 name: none.stack
 
 services:
+  ansible:
+    build:
+      context: ./apps/ansible
+      dockerfile: Dockerfile
+    container_name: ansible
+    init: true
+    env_file:
+      - path: apps/ansible/.env
+        required: false
+    environment:
+      BACKEND_URL: http://backend:3000
+      ANSIBLE_PLAYBOOK_PATH: /app/playbook
+      ANSIBLE_SSH_KEY: /app/playbook/ssh_key
+    volumes:
+      - ./apps/ansible/playbook:/app/playbook
+    ports:
+      - "8000:8000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
   frontend:
     build:
       context: .
@@ -34,6 +56,7 @@ services:
         required: false
     environment:
       CORS_ORIGIN: http://localhost:4321
+      ANSIBLE_URL: http://ansible:8000
     healthcheck:
       test:
         [
