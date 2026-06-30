@@ -2,7 +2,7 @@
  * A single input field in a resource form.
  *
  * The renderer maps `type` to the matching `<Input>` (text), `<Input
- * type="number">`, `<textarea>` or native `<select>` variant. Multi-line
+ * type="number">`, `<textarea>` or shadcn `<Select>` variant. Multi-line
  * content (YAML, SSH keys) should use `type: "textarea"`. Select fields
  * require `options` and render the first option as an empty placeholder when
  * provided.

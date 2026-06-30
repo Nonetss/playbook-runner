@@ -16,7 +16,17 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { cn } from "@/lib/utils"
+
+/** Radix Select no admite `value=""`; usamos un valor centinela para "sin selección". */
+const SELECT_EMPTY_VALUE = "__none__"
 
 export interface ResourceFormModalProps<
   TValues extends Record<string, unknown>,
@@ -187,26 +197,34 @@ function FieldRow({
           className={cn(TEXTAREA_BASE_CLASS, field.inputClassName)}
         />
       ) : field.type === "select" ? (
-        <select
-          id={id}
-          required={field.required}
+        <Select
+          value={stringValue || SELECT_EMPTY_VALUE}
+          onValueChange={(next) =>
+            onChange(next === SELECT_EMPTY_VALUE ? "" : next)
+          }
           disabled={disabled}
-          value={stringValue}
-          onChange={(e) => onChange(e.target.value)}
-          className={cn(
-            "h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30",
-            field.inputClassName
-          )}
+          required={field.required}
         >
-          {field.placeholder ? (
-            <option value="">{field.placeholder}</option>
-          ) : null}
-          {(field.options ?? []).map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger
+            id={id}
+            aria-required={field.required}
+            className={cn("w-full", field.inputClassName)}
+          >
+            <SelectValue placeholder={field.placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {field.placeholder ? (
+              <SelectItem value={SELECT_EMPTY_VALUE}>
+                {field.placeholder}
+              </SelectItem>
+            ) : null}
+            {(field.options ?? []).map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       ) : (
         <Input
           id={id}
