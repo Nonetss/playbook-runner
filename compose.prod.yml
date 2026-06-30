@@ -51,7 +51,6 @@ services:
     env_file: .env
     environment:
       BACKEND_URL: http://backend:3000
-      ANSIBLE_HOST_KEY_CHECKING: "false"
     expose:
       - "8000"
     depends_on:
