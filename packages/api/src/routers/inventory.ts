@@ -11,10 +11,13 @@ const groupInput = z.object({
   description: z.string().optional(),
 })
 
+const uuidSchema = z.string().uuid()
+
 const deviceInput = z.object({
   name: z.string(),
   description: z.string().optional(),
   ipAddress: z.string(),
+  credentialId: uuidSchema.nullable().optional(),
 })
 
 const deviceGroupInput = z.object({
