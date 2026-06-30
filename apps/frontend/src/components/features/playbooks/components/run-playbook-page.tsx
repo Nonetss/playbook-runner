@@ -287,7 +287,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
   const terminalLines = useMemo(() => events.flatMap(describeEvent), [events])
 
   return (
-    <main className="flex w-full flex-1 flex-col overflow-hidden">
+    <main className="flex h-[calc(100dvh-3.5rem)] w-full min-h-0 flex-col overflow-hidden">
       {/* Header */}
       <div className="flex shrink-0 items-center gap-3 border-b px-6 py-3">
         <Button asChild variant="ghost" size="icon-sm" aria-label="Volver">
@@ -318,12 +318,12 @@ function RunPlaybookPageInner({ id }: { id: string }) {
       </div>
 
       {/* Body */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* ── Terminal ── */}
-        <div className="flex flex-1 flex-col overflow-hidden bg-zinc-950 p-5">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-zinc-950 p-5">
           <div
             ref={terminalRef}
-            className="flex-1 overflow-y-auto font-mono text-xs leading-[1.6]"
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain font-mono text-xs leading-[1.6]"
           >
             {phase === "idle" ? (
               <p className="select-none text-zinc-600">
