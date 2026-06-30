@@ -19,6 +19,9 @@ jobs:
           - name: backend
             suffix: -backend
             dockerfile: apps/backend/Dockerfile
+          - name: ansible
+            suffix: -ansible
+            dockerfile: apps/ansible/Dockerfile
           - name: frontend
             suffix: -frontend
             dockerfile: apps/frontend/Dockerfile
@@ -27,15 +30,15 @@ jobs:
 
       - name: Login to Gitea Registry
         env:
-          REGISTRY_PASS: ${{ secrets.MY_PASSWORD }}
-          REGISTRY_USER: ${{ secrets.DOCKER_USERNAME || github.actor }}
+          # Usamos tu Token de Acceso Personal guardado en los secretos
+          GITEA_TOKEN: ${{ secrets.TOKEN }}
         run: |
-          REGISTRY_DOMAIN=$(echo "${{ github.server_url }}" | awk -F[/:] '{print $4}')
-          if [ -z "$REGISTRY_PASS" ]; then
-            echo "::error::Falta el secreto MY_PASSWORD (PAT con package:write)."
-            exit 1
-          fi
-          echo "$REGISTRY_PASS" | docker login "$REGISTRY_DOMAIN" -u "$REGISTRY_USER" --password-stdin
+          # Extraemos el dominio (ej: gitea.sanjuandediosmalaga.es) de la URL del servidor
+          REGISTRY_DOMAIN=$(echo "${{ github.server_url }}" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
+
+          # Login no interactivo usando el Token como contraseña
+          echo "$GITEA_TOKEN" | docker login "$REGISTRY_DOMAIN" -u "${{ github.actor }}" --password-stdin
+
 
       - name: Build and Push ${{ matrix.name }}
         run: |
