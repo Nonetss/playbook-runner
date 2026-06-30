@@ -37,7 +37,7 @@ export function GroupCard({
   isDeleting = false,
 }: GroupCardProps) {
   return (
-    <Card className="gap-4 py-4">
+    <Card className="h-full gap-4 py-4">
       <CardHeader className="px-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">

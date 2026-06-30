@@ -17,7 +17,7 @@ export function PlaybookList({
   deletingId = null,
 }: PlaybookListProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {playbooks.map((playbook) => (
         <PlaybookCard
           key={playbook.id}

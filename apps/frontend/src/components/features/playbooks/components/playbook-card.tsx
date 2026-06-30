@@ -40,7 +40,7 @@ export function PlaybookCard({
     : null
 
   return (
-    <Card className="gap-4 py-4">
+    <Card className="h-full gap-4 py-4">
       <CardHeader className="px-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
@@ -91,7 +91,7 @@ export function PlaybookCard({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-3 px-4">
+      <CardContent className="flex flex-1 flex-col gap-3 px-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="font-mono text-xs">
             YAML
@@ -110,7 +110,7 @@ export function PlaybookCard({
         <Button
           variant="outline"
           size="sm"
-          className="w-full"
+          className="mt-auto w-full"
           onClick={() => onRun(playbook)}
           disabled={isDeleting}
         >
