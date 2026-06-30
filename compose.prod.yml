@@ -92,6 +92,9 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
+      # start_period has to cover the in-process bootstrap() (Drizzle migrate
+      # + seed). On a fresh DB with several migrations this can easily take
+      # 30-60 s; 20 s was enough when the DB was pre-populated, not now.
       test:
         - CMD
         - node
@@ -99,8 +102,8 @@ services:
         - "fetch('http://localhost:3000/').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
       interval: 30s
       timeout: 5s
-      retries: 3
-      start_period: 20s
+      retries: 5
+      start_period: 120s
 
   frontend:
     image: ghcr.io/nonetss/playbook-runner-frontend:${FRONTEND_IMAGE_TAG:-latest}
