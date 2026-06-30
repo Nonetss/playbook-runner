@@ -1,6 +1,6 @@
 "use client"
 
-import { Folder, Plus, Server } from "lucide-react"
+import { Folder, Server } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useCredentialsList } from "@/components/features/credentials/hooks/useCredentials"
 import { DeviceFormModal } from "@/components/features/inventory/components/device-form-modal"
@@ -24,7 +24,7 @@ import type {
 } from "@/components/features/inventory/types"
 import { AppProviders } from "@/components/providers/app-providers"
 import { ResourceListState } from "@/components/shared/resource-list-state"
-import { Button } from "@/components/ui/button"
+import { ResourcePage } from "@/components/shared/resource-page"
 import { useConfirm } from "@/hooks/useConfirm"
 import { notifyError } from "@/lib/toast"
 import { cn } from "@/lib/utils"
@@ -198,14 +198,12 @@ function InventoryPageInner() {
   }
 
   return (
-    <main className="mx-auto max-w-5xl flex-1 p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Inventario</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Gestiona los grupos y dispositivos de tu inventario Ansible.
-        </p>
-      </div>
-
+    <ResourcePage
+      title="Inventario"
+      description="Gestiona los grupos y dispositivos de tu inventario Ansible."
+      createLabel={tab === "groups" ? "Nuevo grupo" : "Nuevo dispositivo"}
+      onCreate={tab === "groups" ? openCreateGroup : openCreateDevice}
+    >
       <div className="mb-6 inline-flex rounded-md border bg-card p-1">
         <button
           type="button"
@@ -237,12 +235,6 @@ function InventoryPageInner() {
 
       {tab === "groups" ? (
         <>
-          <div className="mb-4 flex justify-end">
-            <Button onClick={openCreateGroup}>
-              <Plus className="size-4" />
-              Nuevo grupo
-            </Button>
-          </div>
           <GroupFormModal
             open={groupModalOpen}
             onOpenChange={handleGroupModalOpenChange}
@@ -280,12 +272,6 @@ function InventoryPageInner() {
         </>
       ) : (
         <>
-          <div className="mb-4 flex justify-end">
-            <Button onClick={openCreateDevice}>
-              <Plus className="size-4" />
-              Nuevo dispositivo
-            </Button>
-          </div>
           <DeviceFormModal
             open={deviceModalOpen}
             onOpenChange={handleDeviceModalOpenChange}
@@ -346,7 +332,7 @@ function InventoryPageInner() {
           }
         />
       ) : null}
-    </main>
+    </ResourcePage>
   )
 }
 
