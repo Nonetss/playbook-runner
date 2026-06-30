@@ -7,25 +7,31 @@
     "check-types": "tsc -b",
     "compile": "bun build --compile --minify --sourcemap --bytecode ./src/index.ts --outfile server",
     "dev": "bun run --hot src/index.ts",
-    "start": "bun run dist/index.mjs"
+    "start": "bun run dist/index.mjs",
+    "db:seed": "bun run src/scripts/seed.ts"
   },
   "dependencies": {
+    "@orpc/openapi": "catalog:",
+    "@orpc/server": "catalog:",
+    "@orpc/zod": "catalog:",
     "@playbook-runner/api": "workspace:*",
     "@playbook-runner/auth": "workspace:*",
     "@playbook-runner/db": "workspace:*",
     "@playbook-runner/env": "workspace:*",
-    "@orpc/openapi": "catalog:",
-    "@orpc/server": "catalog:",
-    "@orpc/zod": "catalog:",
     "better-auth": "catalog:",
-    "dotenv": "catalog:",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^1.0.0-rc.4",
     "hono": "catalog:",
+    "pg": "^8.22.0",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@playbook-runner/config": "workspace:*",
     "@types/bun": "catalog:",
+    "@types/pg": "^8.20.0",
+    "drizzle-kit": "^1.0.0-rc.4",
     "tsdown": "^0.21.9",
+    "tsx": "^4.22.4",
     "typescript": "catalog:"
   }
 }

@@ -16,7 +16,7 @@ Built as a small monorepo with three services:
 - **Astro** SSR frontend with **React** islands
 - **TailwindCSS** + shadcn/ui components
 - **Hono** backend with **oRPC** end-to-end type-safe procedures
-- **Better Auth** with OAuth/OIDC SSO
+- **Better Auth** with email/password and OAuth/OIDC SSO (both optional, can run together)
 - **Drizzle** ORM on PostgreSQL
 - **Bun** runtime and package manager
 - **Biome** for linting and formatting
@@ -30,9 +30,12 @@ bun install
 cp .env.example .env          # fill in the secrets
 cp apps/backend/.env.example apps/backend/.env
 cp apps/frontend/.env.example apps/frontend/.env
-bun run db:push
+bun run db:push               # apply schema to the database
+bun run db:seed               # create the default admin user
 bun run dev
 ```
+
+Then open <http://localhost:4321> and sign in with `admin@playbook-runner.local` / `admin1234` (or whatever you set in `SEED_ADMIN_*`).
 
 Then open:
 
@@ -64,7 +67,22 @@ bun run db:push          # apply schema (dev)
 bun run db:generate      # create a new migration from schema changes
 bun run db:migrate       # apply pending migrations
 bun run db:studio        # open Drizzle Studio
+bun run db:seed          # create the default admin user (idempotent)
 ```
+
+### Default admin user
+
+`bun run db:seed` creates a single admin user (idempotent: skips if the
+user already exists). Defaults come from `SEED_ADMIN_*` in `apps/backend/.env`:
+
+| Variable | Default |
+| --- | --- |
+| `SEED_ADMIN_EMAIL` | `admin@playbook-runner.local` |
+| `SEED_ADMIN_PASSWORD` | `admin1234` |
+| `SEED_ADMIN_NAME` | `Admin` |
+
+⚠ Change the password after first login. Override the env vars before
+seeding in any non-local environment.
 
 ## Docker
 
@@ -95,6 +113,7 @@ pushes to `main` and to `v*` branches.
 | `bun run db:generate` | Generate a new Drizzle migration |
 | `bun run db:migrate` | Apply Drizzle migrations |
 | `bun run db:studio` | Open Drizzle Studio |
+| `bun run db:seed` | Create the default admin user |
 | `bun run check` | Run Biome lint/format |
 | `bun run docker:build` | Build Docker images |
 | `bun run docker:up` | Start Docker Compose stack |

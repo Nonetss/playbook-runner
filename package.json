@@ -33,6 +33,7 @@
     "db:studio": "turbo -F @playbook-runner/db db:studio",
     "db:generate": "turbo -F @playbook-runner/db db:generate",
     "db:migrate": "turbo -F @playbook-runner/db db:migrate",
+    "db:seed": "turbo -F backend db:seed",
     "docker:build": "docker compose build",
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",
