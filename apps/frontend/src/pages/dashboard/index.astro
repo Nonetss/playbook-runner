@@ -17,6 +17,6 @@ const serverSession = await authServer.getSession({
 if (!serverSession) return Astro.redirect("/login")
 ---
 
-<Layout title="Dashboard - none.stack">
+<Layout title="Dashboard">
   <DashboardContent client:load />
 </Layout>
