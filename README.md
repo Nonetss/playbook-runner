@@ -19,7 +19,8 @@ curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/v0.0.6/scri
 
 That runs `scripts/bootstrap.sh`, which asks you for the admin user/password and
 a few more things, generates secrets with `openssl`, writes a `.env` and a
-`compose.prod.yml` **in the current directory**, pulls the images from
+`compose.yml` **in the current directory** (the production overlay, saved under
+that name so a plain `docker compose up -d` picks it up), pulls the images from
 `ghcr.io`, and brings the stack up. You end up with everything running at
 `http://<your-host>:4321` (or whatever port you chose). See
 [Quick start (production)](#quick-start-production) for the manual version.
