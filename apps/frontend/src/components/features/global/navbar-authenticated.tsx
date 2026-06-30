@@ -1,9 +1,14 @@
+"use client"
+
+import { useQueryClient } from "@tanstack/react-query"
 import type { Session, User } from "better-auth"
 import { Settings } from "lucide-react"
 import type { NavbarNavLink } from "@/components/features/global/navbar-mobile-menu"
 import { NavbarMobileMenu } from "@/components/features/global/navbar-mobile-menu"
 import { ThemeToggle } from "@/components/features/global/theme-toggle"
 import { UserNav } from "@/components/features/global/user-nav"
+import { AppProviders } from "@/components/providers/app-providers"
+import { orpc } from "@/lib/orpc"
 import { cn } from "@/lib/utils"
 
 export interface NavbarAuthenticatedProps {
@@ -26,13 +31,44 @@ function linkClassName(active: boolean) {
   )
 }
 
-export function NavbarAuthenticated({
+/**
+ * Map a section's nav href to the oRPC list query options whose data should
+ * be prefetched on hover. Each section owns one main list — keep this list
+ * aligned with the top-level resources (inventory / credentials / playbooks).
+ */
+function prefetchForHref(
+  queryClient: ReturnType<typeof useQueryClient>,
+  href: string
+) {
+  switch (href) {
+    case "/inventory":
+      queryClient.prefetchQuery(orpc.inventory.devices.list.queryOptions())
+      queryClient.prefetchQuery(orpc.inventory.groups.list.queryOptions())
+      return
+    case "/credentials":
+      queryClient.prefetchQuery(orpc.credentials.list.queryOptions())
+      return
+    case "/playbooks":
+      queryClient.prefetchQuery(orpc.playbooks.list.queryOptions())
+      return
+    default:
+      return
+  }
+}
+
+function NavbarAuthenticatedInner({
   user,
   session: _session,
   nameApp,
   navLinks,
   currentPath,
 }: NavbarAuthenticatedProps) {
+  const queryClient = useQueryClient()
+
+  function handlePrefetch(href: string) {
+    return () => prefetchForHref(queryClient, href)
+  }
+
   return (
     <header className="border-border bg-background sticky top-0 z-50 w-full border-b">
       <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 md:gap-4 md:px-6">
@@ -57,7 +93,12 @@ export function NavbarAuthenticated({
               href === "/" ? currentPath === "/" : currentPath.startsWith(href)
             return (
               <li key={href}>
-                <a href={href} className={linkClassName(isActive)}>
+                <a
+                  href={href}
+                  className={linkClassName(isActive)}
+                  onMouseEnter={handlePrefetch(href)}
+                  onFocus={handlePrefetch(href)}
+                >
                   {label}
                 </a>
               </li>
@@ -72,7 +113,11 @@ export function NavbarAuthenticated({
           <a href="/config" aria-label="Configuración" className={triggerClass}>
             <Settings className="size-4 shrink-0" aria-hidden />
           </a>
-          <NavbarMobileMenu navLinks={navLinks} currentPath={currentPath} />
+          <NavbarMobileMenu
+            navLinks={navLinks}
+            currentPath={currentPath}
+            onPrefetch={handlePrefetch}
+          />
         </div>
 
         {/* Desktop: lg+ actions */}
@@ -85,5 +130,13 @@ export function NavbarAuthenticated({
         </div>
       </nav>
     </header>
+  )
+}
+
+export function NavbarAuthenticated(props: NavbarAuthenticatedProps) {
+  return (
+    <AppProviders>
+      <NavbarAuthenticatedInner {...props} />
+    </AppProviders>
   )
 }

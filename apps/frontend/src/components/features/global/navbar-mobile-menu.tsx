@@ -17,11 +17,13 @@ export interface NavbarNavLink {
 interface NavbarMobileMenuProps {
   navLinks: NavbarNavLink[]
   currentPath: string
+  onPrefetch?: (href: string) => () => void
 }
 
 export function NavbarMobileMenu({
   navLinks,
   currentPath,
+  onPrefetch,
 }: NavbarMobileMenuProps) {
   return (
     <div className="shrink-0 lg:hidden">
@@ -68,6 +70,8 @@ export function NavbarMobileMenu({
                           ? "bg-secondary text-foreground"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground"
                       )}
+                      onMouseEnter={onPrefetch?.(href)}
+                      onFocus={onPrefetch?.(href)}
                     >
                       {label}
                     </a>
