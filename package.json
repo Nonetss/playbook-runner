@@ -38,6 +38,9 @@
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",
+    "test:e2e": "turbo -F frontend test:e2e",
+    "test:e2e:ui": "turbo -F frontend test:e2e:ui",
+    "test:e2e:headed": "turbo -F frontend test:e2e:headed",
     "check": "biome check --write ."
   },
   "dependencies": {

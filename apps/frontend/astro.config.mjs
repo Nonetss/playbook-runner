@@ -17,26 +17,26 @@ export default defineConfig({
     server: {
       proxy: {
         "/rpc": {
-          target: "http://localhost:3001",
+          target: "http://localhost:3000",
           changeOrigin: true,
         },
         "/api": {
-          target: "http://localhost:3001",
+          target: "http://localhost:3000",
           changeOrigin: true,
         },
         // Ansible microservice (playbook execution). It runs on its own port,
         // so it is exposed same-origin under the /ansible prefix, which is
         // stripped before proxying (e.g. /ansible/api/v1/run -> /api/v0/run).
         "/ansible": {
-          target: "http://localhost:8001",
+          target: "http://localhost:8000",
           changeOrigin: true,
         },
         "/scalar": {
-          target: "http://localhost:3001",
+          target: "http://localhost:3000",
           changeOrigin: true,
         },
         "/openapi.json": {
-          target: "http://localhost:3001",
+          target: "http://localhost:3000",
           changeOrigin: true,
         },
       },
