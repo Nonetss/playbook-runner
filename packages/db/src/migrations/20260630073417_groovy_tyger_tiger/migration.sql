@@ -130,7 +130,7 @@ CREATE TABLE "verification" (
 );
 --> statement-breakpoint
 CREATE TABLE "credentials" (
-	"id" serial PRIMARY KEY,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 	"name" text NOT NULL,
 	"username" text NOT NULL,
 	"private_key" text NOT NULL,
@@ -141,8 +141,8 @@ CREATE TABLE "credentials" (
 --> statement-breakpoint
 CREATE TABLE "inventory_device_groups" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"device_id" uuid,
-	"group_id" uuid,
+	"device_id" uuid NOT NULL,
+	"group_id" uuid NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now()
 );
@@ -151,7 +151,7 @@ CREATE TABLE "inventory_devices" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 	"name" text NOT NULL,
 	"description" text,
-	"ip_address" text NOT NULL,
+	"ip_address" cidr NOT NULL,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now()
 );
@@ -165,7 +165,7 @@ CREATE TABLE "inventory_groups" (
 );
 --> statement-breakpoint
 CREATE TABLE "playbooks" (
-	"id" integer PRIMARY KEY,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 	"name" text NOT NULL,
 	"description" text,
 	"content" text NOT NULL,
@@ -198,4 +198,6 @@ ALTER TABLE "organization_role" ADD CONSTRAINT "organization_role_organization_i
 ALTER TABLE "session" ADD CONSTRAINT "session_user_id_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "team" ADD CONSTRAINT "team_organization_id_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "team_member" ADD CONSTRAINT "team_member_team_id_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "team"("id") ON DELETE CASCADE;--> statement-breakpoint
-ALTER TABLE "team_member" ADD CONSTRAINT "team_member_user_id_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE;
+ALTER TABLE "team_member" ADD CONSTRAINT "team_member_user_id_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "inventory_device_groups" ADD CONSTRAINT "inventory_device_groups_device_id_inventory_devices_id_fkey" FOREIGN KEY ("device_id") REFERENCES "inventory_devices"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "inventory_device_groups" ADD CONSTRAINT "inventory_device_groups_group_id_inventory_groups_id_fkey" FOREIGN KEY ("group_id") REFERENCES "inventory_groups"("id") ON DELETE CASCADE;

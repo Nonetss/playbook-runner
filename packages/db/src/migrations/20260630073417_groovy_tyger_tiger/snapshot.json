@@ -1,8 +1,10 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "547bc14d-2e3b-41f5-b67f-8a94c7f9e4d6",
-  "prevIds": ["00000000-0000-0000-0000-000000000000"],
+  "id": "28b37b8b-b2b4-454c-96a6-e841b84d7dbe",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
   "ddl": [
     {
       "isRlsEnabled": false,
@@ -1375,11 +1377,11 @@
       "table": "verification"
     },
     {
-      "type": "serial",
+      "type": "uuid",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": null,
+      "default": "gen_random_uuid()",
       "generated": null,
       "identity": null,
       "name": "id",
@@ -1481,7 +1483,7 @@
     {
       "type": "uuid",
       "typeSchema": null,
-      "notNull": false,
+      "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
@@ -1494,7 +1496,7 @@
     {
       "type": "uuid",
       "typeSchema": null,
-      "notNull": false,
+      "notNull": true,
       "dimensions": 0,
       "default": null,
       "generated": null,
@@ -1570,7 +1572,7 @@
       "table": "inventory_devices"
     },
     {
-      "type": "text",
+      "type": "cidr",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
@@ -1674,11 +1676,11 @@
       "table": "inventory_groups"
     },
     {
-      "type": "integer",
+      "type": "uuid",
       "typeSchema": null,
       "notNull": true,
       "dimensions": 0,
-      "default": null,
+      "default": "gen_random_uuid()",
       "generated": null,
       "identity": null,
       "name": "id",
@@ -2089,10 +2091,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["user_id"],
+      "columns": [
+        "user_id"
+      ],
       "schemaTo": "public",
       "tableTo": "user",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "account_user_id_user_id_fkey",
@@ -2102,10 +2108,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["organization_id"],
+      "columns": [
+        "organization_id"
+      ],
       "schemaTo": "public",
       "tableTo": "organization",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "invitation_organization_id_organization_id_fkey",
@@ -2115,10 +2125,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["inviter_id"],
+      "columns": [
+        "inviter_id"
+      ],
       "schemaTo": "public",
       "tableTo": "user",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "invitation_inviter_id_user_id_fkey",
@@ -2128,10 +2142,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["organization_id"],
+      "columns": [
+        "organization_id"
+      ],
       "schemaTo": "public",
       "tableTo": "organization",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "member_organization_id_organization_id_fkey",
@@ -2141,10 +2159,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["user_id"],
+      "columns": [
+        "user_id"
+      ],
       "schemaTo": "public",
       "tableTo": "user",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "member_user_id_user_id_fkey",
@@ -2154,10 +2176,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["organization_id"],
+      "columns": [
+        "organization_id"
+      ],
       "schemaTo": "public",
       "tableTo": "organization",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "organization_role_organization_id_organization_id_fkey",
@@ -2167,10 +2193,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["user_id"],
+      "columns": [
+        "user_id"
+      ],
       "schemaTo": "public",
       "tableTo": "user",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "session_user_id_user_id_fkey",
@@ -2180,10 +2210,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["organization_id"],
+      "columns": [
+        "organization_id"
+      ],
       "schemaTo": "public",
       "tableTo": "organization",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "team_organization_id_organization_id_fkey",
@@ -2193,10 +2227,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["team_id"],
+      "columns": [
+        "team_id"
+      ],
       "schemaTo": "public",
       "tableTo": "team",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "team_member_team_id_team_id_fkey",
@@ -2206,10 +2244,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["user_id"],
+      "columns": [
+        "user_id"
+      ],
       "schemaTo": "public",
       "tableTo": "user",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "team_member_user_id_user_id_fkey",
@@ -2218,7 +2260,43 @@
       "table": "team_member"
     },
     {
-      "columns": ["id"],
+      "nameExplicit": false,
+      "columns": [
+        "device_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "inventory_devices",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "inventory_device_groups_device_id_inventory_devices_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "inventory_device_groups"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "group_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "inventory_groups",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "inventory_device_groups_group_id_inventory_groups_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "inventory_device_groups"
+    },
+    {
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "account_pkey",
       "schema": "public",
@@ -2226,7 +2304,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "apikey_pkey",
       "schema": "public",
@@ -2234,7 +2314,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "invitation_pkey",
       "schema": "public",
@@ -2242,7 +2324,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "member_pkey",
       "schema": "public",
@@ -2250,7 +2334,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "organization_pkey",
       "schema": "public",
@@ -2258,7 +2344,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "organization_role_pkey",
       "schema": "public",
@@ -2266,7 +2354,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "session_pkey",
       "schema": "public",
@@ -2274,7 +2364,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "team_pkey",
       "schema": "public",
@@ -2282,7 +2374,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "team_member_pkey",
       "schema": "public",
@@ -2290,7 +2384,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "user_pkey",
       "schema": "public",
@@ -2298,7 +2394,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "verification_pkey",
       "schema": "public",
@@ -2306,7 +2404,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "credentials_pkey",
       "schema": "public",
@@ -2314,7 +2414,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "inventory_device_groups_pkey",
       "schema": "public",
@@ -2322,7 +2424,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "inventory_devices_pkey",
       "schema": "public",
@@ -2330,7 +2434,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "inventory_groups_pkey",
       "schema": "public",
@@ -2338,7 +2444,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "playbooks_pkey",
       "schema": "public",
@@ -2347,7 +2455,9 @@
     },
     {
       "nameExplicit": true,
-      "columns": ["slug"],
+      "columns": [
+        "slug"
+      ],
       "nullsNotDistinct": false,
       "name": "organization_slug_unique",
       "entityType": "uniques",
@@ -2356,7 +2466,9 @@
     },
     {
       "nameExplicit": true,
-      "columns": ["token"],
+      "columns": [
+        "token"
+      ],
       "nullsNotDistinct": false,
       "name": "session_token_unique",
       "entityType": "uniques",
@@ -2365,7 +2477,9 @@
     },
     {
       "nameExplicit": true,
-      "columns": ["email"],
+      "columns": [
+        "email"
+      ],
       "nullsNotDistinct": false,
       "name": "user_email_unique",
       "entityType": "uniques",

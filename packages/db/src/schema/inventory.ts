@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm"
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
+import { cidr, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
 
 export const inventoryGroups = pgTable("inventory_groups", {
   id: uuid().defaultRandom().primaryKey(),
@@ -16,7 +16,8 @@ export const inventoryDevices = pgTable("inventory_devices", {
   id: uuid().defaultRandom().primaryKey(),
   name: text().notNull(),
   description: text(),
-  ipAddress: text("ip_address").notNull(),
+  ipAddress: cidr("ip_address").notNull(),
+
   createdAt: timestamp("created_at").default(sql`now()`),
   updatedAt: timestamp("updated_at").default(sql`now()`),
 })
@@ -26,8 +27,17 @@ export type NewInventoryDevice = typeof inventoryDevices.$inferInsert
 
 export const inventoryDeviceGroups = pgTable("inventory_device_groups", {
   id: uuid().defaultRandom().primaryKey(),
-  deviceId: uuid("device_id"),
-  groupId: uuid("group_id"),
+  deviceId: uuid("device_id")
+    .notNull()
+    .references(() => inventoryDevices.id, {
+      onDelete: "cascade",
+    }),
+  groupId: uuid("group_id")
+    .notNull()
+    .references(() => inventoryGroups.id, {
+      onDelete: "cascade",
+    }),
+
   createdAt: timestamp("created_at").default(sql`now()`),
   updatedAt: timestamp("updated_at").default(sql`now()`),
 })
