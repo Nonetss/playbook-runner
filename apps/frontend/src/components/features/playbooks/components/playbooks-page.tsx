@@ -2,7 +2,6 @@
 
 import { BookText } from "lucide-react"
 import { useState } from "react"
-import { PlaybookFormModal } from "@/components/features/playbooks/components/playbook-form-modal"
 import { PlaybookList } from "@/components/features/playbooks/components/playbook-list"
 import { RunPlaybookModal } from "@/components/features/playbooks/components/run-playbook-modal"
 import {
@@ -26,9 +25,6 @@ function PlaybooksPageInner() {
   const deletePlaybook = usePlaybookDelete()
   const confirm = useConfirm()
 
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editingPlaybook, setEditingPlaybook] = useState<Playbook | null>(null)
-
   const [runModalOpen, setRunModalOpen] = useState(false)
   const [runningPlaybook, setRunningPlaybook] = useState<Playbook | null>(null)
 
@@ -44,21 +40,12 @@ function PlaybooksPageInner() {
     }
   }
 
-  function openCreateModal() {
-    setEditingPlaybook(null)
-    setModalOpen(true)
+  function goToCreate() {
+    window.location.href = "/playbooks/new"
   }
 
-  function openEditModal(playbook: Playbook) {
-    setEditingPlaybook(playbook)
-    setModalOpen(true)
-  }
-
-  function handleModalOpenChange(open: boolean) {
-    setModalOpen(open)
-    if (!open) {
-      setEditingPlaybook(null)
-    }
+  function goToEdit(playbook: Playbook) {
+    window.location.href = `/playbooks/${playbook.id}/edit`
   }
 
   async function handleDelete(id: string) {
@@ -89,14 +76,8 @@ function PlaybooksPageInner() {
       title="Playbooks"
       description="Gestiona tus playbooks de Ansible para automatizar despliegues y tareas."
       createLabel="Nuevo playbook"
-      onCreate={openCreateModal}
+      onCreate={goToCreate}
     >
-      <PlaybookFormModal
-        open={modalOpen}
-        onOpenChange={handleModalOpenChange}
-        playbook={editingPlaybook}
-      />
-
       <RunPlaybookModal
         open={runModalOpen}
         onOpenChange={handleRunModalOpenChange}
@@ -113,14 +94,14 @@ function PlaybooksPageInner() {
           description:
             "Crea tu primer playbook para empezar a automatizar tus tareas.",
           ctaLabel: "Nuevo playbook",
-          onCta: openCreateModal,
+          onCta: goToCreate,
           icon: <BookText className="size-5" />,
         }}
       >
         {(items) => (
           <PlaybookList
             playbooks={items}
-            onEdit={openEditModal}
+            onEdit={goToEdit}
             onDelete={handleDelete}
             onRun={openRunModal}
             deletingId={

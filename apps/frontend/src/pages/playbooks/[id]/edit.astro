@@ -1,0 +1,10 @@
+---
+import { PlaybookFormPage } from "@/components/features/playbooks/components/playbook-form-page"
+import Layout from "@/layouts/Layout.astro"
+
+const { id } = Astro.params
+---
+
+<Layout title="Editar playbook - none.stack">
+  <PlaybookFormPage client:load id={id} />
+</Layout>

@@ -1,5 +1,3 @@
-"use client"
-
 import { useCallback, useRef, useState } from "react"
 
 /** A single inventory selection forwarded to the run endpoint. */
