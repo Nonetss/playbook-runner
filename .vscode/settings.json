@@ -42,7 +42,8 @@
     "**/.agents": true,
     "**/node_modules": true,
     "**/.astro": true,
-    "**/dist": true
+    "**/dist": true,
+    "**/.turbo": true
   },
   "search.exclude": {
     "apps/ansible/.venv/**": true,
@@ -53,7 +54,8 @@
     "**/.claude": true,
     "**/.agents": true,
     "**/node_modules": true,
-    "**/dist": true
+    "**/dist": true,
+    "**/.turbo": true
   },
   "cursorpyright.analysis.extraPaths": ["apps/ansible"],
   "cursorpyright.analysis.typeCheckingMode": "basic",
