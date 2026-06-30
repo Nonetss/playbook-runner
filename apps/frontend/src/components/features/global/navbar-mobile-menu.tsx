@@ -1,7 +1,7 @@
 import { Menu } from "lucide-react"
+import { useState } from "react"
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -25,9 +25,11 @@ export function NavbarMobileMenu({
   currentPath,
   onPrefetch,
 }: NavbarMobileMenuProps) {
+  const [open, setOpen] = useState(false)
+
   return (
     <div className="shrink-0 lg:hidden">
-      <Sheet>
+      <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger
           render={
             <button
@@ -42,9 +44,9 @@ export function NavbarMobileMenu({
         />
         <SheetContent
           side="right"
-          className="gap-0 p-0 sm:max-w-xs [&>button]:top-3.5"
+          className="gap-0 p-0 sm:max-w-xs"
         >
-          <SheetHeader className="border-border border-b px-4 py-4 text-left">
+          <SheetHeader className="border-border border-b px-4 py-4 pr-12 text-left">
             <SheetTitle className="font-mono text-sm font-semibold tracking-wide">
               Navegación
             </SheetTitle>
@@ -59,24 +61,21 @@ export function NavbarMobileMenu({
                   ? currentPath === "/"
                   : currentPath.startsWith(href)
               return (
-                <SheetClose
+                <a
                   key={href}
-                  render={
-                    <a
-                      href={href}
-                      className={cn(
-                        "rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
-                        isActive
-                          ? "bg-secondary text-foreground"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      )}
-                      onMouseEnter={onPrefetch?.(href)}
-                      onFocus={onPrefetch?.(href)}
-                    >
-                      {label}
-                    </a>
-                  }
-                />
+                  href={href}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-secondary text-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                  onMouseEnter={onPrefetch?.(href)}
+                  onFocus={onPrefetch?.(href)}
+                >
+                  {label}
+                </a>
               )
             })}
           </nav>
