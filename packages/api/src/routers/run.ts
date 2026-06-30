@@ -62,4 +62,28 @@ export const runRouter = {
         throw err
       }
     }),
+
+  resolveDevice: protectedProcedure
+    .route({
+      summary: "Resolve a single device for diagnostic runs",
+      description:
+        "Returns the host (address, port, username, private key) for a single device, looked up by id. Used by the ansible service to run ad-hoc tasks (ping, etc.) against a stored device without going through a playbook.",
+      tags: ["Run"],
+      method: "POST",
+    })
+    .input(z.object({ deviceId: z.string().uuid() }))
+    .output(hostSchema)
+    .handler(async ({ input }) => {
+      try {
+        return await runHandler.resolveDevice(input.deviceId)
+      } catch (err) {
+        if (err instanceof ResolveRunNotFoundError) {
+          throw new ORPCError("NOT_FOUND", { message: err.message })
+        }
+        if (err instanceof ResolveRunCredentiallessError) {
+          throw new ORPCError("PRECONDITION_FAILED", { message: err.message })
+        }
+        throw err
+      }
+    }),
 }

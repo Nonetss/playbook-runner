@@ -67,17 +67,53 @@ async def resolve_run(
         "playbookId": str(playbook_id),
         "inventory": inventory,
     }
+    return await _post_resolver(
+        path=settings.backend_resolve_path,
+        body=body,
+        cookie_header=cookie_header,
+        response_model=ResolvedRunBundle,
+    )
+
+
+async def resolve_device(
+    *,
+    cookie_header: str,
+    device_id: UUID,
+) -> ResolvedHost:
+    """Llama al procedimiento ``run.resolveDevice`` del backend.
+
+    Devuelve los datos de conexión (address, port, username, privateKey) del
+    device asociado al ``device_id``. Usado por endpoints de diagnóstico (ping)
+    que necesitan SSH contra un device conocido sin pasar por un playbook.
+    """
+    body = {"deviceId": str(device_id)}
+    return await _post_resolver(
+        path=settings.backend_resolve_device_path,
+        body=body,
+        cookie_header=cookie_header,
+        response_model=ResolvedHost,
+    )
+
+
+async def _post_resolver[T](
+    *,
+    path: str,
+    body: dict,
+    cookie_header: str,
+    response_model: type[T],
+) -> T:
+    url = f"{settings.backend_url.rstrip('/')}{path}"
     headers = {"cookie": cookie_header, "content-type": "application/json"}
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.post(_resolve_url(), json=body, headers=headers)
+            resp = await client.post(url, json=body, headers=headers)
     except httpx.RequestError as exc:
         raise ResolverBackendUnreachableError(str(exc)) from exc
 
     if resp.status_code == 200:
         try:
-            return ResolvedRunBundle.model_validate(resp.json())
+            return response_model.model_validate(resp.json())
         except Exception as exc:  # noqa: BLE001 - respuesta inesperada del backend
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,

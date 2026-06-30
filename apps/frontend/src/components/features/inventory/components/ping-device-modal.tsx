@@ -78,7 +78,7 @@ export function PingDeviceModal({
   useEffect(() => {
     if (!open || !device) return
     reset()
-    start(device.ipAddress)
+    start(device.id)
   }, [open, device?.id])
 
   useEffect(() => {
@@ -163,7 +163,7 @@ export function PingDeviceModal({
               variant="outline"
               onClick={() => {
                 reset()
-                start(device.ipAddress)
+                start(device.id)
               }}
             >
               <RefreshCw className="size-4" />

@@ -139,6 +139,49 @@ export const runHandler = {
       hosts,
     }
   },
+
+  /**
+   * Resolve a single device's connection details for diagnostic-style runs
+   * (ping, ad-hoc tasks) that don't go through a stored playbook. Returns
+   * the same host shape as `resolveRun` but for exactly one device.
+   */
+  resolveDevice: async (
+    deviceId: string
+  ): Promise<ResolvedRunHost> => {
+    const rows = await db
+      .select({
+        deviceId: inventoryDevices.id,
+        deviceName: inventoryDevices.name,
+        ipAddress: inventoryDevices.ipAddress,
+        portSSH: inventoryDevices.portSSH,
+        credentialId: inventoryDevices.credentialId,
+        username: credentials.username,
+        privateKey: credentials.privateKey,
+      })
+      .from(inventoryDevices)
+      .leftJoin(credentials, eq(credentials.id, inventoryDevices.credentialId))
+      .where(eq(inventoryDevices.id, deviceId))
+      .then((rows) => rows[0] ?? null)
+
+    if (!rows) {
+      throw new ResolveRunNotFoundError(`Device ${deviceId} not found`)
+    }
+
+    if (!rows.credentialId || !rows.username || !rows.privateKey) {
+      throw new ResolveRunCredentiallessError(
+        `Device "${rows.deviceName}" has no credential associated`
+      )
+    }
+
+    return {
+      name: rows.deviceName,
+      address: cidrToAddress(rows.ipAddress),
+      port: rows.portSSH ?? undefined,
+      username: rows.username,
+      privateKey: rows.privateKey,
+      connection: "ssh" as const,
+    }
+  },
 }
 
 export class ResolveRunNotFoundError extends Error {

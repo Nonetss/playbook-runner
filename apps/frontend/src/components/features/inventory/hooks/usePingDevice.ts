@@ -44,7 +44,7 @@ function parseFrame(frame: string, handlers: StreamHandlers): void {
 }
 
 async function streamPing(
-  host: string,
+  deviceId: string,
   handlers: StreamHandlers
 ): Promise<void> {
   const res = await fetch(PING_URL, {
@@ -54,7 +54,7 @@ async function streamPing(
       accept: "text/event-stream",
     },
     credentials: "include",
-    body: JSON.stringify({ host }),
+    body: JSON.stringify({ deviceId }),
     signal: handlers.signal,
   })
 
@@ -99,7 +99,7 @@ export function usePingDevice() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
 
-  const start = useCallback(async (host: string) => {
+  const start = useCallback(async (deviceId: string) => {
     abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
@@ -111,7 +111,7 @@ export function usePingDevice() {
 
     let settled = false
     try {
-      await streamPing(host, {
+      await streamPing(deviceId, {
         onEvent: (event) => setEvents((prev) => [...prev, event]),
         onDone: (res) => {
           settled = true
