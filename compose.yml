@@ -13,7 +13,6 @@ services:
     environment:
       BACKEND_URL: http://backend:3000
       ANSIBLE_PLAYBOOK_PATH: /app/playbook
-      ANSIBLE_SSH_KEY: /app/playbook/ssh_key
     volumes:
       - ./apps/ansible/playbook:/app/playbook
     ports:

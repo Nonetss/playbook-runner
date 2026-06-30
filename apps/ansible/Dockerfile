@@ -27,7 +27,6 @@ RUN uv sync --frozen --no-dev
 COPY apps/ansible/app ./app
 
 ENV ANSIBLE_PLAYBOOK_PATH=/app/playbook \
-    ANSIBLE_SSH_KEY=/app/playbook/ssh_key \
     ANSIBLE_HOST_KEY_CHECKING=False \
     RUN_SCRATCH_DIR=/tmp/ansible-runs \
     PYTHONPATH=/app
