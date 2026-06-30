@@ -5,9 +5,9 @@ import { createTanstackQueryUtils } from "@orpc/tanstack-query"
 
 export const link = new RPCLink({
   url: "/rpc",
-  fetch(url, options) {
-    return fetch(url, {
-      ...options,
+  fetch(request, init) {
+    return globalThis.fetch(request, {
+      ...init,
       credentials: "include",
     })
   },
