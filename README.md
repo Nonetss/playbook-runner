@@ -11,20 +11,23 @@ runs, and a live log of every execution.
 
 ## TL;DR — install on a server
 
+Create an empty directory for the deployment, `cd` into it, and run:
+
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/v0.0.6/scripts/bootstrap.sh -o /tmp/pb-bootstrap.sh \
-  && bash /tmp/pb-bootstrap.sh \
-  && rm -f /tmp/pb-bootstrap.sh
+curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/v0.0.6/scripts/bootstrap.sh | bash
 ```
 
-That downloads `scripts/bootstrap.sh`, asks you for the admin user/password and
-a few more things, generates secrets with `openssl`, writes a `.env`, pulls the
-images from `ghcr.io`, and brings the stack up. You end up with everything
-running at `http://<your-host>:4321` (or whatever port you chose). See
+That runs `scripts/bootstrap.sh`, which asks you for the admin user/password and
+a few more things, generates secrets with `openssl`, writes a `.env` and a
+`compose.prod.yml` **in the current directory**, pulls the images from
+`ghcr.io`, and brings the stack up. You end up with everything running at
+`http://<your-host>:4321` (or whatever port you chose). See
 [Quick start (production)](#quick-start-production) for the manual version.
 
-> The script refuses to run when piped via `curl ... | bash` because that
-> leaves `BASH_SOURCE` empty. Download to a file first, as shown above.
+> The script is interactive even when piped, because it reads your answers from
+> `/dev/tty`. It writes into the directory you run it from — not into a clone —
+> so an empty folder is all you need. To pin a different version, prefix it with
+> `PB_REF=<tag> `.
 
 ## Screenshots
 

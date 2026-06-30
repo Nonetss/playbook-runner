@@ -6,33 +6,23 @@
 # datos del admin inicial y opcionalmente levanta el stack con docker compose.
 #
 # Uso:
-#   ./scripts/bootstrap.sh
+#   curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/v0.0.6/scripts/bootstrap.sh | bash
 #
-# Requisitos: docker, openssl.
+# Requisitos: docker, openssl, curl.
+#
+# Se puede ejecutar suelto (curl | bash) o desde un repo clonado. En ambos
+# casos genera `.env` y `compose.prod.yml` en el DIRECTORIO ACTUAL.
 # ─────────────────────────────────────────────────────────────────────────────
 
 set -Eeuo pipefail
 
-# ── Refuse to run from stdin (curl | bash) ───────────────────────────────────
-# When piped from stdin, BASH_SOURCE[0] is empty, so dirname/cd blow up.
-# Bail early with the right one-liner instead of failing halfway through.
-if [[ -z "${BASH_SOURCE[0]:-}" || "${BASH_SOURCE[0]}" == "bash" || "${BASH_SOURCE[0]}" == "/dev/stdin" ]]; then
-    cat <<'EOF' >&2
-Este script no puede ejecutarse desde stdin (curl ... | bash).
+# El stack se genera/levanta en el directorio donde corrés el script, no en
+# donde vive el script. Así funciona igual via `curl | bash` que clonado.
+TARGET_DIR="$(pwd -P)"
 
-Descargá primero a un archivo y ejecutá desde ahí:
-
-    curl -fsSL <URL> -o /tmp/pb-bootstrap.sh
-    bash /tmp/pb-bootstrap.sh
-
-(Las instrucciones exactas están en el README.)
-EOF
-    exit 1
-fi
-
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
-PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." && pwd -P)"
-cd "$PROJECT_ROOT"
+# Tag/branch desde donde se baja compose.prod.yml. Overrideable: PB_REF=main ...
+PB_REF="${PB_REF:-v0.0.6}"
+RAW_BASE="https://raw.githubusercontent.com/Nonetss/playbook-runner/${PB_REF}"
 
 # ── Output helpers ───────────────────────────────────────────────────────────
 if [[ -t 1 ]]; then
@@ -46,12 +36,19 @@ err()  { printf '%s[ERROR]%s %s\n' "$C_RED"  "$C_RESET" "$*" >&2; }
 note() { printf '%s%s%s\n'     "$C_DIM"   "$*" "$C_RESET"; }
 
 # ── Dependency check ─────────────────────────────────────────────────────────
-for cmd in docker openssl; do
+for cmd in docker openssl curl; do
     if ! command -v "$cmd" >/dev/null 2>&1; then
         err "Falta el comando requerido: $cmd"
         exit 1
     fi
 done
+
+# El script es interactivo (pregunta admin/contraseña). Via `curl | bash` el
+# stdin es el propio script, así que leemos de la terminal real (/dev/tty).
+if [[ ! -r /dev/tty ]]; then
+    err "No hay terminal interactiva (/dev/tty). Corré el script desde una shell."
+    exit 1
+fi
 
 # ── Banner ───────────────────────────────────────────────────────────────────
 cat <<'BANNER'
@@ -67,10 +64,10 @@ echo
 prompt() {
     local label="$1" default="${2:-}" value
     if [[ -n "$default" ]]; then
-        read -r -p "$(printf '%s [%s]: ' "$label" "$default")" value
+        read -r -p "$(printf '%s [%s]: ' "$label" "$default")" value </dev/tty
         value="${value:-$default}"
     else
-        read -r -p "$(printf '%s: ' "$label")" value
+        read -r -p "$(printf '%s: ' "$label")" value </dev/tty
     fi
     printf '%s' "$value"
 }
@@ -78,7 +75,7 @@ prompt() {
 prompt_secret() {
     local label="$1" value=""
     while [[ -z "$value" ]]; do
-        read -r -s -p "$(printf '%s: ' "$label")" value
+        read -r -s -p "$(printf '%s: ' "$label")" value </dev/tty
         echo
     done
     printf '%s' "$value"
@@ -88,7 +85,7 @@ prompt_confirm() {
     local label="$1" default="${2:-y}" yn
     local hint
     if [[ "$default" =~ ^[Yy]$ ]]; then hint="Y/n"; else hint="y/N"; fi
-    read -r -p "$(printf '%s [%s]: ' "$label" "$hint")" yn
+    read -r -p "$(printf '%s [%s]: ' "$label" "$hint")" yn </dev/tty
     yn="${yn:-$default}"
     [[ "$yn" =~ ^[Yy]$ ]]
 }
@@ -169,7 +166,7 @@ INTERNAL_TOKEN=$(gen_secret)
 ok "Secretos generados (POSTGRES_PASSWORD, BETTER_AUTH_SECRET, INTERNAL_TOKEN)"
 
 # ── Escribir .env ────────────────────────────────────────────────────────────
-ENV_FILE="$PROJECT_ROOT/.env"
+ENV_FILE="$TARGET_DIR/.env"
 if [[ -f "$ENV_FILE" ]]; then
     err "Ya existe $ENV_FILE — borrálo a mano si querés regenerarlo"
     exit 1
@@ -222,36 +219,31 @@ EOF
 chmod 600 "$ENV_FILE"
 ok ".env escrito en $ENV_FILE (permisos 600)"
 
+# ── compose.prod.yml ─────────────────────────────────────────────────────────
+# Si corremos sueltos (curl | bash) no hay compose.prod.yml en la carpeta, así
+# que lo bajamos. Si ya existe (repo clonado), lo respetamos.
+COMPOSE_FILE="$TARGET_DIR/compose.prod.yml"
+if [[ ! -f "$COMPOSE_FILE" ]]; then
+    log "Descargando compose.prod.yml ($PB_REF)..."
+    curl -fsSL "$RAW_BASE/compose.prod.yml" -o "$COMPOSE_FILE"
+    ok "compose.prod.yml descargado en $COMPOSE_FILE"
+fi
+
 # ── Levantar stack ───────────────────────────────────────────────────────────
+# El backend corre las migraciones de Drizzle y siembra el admin en su propio
+# arranque (bootstrap() en apps/backend/src/index.ts), así que con `up -d`
+# alcanza: no hace falta db:push / db:seed manuales.
 echo
 if prompt_confirm "¿Levantar el stack ahora con docker compose?"; then
     log "docker compose pull..."
-    docker compose -f "$PROJECT_ROOT/compose.prod.yml" --env-file "$ENV_FILE" pull
+    docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" pull
 
     log "docker compose up -d..."
-    docker compose -f "$PROJECT_ROOT/compose.prod.yml" --env-file "$ENV_FILE" up -d
+    docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d
 
-    log "Esperando a que el backend esté healthy..."
-    for _ in {1..30}; do
-        if docker compose -f "$PROJECT_ROOT/compose.prod.yml" --env-file "$ENV_FILE" ps backend \
-            | grep -q "(healthy)"; then
-            break
-        fi
-        sleep 2
-    done
-
-    log "Aplicando schema (db:push)..."
-    docker compose -f "$PROJECT_ROOT/compose.prod.yml" --env-file "$ENV_FILE" \
-        exec -T backend bun run db:push
-
-    log "Sembrando admin inicial (db:seed)..."
-    docker compose -f "$PROJECT_ROOT/compose.prod.yml" --env-file "$ENV_FILE" \
-        exec -T backend bun run db:seed
-
-    ok "Listo. Andá a $PUBLIC_URL y logueate con $ADMIN_EMAIL"
+    ok "Listo. El backend migra y siembra el admin solo en su arranque."
+    ok "En ~1-2 min andá a $PUBLIC_URL y logueate con $ADMIN_EMAIL"
 else
     note "Cuando quieras arrancar:"
     note "  docker compose -f compose.prod.yml --env-file .env up -d"
-    note "  docker compose -f compose.prod.yml --env-file .env exec backend bun run db:push"
-    note "  docker compose -f compose.prod.yml --env-file .env exec backend bun run db:seed"
 fi
