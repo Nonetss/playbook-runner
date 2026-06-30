@@ -21,10 +21,10 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY pyproject.toml uv.lock ./
+COPY apps/ansible/pyproject.toml apps/ansible/uv.lock ./
 RUN uv sync --frozen --no-dev
 
-COPY app ./app
+COPY apps/ansible/app ./app
 
 ENV ANSIBLE_PLAYBOOK_PATH=/app/playbook \
     ANSIBLE_SSH_KEY=/app/playbook/ssh_key \

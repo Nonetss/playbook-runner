@@ -26,3 +26,15 @@ docker-compose.yml
 **/.env
 **/.env.*
 !**/.env.example
+
+# Python caches / venvs / lockers
+**/__pycache__
+**/*.py[cod]
+**/*.egg-info
+**/.venv
+**/.ruff_cache
+.pyrightconfig.json
+
+# apps/ansible runtime state — bind-mounted at runtime, never bake into image
+# (playbook/ssh_key is a secret; inventory/env/artifacts are live host state)
+apps/ansible/playbook/

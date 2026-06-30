@@ -3,8 +3,8 @@ name: none.stack
 services:
   ansible:
     build:
-      context: .
-      dockerfile: apps/ansible/Dockerfile
+      context: ./apps/ansible
+      dockerfile: Dockerfile
     container_name: ansible
     init: true
     env_file:
