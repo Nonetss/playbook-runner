@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query"
-import { QueryProvider } from "@/components/providers/query-provider"
+import { AppProviders } from "@/components/providers/app-providers"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { orpc } from "@/lib/orpc"
 import { cn } from "@/lib/utils"
 
-function ApiStatusContent({ className }: { className?: string }) {
+function ApiStatusInner({ className }: { className?: string }) {
   const { isPending, isError } = useQuery(
     orpc.healthCheck.queryOptions({
       retry: false,
@@ -42,10 +42,10 @@ function ApiStatusContent({ className }: { className?: string }) {
   )
 }
 
-export function ApiStatus({ className }: { className?: string }) {
+export function ApiStatus(props: { className?: string }) {
   return (
-    <QueryProvider>
-      <ApiStatusContent className={className} />
-    </QueryProvider>
+    <AppProviders>
+      <ApiStatusInner {...props} />
+    </AppProviders>
   )
 }

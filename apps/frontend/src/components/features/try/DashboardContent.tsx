@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { QueryProvider } from "@/components/providers/query-provider"
+import { AppProviders } from "@/components/providers/app-providers"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { authClient } from "@/lib/auth-client"
 import { orpc } from "@/lib/orpc"
@@ -53,8 +53,8 @@ function DashboardContentInner() {
 
 export function DashboardContent() {
   return (
-    <QueryProvider>
+    <AppProviders>
       <DashboardContentInner />
-    </QueryProvider>
+    </AppProviders>
   )
 }
