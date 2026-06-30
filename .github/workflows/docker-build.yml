@@ -5,13 +5,19 @@ on:
     branches:
       - "v*"
       - "main"
+  workflow_dispatch:
 
 env:
+  REGISTRY: ghcr.io
+  IMAGE_OWNER: ${{ github.repository_owner }}
   IMAGE_TAG: ${{ github.ref_name }}
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -28,45 +34,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Login to Gitea Registry
-        env:
-          # Usamos tu Token de Acceso Personal guardado en los secretos
-          GITEA_TOKEN: ${{ secrets.TOKEN }}
-        run: |
-          # Extraemos el dominio (ej: gitea.sanjuandediosmalaga.es) de la URL del servidor
-          REGISTRY_DOMAIN=$(echo "${{ github.server_url }}" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-          # Login no interactivo usando el Token como contraseña
-          echo "$GITEA_TOKEN" | docker login "$REGISTRY_DOMAIN" -u "${{ github.actor }}" --password-stdin
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/playbook-runner${{ matrix.suffix }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
 
-
-      - name: Build and Push ${{ matrix.name }}
-        run: |
-          REGISTRY_DOMAIN=$(echo "${{ github.server_url }}" | awk -F[/:] '{print $4}')
-          IMAGE_ID=$(echo "$REGISTRY_DOMAIN/${{ github.repository }}${{ matrix.suffix }}" | tr '[:upper:]' '[:lower:]')
-          SHA=$(echo "${{ github.sha }}" | cut -c1-8)
-
-          echo "Building ${{ matrix.name }} image: $IMAGE_ID — tag: $IMAGE_TAG sha: $SHA"
-
-          docker build . \
-            -f "${{ matrix.dockerfile }}" \
-            -t "$IMAGE_ID:latest" \
-            -t "$IMAGE_ID:$IMAGE_TAG" \
-            -t "$IMAGE_ID:$IMAGE_TAG-$SHA"
-
-          docker push "$IMAGE_ID:latest"
-          docker push "$IMAGE_ID:$IMAGE_TAG"
-          docker push "$IMAGE_ID:$IMAGE_TAG-$SHA"
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger Komodo pull-redeploy
-        env:
-          KOMODO_API_KEY: ${{ secrets.KOMODO }}
-        run: |
-          curl -fsS -X POST https://komodo-cd.sanjuandediosmalaga.es/api/v0/deploy \
-            -H "x-api-key: $KOMODO_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d '{"stack":"playbook-runner","action":"pull-redeploy"}'
+      - name: Build and push ${{ matrix.name }} image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
