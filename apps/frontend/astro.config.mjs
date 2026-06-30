@@ -5,13 +5,12 @@ import react from "@astrojs/react"
 import tailwindcss from "@tailwindcss/vite"
 import { defineConfig, envField } from "astro/config"
 
-
 // https://astro.build/config
 export default defineConfig({
   output: "server",
   adapter: node({ mode: "standalone" }),
   prefetch: {
-    defaultStrategy: "viewport",
+    defaultStrategy: "hover",
   },
   env: {
     schema: {
@@ -21,32 +20,32 @@ export default defineConfig({
         default: "http://localhost:4321",
       }),
     },
-  },  
+  },
 
   vite: {
     server: {
       proxy: {
         "/rpc": {
-          target: "http://localhost:3000",
+          target: "http://localhost:3001",
           changeOrigin: true,
         },
         "/api": {
-          target: "http://localhost:3000",
+          target: "http://localhost:3001",
           changeOrigin: true,
         },
         // Ansible microservice (playbook execution). It runs on its own port,
         // so it is exposed same-origin under the /ansible prefix, which is
-        // stripped before proxying (e.g. /ansible/api/v0/run -> /api/v0/run).
+        // stripped before proxying (e.g. /ansible/api/v1/run -> /api/v0/run).
         "/ansible": {
-          target: "http://localhost:8000",
+          target: "http://localhost:8001",
           changeOrigin: true,
         },
         "/scalar": {
-          target: "http://localhost:3000",
+          target: "http://localhost:3001",
           changeOrigin: true,
         },
         "/openapi.json": {
-          target: "http://localhost:3000",
+          target: "http://localhost:3001",
           changeOrigin: true,
         },
       },
