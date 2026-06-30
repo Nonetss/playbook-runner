@@ -12,7 +12,7 @@ runs, and a live log of every execution.
 ## TL;DR — install on a server
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/nonetss/playbook-runner/main/scripts/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/v0.0.6/scripts/bootstrap.sh | bash
 ```
 
 That fetches `scripts/bootstrap.sh`, asks you for the admin user/password and a
