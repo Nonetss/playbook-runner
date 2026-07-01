@@ -28,6 +28,7 @@ class ResolvedPlaybook(BaseModel):
 class ResolvedScript(BaseModel):
     name: str
     content: str
+    language: str = "bash"
 
 
 class ResolvedRunBundle(BaseModel):
@@ -154,7 +155,7 @@ async def resolve_script(
     )
 
 
-async def _post_resolver[T](
+async def _post_resolver[T: BaseModel](
     *,
     path: str,
     body: dict,

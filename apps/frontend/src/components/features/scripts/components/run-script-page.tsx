@@ -383,11 +383,18 @@ function RunScriptPageInner({ id }: { id: string }) {
           </a>
         </Button>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-base font-semibold leading-tight">
-            {scriptLoading
-              ? "Cargando…"
-              : (script?.name ?? "Script no encontrado")}
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="truncate text-base font-semibold leading-tight">
+              {scriptLoading
+                ? "Cargando…"
+                : (script?.name ?? "Script no encontrado")}
+            </h1>
+            {script && !scriptLoading ? (
+              <Badge variant="secondary" className="font-mono text-xs">
+                {script.language ?? "bash"}
+              </Badge>
+            ) : null}
+          </div>
           <p className="text-muted-foreground text-xs">Ejecución del script</p>
         </div>
         {phase !== "idle" ? (

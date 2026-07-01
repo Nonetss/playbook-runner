@@ -99,7 +99,10 @@ async def _script_stream(
     materialized = materialize_hosts(bundle.hosts, label=bundle.script.name)
     try:
         script_path = write_script_file(
-            materialized.run_dir, bundle.script.name, bundle.script.content
+            materialized.run_dir,
+            bundle.script.name,
+            bundle.script.content,
+            bundle.script.language,
         )
 
         extravars = {

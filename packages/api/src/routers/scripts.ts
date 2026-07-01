@@ -7,6 +7,7 @@ const scriptSchema = z.object({
   name: z.string(),
   description: z.string().nullable(),
   content: z.string(),
+  language: z.enum(["bash", "python"]),
   createdAt: z.coerce.date().nullable(),
   updatedAt: z.coerce.date().nullable(),
 })
@@ -27,6 +28,7 @@ export const scriptsRouter = {
         name: z.string(),
         description: z.string(),
         content: z.string(),
+        language: z.enum(["bash", "python"]).default("bash"),
       })
     )
     .output(scriptSchema.nullable())
@@ -77,6 +79,7 @@ export const scriptsRouter = {
         name: z.string(),
         description: z.string(),
         content: z.string(),
+        language: z.enum(["bash", "python"]).default("bash"),
       })
     )
     .output(scriptSchema.nullable())

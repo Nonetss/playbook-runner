@@ -38,6 +38,7 @@ const resolveScriptOutputSchema = z.object({
   script: z.object({
     name: z.string(),
     content: z.string(),
+    language: z.enum(["bash", "python"]),
   }),
   hosts: z.array(hostSchema),
 })

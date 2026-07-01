@@ -28,7 +28,7 @@ export type ResolvedRunBundle = {
 }
 
 export type ResolvedScriptBundle = {
-  script: { name: string; content: string }
+  script: { name: string; content: string; language: "bash" | "python" }
   hosts: ResolvedRunHost[]
 }
 
@@ -92,6 +92,7 @@ export const runHandler = {
         id: scripts.id,
         name: scripts.name,
         content: scripts.content,
+        language: scripts.language,
       })
       .from(scripts)
       .where(eq(scripts.id, scriptId))
@@ -104,7 +105,11 @@ export const runHandler = {
     const hosts = await resolveHosts(inventory)
 
     return {
-      script: { name: script.name, content: script.content },
+      script: {
+        name: script.name,
+        content: script.content,
+        language: script.language ?? "bash",
+      },
       hosts,
     }
   },

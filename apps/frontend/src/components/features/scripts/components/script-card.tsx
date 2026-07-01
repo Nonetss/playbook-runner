@@ -94,7 +94,7 @@ export function ScriptCard({
       <CardContent className="flex flex-1 flex-col gap-3 px-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="font-mono text-xs">
-            bash
+            {script.language ?? "bash"}
           </Badge>
           {updatedAt && (
             <span className="text-muted-foreground text-xs">

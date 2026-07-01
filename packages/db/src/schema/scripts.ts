@@ -6,6 +6,9 @@ export const scripts = pgTable("scripts", {
   name: text().notNull(),
   description: text(),
   content: text().notNull(),
+  language: text({ enum: ["bash", "python"] })
+    .notNull()
+    .default("bash"),
   createdAt: timestamp("created_at").default(sql`now()`),
   updatedAt: timestamp("updated_at").default(sql`now()`),
 })

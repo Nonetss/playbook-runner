@@ -1,4 +1,4 @@
-import { ArrowLeft, Loader2 } from "lucide-react"
+import { ArrowLeft, Loader2, TerminalSquare } from "lucide-react"
 import * as React from "react"
 import {
   useScriptCreate,
@@ -9,6 +9,7 @@ import { AppProviders } from "@/components/providers/app-providers"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils"
 
 const TEXTAREA_CLASS =
   "w-full min-w-0 flex-1 resize-y rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs leading-relaxed shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
@@ -19,13 +20,72 @@ set -euo pipefail
 echo "Hello from $(hostname)"
 uptime`
 
+type ScriptLanguage = "bash" | "python"
+
 type FormValues = {
   name: string
   description: string
   content: string
+  language: ScriptLanguage
 }
 
-const EMPTY_VALUES: FormValues = { name: "", description: "", content: "" }
+const EMPTY_VALUES: FormValues = {
+  name: "",
+  description: "",
+  content: "",
+  language: "bash",
+}
+
+const LANGUAGES: { value: ScriptLanguage; label: string; hint: string }[] = [
+  {
+    value: "bash",
+    label: "bash",
+    hint: "Ejecuta el script con bash. El contenido sin shebang se le antepone #!/usr/bin/env bash.",
+  },
+  {
+    value: "python",
+    label: "python",
+    hint: "Ejecuta el script con python3. El contenido sin shebang se le antepone #!/usr/bin/env python3.",
+  },
+]
+
+function LanguagePicker({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: ScriptLanguage
+  onChange: (next: ScriptLanguage) => void
+  disabled?: boolean
+}) {
+  const active = LANGUAGES.find((l) => l.value === value) ?? LANGUAGES[0]
+  return (
+    <div className="space-y-1.5">
+      <div className="grid grid-cols-2 gap-1.5">
+        {LANGUAGES.map((l) => (
+          <button
+            key={l.value}
+            type="button"
+            onClick={() => onChange(l.value)}
+            disabled={disabled}
+            className={cn(
+              "flex items-center justify-center gap-1.5 rounded-md border px-2.5 py-1.5 font-mono text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+              value === l.value
+                ? "border-primary bg-primary/10 text-foreground"
+                : "border-input text-muted-foreground hover:bg-accent"
+            )}
+          >
+            <TerminalSquare className="size-3.5" />
+            {l.label}
+          </button>
+        ))}
+      </div>
+      <p className="text-muted-foreground text-[11px] leading-snug">
+        {active.hint}
+      </p>
+    </div>
+  )
+}
 
 export type ScriptFormPageProps = {
   /** When present the page edits an existing script; otherwise it creates one. */
@@ -52,6 +112,7 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
         name: script.name,
         description: script.description ?? "",
         content: script.content,
+        language: script.language ?? "bash",
       })
     }
   }, [isEditing, script])
@@ -63,7 +124,10 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
   const nameMissing = touched && trimmedName.length === 0
   const contentMissing = touched && trimmedContent.length === 0
 
-  function updateField(key: keyof FormValues, value: string) {
+  function updateField<K extends keyof FormValues>(
+    key: K,
+    value: FormValues[K]
+  ) {
     setValues((current) => ({ ...current, [key]: value }))
   }
 
@@ -76,6 +140,7 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
       name: trimmedName,
       description: values.description || undefined,
       content: values.content,
+      language: values.language,
     }
     try {
       if (isEditing && id) {
@@ -168,6 +233,15 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
               onChange={(e) => updateField("description", e.target.value)}
             />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Lenguaje</Label>
+          <LanguagePicker
+            value={values.language}
+            onChange={(next) => updateField("language", next)}
+            disabled={isSubmitting}
+          />
         </div>
 
         <div className="flex flex-1 flex-col space-y-2">

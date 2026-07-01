@@ -20,7 +20,12 @@ const listKey = orpc.scripts.list.queryKey()
 
 function applyCreateOptimistic(
   current: Script[] | undefined,
-  input: { name: string; description?: string; content: string }
+  input: {
+    name: string
+    description?: string
+    content: string
+    language: "bash" | "python"
+  }
 ) {
   if (!current) return current
   const optimistic = {
@@ -28,13 +33,20 @@ function applyCreateOptimistic(
     name: input.name,
     description: input.description ?? "",
     content: input.content,
+    language: input.language,
   } as unknown as Script
   return [...current, optimistic]
 }
 
 function applyUpdateOptimistic(
   current: Script[] | undefined,
-  input: { id: string; name: string; description?: string; content: string }
+  input: {
+    id: string
+    name: string
+    description?: string
+    content: string
+    language: "bash" | "python"
+  }
 ) {
   if (!current) return current
   return current.map((script) =>
@@ -44,6 +56,7 @@ function applyUpdateOptimistic(
           name: input.name,
           description: input.description ?? script.description ?? null,
           content: input.content,
+          language: input.language,
         }
       : script
   )
@@ -59,7 +72,12 @@ function applyDeleteOptimistic(
 
 export const useScriptCreate = () =>
   useResourceMutation<
-    { name: string; description?: string; content: string },
+    {
+      name: string
+      description?: string
+      content: string
+      language: "bash" | "python"
+    },
     Script,
     Script[]
   >({
@@ -68,6 +86,7 @@ export const useScriptCreate = () =>
         name: input.name,
         description: input.description ?? "",
         content: input.content,
+        language: input.language,
       }) as Promise<Script>,
     listKey,
     applyOptimistic: applyCreateOptimistic,
@@ -79,7 +98,13 @@ export const useScriptCreate = () =>
 
 export const useScriptUpdate = () =>
   useResourceMutation<
-    { id: string; name: string; description?: string; content: string },
+    {
+      id: string
+      name: string
+      description?: string
+      content: string
+      language: "bash" | "python"
+    },
     Script,
     Script[]
   >({
@@ -89,6 +114,7 @@ export const useScriptUpdate = () =>
         name: input.name,
         description: input.description ?? "",
         content: input.content,
+        language: input.language,
       }) as Promise<Script>,
     listKey,
     applyOptimistic: applyUpdateOptimistic,
