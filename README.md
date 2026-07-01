@@ -2,7 +2,7 @@
   <img src="apps/frontend/public/logo.svg" alt="playbook-runner logo" width="72" height="72">
 </p>
 
-<p align="center">Playbook</p>
+<h3 align="center">Playbook</h3>
 <p align="center">R U N N E R</p>
 
 A self-hosted web UI to manage and run [Ansible](https://www.ansible.com/)
