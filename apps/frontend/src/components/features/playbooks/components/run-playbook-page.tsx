@@ -14,6 +14,7 @@ import {
   XCircle,
 } from "lucide-react"
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useDevicesList } from "@/components/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/components/features/inventory/hooks/useGroups"
 import { usePlaybookGet } from "@/components/features/playbooks/hooks/usePlaybooks"
@@ -34,9 +35,6 @@ import { cn } from "@/lib/utils"
 type Tone = "ok" | "changed" | "fail" | "muted" | "info" | "header" | "dim"
 type TerminalLine = { text: string; tone: Tone }
 
-const SEP = "*".repeat(72)
-const SEP_TASK = "-".repeat(72)
-
 function sep(label: string, char = "*") {
   const prefix = `${label} `
   const fill = char.repeat(Math.max(0, 72 - prefix.length))
@@ -47,21 +45,28 @@ function lines(...items: TerminalLine[]): TerminalLine[] {
   return items
 }
 
-function describeEvent(event: RunEvent): TerminalLine[] {
+function describeEvent(
+  event: RunEvent,
+  t: (key: string) => string
+): TerminalLine[] {
   switch (event.event) {
     case "playbook_on_start":
-      return lines({ text: sep("PLAYBOOK"), tone: "header" })
+      return lines({
+        text: sep(t("console.headings.playbook")),
+        tone: "header",
+      })
 
     case "playbook_on_play_start":
       return lines(
         { text: "", tone: "dim" },
-        { text: sep(`PLAY [${event.play ?? ""}]`), tone: "header" }
+        {
+          text: sep(`${t("console.headings.play")} [${event.play ?? ""}]`),
+          tone: "header",
+        }
       )
 
     case "playbook_on_task_start": {
-      const label = event.task_action
-        ? `TASK [${event.task ?? ""}]`
-        : `TASK [${event.task ?? ""}]`
+      const label = `${t("console.headings.task")} [${event.task ?? ""}]`
       return lines(
         { text: "", tone: "dim" },
         { text: sep(label, "-"), tone: "muted" }
@@ -69,12 +74,25 @@ function describeEvent(event: RunEvent): TerminalLine[] {
     }
 
     case "runner_on_start":
-      return lines({ text: `  → [${event.host ?? ""}] iniciando`, tone: "dim" })
+      return lines({
+        text: `  → [${event.host ?? ""}] ${t("console.runner.starting")}`,
+        tone: "dim",
+      })
 
     case "runner_on_ok": {
       const result: TerminalLine[] = event.changed
-        ? [{ text: `changed: [${event.host ?? ""}]`, tone: "changed" }]
-        : [{ text: `ok: [${event.host ?? ""}]`, tone: "ok" }]
+        ? [
+            {
+              text: `${t("console.runner.changed")}: [${event.host ?? ""}]`,
+              tone: "changed",
+            },
+          ]
+        : [
+            {
+              text: `${t("console.runner.ok")}: [${event.host ?? ""}]`,
+              tone: "ok",
+            },
+          ]
       if (event.stdout) {
         for (const line of event.stdout.split("\n")) {
           if (line) result.push({ text: `  ${line}`, tone: "dim" })
@@ -84,26 +102,38 @@ function describeEvent(event: RunEvent): TerminalLine[] {
     }
 
     case "runner_on_skipped":
-      return lines({ text: `skipping: [${event.host ?? ""}]`, tone: "muted" })
+      return lines({
+        text: `${t("console.runner.skipping")}: [${event.host ?? ""}]`,
+        tone: "muted",
+      })
 
     case "runner_on_failed": {
       const result: TerminalLine[] = [
-        { text: `fatal: [${event.host ?? ""}]: FAILED!`, tone: "fail" },
+        {
+          text: `${t("console.runner.fatal")}: [${event.host ?? ""}]: ${t("console.runner.failed_excl")}!`,
+          tone: "fail",
+        },
       ]
       if (event.msg) {
-        result.push({ text: `  msg: ${event.msg}`, tone: "fail" })
+        result.push({
+          text: `  ${t("console.runner.msg")}: ${event.msg}`,
+          tone: "fail",
+        })
       }
       if (event.rc != null) {
-        result.push({ text: `  rc: ${event.rc}`, tone: "fail" })
+        result.push({
+          text: `  ${t("console.runner.rc")}: ${event.rc}`,
+          tone: "fail",
+        })
       }
       if (event.stdout) {
-        result.push({ text: "  stdout:", tone: "muted" })
+        result.push({ text: `  ${t("console.runner.stdout")}:`, tone: "muted" })
         for (const line of event.stdout.split("\n")) {
           if (line) result.push({ text: `    ${line}`, tone: "dim" })
         }
       }
       if (event.stderr) {
-        result.push({ text: "  stderr:", tone: "fail" })
+        result.push({ text: `  ${t("console.runner.stderr")}:`, tone: "fail" })
         for (const line of event.stderr.split("\n")) {
           if (line) result.push({ text: `    ${line}`, tone: "fail" })
         }
@@ -113,10 +143,16 @@ function describeEvent(event: RunEvent): TerminalLine[] {
 
     case "runner_on_unreachable": {
       const result: TerminalLine[] = [
-        { text: `fatal: [${event.host ?? ""}]: UNREACHABLE!`, tone: "fail" },
+        {
+          text: `${t("console.runner.fatal")}: [${event.host ?? ""}]: ${t("console.runner.unreachable")}!`,
+          tone: "fail",
+        },
       ]
       if (event.msg) {
-        result.push({ text: `  msg: ${event.msg}`, tone: "fail" })
+        result.push({
+          text: `  ${t("console.runner.msg")}: ${event.msg}`,
+          tone: "fail",
+        })
       }
       return result
     }
@@ -124,14 +160,14 @@ function describeEvent(event: RunEvent): TerminalLine[] {
     case "runner_item_on_ok":
       return lines({
         text: event.changed
-          ? `  changed: [${event.host ?? ""}] (item)`
-          : `  ok: [${event.host ?? ""}] (item)`,
+          ? `  ${t("console.runner.changed")}: [${event.host ?? ""}] (${t("console.runner.item")})`
+          : `  ${t("console.runner.ok")}: [${event.host ?? ""}] (${t("console.runner.item")})`,
         tone: event.changed ? "changed" : "ok",
       })
 
     case "runner_item_on_failed":
       return lines({
-        text: `  failed: [${event.host ?? ""}] (item) — ${event.msg ?? ""}`,
+        text: `  ${t("console.runner.failed_lower")}: [${event.host ?? ""}] (${t("console.runner.item")}) — ${event.msg ?? ""}`,
         tone: "fail",
       })
 
@@ -139,7 +175,7 @@ function describeEvent(event: RunEvent): TerminalLine[] {
       if (!event.stats)
         return lines(
           { text: "", tone: "dim" },
-          { text: sep("PLAY RECAP"), tone: "header" }
+          { text: sep(t("console.headings.recap")), tone: "header" }
         )
 
       const { ok, changed, failures, dark, skipped } = event.stats
@@ -155,7 +191,7 @@ function describeEvent(event: RunEvent): TerminalLine[] {
 
       const result: TerminalLine[] = [
         { text: "", tone: "dim" },
-        { text: sep("PLAY RECAP"), tone: "header" },
+        { text: sep(t("console.headings.recap")), tone: "header" },
       ]
 
       for (const host of hosts) {
@@ -165,7 +201,7 @@ function describeEvent(event: RunEvent): TerminalLine[] {
         const d = dark[host] ?? 0
         const s = skipped[host] ?? 0
         const tone: Tone = f > 0 || d > 0 ? "fail" : c > 0 ? "changed" : "ok"
-        const stats = `ok=${o}  changed=${c}  unreachable=${d}  failed=${f}  skipped=${s}`
+        const stats = `${t("console.runner.ok")}=${o}  ${t("console.runner.changed")}=${c}  ${t("console.runner.unreachable_lower")}=${d}  ${t("console.runner.failed_lower")}=${f}  ${t("console.runner.skipped")}=${s}`
         result.push({
           text: `${host.padEnd(36)}: ${stats}`,
           tone,
@@ -294,6 +330,7 @@ function ToggleRow({
 // ── RunPlaybookPageInner ──────────────────────────────────────────────────────
 
 function RunPlaybookPageInner({ id }: { id: string }) {
+  const { t } = useTranslation("playbooks")
   const { data: playbook, isPending: playbookLoading } = usePlaybookGet(id)
   const { data: groups = [] } = useGroupsList()
   const { data: devices = [] } = useDevicesList()
@@ -356,13 +393,21 @@ function RunPlaybookPageInner({ id }: { id: string }) {
   }
 
   // Flatten all events into a single ordered list of terminal lines.
-  const terminalLines = useMemo(() => events.flatMap(describeEvent), [events])
+  const terminalLines = useMemo(
+    () => events.flatMap((event) => describeEvent(event, t)),
+    [events, t]
+  )
 
   return (
     <main className="flex h-[calc(100dvh-3.5rem)] w-full min-h-0 flex-col overflow-hidden">
       {/* Header */}
       <div className="flex shrink-0 items-center gap-3 border-b px-6 py-3">
-        <Button asChild variant="ghost" size="icon-sm" aria-label="Volver">
+        <Button
+          asChild
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t("run.back_aria")}
+        >
           <a href="/playbooks">
             <ArrowLeft className="size-4" />
           </a>
@@ -370,11 +415,11 @@ function RunPlaybookPageInner({ id }: { id: string }) {
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-base font-semibold leading-tight">
             {playbookLoading
-              ? "Cargando…"
-              : (playbook?.name ?? "Playbook no encontrado")}
+              ? t("run.loading")
+              : (playbook?.name ?? t("run.playbook_not_found"))}
           </h1>
           <p className="text-muted-foreground text-xs">
-            Ejecución del playbook
+            {t("run.header_subtitle")}
           </p>
         </div>
         {phase !== "idle" ? (
@@ -384,7 +429,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
             onClick={reset}
             disabled={isRunning}
           >
-            Nueva ejecución
+            {t("run.new_run")}
           </Button>
         ) : null}
       </div>
@@ -399,14 +444,12 @@ function RunPlaybookPageInner({ id }: { id: string }) {
           >
             {phase === "idle" ? (
               <p className="select-none text-zinc-600">
-                Configura el inventario y pulsa{" "}
-                <span className="text-zinc-400">Ejecutar</span> para ver la
-                salida aquí.
+                {t("run.idle_prompt")}
               </p>
             ) : terminalLines.length === 0 && isRunning ? (
               <p className="flex items-center gap-2 text-zinc-500">
                 <Loader2 className="size-3 animate-spin" />
-                Iniciando ejecución…
+                {t("run.starting")}
               </p>
             ) : (
               terminalLines.map((line, i) => (
@@ -415,7 +458,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                   key={i}
                   className={cn("whitespace-pre-wrap", toneClass[line.tone])}
                 >
-                  {line.text || " "}
+                  {line.text || " "}
                 </p>
               ))
             )}
@@ -450,9 +493,10 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                 <AlertTriangle className="size-3.5 shrink-0" />
               )}
               <span>
-                Ejecución finalizada — estado{" "}
-                <span className="font-semibold">{result.status}</span> (rc=
-                {result.rc ?? "?"})
+                {t("run.result_finished_with_status", {
+                  status: result.status,
+                  rc: result.rc ?? "?",
+                })}
               </span>
             </div>
           ) : null}
@@ -463,7 +507,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
           {/* Inventory */}
           <div className="space-y-3">
             <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-              Inventario
+              {t("run.panel.inventory")}
             </p>
 
             {groups.length > 0 || devices.length > 0 ? (
@@ -471,7 +515,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                 <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
                 <Input
                   type="search"
-                  placeholder="Buscar…"
+                  placeholder={t("run.panel.search_placeholder")}
                   value={inventorySearch}
                   onChange={(e) => setInventorySearch(e.target.value)}
                   className="h-8 pl-8 text-xs"
@@ -481,7 +525,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
 
             {groups.length > 0 ? (
               <InventoryCollapsible
-                title="Grupos"
+                title={t("run.panel.groups")}
                 count={filteredGroups.length}
                 selectedCount={
                   filteredGroups.filter((g) => selectedGroups.has(g.id)).length
@@ -506,7 +550,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                   </ul>
                 ) : (
                   <p className="text-muted-foreground px-2 py-1 text-xs">
-                    Sin resultados
+                    {t("run.panel.no_results")}
                   </p>
                 )}
               </InventoryCollapsible>
@@ -514,7 +558,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
 
             {devices.length > 0 ? (
               <InventoryCollapsible
-                title="Dispositivos"
+                title={t("run.panel.devices")}
                 count={filteredDevices.length}
                 selectedCount={
                   filteredDevices.filter((d) => selectedDevices.has(d.id))
@@ -540,7 +584,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                   </ul>
                 ) : (
                   <p className="text-muted-foreground px-2 py-1 text-xs">
-                    Sin resultados
+                    {t("run.panel.no_results")}
                   </p>
                 )}
               </InventoryCollapsible>
@@ -548,13 +592,13 @@ function RunPlaybookPageInner({ id }: { id: string }) {
 
             {groups.length === 0 && devices.length === 0 ? (
               <p className="text-muted-foreground px-2 text-xs">
-                No hay inventario. Crea grupos o dispositivos primero.
+                {t("run.panel.empty_inventory")}
               </p>
             ) : searchQuery &&
               filteredGroups.length === 0 &&
               filteredDevices.length === 0 ? (
               <p className="text-muted-foreground px-2 text-xs">
-                Ningún grupo ni dispositivo coincide con la búsqueda.
+                {t("run.panel.no_match")}
               </p>
             ) : null}
           </div>
@@ -562,12 +606,12 @@ function RunPlaybookPageInner({ id }: { id: string }) {
           {/* Options */}
           <div className="space-y-3 border-t pt-3">
             <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-              Opciones
+              {t("run.panel.options")}
             </p>
 
             <div className="flex items-center gap-2">
               <Label htmlFor="run-forks" className="w-14 shrink-0 text-xs">
-                Forks
+                {t("run.panel.forks")}
               </Label>
               <Input
                 id="run-forks"
@@ -583,12 +627,12 @@ function RunPlaybookPageInner({ id }: { id: string }) {
             </div>
 
             <div className="space-y-2">
-              <p className="text-xs font-medium">Variables extra</p>
+              <p className="text-xs font-medium">{t("run.panel.extravars")}</p>
               {extravars.map((entry, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: order-stable list
                 <div key={i} className="flex items-center gap-1.5">
                   <Input
-                    placeholder="VARIABLE"
+                    placeholder={t("run.panel.extravars_key_placeholder")}
                     value={entry.key}
                     onChange={(e) =>
                       setExtravars((prev) =>
@@ -600,7 +644,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                     className="h-7 font-mono text-xs"
                   />
                   <Input
-                    placeholder="valor"
+                    placeholder={t("run.panel.extravars_value_placeholder")}
                     value={entry.value}
                     onChange={(e) =>
                       setExtravars((prev) =>
@@ -616,6 +660,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                     variant="ghost"
                     size="icon"
                     className="size-7 shrink-0"
+                    aria-label={t("run.panel.extravars_remove_aria")}
                     onClick={() =>
                       setExtravars((prev) => prev.filter((_, j) => j !== i))
                     }
@@ -634,7 +679,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                 }
               >
                 <Plus className="size-3" />
-                Añadir variable
+                {t("run.panel.extravars_add")}
               </Button>
             </div>
           </div>
@@ -649,12 +694,12 @@ function RunPlaybookPageInner({ id }: { id: string }) {
               {isRunning ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
-                  Ejecutando…
+                  {t("run.running")}
                 </>
               ) : (
                 <>
                   <Play className="size-4" />
-                  Ejecutar
+                  {t("run.run_button")}
                   {selectionCount > 0 ? (
                     <Badge variant="secondary" className="ml-1">
                       {selectionCount}
@@ -671,12 +716,13 @@ function RunPlaybookPageInner({ id }: { id: string }) {
 }
 
 export function RunPlaybookPage({ id }: { id?: string }) {
+  const { t } = useTranslation("playbooks")
   if (!id) {
     return (
       <AppProviders>
         <main className="flex flex-1 items-center justify-center p-6">
           <p className="text-muted-foreground text-sm">
-            Playbook no encontrado.
+            {t("run.playbook_not_found")}
           </p>
         </main>
       </AppProviders>

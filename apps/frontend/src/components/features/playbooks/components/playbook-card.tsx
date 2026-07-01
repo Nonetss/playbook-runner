@@ -1,4 +1,5 @@
 import { BookText, MoreHorizontal, Pencil, Play, Trash2 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import type { Playbook } from "@/components/features/playbooks/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -22,6 +23,7 @@ type PlaybookCardProps = {
   onDelete: (id: string) => void
   onRun: (playbook: Playbook) => void
   isDeleting?: boolean
+  locale?: string
 }
 
 export function PlaybookCard({
@@ -30,9 +32,11 @@ export function PlaybookCard({
   onDelete,
   onRun,
   isDeleting = false,
+  locale = "es-ES",
 }: PlaybookCardProps) {
+  const { t } = useTranslation("playbooks")
   const updatedAt = playbook.updatedAt
-    ? new Date(playbook.updatedAt).toLocaleDateString("es-ES", {
+    ? new Date(playbook.updatedAt).toLocaleDateString(locale, {
         year: "numeric",
         month: "short",
         day: "numeric",
@@ -64,7 +68,7 @@ export function PlaybookCard({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label={`Acciones para ${playbook.name}`}
+                aria-label={t("card.actions_aria", { name: playbook.name })}
                 disabled={isDeleting}
               >
                 <MoreHorizontal className="size-4" />
@@ -73,18 +77,18 @@ export function PlaybookCard({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onRun(playbook)}>
                 <Play className="size-4" />
-                Ejecutar
+                {t("card.run")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(playbook)}>
                 <Pencil className="size-4" />
-                Editar
+                {t("card.edit")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
                 onClick={() => onDelete(playbook.id)}
               >
                 <Trash2 className="size-4" />
-                Eliminar
+                {t("card.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -94,11 +98,11 @@ export function PlaybookCard({
       <CardContent className="flex flex-1 flex-col gap-3 px-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="font-mono text-xs">
-            YAML
+            {t("card.yaml")}
           </Badge>
           {updatedAt && (
             <span className="text-muted-foreground text-xs">
-              Actualizado el {updatedAt}
+              {t("card.updated_on", { date: updatedAt })}
             </span>
           )}
         </div>
@@ -115,7 +119,7 @@ export function PlaybookCard({
           disabled={isDeleting}
         >
           <Play className="size-4" />
-          Ejecutar
+          {t("card.run")}
         </Button>
       </CardContent>
     </Card>

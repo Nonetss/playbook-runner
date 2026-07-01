@@ -1,4 +1,5 @@
 import { BookText } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { PlaybookList } from "@/components/features/playbooks/components/playbook-list"
 import {
   usePlaybookDelete,
@@ -12,6 +13,9 @@ import { useConfirm } from "@/hooks/useConfirm"
 import { notifyError } from "@/lib/toast"
 
 function PlaybooksPageInner() {
+  const { t, i18n } = useTranslation("playbooks")
+  const { t: tCommon } = useTranslation("common")
+  const cardLocale = i18n.language?.startsWith("en") ? "en-US" : "es-ES"
   const {
     data: playbooks = [],
     isPending,
@@ -35,12 +39,12 @@ function PlaybooksPageInner() {
 
   async function handleDelete(id: string) {
     const playbook = playbooks.find((item) => item.id === id)
-    const label = playbook?.name ?? "este playbook"
+    const label = playbook?.name ?? tCommon("labels.this_playbook")
     const confirmed = await confirm({
-      title: `Eliminar "${label}"`,
-      description: "Esta acción no se puede deshacer.",
-      confirmLabel: "Eliminar",
-      cancelLabel: "Cancelar",
+      title: t("delete.confirm_title", { label }),
+      description: t("delete.confirm_description"),
+      confirmLabel: t("card.delete"),
+      cancelLabel: tCommon("actions.cancel"),
       variant: "destructive",
     })
 
@@ -50,7 +54,7 @@ function PlaybooksPageInner() {
       await deletePlaybook.mutateAsync({ id })
     } catch (err) {
       notifyError(
-        "No se pudo eliminar el playbook",
+        t("delete.error"),
         err instanceof Error ? err.message : undefined
       )
     }
@@ -58,9 +62,9 @@ function PlaybooksPageInner() {
 
   return (
     <ResourcePage
-      title="Playbooks"
-      description="Gestiona tus playbooks de Ansible para automatizar despliegues y tareas."
-      createLabel="Nuevo playbook"
+      title={t("page.title")}
+      description={t("page.subtitle")}
+      createLabel={t("page.create")}
       onCreate={goToCreate}
     >
       <ResourceListState
@@ -69,10 +73,9 @@ function PlaybooksPageInner() {
         onRetry={() => refetch()}
         items={playbooks}
         empty={{
-          title: "Sin playbooks",
-          description:
-            "Crea tu primer playbook para empezar a automatizar tus tareas.",
-          ctaLabel: "Nuevo playbook",
+          title: t("empty.title"),
+          description: t("empty.description"),
+          ctaLabel: t("page.create"),
           onCta: goToCreate,
           icon: <BookText className="size-5" />,
         }}
@@ -83,6 +86,7 @@ function PlaybooksPageInner() {
             onEdit={goToEdit}
             onDelete={handleDelete}
             onRun={goToRun}
+            locale={cardLocale}
             deletingId={
               deletePlaybook.isPending
                 ? (deletePlaybook.variables?.id ?? null)

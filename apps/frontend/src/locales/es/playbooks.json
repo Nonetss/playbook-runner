@@ -1,0 +1,122 @@
+{
+  "page": {
+    "title": "Playbooks",
+    "subtitle": "Gestiona tus playbooks de Ansible para automatizar despliegues y tareas.",
+    "create": "Nuevo playbook"
+  },
+  "empty": {
+    "title": "Sin playbooks",
+    "description": "Crea tu primer playbook para empezar a automatizar tus tareas."
+  },
+  "card": {
+    "actions_aria": "Acciones para {{name}}",
+    "run": "Ejecutar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "updated_on": "Actualizado el {{date}}",
+    "yaml": "YAML"
+  },
+  "form": {
+    "create_title": "Nuevo playbook",
+    "edit_title": "Editar playbook",
+    "create_subtitle": "Define un nuevo playbook para tus automatizaciones.",
+    "edit_subtitle": "Actualiza los datos del playbook.",
+    "name_label": "Nombre",
+    "name_placeholder": "deploy-web",
+    "description_label": "Descripción",
+    "description_placeholder": "Despliega la aplicación web en producción",
+    "content_label": "Contenido",
+    "content_placeholder": "---\n- name: Deploy web\n  hosts: all\n  tasks:\n    - name: Install nginx\n      apt:\n        name: nginx\n        state: present",
+    "hosts_all_warning": "Usa siempre <code>hosts: all</code> en tus plays. Los hosts contra los que se ejecuta se eligen al lanzar el run; el inventario se expone bajo el grupo <code>all</code>, así que cualquier otro patrón (p. ej. <code>docker_hosts</code>) no encontrará hosts y la play se saltará.",
+    "cancel": "Cancelar",
+    "save_changes": "Guardar cambios",
+    "create": "Crear playbook",
+    "loading": "Cargando playbook...",
+    "load_error": "No se pudo cargar el playbook.",
+    "back_to_playbooks": "Volver a playbooks",
+    "saving": "Guardando...",
+    "save_error": "No se pudo guardar."
+  },
+  "delete": {
+    "confirm_title": "Eliminar \"{{label}}\"",
+    "confirm_description": "Esta acción no se puede deshacer.",
+    "error": "No se pudo eliminar el playbook"
+  },
+  "run": {
+    "header_subtitle": "Ejecución del playbook",
+    "playbook_not_found": "Playbook no encontrado.",
+    "loading": "Cargando…",
+    "back_aria": "Volver",
+    "new_run": "Nueva ejecución",
+    "idle_prompt": "Configura el inventario y pulsa Ejecutar para ver la salida aquí.",
+    "starting": "Iniciando ejecución…",
+    "running": "Ejecutando…",
+    "run_button": "Ejecutar",
+    "panel": {
+      "inventory": "INVENTARIO",
+      "groups": "Grupos",
+      "devices": "Dispositivos",
+      "search_placeholder": "Buscar…",
+      "no_results": "Sin resultados",
+      "no_match": "Ningún grupo ni dispositivo coincide con la búsqueda.",
+      "empty_inventory": "No hay inventario. Crea grupos o dispositivos primero.",
+      "options": "OPCIONES",
+      "forks": "Forks",
+      "extravars": "Variables extra",
+      "extravars_key_placeholder": "VARIABLE",
+      "extravars_value_placeholder": "valor",
+      "extravars_remove_aria": "Eliminar variable",
+      "extravars_add": "Añadir variable"
+    },
+    "result_finished_with_status": "Ejecución finalizada — estado {{status}} (rc={{rc}})"
+  },
+  "run_modal": {
+    "title": "Ejecutar \"{{name}}\"",
+    "description_idle": "Elige los grupos y dispositivos contra los que ejecutar el playbook.",
+    "description_running": "Salida de la ejecución en tiempo real.",
+    "groups_section": "Grupos",
+    "devices_section": "Dispositivos",
+    "empty_inventory": "No hay inventario disponible. Crea grupos o dispositivos primero.",
+    "options_section": "OPCIONES",
+    "forks": "Forks",
+    "extravars": "Variables extra",
+    "extravars_key_placeholder": "VARIABLE",
+    "extravars_value_placeholder": "valor",
+    "extravars_add": "Añadir variable",
+    "starting": "Iniciando ejecución…",
+    "running": "Ejecutando…",
+    "cancel": "Cancelar",
+    "run": "Ejecutar",
+    "back": "Volver",
+    "close": "Cerrar",
+    "result_finished_with_status": "Ejecución finalizada — estado {{status}} (rc={{rc}})"
+  },
+  "console": {
+    "headings": {
+      "playbook": "PLAYBOOK",
+      "play": "PLAY",
+      "task": "TAREA",
+      "recap": "RESUMEN"
+    },
+    "runner": {
+      "starting": "iniciando",
+      "ok": "ok",
+      "changed": "changed",
+      "skipping": "skipping",
+      "fatal": "fatal",
+      "msg": "msg",
+      "rc": "rc",
+      "stdout": "stdout",
+      "stderr": "stderr",
+      "failed_excl": "FAILED",
+      "unreachable": "UNREACHABLE",
+      "unreachable_lower": "unreachable",
+      "failed_lower": "failed",
+      "skipped": "skipped",
+      "item": "item",
+      "play_start": "Play iniciado",
+      "task_default": "Tarea",
+      "failed": "failed"
+    }
+  }
+}

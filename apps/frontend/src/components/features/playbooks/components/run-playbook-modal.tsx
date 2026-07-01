@@ -11,6 +11,7 @@ import {
   XCircle,
 } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useDevicesList } from "@/components/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/components/features/inventory/hooks/useGroups"
 import {
@@ -41,28 +42,40 @@ type RunPlaybookModalProps = {
 
 type Tone = "ok" | "changed" | "fail" | "muted" | "info"
 
-function describeEvent(event: RunEvent): { text: string; tone: Tone } | null {
+function describeEvent(
+  event: RunEvent,
+  t: (key: string, options?: Record<string, unknown>) => string
+): { text: string; tone: Tone } | null {
   const host = event.host ? `${event.host}: ` : ""
   switch (event.event) {
     case "playbook_on_play_start":
-      return { text: "▶ Play iniciado", tone: "info" }
+      return { text: `▶ ${t("console.runner.play_start")}`, tone: "info" }
     case "playbook_on_task_start":
-      return { text: `· ${event.task ?? "Tarea"}`, tone: "muted" }
+      return {
+        text: `· ${event.task ?? t("console.runner.task_default")}`,
+        tone: "muted",
+      }
     case "runner_on_ok":
       return event.changed
-        ? { text: `${host}changed`, tone: "changed" }
-        : { text: `${host}ok`, tone: "ok" }
+        ? { text: `${host}${t("console.runner.changed")}`, tone: "changed" }
+        : { text: `${host}${t("console.runner.ok")}`, tone: "ok" }
     case "runner_on_skipped":
-      return { text: `${host}skipped`, tone: "muted" }
+      return {
+        text: `${host}${t("console.runner.skipped")}`,
+        tone: "muted",
+      }
     case "runner_on_failed":
-      return { text: `${host}failed — ${event.msg ?? ""}`.trim(), tone: "fail" }
+      return {
+        text: `${host}${t("console.runner.failed")} — ${event.msg ?? ""}`.trim(),
+        tone: "fail",
+      }
     case "runner_on_unreachable":
       return {
-        text: `${host}unreachable — ${event.msg ?? ""}`.trim(),
+        text: `${host}${t("console.runner.unreachable")} — ${event.msg ?? ""}`.trim(),
         tone: "fail",
       }
     case "playbook_on_stats":
-      return { text: "■ Resumen", tone: "info" }
+      return { text: `■ ${t("console.headings.recap")}`, tone: "info" }
     default:
       return null
   }
@@ -127,6 +140,7 @@ export function RunPlaybookModal({
   onOpenChange,
   playbook,
 }: RunPlaybookModalProps) {
+  const { t } = useTranslation("playbooks")
   const { data: groups = [] } = useGroupsList()
   const { data: devices = [] } = useDevicesList()
   const { phase, events, result, errorMessage, start, reset } = useRunPlaybook()
@@ -183,19 +197,21 @@ export function RunPlaybookModal({
 
   const isRunning = phase === "running"
   const visibleEvents = useMemo(
-    () => events.map(describeEvent).filter((e) => e !== null),
-    [events]
+    () => events.map((e) => describeEvent(e, t)).filter((e) => e !== null),
+    [events, t]
   )
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Ejecutar "{playbook?.name}"</DialogTitle>
+          <DialogTitle>
+            {t("run_modal.title", { name: playbook?.name ?? "" })}
+          </DialogTitle>
           <DialogDescription>
             {phase === "idle"
-              ? "Elige los grupos y dispositivos contra los que ejecutar el playbook."
-              : "Salida de la ejecución en tiempo real."}
+              ? t("run_modal.description_idle")
+              : t("run_modal.description_running")}
           </DialogDescription>
         </DialogHeader>
 
@@ -204,7 +220,7 @@ export function RunPlaybookModal({
             {groups.length > 0 ? (
               <div>
                 <p className="text-muted-foreground mb-1 text-xs font-medium uppercase">
-                  Grupos
+                  {t("run_modal.groups_section")}
                 </p>
                 <ul className="space-y-1">
                   {groups.map((group) => (
@@ -226,7 +242,7 @@ export function RunPlaybookModal({
             {devices.length > 0 ? (
               <div>
                 <p className="text-muted-foreground mb-1 text-xs font-medium uppercase">
-                  Dispositivos
+                  {t("run_modal.devices_section")}
                 </p>
                 <ul className="space-y-1">
                   {devices.map((device) => (
@@ -248,20 +264,19 @@ export function RunPlaybookModal({
             {groups.length === 0 && devices.length === 0 ? (
               <div className="rounded-xl border border-dashed bg-card px-4 py-8 text-center text-sm">
                 <p className="text-muted-foreground">
-                  No hay inventario disponible. Crea grupos o dispositivos
-                  primero.
+                  {t("run_modal.empty_inventory")}
                 </p>
               </div>
             ) : null}
 
             <div className="space-y-3 border-t pt-3">
               <p className="text-muted-foreground text-xs font-medium uppercase">
-                Opciones
+                {t("run_modal.options_section")}
               </p>
 
               <div className="flex items-center gap-3">
                 <Label htmlFor="run-forks" className="w-16 shrink-0 text-sm">
-                  Forks
+                  {t("run_modal.forks")}
                 </Label>
                 <Input
                   id="run-forks"
@@ -278,13 +293,13 @@ export function RunPlaybookModal({
 
               <div className="space-y-2">
                 <p className="text-muted-foreground text-xs font-medium">
-                  Variables extra
+                  {t("run_modal.extravars")}
                 </p>
                 {extravars.map((entry, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: order-stable list
                   <div key={i} className="flex items-center gap-2">
                     <Input
-                      placeholder="VARIABLE"
+                      placeholder={t("run_modal.extravars_key_placeholder")}
                       value={entry.key}
                       onChange={(e) =>
                         setExtravars((prev) =>
@@ -296,7 +311,7 @@ export function RunPlaybookModal({
                       className="font-mono text-xs"
                     />
                     <Input
-                      placeholder="valor"
+                      placeholder={t("run_modal.extravars_value_placeholder")}
                       value={entry.value}
                       onChange={(e) =>
                         setExtravars((prev) =>
@@ -329,7 +344,7 @@ export function RunPlaybookModal({
                   }
                 >
                   <Plus className="size-3" />
-                  Añadir variable
+                  {t("run_modal.extravars_add")}
                 </Button>
               </div>
             </div>
@@ -343,7 +358,7 @@ export function RunPlaybookModal({
               {visibleEvents.length === 0 && isRunning ? (
                 <p className="text-muted-foreground flex items-center gap-2">
                   <Loader2 className="size-3 animate-spin" />
-                  Iniciando ejecución…
+                  {t("run_modal.starting")}
                 </p>
               ) : (
                 visibleEvents.map((line, i) => (
@@ -380,9 +395,10 @@ export function RunPlaybookModal({
                   <AlertTriangle className="size-4 shrink-0" />
                 )}
                 <span>
-                  Ejecución finalizada — estado{" "}
-                  <span className="font-medium">{result.status}</span> (rc=
-                  {result.rc ?? "?"})
+                  {t("run_modal.result_finished_with_status", {
+                    status: result.status,
+                    rc: result.rc ?? "?",
+                  })}
                 </span>
               </div>
             ) : null}
@@ -397,7 +413,7 @@ export function RunPlaybookModal({
                 variant="outline"
                 onClick={() => onOpenChange(false)}
               >
-                Cancelar
+                {t("run_modal.cancel")}
               </Button>
               <Button
                 type="button"
@@ -405,7 +421,7 @@ export function RunPlaybookModal({
                 disabled={selectionCount === 0}
               >
                 <Play className="size-4" />
-                Ejecutar
+                {t("run_modal.run")}
                 {selectionCount > 0 ? (
                   <Badge variant="secondary" className="ml-1">
                     {selectionCount}
@@ -421,7 +437,7 @@ export function RunPlaybookModal({
                 disabled={isRunning}
                 onClick={reset}
               >
-                Volver
+                {t("run_modal.back")}
               </Button>
               <Button
                 type="button"
@@ -432,10 +448,10 @@ export function RunPlaybookModal({
                 {isRunning ? (
                   <>
                     <Loader2 className="size-4 animate-spin" />
-                    Ejecutando…
+                    {t("run_modal.running")}
                   </>
                 ) : (
-                  "Cerrar"
+                  t("run_modal.close")
                 )}
               </Button>
             </>

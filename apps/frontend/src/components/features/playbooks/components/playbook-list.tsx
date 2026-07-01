@@ -7,6 +7,7 @@ type PlaybookListProps = {
   onDelete: (id: string) => void
   onRun: (playbook: Playbook) => void
   deletingId?: string | null
+  locale?: string
 }
 
 export function PlaybookList({
@@ -15,6 +16,7 @@ export function PlaybookList({
   onDelete,
   onRun,
   deletingId = null,
+  locale,
 }: PlaybookListProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -25,6 +27,7 @@ export function PlaybookList({
           onEdit={onEdit}
           onDelete={onDelete}
           onRun={onRun}
+          locale={locale}
           isDeleting={deletingId === playbook.id}
         />
       ))}

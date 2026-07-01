@@ -1,8 +1,12 @@
 ---
 import { PlaybooksPage } from "@/components/features/playbooks"
 import Layout from "@/layouts/Layout.astro"
+import { getServerT } from "@/lib/i18n/server"
+
+const { locale } = Astro.locals
+const t = await getServerT(locale, "playbooks")
 ---
 
-<Layout title="Playbooks">
-  <PlaybooksPage client:load />
+<Layout title={t("page.title")}>
+  <PlaybooksPage client:only="react" />
 </Layout>
