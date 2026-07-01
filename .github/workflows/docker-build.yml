@@ -3,8 +3,9 @@ name: Docker Image CI
 on:
   push:
     branches:
-      - "v*"
       - "main"
+    tags:
+      - "v*"
   workflow_dispatch:
 
 env:
