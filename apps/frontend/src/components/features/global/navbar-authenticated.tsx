@@ -6,6 +6,7 @@ import { SettingsLink } from "@/components/features/global/settings-link"
 import { ThemeToggle } from "@/components/features/global/theme-toggle"
 import { UserNav } from "@/components/features/global/user-nav"
 import { AppProviders } from "@/components/providers/app-providers"
+import { SlidingPillNav } from "@/components/ui/sliding-pill-nav"
 import { orpc } from "@/lib/orpc"
 import { cn } from "@/lib/utils"
 
@@ -19,11 +20,15 @@ export interface NavbarAuthenticatedProps {
 
 function linkClassName(active: boolean) {
   return cn(
-    "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+    "relative z-10 inline-block rounded-lg px-3 py-1.5 text-xs font-medium transition-colors duration-300",
     active
-      ? "bg-secondary text-secondary-foreground shadow-sm"
+      ? "text-secondary-foreground"
       : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
   )
+}
+
+function isNavLinkActive(href: string, currentPath: string) {
+  return href === "/" ? currentPath === "/" : currentPath.startsWith(href)
 }
 
 /**
@@ -69,6 +74,10 @@ function NavbarAuthenticatedInner({
 }: NavbarAuthenticatedProps) {
   const queryClient = useQueryClient()
 
+  const activeNavIndex = navLinks.findIndex(({ href }) =>
+    isNavLinkActive(href, currentPath)
+  )
+
   function handlePrefetch(href: string) {
     return () => prefetchForHref(queryClient, href)
   }
@@ -104,14 +113,17 @@ function NavbarAuthenticatedInner({
         </a>
 
         {/* Desktop: lg+ - show links normally */}
-        <ul className="hidden lg:flex flex-1 items-center justify-center gap-1">
+        <SlidingPillNav
+          activeIndex={activeNavIndex}
+          className="hidden lg:flex flex-1 items-center justify-center gap-1"
+        >
           {navLinks.map(({ href, label }) => {
-            const isActive =
-              href === "/" ? currentPath === "/" : currentPath.startsWith(href)
+            const isActive = isNavLinkActive(href, currentPath)
             return (
               <li key={href}>
                 <a
                   href={href}
+                  data-sliding-pill-item
                   className={linkClassName(isActive)}
                   onMouseEnter={handlePrefetch(href)}
                   onFocus={handlePrefetch(href)}
@@ -121,7 +133,7 @@ function NavbarAuthenticatedInner({
               </li>
             )
           })}
-        </ul>
+        </SlidingPillNav>
 
         {/* Mobile/tablet: < lg - mobile menu */}
         <div className="flex lg:hidden shrink-0 items-center gap-1.5 sm:gap-2">
