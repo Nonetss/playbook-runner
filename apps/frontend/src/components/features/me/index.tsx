@@ -2,11 +2,13 @@ import type { Session, User } from "better-auth"
 import { Calendar, Hash, Mail, ShieldCheck, UserCircle2 } from "lucide-react"
 import type React from "react"
 import { useTranslation } from "react-i18next"
+import { AppProviders } from "@/components/providers/app-providers"
 import { Badge } from "@/components/ui/badge"
 
 type ProfilePageProps = {
   user: User
   session: Session
+  locale?: string
 }
 
 const AVATAR_COLORS = [
@@ -152,7 +154,18 @@ function DetailRow({
   )
 }
 
-export function ProfilePage({ user, session: _session }: ProfilePageProps) {
+// Standalone `client:only` island, so it must sit behind the i18n provider
+// (which gates render until i18next is ready). Without it the island wins the
+// race against the async global init and paints raw keys (e.g. `profile.title`).
+export function ProfilePage({ user, session, locale }: ProfilePageProps) {
+  return (
+    <AppProviders initialLocale={locale}>
+      <ProfilePageInner user={user} session={session} />
+    </AppProviders>
+  )
+}
+
+function ProfilePageInner({ user, session: _session }: ProfilePageProps) {
   return (
     <main className="flex-1 p-6">
       <div className="max-w-2xl mx-auto space-y-4">

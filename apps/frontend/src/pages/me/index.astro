@@ -11,5 +11,5 @@ const t = await getServerT(locale, "account")
 ---
 
 <Layout title={t("profile.title")}>
-  <ProfilePage user={user} session={session} client:only="react" />
+  <ProfilePage user={user} session={session} locale={locale} client:only="react" />
 </Layout>
