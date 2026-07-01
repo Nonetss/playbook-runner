@@ -1,4 +1,5 @@
 import { KeyRound, MoreHorizontal, Trash2 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import type { ApiKeyListItem } from "@/components/features/config/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -20,20 +21,24 @@ type ApiKeyCardProps = {
   apiKey: ApiKeyListItem
   onDelete: (id: string) => void
   isDeleting?: boolean
+  locale?: string
 }
-
-const dateFormatter = new Intl.DateTimeFormat("es-ES", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-})
 
 export function ApiKeyCard({
   apiKey,
   onDelete,
   isDeleting = false,
+  locale = "es-ES",
 }: ApiKeyCardProps) {
-  const label = apiKey.name?.trim() || "API key sin nombre"
+  const { t } = useTranslation("config")
+  const { t: tCommon } = useTranslation("common")
+  const dateFormatter = new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  })
+
+  const label = apiKey.name?.trim() || t("unnamed")
   const createdAt = dateFormatter.format(new Date(apiKey.createdAt))
   const expiresAt = apiKey.expiresAt
     ? dateFormatter.format(new Date(apiKey.expiresAt))
@@ -63,7 +68,10 @@ export function ApiKeyCard({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label={`Acciones para ${label}`}
+                aria-label={
+                  t("card.menu_aria", { defaultValue: "" }) ||
+                  `${t("actions_aria")} ${label}`
+                }
                 disabled={isDeleting}
               >
                 <MoreHorizontal className="size-4" />
@@ -75,7 +83,7 @@ export function ApiKeyCard({
                 onClick={() => onDelete(apiKey.id)}
               >
                 <Trash2 className="size-4" />
-                Eliminar
+                {tCommon("actions.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -85,22 +93,22 @@ export function ApiKeyCard({
       <CardContent className="min-w-0 space-y-3 overflow-hidden px-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="font-mono text-xs">
-            API key
+            {t("default_label")}
           </Badge>
-          {apiKey.enabled ? (
-            <Badge variant="outline" className="text-xs">
-              Activa
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="text-xs">
-              Desactivada
-            </Badge>
-          )}
+          <Badge variant="outline" className="text-xs">
+            {apiKey.enabled
+              ? tCommon("status.enabled")
+              : tCommon("status.disabled")}
+          </Badge>
         </div>
 
         <div className="text-muted-foreground space-y-0.5 text-xs">
-          <p>Creada el {createdAt}</p>
-          {expiresAt ? <p>Expira el {expiresAt}</p> : <p>Sin caducidad</p>}
+          <p>{t("created_at", { date: createdAt })}</p>
+          {expiresAt ? (
+            <p>{t("card.expires_on", { date: expiresAt })}</p>
+          ) : (
+            <p>{t("card.no_expiry")}</p>
+          )}
         </div>
       </CardContent>
     </Card>

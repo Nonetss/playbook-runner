@@ -1,8 +1,12 @@
 ---
-import { ConfigPage } from "@/components/features/config"
+import { ConfigPage } from "@/components/features/config/components/config-page"
 import Layout from "@/layouts/Layout.astro"
+import { getServerT } from "@/lib/i18n/server"
+
+const { locale } = Astro.locals
+const t = await getServerT(locale, "config")
 ---
 
-<Layout title="Configuración">
+<Layout title={t("page.title")}>
   <ConfigPage client:only="react" />
 </Layout>

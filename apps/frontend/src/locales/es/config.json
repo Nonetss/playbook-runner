@@ -1,0 +1,59 @@
+{
+  "page": {
+    "title": "Configuración",
+    "subtitle": "Claves API para acceso programático.",
+    "create": "Nueva API key"
+  },
+  "api_keys": {
+    "docs_prefix": "En",
+    "docs_suffix": "puedes consultar la documentación interactiva de los endpoints de la API.",
+    "docs_open_aria": "Abrir documentación de la API",
+    "empty": {
+      "title": "Sin API keys",
+      "description": "Crea tu primera API key para autenticar integraciones externas."
+    },
+    "default_label": "API key",
+    "unnamed": "API key sin nombre",
+    "create": {
+      "title": "Nueva API key",
+      "subtitle": "Genera una nueva clave de acceso para los endpoints de la API.",
+      "name_label": "Nombre",
+      "name_placeholder": "CI pipeline",
+      "expiry_label": "Caducidad",
+      "expiry_placeholder": "Selecciona una caducidad",
+      "expiry_options": {
+        "never": "Sin caducidad",
+        "days_unit": "día",
+        "days_unit_one": "día",
+        "days_unit_other": "días"
+      },
+      "submit": "Crear API key"
+    },
+    "created_dialog": {
+      "title": "API key creada",
+      "description": "Guarda esta clave de forma segura. No podrás volver a verla.",
+      "copy": "Copiar API key",
+      "copied": "API key copiada",
+      "copy_success": "API key copiada al portapapeles",
+      "copy_error": "No se pudo copiar al portapapeles",
+      "warning": "Esta clave otorga el mismo acceso que el usuario que la creó. Mantenla en secreto.",
+      "close": "Cerrar"
+    },
+    "card": {
+      "expires_on": "Expira el {{date}}",
+      "no_expiry": "Sin caducidad",
+      "menu_aria": "Acciones",
+      "delete_aria": "Eliminar API key",
+      "no_expiration": "Sin caducidad"
+    },
+    "delete": {
+      "confirm_title": "Eliminar \"{{label}}\"",
+      "confirm_description": "Cualquier integración que esté usando esta clave dejará de funcionar.",
+      "confirm_label": "Eliminar",
+      "cancel_label": "Cancelar"
+    },
+    "created_at": "Creada el {{date}}",
+    "last_used_at": "Usada por última vez el {{date}}",
+    "actions_aria": "Abrir menú"
+  }
+}

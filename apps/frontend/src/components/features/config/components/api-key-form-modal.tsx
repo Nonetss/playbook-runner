@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { useApiKeyCreate } from "@/components/features/config/hooks/useApiKeys"
 import { ResourceFormModal } from "@/components/shared/resource-form-modal"
 import type { ResourceFormDefinition } from "@/components/shared/resource-form-types"
@@ -10,35 +11,6 @@ export type ApiKeyFormValues = {
 const emptyValues: ApiKeyFormValues = {
   name: "",
   expiresIn: "30",
-}
-
-const EXPIRATION_OPTIONS = [
-  { value: "30", label: "30 días" },
-  { value: "90", label: "90 días" },
-  { value: "180", label: "180 días" },
-  { value: "365", label: "1 año" },
-  { value: "never", label: "Sin caducidad" },
-] as const
-
-const definition: ResourceFormDefinition<ApiKeyFormValues> = {
-  fields: [
-    {
-      name: "name",
-      label: "Nombre",
-      placeholder: "CI pipeline",
-      required: false,
-    },
-    {
-      name: "expiresIn",
-      label: "Caducidad",
-      placeholder: "Selecciona una caducidad",
-      required: true,
-      type: "select",
-      options: EXPIRATION_OPTIONS,
-    },
-  ],
-  defaultValues: emptyValues,
-  valuesFromEntity: () => emptyValues,
 }
 
 export type ApiKeyFormModalProps = {
@@ -57,18 +29,58 @@ export function ApiKeyFormModal({
   onOpenChange,
   onCreated,
 }: ApiKeyFormModalProps) {
+  const { t } = useTranslation("config")
   const createApiKey = useApiKeyCreate()
+
+  type Days = 30 | 90 | 180 | 365
+
+  function daysLabel(days: Days): string {
+    const unit = t("api_keys.create.expiry_options.days_unit", { count: days })
+    return `${days} ${unit}`
+  }
+
+  const EXPIRATION_OPTIONS: { value: string; label: string }[] = [
+    { value: "30", label: daysLabel(30) },
+    { value: "90", label: daysLabel(90) },
+    { value: "180", label: daysLabel(180) },
+    { value: "365", label: daysLabel(365) },
+    {
+      value: "never",
+      label: t("api_keys.create.expiry_options.never"),
+    },
+  ]
+
+  const definition: ResourceFormDefinition<ApiKeyFormValues> = {
+    fields: [
+      {
+        name: "name",
+        label: t("api_keys.create.name_label"),
+        placeholder: t("api_keys.create.name_placeholder"),
+        required: false,
+      },
+      {
+        name: "expiresIn",
+        label: t("api_keys.create.expiry_label"),
+        placeholder: t("api_keys.create.expiry_placeholder"),
+        required: true,
+        type: "select",
+        options: EXPIRATION_OPTIONS,
+      },
+    ],
+    defaultValues: emptyValues,
+    valuesFromEntity: () => emptyValues,
+  }
 
   return (
     <ResourceFormModal<ApiKeyFormValues>
       open={open}
       onOpenChange={onOpenChange}
-      title="Nueva API key"
-      description="Genera una nueva clave de acceso para los endpoints de la API."
+      title={t("api_keys.create.title")}
+      description={t("api_keys.create.subtitle")}
       isEditing={false}
       definition={definition}
       isSubmitting={createApiKey.isPending}
-      submitLabel="Crear API key"
+      submitLabel={t("api_keys.create.submit")}
       formId="api-key-form"
       onSubmit={async (values) => {
         const days = Number.parseInt(values.expiresIn, 10)

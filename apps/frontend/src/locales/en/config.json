@@ -1,0 +1,59 @@
+{
+  "page": {
+    "title": "Settings",
+    "subtitle": "API keys for programmatic access.",
+    "create": "New API key"
+  },
+  "api_keys": {
+    "docs_prefix": "In",
+    "docs_suffix": "you can browse the interactive endpoint documentation.",
+    "docs_open_aria": "Open API documentation",
+    "empty": {
+      "title": "No API keys",
+      "description": "Create your first API key to authenticate external integrations."
+    },
+    "default_label": "API key",
+    "unnamed": "Unnamed API key",
+    "create": {
+      "title": "New API key",
+      "subtitle": "Generate a new access key for the API endpoints.",
+      "name_label": "Name",
+      "name_placeholder": "CI pipeline",
+      "expiry_label": "Expiry",
+      "expiry_placeholder": "Select an expiry",
+      "expiry_options": {
+        "never": "Never",
+        "days_unit": "day",
+        "days_unit_one": "day",
+        "days_unit_other": "days"
+      },
+      "submit": "Create API key"
+    },
+    "created_dialog": {
+      "title": "API key created",
+      "description": "Store this key securely. You won't be able to see it again.",
+      "copy": "Copy API key",
+      "copied": "API key copied",
+      "copy_success": "API key copied to clipboard",
+      "copy_error": "Could not copy to clipboard",
+      "warning": "This key grants the same access as the user who created it. Keep it secret.",
+      "close": "Close"
+    },
+    "card": {
+      "expires_on": "Expires on {{date}}",
+      "no_expiry": "No expiry",
+      "menu_aria": "Actions",
+      "delete_aria": "Delete API key",
+      "no_expiration": "No expiration"
+    },
+    "delete": {
+      "confirm_title": "Delete \"{{label}}\"",
+      "confirm_description": "Any integration using this key will stop working.",
+      "confirm_label": "Delete",
+      "cancel_label": "Cancel"
+    },
+    "created_at": "Created {{date}}",
+    "last_used_at": "Last used {{date}}",
+    "actions_aria": "Open menu"
+  }
+}

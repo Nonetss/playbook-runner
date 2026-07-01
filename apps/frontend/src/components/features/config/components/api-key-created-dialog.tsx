@@ -1,5 +1,6 @@
 import { Check, Copy, KeyRound, ShieldAlert } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -23,6 +24,7 @@ export function ApiKeyCreatedDialog({
   onOpenChange,
   fullKey,
 }: ApiKeyCreatedDialogProps) {
+  const { t } = useTranslation("config")
   const [copied, setCopied] = useState(false)
 
   async function handleCopy() {
@@ -30,10 +32,10 @@ export function ApiKeyCreatedDialog({
     try {
       await navigator.clipboard.writeText(fullKey)
       setCopied(true)
-      notifySuccess("API key copiada al portapapeles")
+      notifySuccess(t("api_keys.created_dialog.copy_success"))
       window.setTimeout(() => setCopied(false), 2000)
     } catch {
-      notifyError("No se pudo copiar al portapapeles")
+      notifyError(t("api_keys.created_dialog.copy_error"))
     }
   }
 
@@ -51,10 +53,9 @@ export function ApiKeyCreatedDialog({
             <KeyRound className="size-4" />
           </div>
           <div className="space-y-1.5">
-            <DialogTitle>API key creada</DialogTitle>
+            <DialogTitle>{t("api_keys.created_dialog.title")}</DialogTitle>
             <DialogDescription>
-              Cópiala y guárdala en un lugar seguro. No volveremos a mostrar el
-              valor completo.
+              {t("api_keys.created_dialog.description")}
             </DialogDescription>
           </div>
         </DialogHeader>
@@ -62,7 +63,7 @@ export function ApiKeyCreatedDialog({
         {fullKey ? (
           <div className="space-y-2">
             <label htmlFor="api-key-value" className="text-sm font-medium">
-              Tu API key
+              {t("api_keys.created_dialog.copy")}
             </label>
             <div className="flex items-stretch gap-2">
               <Input
@@ -77,7 +78,11 @@ export function ApiKeyCreatedDialog({
                 size="icon"
                 className="shrink-0"
                 onClick={handleCopy}
-                aria-label={copied ? "API key copiada" : "Copiar API key"}
+                aria-label={
+                  copied
+                    ? t("api_keys.created_dialog.copied")
+                    : t("api_keys.created_dialog.copy")
+                }
               >
                 {copied ? <Check /> : <Copy />}
               </Button>
@@ -90,15 +95,12 @@ export function ApiKeyCreatedDialog({
           className="text-muted-foreground flex items-start gap-2 text-xs"
         >
           <ShieldAlert className="mt-0.5 size-3.5 shrink-0" />
-          <p>
-            Si pierdes esta clave, tendrás que crear una nueva. No la compartas
-            ni la subas a repositorios públicos.
-          </p>
+          <p>{t("api_keys.created_dialog.warning")}</p>
         </div>
 
         <DialogFooter>
           <Button type="button" onClick={() => onOpenChange(false)}>
-            Entendido
+            {t("api_keys.created_dialog.close")}
           </Button>
         </DialogFooter>
       </DialogContent>
