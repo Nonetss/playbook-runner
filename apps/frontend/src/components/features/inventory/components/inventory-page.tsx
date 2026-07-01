@@ -209,14 +209,29 @@ function InventoryPageInner() {
       onCreate={tab === "groups" ? openCreateGroup : openCreateDevice}
     >
       <div className="mb-6 flex justify-center">
-        <div className="inline-flex rounded-md border bg-card p-1">
+        <div
+          className="relative inline-grid grid-cols-2 rounded-md border bg-card p-1"
+          role="tablist"
+          aria-label="Sección del inventario"
+        >
+          <span
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute top-1 bottom-1 left-1 rounded-sm bg-primary shadow-sm",
+              "motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.34,1.2,0.64,1)]",
+              tab === "devices" && "motion-safe:translate-x-full"
+            )}
+            style={{ width: "calc((100% - 0.5rem) / 2)" }}
+          />
           <button
             type="button"
+            role="tab"
+            aria-selected={tab === "groups"}
             onClick={() => setTab("groups")}
             className={cn(
-              "inline-flex items-center gap-2 rounded-sm px-3 py-1.5 text-sm font-medium transition-colors",
+              "relative z-10 inline-flex items-center justify-center gap-2 rounded-sm px-16 py-1.5 text-sm font-medium transition-colors duration-300",
               tab === "groups"
-                ? "bg-primary text-primary-foreground"
+                ? "text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
@@ -225,11 +240,13 @@ function InventoryPageInner() {
           </button>
           <button
             type="button"
+            role="tab"
+            aria-selected={tab === "devices"}
             onClick={() => setTab("devices")}
             className={cn(
-              "inline-flex items-center gap-2 rounded-sm px-3 py-1.5 text-sm font-medium transition-colors",
+              "relative z-10 inline-flex items-center justify-center gap-2 rounded-sm px-16 py-1.5 text-sm font-medium transition-colors duration-300",
               tab === "devices"
-                ? "bg-primary text-primary-foreground"
+                ? "text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >
@@ -239,90 +256,95 @@ function InventoryPageInner() {
         </div>
       </div>
 
-      {tab === "groups" ? (
-        <>
-          <GroupFormModal
-            open={groupModalOpen}
-            onOpenChange={handleGroupModalOpenChange}
-            group={editingGroup}
-          />
-          <ResourceListState
-            isPending={groupsPending}
-            isError={groupsError}
-            onRetry={() => refetchGroups()}
-            items={groups}
-            empty={{
-              title: "Sin grupos",
-              description:
-                "Crea tu primer grupo para empezar a organizar dispositivos.",
-              ctaLabel: "Nuevo grupo",
-              onCta: openCreateGroup,
-              icon: <Folder className="size-5" />,
-            }}
-          >
-            {(items) => (
-              <GroupList
-                groups={items}
-                devicesByGroup={devicesByGroup}
-                onEdit={openEditGroup}
-                onDelete={handleDeleteGroup}
-                onManageDevices={openManageGroupDevices}
-                deletingId={
-                  deleteGroup.isPending
-                    ? (deleteGroup.variables?.id ?? null)
-                    : null
-                }
-              />
-            )}
-          </ResourceListState>
-        </>
-      ) : (
-        <>
-          <DeviceFormModal
-            open={deviceModalOpen}
-            onOpenChange={handleDeviceModalOpenChange}
-            device={editingDevice}
-          />
-          <PingDeviceModal
-            open={!!pingDevice}
-            onOpenChange={(open) => {
-              if (!open) setPingDevice(null)
-            }}
-            device={pingDevice}
-          />
-          <ResourceListState
-            isPending={devicesPending}
-            isError={devicesError}
-            onRetry={() => refetchDevices()}
-            items={devices}
-            empty={{
-              title: "Sin dispositivos",
-              description:
-                "Añade tu primer dispositivo para empezar a gestionar el inventario.",
-              ctaLabel: "Nuevo dispositivo",
-              onCta: openCreateDevice,
-              icon: <Server className="size-5" />,
-            }}
-          >
-            {(items) => (
-              <DeviceList
-                devices={items}
-                groupsByDevice={groupsByDevice}
-                credentialsById={credentialsById}
-                onEdit={openEditDevice}
-                onDelete={handleDeleteDevice}
-                onManageGroups={openManageDeviceGroups}
-                onPing={openPingDevice}
-                deletingId={
-                  deleteDevice.isPending
-                    ? (deleteDevice.variables?.id ?? null)
-                    : null
-                }
-              />
-            )}
-          </ResourceListState>
-        </>
-      )}
+      <div
+        key={tab}
+        className="motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-300"
+      >
+        {tab === "groups" ? (
+          <>
+            <GroupFormModal
+              open={groupModalOpen}
+              onOpenChange={handleGroupModalOpenChange}
+              group={editingGroup}
+            />
+            <ResourceListState
+              isPending={groupsPending}
+              isError={groupsError}
+              onRetry={() => refetchGroups()}
+              items={groups}
+              empty={{
+                title: "Sin grupos",
+                description:
+                  "Crea tu primer grupo para empezar a organizar dispositivos.",
+                ctaLabel: "Nuevo grupo",
+                onCta: openCreateGroup,
+                icon: <Folder className="size-5" />,
+              }}
+            >
+              {(items) => (
+                <GroupList
+                  groups={items}
+                  devicesByGroup={devicesByGroup}
+                  onEdit={openEditGroup}
+                  onDelete={handleDeleteGroup}
+                  onManageDevices={openManageGroupDevices}
+                  deletingId={
+                    deleteGroup.isPending
+                      ? (deleteGroup.variables?.id ?? null)
+                      : null
+                  }
+                />
+              )}
+            </ResourceListState>
+          </>
+        ) : (
+          <>
+            <DeviceFormModal
+              open={deviceModalOpen}
+              onOpenChange={handleDeviceModalOpenChange}
+              device={editingDevice}
+            />
+            <PingDeviceModal
+              open={!!pingDevice}
+              onOpenChange={(open) => {
+                if (!open) setPingDevice(null)
+              }}
+              device={pingDevice}
+            />
+            <ResourceListState
+              isPending={devicesPending}
+              isError={devicesError}
+              onRetry={() => refetchDevices()}
+              items={devices}
+              empty={{
+                title: "Sin dispositivos",
+                description:
+                  "Añade tu primer dispositivo para empezar a gestionar el inventario.",
+                ctaLabel: "Nuevo dispositivo",
+                onCta: openCreateDevice,
+                icon: <Server className="size-5" />,
+              }}
+            >
+              {(items) => (
+                <DeviceList
+                  devices={items}
+                  groupsByDevice={groupsByDevice}
+                  credentialsById={credentialsById}
+                  onEdit={openEditDevice}
+                  onDelete={handleDeleteDevice}
+                  onManageGroups={openManageDeviceGroups}
+                  onPing={openPingDevice}
+                  deletingId={
+                    deleteDevice.isPending
+                      ? (deleteDevice.variables?.id ?? null)
+                      : null
+                  }
+                />
+              )}
+            </ResourceListState>
+          </>
+        )}
+      </div>
 
       {relationsTarget ? (
         <RelationsDialog
