@@ -30,6 +30,10 @@ const resolveOutputSchema = z.object({
   hosts: z.array(hostSchema),
 })
 
+const resolveHostsOutputSchema = z.object({
+  hosts: z.array(hostSchema),
+})
+
 export const runRouter = {
   resolve: protectedProcedure
     .route({
@@ -49,6 +53,37 @@ export const runRouter = {
     .handler(async ({ input }) => {
       try {
         return await runHandler.resolveRun(input.playbookId, input.inventory)
+      } catch (err) {
+        if (err instanceof ResolveRunNotFoundError) {
+          throw new ORPCError("NOT_FOUND", { message: err.message })
+        }
+        if (err instanceof ResolveRunCredentiallessError) {
+          throw new ORPCError("PRECONDITION_FAILED", { message: err.message })
+        }
+        if (err instanceof ResolveRunValidationError) {
+          throw new ORPCError("BAD_REQUEST", { message: err.message })
+        }
+        throw err
+      }
+    }),
+
+  resolveHosts: protectedProcedure
+    .route({
+      summary: "Resolve hosts for an inventory selection",
+      description:
+        "Resolves an inventory selection (devices and/or groups) into a de-duplicated list of hosts with credentials, without requiring a playbook. Group selections are expanded to devices via the device-group relation. Used by ad-hoc command execution.",
+      tags: ["Run"],
+      method: "POST",
+    })
+    .input(
+      z.object({
+        inventory: z.array(inventorySelectionSchema).min(1),
+      })
+    )
+    .output(resolveHostsOutputSchema)
+    .handler(async ({ input }) => {
+      try {
+        return { hosts: await runHandler.resolveHosts(input.inventory) }
       } catch (err) {
         if (err instanceof ResolveRunNotFoundError) {
           throw new ORPCError("NOT_FOUND", { message: err.message })

@@ -58,87 +58,20 @@ export const runHandler = {
       throw new ResolveRunNotFoundError(`Playbook ${playbookId} not found`)
     }
 
-    const directDeviceIds = inventory
-      .filter((sel) => sel.type === "device")
-      .map((sel) => sel.id)
-    const groupIds = inventory
-      .filter((sel) => sel.type === "group")
-      .map((sel) => sel.id)
-
-    let groupDeviceIds: string[] = []
-    if (groupIds.length > 0) {
-      const rows = await db
-        .select({ deviceId: inventoryDeviceGroups.deviceId })
-        .from(inventoryDeviceGroups)
-        .where(inArray(inventoryDeviceGroups.groupId, groupIds))
-      groupDeviceIds = rows.map((r) => r.deviceId)
-    }
-
-    const deviceIds = Array.from(
-      new Set([...directDeviceIds, ...groupDeviceIds])
-    )
-    if (deviceIds.length === 0) {
-      throw new ResolveRunValidationError(
-        "Selection produced no devices to run against"
-      )
-    }
-
-    const rows = await db
-      .select({
-        deviceId: inventoryDevices.id,
-        deviceName: inventoryDevices.name,
-        ipAddress: inventoryDevices.ipAddress,
-        portSSH: inventoryDevices.portSSH,
-        credentialId: inventoryDevices.credentialId,
-        username: credentials.username,
-        privateKey: credentials.privateKey,
-      })
-      .from(inventoryDevices)
-      .leftJoin(credentials, eq(credentials.id, inventoryDevices.credentialId))
-      .where(inArray(inventoryDevices.id, deviceIds))
-
-    if (rows.length !== deviceIds.length) {
-      const found = new Set(rows.map((r) => r.deviceId))
-      const missing = deviceIds.filter((id) => !found.has(id))
-      throw new ResolveRunValidationError(
-        `Unknown device(s) in selection: ${missing.join(", ")}`
-      )
-    }
-
-    const credentialless: string[] = []
-    const hosts: ResolvedRunHost[] = rows.map((r) => {
-      if (!r.credentialId || !r.username || !r.privateKey) {
-        credentialless.push(r.deviceName)
-        return {
-          name: r.deviceName,
-          address: cidrToAddress(r.ipAddress),
-          port: r.portSSH ?? undefined,
-          username: "",
-          privateKey: "",
-          connection: "ssh" as const,
-        }
-      }
-      return {
-        name: r.deviceName,
-        address: cidrToAddress(r.ipAddress),
-        port: r.portSSH ?? undefined,
-        username: r.username,
-        privateKey: r.privateKey,
-        connection: "ssh" as const,
-      }
-    })
-
-    if (credentialless.length > 0) {
-      throw new ResolveRunCredentiallessError(
-        `Device(s) without a credential cannot be run against: ${credentialless.join(", ")}`
-      )
-    }
+    const hosts = await resolveHosts(inventory)
 
     return {
       playbook: { name: playbook.name, content: playbook.content },
       hosts,
     }
   },
+
+  /**
+   * Resolve an inventory selection (devices + groups) into a de-duplicated
+   * list of hosts with credentials. Shared between `resolveRun` (which combines
+   * it with a playbook) and the playbook-less `resolveHosts` oRPC procedure.
+   */
+  resolveHosts,
 
   /**
    * Resolve a single device's connection details for diagnostic-style runs
@@ -180,6 +113,93 @@ export const runHandler = {
       connection: "ssh" as const,
     }
   },
+}
+
+/**
+ * Resolve an inventory selection into a de-duplicated list of hosts with
+ * credentials. Expands group entries to their member devices, joins the
+ * device's credential, and fails fast on missing credentials or unknown
+ * device ids. Shared between `resolveRun` (which adds a playbook on top) and
+ * the playbook-less `run.resolveHosts` oRPC procedure.
+ */
+async function resolveHosts(
+  inventory: RunInventorySelection[]
+): Promise<ResolvedRunHost[]> {
+  const directDeviceIds = inventory
+    .filter((sel) => sel.type === "device")
+    .map((sel) => sel.id)
+  const groupIds = inventory
+    .filter((sel) => sel.type === "group")
+    .map((sel) => sel.id)
+
+  let groupDeviceIds: string[] = []
+  if (groupIds.length > 0) {
+    const rows = await db
+      .select({ deviceId: inventoryDeviceGroups.deviceId })
+      .from(inventoryDeviceGroups)
+      .where(inArray(inventoryDeviceGroups.groupId, groupIds))
+    groupDeviceIds = rows.map((r) => r.deviceId)
+  }
+
+  const deviceIds = Array.from(new Set([...directDeviceIds, ...groupDeviceIds]))
+  if (deviceIds.length === 0) {
+    throw new ResolveRunValidationError(
+      "Selection produced no devices to run against"
+    )
+  }
+
+  const rows = await db
+    .select({
+      deviceId: inventoryDevices.id,
+      deviceName: inventoryDevices.name,
+      ipAddress: inventoryDevices.ipAddress,
+      portSSH: inventoryDevices.portSSH,
+      credentialId: inventoryDevices.credentialId,
+      username: credentials.username,
+      privateKey: credentials.privateKey,
+    })
+    .from(inventoryDevices)
+    .leftJoin(credentials, eq(credentials.id, inventoryDevices.credentialId))
+    .where(inArray(inventoryDevices.id, deviceIds))
+
+  if (rows.length !== deviceIds.length) {
+    const found = new Set(rows.map((r) => r.deviceId))
+    const missing = deviceIds.filter((id) => !found.has(id))
+    throw new ResolveRunValidationError(
+      `Unknown device(s) in selection: ${missing.join(", ")}`
+    )
+  }
+
+  const credentialless: string[] = []
+  const hosts: ResolvedRunHost[] = rows.map((r) => {
+    if (!r.credentialId || !r.username || !r.privateKey) {
+      credentialless.push(r.deviceName)
+      return {
+        name: r.deviceName,
+        address: cidrToAddress(r.ipAddress),
+        port: r.portSSH ?? undefined,
+        username: "",
+        privateKey: "",
+        connection: "ssh" as const,
+      }
+    }
+    return {
+      name: r.deviceName,
+      address: cidrToAddress(r.ipAddress),
+      port: r.portSSH ?? undefined,
+      username: r.username,
+      privateKey: r.privateKey,
+      connection: "ssh" as const,
+    }
+  })
+
+  if (credentialless.length > 0) {
+    throw new ResolveRunCredentiallessError(
+      `Device(s) without a credential cannot be run against: ${credentialless.join(", ")}`
+    )
+  }
+
+  return hosts
 }
 
 export class ResolveRunNotFoundError extends Error {
