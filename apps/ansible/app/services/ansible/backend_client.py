@@ -30,6 +30,10 @@ class ResolvedRunBundle(BaseModel):
     hosts: list[ResolvedHost]
 
 
+class ResolvedHosts(BaseModel):
+    hosts: list[ResolvedHost] 
+
+
 class ResolverNotFoundError(Exception):
     """El playbook no existe."""
 
@@ -93,6 +97,27 @@ async def resolve_device(
         cookie_header=cookie_header,
         response_model=ResolvedHost,
     )
+
+
+async def resolve_hosts(
+    *,
+    cookie_header: str,
+    inventory: list[dict[str, str]],
+) -> list[ResolvedHost]:
+    """Llama al procedimiento ``run.resolveHosts`` del backend.
+
+    Igual que ``resolve_run`` pero sin requerir un ``playbookId``: recibe una
+    selección de inventario (devices y/o grupos) y devuelve la lista de hosts
+    con credenciales. Usado por el endpoint ad-hoc ``/command``.
+    """
+    body = {"inventory": inventory}
+    response = await _post_resolver(
+        path=settings.backend_resolve_hosts_path,
+        body=body,
+        cookie_header=cookie_header,
+        response_model=ResolvedHosts,
+    )
+    return response.hosts
 
 
 async def _post_resolver[T](

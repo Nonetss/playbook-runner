@@ -58,15 +58,34 @@ class AnsibleRunnerConfig(BaseModel):
     finished_callback: FinishedCallback | None = None
     cancel_callback: CancelCallback | None = None
 
+    # Ad-hoc mode (no playbook): ansible-runner accepts ``host_pattern``,
+    # ``module`` and ``module_args`` directly. When any of these are set,
+    # ``run_kwargs`` switches to ad-hoc mode and drops the ``playbook`` key.
+    host_pattern: str | None = None
+    module: str | None = None
+    module_args: str | None = None
+
     def run_kwargs(self) -> dict[str, Any]:
-        kwargs: dict[str, Any] = {
-            "playbook": self.playbook,
-            "private_data_dir": self.private_data_dir,
-            "project_dir": self.project_dir,
-            "inventory": self.inventory.root,
-            "forks": self.forks,
-            "extravars": self.extravars,
-        }
+        if self.module:
+            kwargs: dict[str, Any] = {
+                "host_pattern": self.host_pattern or "all",
+                "module": self.module,
+                "module_args": self.module_args or "",
+                "private_data_dir": self.private_data_dir,
+                "project_dir": self.project_dir,
+                "inventory": self.inventory.root,
+                "forks": self.forks,
+                "extravars": self.extravars,
+            }
+        else:
+            kwargs = {
+                "playbook": self.playbook,
+                "private_data_dir": self.private_data_dir,
+                "project_dir": self.project_dir,
+                "inventory": self.inventory.root,
+                "forks": self.forks,
+                "extravars": self.extravars,
+            }
         # Solo pasamos opcionales que tengan valor, para no pisar los
         # comportamientos por defecto de ansible-runner con ``None``/``""``.
         if self.ssh_key:

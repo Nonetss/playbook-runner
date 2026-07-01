@@ -28,6 +28,21 @@ from app.services.ansible.runner import HostVars, Inventory
 
 
 @dataclass
+class MaterializedHosts:
+    """Resultado de la materialización de hosts (sin playbook).
+
+    Atributos:
+        run_dir: directorio temporal del run (a eliminar al terminar).
+        key_path_map: mapping device name -> ruta del fichero con la clave.
+        inventory: inventario ya listo para ``ansible_runner.run``.
+    """
+
+    run_dir: Path
+    key_path_map: dict[str, Path]
+    inventory: Inventory
+
+
+@dataclass
 class MaterializedRun:
     """Resultado de la materialización.
 
@@ -85,38 +100,58 @@ def _build_inventory(hosts: Iterable[Any], keys: dict[str, Path]) -> Inventory:
     return Inventory({"all": {"hosts": hosts_map}})
 
 
-def materialize(bundle: ResolvedRunBundle) -> MaterializedRun:
-    """Materializa el bundle en ficheros y devuelve un ``MaterializedRun``."""
+def _new_run_dir(label: str) -> Path:
     scratch = Path(settings.run_scratch_dir)
     scratch.mkdir(parents=True, exist_ok=True)
+    safe_label = label.replace("/", "_").replace(" ", "_") or "run"
+    run_dir = scratch / f"{safe_label}-{uuid.uuid4().hex[:12]}"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    return run_dir
 
-    run_id = uuid.uuid4().hex[:12]
-    # El contenido del playbook puede contener ``/`` (multidoc YAML); para
-    # evitar colisiones/paths raros usamos un hash del nombre + UUID.
-    safe_name = bundle.playbook.name.replace("/", "_").replace(" ", "_") or "playbook"
-    run_dir = scratch / f"{safe_name}-{run_id}"
+
+def materialize_hosts(hosts: Iterable[Any], label: str) -> MaterializedHosts:
+    """Materializa los hosts (claves + inventario) sin playbook.
+
+    Usado por flujos ad-hoc (``/command``) que ejecutan un módulo Ansible sobre
+    una selección de hosts sin pasar por un playbook almacenado.
+    """
+    run_dir = _new_run_dir(label)
     key_dir = run_dir / "keys"
 
-    run_dir.mkdir(parents=True, exist_ok=True)
-
-    playbook_path = run_dir / f"{safe_name}-{_short_hash(bundle.playbook.content)}.yml"
-    playbook_path.write_text(bundle.playbook.content, encoding="utf-8")
-
+    hosts_list = list(hosts)
     keys: dict[str, Path] = {}
-    for host in bundle.hosts:
+    for host in hosts_list:
         keys[host.name] = _write_key_file(key_dir, host.name, host.privateKey)
 
-    inventory = _build_inventory(bundle.hosts, keys)
+    inventory = _build_inventory(hosts_list, keys)
 
-    return MaterializedRun(
+    return MaterializedHosts(
         run_dir=run_dir,
-        playbook_path=playbook_path,
         key_path_map=keys,
         inventory=inventory,
     )
 
 
-def cleanup(materialized: MaterializedRun) -> None:
+def materialize(bundle: ResolvedRunBundle) -> MaterializedRun:
+    """Materializa el bundle en ficheros y devuelve un ``MaterializedRun``."""
+    safe_name = bundle.playbook.name.replace("/", "_").replace(" ", "_") or "playbook"
+    materialized_hosts = materialize_hosts(bundle.hosts, safe_name)
+
+    playbook_path = (
+        materialized_hosts.run_dir
+        / f"{safe_name}-{_short_hash(bundle.playbook.content)}.yml"
+    )
+    playbook_path.write_text(bundle.playbook.content, encoding="utf-8")
+
+    return MaterializedRun(
+        run_dir=materialized_hosts.run_dir,
+        playbook_path=playbook_path,
+        key_path_map=materialized_hosts.key_path_map,
+        inventory=materialized_hosts.inventory,
+    )
+
+
+def cleanup(materialized: MaterializedHosts | MaterializedRun) -> None:
     """Borra el directorio temporal de un run.
 
     Se llama desde un ``finally`` tanto en éxito como en error para que las
