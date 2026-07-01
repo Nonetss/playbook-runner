@@ -1,0 +1,60 @@
+{
+  "page": {
+    "title": "Jobs",
+    "subtitle": "Schedule and run automations against your inventory.",
+    "create": "New job"
+  },
+  "empty": {
+    "title": "No jobs",
+    "description": "Create your first job to schedule a playbook run."
+  },
+  "delete": {
+    "confirm_title": "Delete \"{{label}}\"",
+    "confirm_description": "This action will delete the job and its execution history. It cannot be undone.",
+    "error": "Could not delete the job"
+  },
+  "toggle_error": "Could not change the job state",
+  "form": {
+    "back_aria": "Back",
+    "create_title": "New job",
+    "edit_title": "Edit job",
+    "create_subtitle": "Configure a job to schedule a playbook run.",
+    "edit_subtitle": "Update this job's configuration.",
+    "loading": "Loading job...",
+    "load_error": "Could not load the job.",
+    "back_to_jobs": "Back to jobs",
+    "info_section": "INFORMATION",
+    "name_label": "Name",
+    "name_placeholder": "daily-backup",
+    "description_label": "Description",
+    "description_placeholder": "Daily backup of production servers",
+    "active": "Job active",
+    "inactive": "Job disabled",
+    "playbook_section": "PLAYBOOK",
+    "playbook_label": "Playbook to run",
+    "playbook_placeholder": "No playbook selected",
+    "inventory_section": "INVENTORY",
+    "inventory_selected": "{{count}} element selected",
+    "inventory_selected_other": "{{count}} elements selected",
+    "no_inventory": "No groups or devices. Create inventory first.",
+    "groups_label": "Groups",
+    "devices_label": "Devices",
+    "schedule_section": "SCHEDULE",
+    "cron_label": "Cron expression",
+    "cron_optional": "(optional)",
+    "cron_hint": "Leave empty to run manually. Example: <code>0 2 * * *</code> (every day at 2:00 AM).",
+    "options_section": "RUN OPTIONS",
+    "forks_label": "Forks",
+    "extravars_label": "Extra variables",
+    "extravars_add": "Add",
+    "extravars_key_placeholder": "VARIABLE",
+    "extravars_value_placeholder": "value",
+    "extravars_remove_aria": "Remove variable",
+    "no_extravars": "No extra variables.",
+    "cancel": "Cancel",
+    "create": "Create job",
+    "save_changes": "Save changes",
+    "saving": "Saving...",
+    "save_error": "Could not save the job."
+  }
+}

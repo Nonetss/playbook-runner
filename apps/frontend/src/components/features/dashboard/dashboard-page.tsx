@@ -8,6 +8,7 @@ import {
   Server,
   Users,
 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { useCredentialsList } from "@/components/features/credentials/hooks/useCredentials"
 import { useDevicesList } from "@/components/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/components/features/inventory/hooks/useGroups"
@@ -54,6 +55,7 @@ function StatCard({
 }
 
 function JobRow({ job, playbookName }: { job: Job; playbookName?: string }) {
+  const { t } = useTranslation("dashboard")
   return (
     <a
       href={`/jobs/${job.id}`}
@@ -66,7 +68,7 @@ function JobRow({ job, playbookName }: { job: Job; playbookName?: string }) {
         <div className="min-w-0">
           <p className="truncate text-sm font-medium">{job.name}</p>
           <p className="truncate text-xs text-muted-foreground">
-            {playbookName ?? "Sin playbook"}
+            {playbookName ?? t("job_row.no_playbook")}
           </p>
         </div>
       </div>
@@ -85,14 +87,14 @@ function JobRow({ job, playbookName }: { job: Job; playbookName?: string }) {
             variant="outline"
             className="hidden text-xs text-muted-foreground sm:flex"
           >
-            Manual
+            {t("job_row.manual")}
           </Badge>
         )}
         <Badge
           variant={job.enabled ? "default" : "outline"}
           className="text-xs"
         >
-          {job.enabled ? "Activo" : "Inactivo"}
+          {job.enabled ? t("job_row.active") : t("job_row.inactive")}
         </Badge>
         <ChevronRight className="size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
       </div>
@@ -103,6 +105,7 @@ function JobRow({ job, playbookName }: { job: Job; playbookName?: string }) {
 function DashboardPageInner() {
   const { data: session } = authClient.useSession()
   const user = session?.user
+  const { t } = useTranslation("dashboard")
 
   const { data: jobs = [], isPending: jobsPending } = useJobsList()
   const { data: playbooks = [], isPending: playbooksPending } =
@@ -130,16 +133,18 @@ function DashboardPageInner() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Bienvenido{user?.name ? `, ${user.name}` : ""}
+            {t("page.title", {
+              name: user?.name ? `, ${user.name}` : "",
+            })}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Resumen de tu entorno de automatización
+            {t("page.subtitle")}
           </p>
         </div>
         <Button asChild size="sm" className="shrink-0">
           <a href="/jobs/new">
             <Plus className="size-4" />
-            Nuevo job
+            {t("page.new_job_cta")}
           </a>
         </Button>
       </div>
@@ -148,35 +153,35 @@ function DashboardPageInner() {
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <StatCard
           icon={BriefcaseIcon}
-          title="Jobs"
+          title={t("stats.jobs")}
           value={isPending ? "—" : jobs.length}
           sub={
             isPending
               ? undefined
-              : `${enabledJobs} activo${enabledJobs !== 1 ? "s" : ""} · ${scheduledJobs} programado${scheduledJobs !== 1 ? "s" : ""}`
+              : `${enabledJobs} ${t("stats.active", { count: enabledJobs })} · ${scheduledJobs} ${t("stats.scheduled", { count: scheduledJobs })}`
           }
           href="/jobs"
         />
         <StatCard
           icon={FileCode2}
-          title="Playbooks"
+          title={t("stats.playbooks")}
           value={isPending ? "—" : playbooks.length}
           href="/playbooks"
         />
         <StatCard
           icon={Server}
-          title="Dispositivos"
+          title={t("stats.devices")}
           value={isPending ? "—" : devices.length}
           sub={
             isPending
               ? undefined
-              : `${groups.length} grupo${groups.length !== 1 ? "s" : ""}`
+              : `${groups.length} ${t("stats.groups_label", { count: groups.length })}`
           }
           href="/inventory"
         />
         <StatCard
           icon={KeyRound}
-          title="Credenciales"
+          title={t("stats.credentials")}
           value={isPending ? "—" : credentials.length}
           href="/credentials"
         />
@@ -185,10 +190,12 @@ function DashboardPageInner() {
       {/* Jobs list */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-base font-semibold">Jobs</CardTitle>
+          <CardTitle className="text-base font-semibold">
+            {t("jobs_section.title")}
+          </CardTitle>
           <Button variant="ghost" size="sm" asChild>
             <a href="/jobs" className="gap-1 text-xs text-muted-foreground">
-              Ver todos
+              {t("jobs_section.view_all")}
               <ChevronRight className="size-3.5" />
             </a>
           </Button>
@@ -209,15 +216,17 @@ function DashboardPageInner() {
                 <BriefcaseIcon className="size-5 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-sm font-medium">No hay jobs todavía</p>
+                <p className="text-sm font-medium">
+                  {t("jobs_section.empty_title")}
+                </p>
                 <p className="text-xs text-muted-foreground">
-                  Crea tu primer job para empezar a automatizar
+                  {t("jobs_section.empty_description")}
                 </p>
               </div>
               <Button asChild size="sm" variant="outline">
                 <a href="/jobs/new">
                   <Plus className="size-4" />
-                  Crear job
+                  {t("jobs_section.create_job")}
                 </a>
               </Button>
             </div>
@@ -243,20 +252,20 @@ function DashboardPageInner() {
           {
             href: "/playbooks/new",
             icon: FileCode2,
-            label: "Nuevo playbook",
-            desc: "Escribe un playbook de Ansible",
+            label: t("quick_links.new_playbook_title"),
+            desc: t("quick_links.new_playbook_desc"),
           },
           {
             href: "/inventory",
             icon: Users,
-            label: "Gestionar inventario",
-            desc: "Dispositivos y grupos",
+            label: t("quick_links.manage_inventory_title"),
+            desc: t("quick_links.manage_inventory_desc"),
           },
           {
             href: "/credentials",
             icon: KeyRound,
-            label: "Credenciales SSH",
-            desc: "Claves para conectar a hosts",
+            label: t("quick_links.ssh_credentials_title"),
+            desc: t("quick_links.ssh_credentials_desc"),
           },
         ].map(({ href, icon: Icon, label, desc }) => (
           <a key={href} href={href} className="group block">

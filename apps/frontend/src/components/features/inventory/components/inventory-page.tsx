@@ -1,5 +1,6 @@
 import { Folder, Server } from "lucide-react"
 import { useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useCredentialsList } from "@/components/features/credentials/hooks/useCredentials"
 import { DeviceFormModal } from "@/components/features/inventory/components/device-form-modal"
 import { DeviceList } from "@/components/features/inventory/components/device-list"
@@ -36,6 +37,8 @@ type RelationsTarget =
   | null
 
 function InventoryPageInner() {
+  const { t } = useTranslation("inventory")
+  const { t: tCommon } = useTranslation("common")
   const [tab, setTab] = useState<Tab>("groups")
 
   const {
@@ -161,10 +164,10 @@ function InventoryPageInner() {
     const group = groups.find((item) => item.id === id)
     const label = group?.name ?? "este grupo"
     const confirmed = await confirm({
-      title: `Eliminar "${label}"`,
-      description: "Esta acción no se puede deshacer.",
-      confirmLabel: "Eliminar",
-      cancelLabel: "Cancelar",
+      title: t("group.delete_confirm_title", { label }),
+      description: t("group.delete_confirm_description"),
+      confirmLabel: tCommon("actions.delete"),
+      cancelLabel: tCommon("actions.cancel"),
       variant: "destructive",
     })
     if (!confirmed) return
@@ -173,7 +176,7 @@ function InventoryPageInner() {
       await deleteGroup.mutateAsync({ id })
     } catch (err) {
       notifyError(
-        "No se pudo eliminar el grupo",
+        t("group.delete_error"),
         err instanceof Error ? err.message : undefined
       )
     }
@@ -183,10 +186,10 @@ function InventoryPageInner() {
     const device = devices.find((item) => item.id === id)
     const label = device?.name ?? "este dispositivo"
     const confirmed = await confirm({
-      title: `Eliminar "${label}"`,
-      description: "Esta acción no se puede deshacer.",
-      confirmLabel: "Eliminar",
-      cancelLabel: "Cancelar",
+      title: t("device.delete_confirm_title", { label }),
+      description: t("device.delete_confirm_description"),
+      confirmLabel: tCommon("actions.delete"),
+      cancelLabel: tCommon("actions.cancel"),
       variant: "destructive",
     })
     if (!confirmed) return
@@ -195,7 +198,7 @@ function InventoryPageInner() {
       await deleteDevice.mutateAsync({ id })
     } catch (err) {
       notifyError(
-        "No se pudo eliminar el dispositivo",
+        t("device.delete_error"),
         err instanceof Error ? err.message : undefined
       )
     }
@@ -203,16 +206,18 @@ function InventoryPageInner() {
 
   return (
     <ResourcePage
-      title="Inventario"
-      description="Gestiona los grupos y dispositivos de tu inventario Ansible."
-      createLabel={tab === "groups" ? "Nuevo grupo" : "Nuevo dispositivo"}
+      title={t("page.title")}
+      description={t("page.subtitle")}
+      createLabel={
+        tab === "groups" ? t("page.create.group") : t("page.create.device")
+      }
       onCreate={tab === "groups" ? openCreateGroup : openCreateDevice}
     >
       <div className="mb-6 flex justify-center">
         <div
           className="relative inline-grid grid-cols-2 rounded-md border bg-card p-1"
           role="tablist"
-          aria-label="Sección del inventario"
+          aria-label={t("page.tabs_aria")}
         >
           <span
             aria-hidden
@@ -236,7 +241,7 @@ function InventoryPageInner() {
             )}
           >
             <Folder className="size-4" />
-            Grupos
+            {t("page.tabs.groups")}
           </button>
           <button
             type="button"
@@ -251,7 +256,7 @@ function InventoryPageInner() {
             )}
           >
             <Server className="size-4" />
-            Dispositivos
+            {t("page.tabs.devices")}
           </button>
         </div>
       </div>
@@ -273,10 +278,9 @@ function InventoryPageInner() {
               onRetry={() => refetchGroups()}
               items={groups}
               empty={{
-                title: "Sin grupos",
-                description:
-                  "Crea tu primer grupo para empezar a organizar dispositivos.",
-                ctaLabel: "Nuevo grupo",
+                title: t("group.empty_title"),
+                description: t("group.empty_description"),
+                ctaLabel: t("page.create.group"),
                 onCta: openCreateGroup,
                 icon: <Folder className="size-5" />,
               }}
@@ -317,10 +321,9 @@ function InventoryPageInner() {
               onRetry={() => refetchDevices()}
               items={devices}
               empty={{
-                title: "Sin dispositivos",
-                description:
-                  "Añade tu primer dispositivo para empezar a gestionar el inventario.",
-                ctaLabel: "Nuevo dispositivo",
+                title: t("device.empty_title"),
+                description: t("device.empty_description"),
+                ctaLabel: t("page.create.device"),
                 onCta: openCreateDevice,
                 icon: <Server className="size-5" />,
               }}

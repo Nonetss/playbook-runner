@@ -1,0 +1,44 @@
+{
+  "page": {
+    "title": "Welcome{{name}}",
+    "subtitle": "Summary of your automation environment",
+    "new_job_cta": "New job"
+  },
+
+  "stats": {
+    "jobs": "Jobs",
+    "playbooks": "Playbooks",
+    "devices": "Devices",
+    "credentials": "Credentials",
+    "active": "active",
+    "active_one": "active",
+    "active_other": "active",
+    "scheduled": "scheduled",
+    "scheduled_one": "scheduled",
+    "scheduled_other": "scheduled",
+    "groups_label": "groups",
+    "groups_label_one": "group",
+    "groups_label_other": "groups"
+  },
+  "jobs_section": {
+    "title": "Jobs",
+    "view_all": "View all",
+    "empty_title": "No jobs yet",
+    "empty_description": "Create your first job to start automating",
+    "create_job": "Create job"
+  },
+  "job_row": {
+    "no_playbook": "No playbook",
+    "manual": "Manual",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "quick_links": {
+    "new_playbook_title": "New playbook",
+    "new_playbook_desc": "Write an Ansible playbook",
+    "manage_inventory_title": "Manage inventory",
+    "manage_inventory_desc": "Devices and groups",
+    "ssh_credentials_title": "SSH credentials",
+    "ssh_credentials_desc": "Keys to connect to hosts"
+  }
+}

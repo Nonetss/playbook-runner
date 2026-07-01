@@ -5,8 +5,8 @@ export type Job = {
   name: string
   description: string | null
   playbookId: string | null
-  inventoryJson: InventoryItem[]
-  extravarsJson: Record<string, string>
+  inventoryJson: InventoryItem[] | null
+  extravarsJson: Record<string, string> | null
   forks: number
   cronExpression: string | null
   enabled: boolean
@@ -24,7 +24,7 @@ export type JobRun = {
   jobId: string | null
   status: JobRunStatus
   trigger: string
-  eventsJson: JobRunEvent[]
+  eventsJson: JobRunEvent[] | null
   error: string | null
   startedAt: Date | string | null
   finishedAt: Date | string | null

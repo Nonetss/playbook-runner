@@ -1,4 +1,5 @@
 import { useMemo } from "react"
+import { useTranslation } from "react-i18next"
 import { useCredentialsList } from "@/components/features/credentials/hooks/useCredentials"
 import {
   useDeviceCreate,
@@ -35,6 +36,7 @@ export function DeviceFormModal({
   onOpenChange,
   device = null,
 }: DeviceFormModalProps) {
+  const { t } = useTranslation("inventory")
   const isEditing = !!device
   const createDevice = useDeviceCreate()
   const updateDevice = useDeviceUpdate()
@@ -52,16 +54,21 @@ export function DeviceFormModal({
 
   const definition: ResourceFormDefinition<DeviceFormValues> = {
     fields: [
-      { name: "name", label: "Nombre", placeholder: "web-01", required: true },
+      {
+        name: "name",
+        label: t("device_form.name_label"),
+        placeholder: t("device_form.name_placeholder"),
+        required: true,
+      },
       {
         name: "ipAddress",
-        label: "Dirección IP",
-        placeholder: "192.168.1.10",
+        label: t("device_form.ip_label"),
+        placeholder: t("device_form.ip_placeholder"),
         required: true,
       },
       {
         name: "portSSH",
-        label: "Puerto SSH",
+        label: t("device_form.ssh_port_label"),
         type: "number",
         placeholder: "22",
         min: 1,
@@ -69,14 +76,14 @@ export function DeviceFormModal({
       },
       {
         name: "description",
-        label: "Descripción",
-        placeholder: "Servidor web principal",
+        label: t("device_form.description_label"),
+        placeholder: t("device_form.description_placeholder"),
       },
       {
         name: "credentialId",
-        label: "Credencial",
+        label: t("device_form.credential_label"),
         type: "select",
-        placeholder: "Sin credencial asignada",
+        placeholder: t("device_form.credential_placeholder"),
         options: credentialOptions,
       },
     ],
@@ -97,18 +104,20 @@ export function DeviceFormModal({
     <ResourceFormModal<DeviceFormValues>
       open={open}
       onOpenChange={onOpenChange}
-      title={isEditing ? "Editar dispositivo" : "Nuevo dispositivo"}
+      title={
+        isEditing ? t("device_form.edit_title") : t("device_form.create_title")
+      }
       description={
         isEditing
-          ? "Actualiza los datos del dispositivo."
-          : "Registra un nuevo dispositivo en tu inventario."
+          ? t("device_form.edit_subtitle")
+          : t("device_form.create_subtitle")
       }
       isEditing={isEditing}
       definition={definition}
       entity={device}
       isSubmitting={mutation.isPending}
-      submitLabel="Crear dispositivo"
-      editingSubmitLabel="Guardar cambios"
+      submitLabel={t("device_form.create")}
+      editingSubmitLabel={t("device_form.save_changes")}
       formId="device-form"
       onSubmit={async (values) => {
         const parsedPort = values.portSSH ? Number(values.portSSH) : NaN

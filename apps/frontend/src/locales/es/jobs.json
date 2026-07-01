@@ -1,0 +1,60 @@
+{
+  "page": {
+    "title": "Jobs",
+    "subtitle": "Programa y ejecuta automatizaciones contra tu inventario.",
+    "create": "Nuevo job"
+  },
+  "empty": {
+    "title": "Sin jobs",
+    "description": "Crea un job para programar la ejecución de un playbook."
+  },
+  "delete": {
+    "confirm_title": "Eliminar \"{{label}}\"",
+    "confirm_description": "Esta acción eliminará el job y su historial de ejecuciones. No se puede deshacer.",
+    "error": "No se pudo eliminar el job"
+  },
+  "toggle_error": "No se pudo cambiar el estado del job",
+  "form": {
+    "back_aria": "Volver",
+    "create_title": "Nuevo job",
+    "edit_title": "Editar job",
+    "create_subtitle": "Configura un job para programar la ejecución de un playbook.",
+    "edit_subtitle": "Actualiza la configuración del job.",
+    "loading": "Cargando job…",
+    "load_error": "No se pudo cargar el job.",
+    "back_to_jobs": "Volver a jobs",
+    "info_section": "INFORMACIÓN",
+    "name_label": "Nombre",
+    "name_placeholder": "backup-diario",
+    "description_label": "Descripción",
+    "description_placeholder": "Backup diario de servidores de producción",
+    "active": "Job activo",
+    "inactive": "Job desactivado",
+    "playbook_section": "PLAYBOOK",
+    "playbook_label": "Playbook a ejecutar",
+    "playbook_placeholder": "Sin playbook seleccionado",
+    "inventory_section": "INVENTARIO",
+    "inventory_selected": "{{count}} elemento seleccionado",
+    "inventory_selected_other": "{{count}} elementos seleccionados",
+    "no_inventory": "No hay grupos ni dispositivos. Crea inventario primero.",
+    "groups_label": "Grupos",
+    "devices_label": "Dispositivos",
+    "schedule_section": "PROGRAMACIÓN",
+    "cron_label": "Expresión cron",
+    "cron_optional": "(opcional)",
+    "cron_hint": "Déjalo vacío para ejecutar solo manualmente. Ejemplo: <code>0 2 * * *</code> (cada día a las 2:00).",
+    "options_section": "OPCIONES DE EJECUCIÓN",
+    "forks_label": "Forks",
+    "extravars_label": "Variables extra",
+    "extravars_add": "Añadir",
+    "extravars_key_placeholder": "VARIABLE",
+    "extravars_value_placeholder": "valor",
+    "extravars_remove_aria": "Eliminar variable",
+    "no_extravars": "Sin variables extra.",
+    "cancel": "Cancelar",
+    "create": "Crear job",
+    "save_changes": "Guardar cambios",
+    "saving": "Guardando…",
+    "save_error": "No se pudo guardar el job."
+  }
+}

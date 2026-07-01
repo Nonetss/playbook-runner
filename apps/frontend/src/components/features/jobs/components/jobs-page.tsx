@@ -1,4 +1,5 @@
 import { BriefcaseIcon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { JobCard } from "@/components/features/jobs/components/job-card"
 import {
   useJobDelete,
@@ -15,6 +16,8 @@ import { useConfirm } from "@/hooks/useConfirm"
 import { notifyError } from "@/lib/toast"
 
 function JobsPageInner() {
+  const { t } = useTranslation("jobs")
+  const { t: tCommon } = useTranslation("common")
   const { data: jobs = [], isPending, isError, refetch } = useJobsList()
   const { data: playbooks = [] } = usePlaybooksList()
   const deleteJob = useJobDelete()
@@ -39,19 +42,17 @@ function JobsPageInner() {
   async function handleRunNow(job: Job) {
     if (!job.playbookId) return
     await runJob.mutateAsync({ id: job.id })
-    // Jump to the detail page so the user can watch the run's output.
     window.location.href = `/jobs/${job.id}`
   }
 
   async function handleDelete(id: string) {
     const job = jobs.find((j) => j.id === id)
-    const label = job?.name ?? "este job"
+    const label = job?.name ?? tCommon("labels.this_job")
     const confirmed = await confirm({
-      title: `Eliminar "${label}"`,
-      description:
-        "Esta acción eliminará el job y su historial de ejecuciones. No se puede deshacer.",
-      confirmLabel: "Eliminar",
-      cancelLabel: "Cancelar",
+      title: t("delete.confirm_title", { label }),
+      description: t("delete.confirm_description"),
+      confirmLabel: tCommon("actions.delete"),
+      cancelLabel: tCommon("actions.cancel"),
       variant: "destructive",
     })
     if (!confirmed) return
@@ -59,7 +60,7 @@ function JobsPageInner() {
       await deleteJob.mutateAsync({ id })
     } catch (err) {
       notifyError(
-        "No se pudo eliminar el job",
+        t("delete.error"),
         err instanceof Error ? err.message : undefined
       )
     }
@@ -70,7 +71,7 @@ function JobsPageInner() {
       await toggleEnabled.mutateAsync({ id, enabled })
     } catch (err) {
       notifyError(
-        "No se pudo cambiar el estado del job",
+        t("toggle_error"),
         err instanceof Error ? err.message : undefined
       )
     }
@@ -85,9 +86,9 @@ function JobsPageInner() {
 
   return (
     <ResourcePage
-      title="Jobs"
-      description="Tareas programadas de playbooks para ejecutarse manual o automáticamente."
-      createLabel="Nuevo job"
+      title={t("page.title")}
+      description={t("page.subtitle")}
+      createLabel={t("page.create")}
       onCreate={goToCreate}
     >
       <ResourceListState
@@ -96,11 +97,10 @@ function JobsPageInner() {
         onRetry={refetch}
         items={jobs}
         empty={{
-          icon: <BriefcaseIcon className="size-6" />,
-          title: "Sin jobs",
-          description:
-            "Crea un job para programar la ejecución de un playbook.",
-          ctaLabel: "Crear job",
+          icon: <BriefcaseIcon className="size-5" />,
+          title: t("empty.title"),
+          description: t("empty.description"),
+          ctaLabel: t("page.create"),
           onCta: goToCreate,
         }}
       >

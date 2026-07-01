@@ -1,0 +1,58 @@
+{
+  "page": {
+    "title": "Inventory",
+    "subtitle": "Manage your Ansible inventory groups and devices.",
+    "tabs": {
+      "groups": "Groups",
+      "devices": "Devices"
+    },
+    "tabs_aria": "Inventory section",
+    "create": {
+      "group": "New group",
+      "device": "New device"
+    }
+  },
+  "group": {
+    "empty_title": "No groups",
+    "empty_description": "Create your first group to start organizing devices.",
+    "delete_confirm_title": "Delete \"{{label}}\"",
+    "delete_confirm_description": "This action cannot be undone.",
+    "delete_error": "Could not delete the group"
+  },
+  "device": {
+    "empty_title": "No devices",
+    "empty_description": "Add your first device to start managing your inventory.",
+    "delete_confirm_title": "Delete \"{{label}}\"",
+    "delete_confirm_description": "This action cannot be undone.",
+    "delete_error": "Could not delete the device"
+  },
+  "group_form": {
+    "create_title": "New group",
+    "edit_title": "Edit group",
+    "create_subtitle": "Create a group to organize your devices.",
+    "edit_subtitle": "Update this inventory group's details.",
+    "name_label": "Name",
+    "name_placeholder": "webservers",
+    "description_label": "Description",
+    "description_placeholder": "Production web servers",
+    "create": "Create group",
+    "save_changes": "Save changes"
+  },
+  "device_form": {
+    "create_title": "New device",
+    "edit_title": "Edit device",
+    "create_subtitle": "Register a new device in your inventory.",
+    "edit_subtitle": "Update this device's details.",
+    "name_label": "Name",
+    "name_placeholder": "web-01",
+    "ip_label": "IP address",
+    "ip_placeholder": "192.168.1.10",
+    "ssh_port_label": "SSH port",
+    "description_label": "Description",
+    "description_placeholder": "Main web server",
+    "credential_label": "Credential",
+    "credential_placeholder": "No credential assigned",
+    "create": "Create device",
+    "save_changes": "Save changes"
+  }
+}

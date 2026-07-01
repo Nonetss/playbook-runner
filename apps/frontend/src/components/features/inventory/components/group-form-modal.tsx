@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import {
   useGroupCreate,
   useGroupUpdate,
@@ -16,30 +17,6 @@ const emptyValues: GroupFormValues = {
   description: "",
 }
 
-const definition: ResourceFormDefinition<GroupFormValues> = {
-  fields: [
-    {
-      name: "name",
-      label: "Nombre",
-      placeholder: "webservers",
-      required: true,
-    },
-    {
-      name: "description",
-      label: "Descripción",
-      placeholder: "Servidores web de producción",
-    },
-  ],
-  defaultValues: emptyValues,
-  valuesFromEntity: (entity) => {
-    const group = entity as InventoryGroup
-    return {
-      name: group.name,
-      description: group.description ?? "",
-    }
-  },
-}
-
 export type GroupFormModalProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -51,27 +28,54 @@ export function GroupFormModal({
   onOpenChange,
   group = null,
 }: GroupFormModalProps) {
+  const { t } = useTranslation("inventory")
   const isEditing = !!group
   const createGroup = useGroupCreate()
   const updateGroup = useGroupUpdate()
   const mutation = isEditing ? updateGroup : createGroup
 
+  const definition: ResourceFormDefinition<GroupFormValues> = {
+    fields: [
+      {
+        name: "name",
+        label: t("group_form.name_label"),
+        placeholder: t("group_form.name_placeholder"),
+        required: true,
+      },
+      {
+        name: "description",
+        label: t("group_form.description_label"),
+        placeholder: t("group_form.description_placeholder"),
+      },
+    ],
+    defaultValues: emptyValues,
+    valuesFromEntity: (entity) => {
+      const group = entity as InventoryGroup
+      return {
+        name: group.name,
+        description: group.description ?? "",
+      }
+    },
+  }
+
   return (
     <ResourceFormModal<GroupFormValues>
       open={open}
       onOpenChange={onOpenChange}
-      title={isEditing ? "Editar grupo" : "Nuevo grupo"}
+      title={
+        isEditing ? t("group_form.edit_title") : t("group_form.create_title")
+      }
       description={
         isEditing
-          ? "Actualiza los datos del grupo de inventario."
-          : "Crea un grupo para organizar tus dispositivos."
+          ? t("group_form.edit_subtitle")
+          : t("group_form.create_subtitle")
       }
       isEditing={isEditing}
       definition={definition}
       entity={group}
       isSubmitting={mutation.isPending}
-      submitLabel="Crear grupo"
-      editingSubmitLabel="Guardar cambios"
+      submitLabel={t("group_form.create")}
+      editingSubmitLabel={t("group_form.save_changes")}
       formId="group-form"
       onSubmit={async (values) => {
         const payload = {

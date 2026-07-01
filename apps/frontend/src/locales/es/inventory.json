@@ -1,0 +1,58 @@
+{
+  "page": {
+    "title": "Inventario",
+    "subtitle": "Gestiona los grupos y dispositivos de tu inventario Ansible.",
+    "tabs": {
+      "groups": "Grupos",
+      "devices": "Dispositivos"
+    },
+    "tabs_aria": "Sección del inventario",
+    "create": {
+      "group": "Nuevo grupo",
+      "device": "Nuevo dispositivo"
+    }
+  },
+  "group": {
+    "empty_title": "Sin grupos",
+    "empty_description": "Crea tu primer grupo para empezar a organizar dispositivos.",
+    "delete_confirm_title": "Eliminar \"{{label}}\"",
+    "delete_confirm_description": "Esta acción no se puede deshacer.",
+    "delete_error": "No se pudo eliminar el grupo"
+  },
+  "device": {
+    "empty_title": "Sin dispositivos",
+    "empty_description": "Añade tu primer dispositivo para empezar a gestionar el inventario.",
+    "delete_confirm_title": "Eliminar \"{{label}}\"",
+    "delete_confirm_description": "Esta acción no se puede deshacer.",
+    "delete_error": "No se pudo eliminar el dispositivo"
+  },
+  "group_form": {
+    "create_title": "Nuevo grupo",
+    "edit_title": "Editar grupo",
+    "create_subtitle": "Crea un grupo para organizar tus dispositivos.",
+    "edit_subtitle": "Actualiza los datos del grupo de inventario.",
+    "name_label": "Nombre",
+    "name_placeholder": "webservers",
+    "description_label": "Descripción",
+    "description_placeholder": "Servidores web de producción",
+    "create": "Crear grupo",
+    "save_changes": "Guardar cambios"
+  },
+  "device_form": {
+    "create_title": "Nuevo dispositivo",
+    "edit_title": "Editar dispositivo",
+    "create_subtitle": "Registra un nuevo dispositivo en tu inventario.",
+    "edit_subtitle": "Actualiza los datos del dispositivo.",
+    "name_label": "Nombre",
+    "name_placeholder": "web-01",
+    "ip_label": "Dirección IP",
+    "ip_placeholder": "192.168.1.10",
+    "ssh_port_label": "Puerto SSH",
+    "description_label": "Descripción",
+    "description_placeholder": "Servidor web principal",
+    "credential_label": "Credencial",
+    "credential_placeholder": "Sin credencial asignada",
+    "create": "Crear dispositivo",
+    "save_changes": "Guardar cambios"
+  }
+}

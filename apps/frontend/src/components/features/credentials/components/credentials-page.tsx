@@ -1,5 +1,6 @@
 import { KeyRound } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { CredentialFormModal } from "@/components/features/credentials/components/credential-form-modal"
 import { CredentialList } from "@/components/features/credentials/components/credential-list"
 import {
@@ -14,6 +15,8 @@ import { useConfirm } from "@/hooks/useConfirm"
 import { notifyError } from "@/lib/toast"
 
 function CredentialsPageInner() {
+  const { t } = useTranslation("credentials")
+  const { t: tCommon } = useTranslation("common")
   const {
     data: credentials = [],
     isPending,
@@ -49,10 +52,10 @@ function CredentialsPageInner() {
     const credential = credentials.find((item) => item.id === id)
     const label = credential?.name ?? "esta credencial"
     const confirmed = await confirm({
-      title: `Eliminar "${label}"`,
-      description: "Esta acción no se puede deshacer.",
-      confirmLabel: "Eliminar",
-      cancelLabel: "Cancelar",
+      title: t("delete.confirm_title", { label }),
+      description: t("delete.confirm_description"),
+      confirmLabel: tCommon("actions.delete"),
+      cancelLabel: tCommon("actions.cancel"),
       variant: "destructive",
     })
 
@@ -62,7 +65,7 @@ function CredentialsPageInner() {
       await deleteCredential.mutateAsync({ id })
     } catch (err) {
       notifyError(
-        "No se pudo eliminar la credencial",
+        t("delete.error"),
         err instanceof Error ? err.message : undefined
       )
     }
@@ -70,9 +73,9 @@ function CredentialsPageInner() {
 
   return (
     <ResourcePage
-      title="Credenciales"
-      description="Gestiona tus claves SSH para despliegues y automatización."
-      createLabel="Nueva credencial"
+      title={t("page.title")}
+      description={t("page.subtitle")}
+      createLabel={t("page.create")}
       onCreate={openCreateModal}
     >
       <CredentialFormModal
@@ -87,10 +90,9 @@ function CredentialsPageInner() {
         onRetry={() => refetch()}
         items={credentials}
         empty={{
-          title: "Sin credenciales",
-          description:
-            "Añade tu primera credencial SSH para conectar con tus servidores.",
-          ctaLabel: "Nueva credencial",
+          title: t("empty.title"),
+          description: t("empty.description"),
+          ctaLabel: t("page.create"),
           onCta: openCreateModal,
           icon: <KeyRound className="size-5" />,
         }}
