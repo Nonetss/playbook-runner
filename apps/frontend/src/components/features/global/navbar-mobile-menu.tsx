@@ -1,5 +1,6 @@
 import { Menu } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   Sheet,
   SheetContent,
@@ -28,6 +29,7 @@ export function NavbarMobileMenu({
   currentPath,
   onPrefetch,
 }: NavbarMobileMenuProps) {
+  const { t } = useTranslation("common")
   const [open, setOpen] = useState(false)
 
   return (
@@ -35,7 +37,7 @@ export function NavbarMobileMenu({
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger
           type="button"
-          aria-label="Abrir menú de navegación"
+          aria-label={t("labels.open_navigation")}
           className={triggerClass}
         >
           <Menu className="size-4 shrink-0" aria-hidden />
@@ -43,12 +45,12 @@ export function NavbarMobileMenu({
         <SheetContent side="right" className="gap-0 p-0 sm:max-w-xs">
           <SheetHeader className="border-border border-b px-4 py-4 pr-12 text-left">
             <SheetTitle className="font-mono text-sm font-semibold tracking-wide">
-              Navegación
+              {t("labels.navigation_title")}
             </SheetTitle>
           </SheetHeader>
           <nav
             className="flex flex-col gap-0.5 p-3"
-            aria-label="Enlaces principales"
+            aria-label={t("labels.primary_links")}
           >
             {navLinks.map(({ href, label }) => {
               const isActive =

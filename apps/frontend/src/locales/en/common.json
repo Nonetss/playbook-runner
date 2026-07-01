@@ -1,0 +1,62 @@
+{
+  "actions": {
+    "save": "Save",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "retry": "Retry",
+    "submit": "Submit",
+    "saving": "Saving...",
+    "loading": "Loading...",
+    "confirm": "Confirm",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "labels": {
+    "user_menu": "Account menu",
+    "settings": "Settings",
+    "sign_in": "Sign in",
+    "sign_out": "Sign out",
+    "sign_up": "Sign up",
+    "my_profile": "My profile",
+    "language": "Language",
+    "theme": "Theme",
+    "open_navigation": "Open navigation menu",
+    "primary_links": "Primary links",
+    "navigation": "Navigation",
+    "change_language": "Change language",
+    "change_theme": "Toggle theme",
+    "default_display_name": "User",
+    "error_loading_data": "Could not load data.",
+    "error_saving": "Could not save.",
+    "navigation_title": "Navigation",
+    "no_selection": "No selection",
+    "this_playbook": "this playbook",
+    "this_script": "this script",
+    "this_job": "this job",
+    "this_device": "this device",
+    "this_group": "this group"
+  },
+  "status": {
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "active": "Active",
+    "inactive": "Inactive",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "resources": {
+    "create_label_default": "Create"
+  },
+  "messages": {
+    "welcome": "Welcome",
+    "saved": "Saved",
+    "deleted": "Deleted",
+    "updated": "Updated",
+    "created": "Created"
+  }
+}

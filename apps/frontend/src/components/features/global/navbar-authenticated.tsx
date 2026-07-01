@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query"
 import type { Session, User } from "better-auth"
-import type { NavbarNavLink } from "@/components/features/global/navbar-mobile-menu"
+import { useTranslation } from "react-i18next"
+import { LanguageSwitcher } from "@/components/features/global/language-switcher"
 import { NavbarMobileMenu } from "@/components/features/global/navbar-mobile-menu"
 import { SettingsLink } from "@/components/features/global/settings-link"
 import { ThemeToggle } from "@/components/features/global/theme-toggle"
@@ -14,9 +15,22 @@ export interface NavbarAuthenticatedProps {
   user: User
   session: Session
   nameApp: string
-  navLinks: NavbarNavLink[]
   currentPath: string
+  locale: string
 }
+
+// Static nav structure; labels are resolved client-side via the `nav`
+// namespace so switching language updates them live (the navbar re-renders on
+// `languageChanged`), instead of relying on labels baked in at SSR time.
+const NAV_ITEMS: { href: string; key: string }[] = [
+  { href: "/", key: "links.home" },
+  { href: "/credentials", key: "links.credentials" },
+  { href: "/inventory", key: "links.inventory" },
+  { href: "/playbooks", key: "links.playbooks" },
+  { href: "/scripts", key: "links.scripts" },
+  { href: "/commands", key: "links.commands" },
+  { href: "/jobs", key: "links.jobs" },
+]
 
 function linkClassName(active: boolean) {
   return cn(
@@ -69,10 +83,16 @@ function NavbarAuthenticatedInner({
   user,
   session: _session,
   nameApp,
-  navLinks,
   currentPath,
+  locale: _locale,
 }: NavbarAuthenticatedProps) {
   const queryClient = useQueryClient()
+  const { t } = useTranslation("nav")
+
+  const navLinks = NAV_ITEMS.map(({ href, key }) => ({
+    href,
+    label: t(key),
+  }))
 
   const activeNavIndex = navLinks.findIndex(({ href }) =>
     isNavLinkActive(href, currentPath)
@@ -142,6 +162,7 @@ function NavbarAuthenticatedInner({
             currentPath={currentPath}
             onPrefetch={handlePrefetch}
           />
+          <LanguageSwitcher />
           <ThemeToggle className="relative right-0 top-0 translate-y-0" />
           <SettingsLink />
           <UserNav user={user} />
@@ -149,6 +170,7 @@ function NavbarAuthenticatedInner({
 
         {/* Desktop: lg+ actions */}
         <div className="hidden lg:flex shrink-0 items-center gap-2">
+          <LanguageSwitcher />
           <ThemeToggle className="relative right-0 top-0 translate-y-0" />
           <SettingsLink />
           <UserNav user={user} />
@@ -160,7 +182,7 @@ function NavbarAuthenticatedInner({
 
 export function NavbarAuthenticated(props: NavbarAuthenticatedProps) {
   return (
-    <AppProviders>
+    <AppProviders initialLocale={props.locale}>
       <NavbarAuthenticatedInner {...props} />
     </AppProviders>
   )

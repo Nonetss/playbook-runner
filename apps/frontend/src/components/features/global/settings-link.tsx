@@ -1,4 +1,5 @@
 import { Settings } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 
 export interface SettingsLinkProps {
@@ -6,10 +7,11 @@ export interface SettingsLinkProps {
 }
 
 export function SettingsLink({ className }: SettingsLinkProps) {
+  const { t } = useTranslation("common")
   return (
     <a
       href="/config"
-      aria-label="Configuración"
+      aria-label={t("labels.settings")}
       className={cn(
         "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex size-9 items-center justify-center rounded-md border shadow-xs transition-colors",
         className

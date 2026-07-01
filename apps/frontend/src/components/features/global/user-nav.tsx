@@ -1,5 +1,6 @@
 import type { User } from "better-auth"
 import { LogIn, LogOut, UserCircle2, User as UserIcon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,9 +20,16 @@ export interface UserNavProps {
 }
 
 export function UserNav({ user }: UserNavProps) {
+  const { t } = useTranslation("common")
+  const { t: tNav } = useTranslation("nav")
+
   if (!user) {
     return (
-      <a href="/login" aria-label="Iniciar sesión" className={triggerClass}>
+      <a
+        href="/login"
+        aria-label={t("labels.sign_in")}
+        className={triggerClass}
+      >
         <LogIn className="size-4 shrink-0" aria-hidden />
       </a>
     )
@@ -30,14 +38,14 @@ export function UserNav({ user }: UserNavProps) {
   const displayName =
     user.name?.trim() ||
     (typeof user.email === "string" ? user.email.split("@")[0] : null) ||
-    "Usuario"
+    t("labels.default_display_name")
   const email = typeof user.email === "string" ? user.email : null
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         type="button"
-        aria-label="Menú de cuenta"
+        aria-label={t("labels.user_menu")}
         className={triggerClass}
       >
         <UserIcon className="size-4 shrink-0" aria-hidden />
@@ -59,7 +67,7 @@ export function UserNav({ user }: UserNavProps) {
         </DropdownMenuGroup>
         <DropdownMenuItem onClick={() => (window.location.href = "/me")}>
           <UserCircle2 className="size-4 shrink-0" aria-hidden />
-          Mi perfil
+          {tNav("links.me")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -71,7 +79,7 @@ export function UserNav({ user }: UserNavProps) {
           }}
         >
           <LogOut className="size-4 shrink-0" aria-hidden />
-          Cerrar sesión
+          {t("labels.sign_out")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

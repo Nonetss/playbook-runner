@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useTranslation } from "react-i18next"
 import type {
   FieldDefinition,
   ResourceFormDefinition,
@@ -74,6 +75,7 @@ export function ResourceFormModal<TValues extends Record<string, unknown>>({
   submitErrorMessage,
   formId = "resource-form",
 }: ResourceFormModalProps<TValues>) {
+  const { t } = useTranslation("common")
   const [values, setValues] = React.useState<TValues>(definition.defaultValues)
   const [error, setError] = React.useState<string | null>(null)
 
@@ -101,7 +103,7 @@ export function ResourceFormModal<TValues extends Record<string, unknown>>({
     } catch (err) {
       setError(
         submitErrorMessage ??
-          (err instanceof Error ? err.message : "No se pudo guardar.")
+          (err instanceof Error ? err.message : t("labels.error_saving"))
       )
     }
   }
@@ -146,11 +148,11 @@ export function ResourceFormModal<TValues extends Record<string, unknown>>({
               disabled={isSubmitting}
               onClick={() => handleOpenChange(false)}
             >
-              Cancelar
+              {t("actions.cancel")}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting
-                ? "Guardando..."
+                ? t("actions.saving")
                 : isEditing
                   ? editingSubmitLabel
                   : submitLabel}

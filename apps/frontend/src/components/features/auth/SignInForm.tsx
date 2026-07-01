@@ -1,4 +1,6 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
+import { AppProviders } from "@/components/providers/app-providers"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -12,7 +14,19 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authClient } from "@/lib/auth-client"
 
-export function SignInForm() {
+// The form is a standalone `client:only` island, so it must sit behind the i18n
+// provider (which gates rendering until i18next is ready). Without it the form
+// wins the race against the async global init and paints raw translation keys.
+export function SignInForm({ locale }: { locale?: string }) {
+  return (
+    <AppProviders initialLocale={locale}>
+      <SignInFormInner />
+    </AppProviders>
+  )
+}
+
+function SignInFormInner() {
+  const { t } = useTranslation("auth")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -32,12 +46,12 @@ export function SignInForm() {
             window.location.href = "/"
           },
           onError: (ctx) => {
-            setError(ctx.error.message || "No se pudo iniciar sesión.")
+            setError(ctx.error.message || t("sign_in.errors.default"))
           },
         }
       )
     } catch {
-      setError("Ha ocurrido un error inesperado.")
+      setError(t("sign_in.errors.unexpected"))
     } finally {
       setLoading(false)
     }
@@ -51,8 +65,8 @@ export function SignInForm() {
         providerId: "generic",
         callbackURL: "/",
       })
-    } catch (ctx: unknown) {
-      setError("SSO no disponible: configura GENERIC_OAUTH_* en el backend.")
+    } catch {
+      setError(t("sign_in.sso_unavailable"))
       setOauthLoading(false)
     }
   }
@@ -60,31 +74,31 @@ export function SignInForm() {
   return (
     <Card className="mx-auto w-full max-w-sm">
       <CardHeader>
-        <CardTitle className="text-2xl">Iniciar sesión</CardTitle>
-        <CardDescription>Accede con tu cuenta</CardDescription>
+        <CardTitle className="text-2xl">{t("sign_in.title")}</CardTitle>
+        <CardDescription>{t("sign_in.subtitle")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("sign_in.email_label")}</Label>
             <Input
               id="email"
               type="email"
               required
-              placeholder="you@example.com"
+              placeholder={t("sign_in.email_placeholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Contraseña</Label>
+            <Label htmlFor="password">{t("sign_in.password_label")}</Label>
             <Input
               id="password"
               type="password"
               required
               minLength={8}
-              placeholder="••••••••"
+              placeholder={t("sign_in.password_placeholder")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -93,7 +107,7 @@ export function SignInForm() {
           {error && <p className="text-sm text-destructive">{error}</p>}
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Entrando..." : "Iniciar sesión"}
+            {loading ? t("sign_in.submitting") : t("sign_in.submit")}
           </Button>
         </form>
       </CardContent>
@@ -109,13 +123,15 @@ export function SignInForm() {
           onClick={handleSSOLogin}
           disabled={oauthLoading}
         >
-          {oauthLoading ? "Redirigiendo..." : "Iniciar sesión con SSO"}
+          {oauthLoading
+            ? t("sign_in.sso_redirecting")
+            : t("sign_in.sso_button")}
         </Button>
         <a
           href="/signup"
           className="text-sm text-muted-foreground hover:text-primary"
         >
-          ¿No tienes cuenta? Regístrate
+          {t("sign_in.no_account_prompt")}
         </a>
       </CardFooter>
     </Card>

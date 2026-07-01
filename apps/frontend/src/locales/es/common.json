@@ -1,0 +1,62 @@
+{
+  "actions": {
+    "save": "Guardar",
+    "create": "Crear",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "cancel": "Cancelar",
+    "retry": "Reintentar",
+    "submit": "Enviar",
+    "saving": "Guardando...",
+    "loading": "Cargando...",
+    "confirm": "Confirmar",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "yes": "Sí",
+    "no": "No"
+  },
+  "labels": {
+    "user_menu": "Menú de cuenta",
+    "settings": "Configuración",
+    "sign_in": "Iniciar sesión",
+    "sign_out": "Cerrar sesión",
+    "sign_up": "Registrarse",
+    "my_profile": "Mi perfil",
+    "language": "Idioma",
+    "theme": "Tema",
+    "open_navigation": "Abrir menú de navegación",
+    "primary_links": "Enlaces principales",
+    "navigation": "Navegación",
+    "change_language": "Cambiar idioma",
+    "change_theme": "Cambiar tema",
+    "default_display_name": "Usuario",
+    "error_loading_data": "No se pudieron cargar los datos.",
+    "error_saving": "No se pudo guardar.",
+    "navigation_title": "Navegación",
+    "no_selection": "Sin selección",
+    "this_playbook": "este playbook",
+    "this_script": "este script",
+    "this_job": "este job",
+    "this_device": "este dispositivo",
+    "this_group": "este grupo"
+  },
+  "status": {
+    "enabled": "Activa",
+    "disabled": "Desactivada",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "yes": "Sí",
+    "no": "No"
+  },
+  "resources": {
+    "create_label_default": "Crear"
+  },
+  "messages": {
+    "welcome": "Bienvenido",
+    "saved": "Guardado",
+    "deleted": "Eliminado",
+    "updated": "Actualizado",
+    "created": "Creado"
+  }
+}

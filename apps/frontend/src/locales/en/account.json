@@ -1,0 +1,22 @@
+{
+  "profile": {
+    "title": "My profile",
+    "subtitle": "Account information",
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "account_id": "Account ID",
+      "member_since": "Member since"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "pending": "Pending",
+      "user": "User"
+    },
+    "verified": "Verified",
+    "default_display_name": "User"
+  },
+  "nav": {
+    "my_profile": "My profile"
+  }
+}

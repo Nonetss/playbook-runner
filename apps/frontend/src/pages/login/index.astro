@@ -1,10 +1,14 @@
 ---
 import { SignInForm } from "@/components/features/auth/SignInForm"
 import Layout from "@/layouts/Layout.astro"
+import { getServerT } from "@/lib/i18n/server"
+
+const { locale } = Astro.locals
+const t = await getServerT(locale, "auth")
 ---
 
-<Layout title="Sign In">
+<Layout title={t("sign_in.title")}>
   <div class="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
-    <SignInForm client:load />
+    <SignInForm client:only="react" locale={locale} />
   </div>
 </Layout>

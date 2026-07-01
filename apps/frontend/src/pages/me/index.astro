@@ -1,12 +1,15 @@
 ---
 import { ProfilePage } from "@/components/features/me"
 import Layout from "@/layouts/Layout.astro"
+import { getServerT } from "@/lib/i18n/server"
 
-const { user, session } = Astro.locals
+const { user, session, locale } = Astro.locals
 
 if (!user || !session) return Astro.redirect("/login")
+
+const t = await getServerT(locale, "account")
 ---
 
-<Layout title="Mi perfil">
-  <ProfilePage user={user} session={session} client:load />
+<Layout title={t("profile.title")}>
+  <ProfilePage user={user} session={session} client:only="react" />
 </Layout>

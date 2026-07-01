@@ -1,5 +1,6 @@
 import { Moon, Sun } from "lucide-react"
 import { flushSync } from "react-dom"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 
 export interface ThemeToggleProps {
@@ -7,6 +8,7 @@ export interface ThemeToggleProps {
 }
 
 export const ThemeToggle = ({ className }: ThemeToggleProps) => {
+  const { t } = useTranslation("common")
   const toggle = (e: React.MouseEvent) => {
     const isDark = document.documentElement.classList.contains("dark")
     const next = !isDark
@@ -51,7 +53,7 @@ export const ThemeToggle = ({ className }: ThemeToggleProps) => {
     <button
       type="button"
       onClick={toggle}
-      aria-label="Cambiar tema"
+      aria-label={t("labels.change_theme")}
       className={cn(
         "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex size-9 items-center justify-center rounded-md border shadow-xs transition-colors",
         className

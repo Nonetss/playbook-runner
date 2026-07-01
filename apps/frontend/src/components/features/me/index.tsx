@@ -1,6 +1,7 @@
 import type { Session, User } from "better-auth"
 import { Calendar, Hash, Mail, ShieldCheck, UserCircle2 } from "lucide-react"
 import type React from "react"
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 
 type ProfilePageProps = {
@@ -18,22 +19,30 @@ const AVATAR_COLORS = [
   "bg-indigo-500/15 text-indigo-700 dark:text-indigo-400",
 ]
 
+function useProfileT() {
+  return useTranslation("account")
+}
+
 function ProfileHeader() {
+  const { t } = useProfileT()
   return (
     <div className="mb-6">
-      <h1 className="text-2xl font-bold tracking-tight">Mi perfil</h1>
+      <h1 className="text-2xl font-bold tracking-tight">
+        {t("profile.title")}
+      </h1>
       <p className="text-muted-foreground mt-1 text-sm">
-        Información de tu cuenta
+        {t("profile.subtitle")}
       </p>
     </div>
   )
 }
 
 function ProfileCard({ user }: { user: User }) {
+  const { t, i18n } = useProfileT()
   const displayName =
     user.name?.trim() ||
     (typeof user.email === "string" ? user.email.split("@")[0] : null) ||
-    "Usuario"
+    t("profile.default_display_name")
 
   const initials = displayName
     .split(" ")
@@ -45,6 +54,8 @@ function ProfileCard({ user }: { user: User }) {
   const color = AVATAR_COLORS[displayName.charCodeAt(0) % AVATAR_COLORS.length]
   const role = (user as { role?: string }).role ?? "user"
   const createdAt = (user as { createdAt?: string | Date }).createdAt
+
+  const locale = i18n.language?.startsWith("en") ? "en-US" : "es-ES"
 
   return (
     <div className="rounded-md border bg-card overflow-hidden">
@@ -69,10 +80,10 @@ function ProfileCard({ user }: { user: User }) {
               }
             >
               {role === "admin"
-                ? "Administrador"
+                ? t("profile.roles.admin")
                 : role === "pending"
-                  ? "Pendiente"
-                  : "Usuario"}
+                  ? t("profile.roles.pending")
+                  : t("profile.roles.user")}
             </Badge>
             {(user as { emailVerified?: boolean }).emailVerified && (
               <Badge
@@ -80,7 +91,7 @@ function ProfileCard({ user }: { user: User }) {
                 className="bg-green-500/10 text-green-700 dark:text-green-400 border-0 text-xs gap-1"
               >
                 <ShieldCheck className="h-3 w-3" />
-                Verificado
+                {t("profile.verified")}
               </Badge>
             )}
           </div>
@@ -90,32 +101,32 @@ function ProfileCard({ user }: { user: User }) {
       <div className="divide-y divide-muted/40 p-2">
         <DetailRow
           icon={<UserCircle2 className="h-4 w-4" />}
-          label="Nombre"
+          label={t("profile.fields.name")}
           value={displayName}
         />
         <DetailRow
           icon={<Mail className="h-4 w-4" />}
-          label="Email"
+          label={t("profile.fields.email")}
           value={user.email}
         />
         <DetailRow
           icon={<Hash className="h-4 w-4" />}
-          label="ID de cuenta"
+          label={t("profile.fields.account_id")}
           value={
             <span className="font-mono text-xs select-all">{user.id}</span>
           }
         />
-        {createdAt && (
+        {createdAt ? (
           <DetailRow
             icon={<Calendar className="h-4 w-4" />}
-            label="Miembro desde"
-            value={new Date(createdAt).toLocaleDateString("es-ES", {
+            label={t("profile.fields.member_since")}
+            value={new Date(createdAt).toLocaleDateString(locale, {
               year: "numeric",
               month: "long",
               day: "numeric",
             })}
           />
-        )}
+        ) : null}
       </div>
     </div>
   )

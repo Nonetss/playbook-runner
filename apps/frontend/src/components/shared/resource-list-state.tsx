@@ -1,5 +1,6 @@
 import { Loader2, Plus, RotateCw } from "lucide-react"
 import type * as React from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -33,6 +34,7 @@ export function ResourceListState<TItem>({
   children,
   className,
 }: ResourceListStateProps<TItem>) {
+  const { t } = useTranslation("common")
   if (isPending) {
     return (
       <div
@@ -42,7 +44,7 @@ export function ResourceListState<TItem>({
         )}
       >
         <Loader2 className="size-4 animate-spin" />
-        Cargando...
+        {t("actions.loading")}
       </div>
     )
   }
@@ -56,11 +58,11 @@ export function ResourceListState<TItem>({
         )}
       >
         <div className="flex items-center justify-between gap-3">
-          <span>No se pudieron cargar los datos.</span>
+          <span>{t("labels.error_loading_data")}</span>
           {onRetry ? (
             <Button type="button" size="xs" variant="outline" onClick={onRetry}>
               <RotateCw className="size-3" />
-              Reintentar
+              {t("actions.retry")}
             </Button>
           ) : null}
         </div>
