@@ -1,4 +1,5 @@
 import { FileCode } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { ScriptList } from "@/components/features/scripts/components/script-list"
 import {
   useScriptDelete,
@@ -12,6 +13,8 @@ import { useConfirm } from "@/hooks/useConfirm"
 import { notifyError } from "@/lib/toast"
 
 function ScriptsPageInner() {
+  const { t } = useTranslation("scripts")
+  const { t: tCommon } = useTranslation("common")
   const { data: scripts = [], isPending, isError, refetch } = useScriptsList()
   const deleteScript = useScriptDelete()
   const confirm = useConfirm()
@@ -30,12 +33,12 @@ function ScriptsPageInner() {
 
   async function handleDelete(id: string) {
     const script = scripts.find((item) => item.id === id)
-    const label = script?.name ?? "este script"
+    const label = script?.name ?? tCommon("labels.this_script")
     const confirmed = await confirm({
-      title: `Eliminar "${label}"`,
-      description: "Esta acción no se puede deshacer.",
-      confirmLabel: "Eliminar",
-      cancelLabel: "Cancelar",
+      title: t("delete.confirm_title", { label }),
+      description: t("delete.confirm_description"),
+      confirmLabel: t("card.delete"),
+      cancelLabel: tCommon("actions.cancel"),
       variant: "destructive",
     })
 
@@ -45,7 +48,7 @@ function ScriptsPageInner() {
       await deleteScript.mutateAsync({ id })
     } catch (err) {
       notifyError(
-        "No se pudo eliminar el script",
+        t("delete.error"),
         err instanceof Error ? err.message : undefined
       )
     }
@@ -53,9 +56,9 @@ function ScriptsPageInner() {
 
   return (
     <ResourcePage
-      title="Scripts"
-      description="Guarda y ejecuta scripts bash reutilizables contra tu inventario."
-      createLabel="Nuevo script"
+      title={t("page.title")}
+      description={t("page.subtitle")}
+      createLabel={t("page.create")}
       onCreate={goToCreate}
     >
       <ResourceListState
@@ -64,10 +67,9 @@ function ScriptsPageInner() {
         onRetry={() => refetch()}
         items={scripts}
         empty={{
-          title: "Sin scripts",
-          description:
-            "Crea tu primer script bash para automatizar tareas operativas.",
-          ctaLabel: "Nuevo script",
+          title: t("empty.title"),
+          description: t("empty.description"),
+          ctaLabel: t("page.create"),
           onCta: goToCreate,
           icon: <FileCode className="size-5" />,
         }}
@@ -78,6 +80,14 @@ function ScriptsPageInner() {
             onEdit={goToEdit}
             onDelete={handleDelete}
             onRun={goToRun}
+            locale={
+              (typeof window === "undefined"
+                ? "en"
+                : navigator.language
+              ).startsWith("en")
+                ? "en-US"
+                : "es-ES"
+            }
             deletingId={
               deleteScript.isPending
                 ? (deleteScript.variables?.id ?? null)

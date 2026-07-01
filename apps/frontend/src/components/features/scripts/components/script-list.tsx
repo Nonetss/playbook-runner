@@ -7,6 +7,7 @@ type ScriptListProps = {
   onDelete: (id: string) => void
   onRun: (script: Script) => void
   deletingId?: string | null
+  locale?: string
 }
 
 export function ScriptList({
@@ -15,6 +16,7 @@ export function ScriptList({
   onDelete,
   onRun,
   deletingId = null,
+  locale,
 }: ScriptListProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -25,6 +27,7 @@ export function ScriptList({
           onEdit={onEdit}
           onDelete={onDelete}
           onRun={onRun}
+          locale={locale}
           isDeleting={deletingId === script.id}
         />
       ))}

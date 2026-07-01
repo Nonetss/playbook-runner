@@ -1,0 +1,103 @@
+{
+  "page": {
+    "title": "Scripts",
+    "subtitle": "Save and run reusable bash scripts against your inventory.",
+    "create": "New script"
+  },
+  "empty": {
+    "title": "No scripts",
+    "description": "Create your first bash script to automate operational tasks."
+  },
+  "delete": {
+    "confirm_title": "Delete \"{{label}}\"",
+    "confirm_description": "This action cannot be undone.",
+    "error": "Could not delete the script"
+  },
+  "card": {
+    "actions_aria": "Actions for {{name}}",
+    "run": "Run",
+    "edit": "Edit",
+    "delete": "Delete",
+    "updated_on": "Updated on {{date}}",
+    "default_language": "bash"
+  },
+  "form": {
+    "create_title": "New script",
+    "edit_title": "Edit script",
+    "create_subtitle": "Define a reusable bash script for your operational tasks.",
+    "edit_subtitle": "Update this script's details.",
+    "name_label": "Name",
+    "name_placeholder": "backup-nightly",
+    "name_required": "Name is required.",
+    "description_label": "Description",
+    "description_placeholder": "Daily database backup",
+    "language_label": "Language",
+    "language": {
+      "bash": "bash",
+      "bash_hint": "Runs the script with bash. Content without a shebang is prepended with #!/usr/bin/env bash.",
+      "python": "python",
+      "python_hint": "Runs the script with python3. Content without a shebang is prepended with #!/usr/bin/env python3."
+    },
+    "content_label": "Content",
+    "content_placeholder": "#!/bin/bash\nset -euo pipefail\n\necho \"Hello from $(hostname)\"\nuptime",
+    "content_required": "Script content is required.",
+    "loading": "Loading script...",
+    "load_error": "Could not load the script.",
+    "back_to_scripts": "Back to scripts",
+    "back_aria": "Back",
+    "cancel": "Cancel",
+    "save_changes": "Save changes",
+    "create": "Create script",
+    "saving": "Saving...",
+    "save_error": "Could not save."
+  },
+  "run": {
+    "header_subtitle": "Run the script",
+    "script_not_found": "Script not found.",
+    "loading": "Loading...",
+    "back_aria": "Back",
+    "new_run": "New run",
+    "idle_prompt": "Configure the inventory and press Run to see the output here.",
+    "starting": "Starting run...",
+    "running": "Running…",
+    "run_button": "Run",
+    "panel": {
+      "inventory": "INVENTORY",
+      "groups": "Groups",
+      "devices": "Devices",
+      "search_placeholder": "Search…",
+      "no_results": "No results",
+      "no_match": "No group or device matches the search.",
+      "empty_inventory": "No inventory. Create groups or devices first.",
+      "options": "OPTIONS",
+      "become": "Become (sudo)",
+      "forks": "Forks"
+    },
+    "result_finished_with_status": "Run finished — status {{status}} (rc={{rc}})"
+  },
+  "console": {
+    "headings": {
+      "playbook": "PLAYBOOK",
+      "play": "PLAY",
+      "task": "TASK",
+      "recap": "PLAY RECAP"
+    },
+    "runner": {
+      "starting": "starting",
+      "ok": "ok",
+      "changed": "changed",
+      "skipping": "skipping",
+      "fatal": "fatal",
+      "msg": "msg",
+      "rc": "rc",
+      "stdout": "stdout",
+      "stderr": "stderr",
+      "failed_excl": "FAILED",
+      "unreachable": "UNREACHABLE",
+      "unreachable_lower": "unreachable",
+      "failed_lower": "failed",
+      "skipped": "skipped",
+      "item": "item"
+    }
+  }
+}

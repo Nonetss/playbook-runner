@@ -1,5 +1,6 @@
 import { ArrowLeft, Loader2, TerminalSquare } from "lucide-react"
 import * as React from "react"
+import { useTranslation } from "react-i18next"
 import {
   useScriptCreate,
   useScriptGet,
@@ -13,12 +14,6 @@ import { cn } from "@/lib/utils"
 
 const TEXTAREA_CLASS =
   "w-full min-w-0 flex-1 resize-y rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs leading-relaxed shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
-
-const CONTENT_PLACEHOLDER = `#!/bin/bash
-set -euo pipefail
-
-echo "Hello from $(hostname)"
-uptime`
 
 type ScriptLanguage = "bash" | "python"
 
@@ -36,52 +31,43 @@ const EMPTY_VALUES: FormValues = {
   language: "bash",
 }
 
-const LANGUAGES: { value: ScriptLanguage; label: string; hint: string }[] = [
-  {
-    value: "bash",
-    label: "bash",
-    hint: "Ejecuta el script con bash. El contenido sin shebang se le antepone #!/usr/bin/env bash.",
-  },
-  {
-    value: "python",
-    label: "python",
-    hint: "Ejecuta el script con python3. El contenido sin shebang se le antepone #!/usr/bin/env python3.",
-  },
-]
-
 function LanguagePicker({
   value,
   onChange,
   disabled,
+  labels,
+  hints,
 }: {
   value: ScriptLanguage
   onChange: (next: ScriptLanguage) => void
   disabled?: boolean
+  labels: Record<ScriptLanguage, string>
+  hints: Record<ScriptLanguage, string>
 }) {
-  const active = LANGUAGES.find((l) => l.value === value) ?? LANGUAGES[0]
+  const active = value
   return (
     <div className="space-y-1.5">
       <div className="grid grid-cols-2 gap-1.5">
-        {LANGUAGES.map((l) => (
+        {(["bash", "python"] as ScriptLanguage[]).map((lang) => (
           <button
-            key={l.value}
+            key={lang}
             type="button"
-            onClick={() => onChange(l.value)}
+            onClick={() => onChange(lang)}
             disabled={disabled}
             className={cn(
               "flex items-center justify-center gap-1.5 rounded-md border px-2.5 py-1.5 font-mono text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-              value === l.value
+              value === lang
                 ? "border-primary bg-primary/10 text-foreground"
                 : "border-input text-muted-foreground hover:bg-accent"
             )}
           >
             <TerminalSquare className="size-3.5" />
-            {l.label}
+            {labels[lang]}
           </button>
         ))}
       </div>
       <p className="text-muted-foreground text-[11px] leading-snug">
-        {active.hint}
+        {hints[active]}
       </p>
     </div>
   )
@@ -93,6 +79,7 @@ export type ScriptFormPageProps = {
 }
 
 function ScriptFormPageInner({ id }: ScriptFormPageProps) {
+  const { t } = useTranslation("scripts")
   const isEditing = !!id
   const createScript = useScriptCreate()
   const updateScript = useScriptUpdate()
@@ -150,7 +137,7 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
       }
       window.location.href = "/scripts"
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo guardar.")
+      setError(err instanceof Error ? err.message : t("form.save_error"))
     }
   }
 
@@ -159,7 +146,7 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
       <main className="flex w-full flex-1 items-center justify-center p-6 lg:px-8">
         <div className="text-muted-foreground flex items-center gap-2 text-sm">
           <Loader2 className="size-4 animate-spin" />
-          Cargando script...
+          {t("form.loading")}
         </div>
       </main>
     )
@@ -169,12 +156,12 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
     return (
       <main className="w-full flex-1 p-6 lg:px-8">
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          No se pudo cargar el script.
+          {t("form.load_error")}
         </div>
         <Button asChild variant="outline" className="mt-4">
           <a href="/scripts">
             <ArrowLeft className="size-4" />
-            Volver a scripts
+            {t("form.back_to_scripts")}
           </a>
         </Button>
       </main>
@@ -184,19 +171,22 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
   return (
     <main className="flex w-full flex-1 flex-col p-6 lg:px-8">
       <div className="mb-6 flex items-center gap-3">
-        <Button asChild variant="ghost" size="icon-sm" aria-label="Volver">
+        <Button
+          asChild
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t("form.back_aria")}
+        >
           <a href="/scripts">
             <ArrowLeft className="size-4" />
           </a>
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            {isEditing ? "Editar script" : "Nuevo script"}
+            {isEditing ? t("form.edit_title") : t("form.create_title")}
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            {isEditing
-              ? "Actualiza los datos del script."
-              : "Define un script bash reutilizable para tus tareas operativas."}
+            {isEditing ? t("form.edit_subtitle") : t("form.create_subtitle")}
           </p>
         </div>
       </div>
@@ -205,13 +195,14 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
         <div className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="name-field">
-              Nombre<span aria-hidden> *</span>
+              {t("form.name_label")}
+              <span aria-hidden> *</span>
             </Label>
             <Input
               id="name-field"
               required
               disabled={isSubmitting}
-              placeholder="backup-nightly"
+              placeholder={t("form.name_placeholder")}
               value={values.name}
               onBlur={() => setTouched(true)}
               onChange={(e) => updateField("name", e.target.value)}
@@ -219,16 +210,18 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
             />
             {nameMissing ? (
               <p className="text-destructive text-xs">
-                El nombre es obligatorio.
+                {t("form.name_required")}
               </p>
             ) : null}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description-field">Descripción</Label>
+            <Label htmlFor="description-field">
+              {t("form.description_label")}
+            </Label>
             <Input
               id="description-field"
               disabled={isSubmitting}
-              placeholder="Copia diaria de la base de datos"
+              placeholder={t("form.description_placeholder")}
               value={values.description}
               onChange={(e) => updateField("description", e.target.value)}
             />
@@ -236,23 +229,32 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
         </div>
 
         <div className="space-y-2">
-          <Label>Lenguaje</Label>
+          <Label>{t("form.language_label")}</Label>
           <LanguagePicker
             value={values.language}
             onChange={(next) => updateField("language", next)}
             disabled={isSubmitting}
+            labels={{
+              bash: t("form.language.bash"),
+              python: t("form.language.python"),
+            }}
+            hints={{
+              bash: t("form.language.bash_hint"),
+              python: t("form.language.python_hint"),
+            }}
           />
         </div>
 
         <div className="flex flex-1 flex-col space-y-2">
           <Label htmlFor="content-field">
-            Contenido<span aria-hidden> *</span>
+            {t("form.content_label")}
+            <span aria-hidden> *</span>
           </Label>
           <textarea
             id="content-field"
             required
             disabled={isSubmitting}
-            placeholder={CONTENT_PLACEHOLDER}
+            placeholder={t("form.content_placeholder")}
             value={values.content}
             spellCheck={false}
             className={TEXTAREA_CLASS}
@@ -263,7 +265,7 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
           />
           {contentMissing ? (
             <p className="text-destructive text-xs">
-              El contenido del script es obligatorio.
+              {t("form.content_required")}
             </p>
           ) : null}
         </div>
@@ -277,7 +279,7 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
             variant="outline"
             disabled={isSubmitting}
           >
-            <a href="/scripts">Cancelar</a>
+            <a href="/scripts">{t("form.cancel")}</a>
           </Button>
           <Button
             type="submit"
@@ -288,10 +290,10 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
             }
           >
             {isSubmitting
-              ? "Guardando..."
+              ? t("form.saving")
               : isEditing
-                ? "Guardar cambios"
-                : "Crear script"}
+                ? t("form.save_changes")
+                : t("form.create")}
           </Button>
         </div>
       </form>

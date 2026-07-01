@@ -1,4 +1,5 @@
 import { FileCode, MoreHorizontal, Pencil, Play, Trash2 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import type { Script } from "@/components/features/scripts/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -22,6 +23,7 @@ type ScriptCardProps = {
   onDelete: (id: string) => void
   onRun: (script: Script) => void
   isDeleting?: boolean
+  locale?: string
 }
 
 export function ScriptCard({
@@ -30,9 +32,11 @@ export function ScriptCard({
   onDelete,
   onRun,
   isDeleting = false,
+  locale = "es-ES",
 }: ScriptCardProps) {
+  const { t } = useTranslation("scripts")
   const updatedAt = script.updatedAt
-    ? new Date(script.updatedAt).toLocaleDateString("es-ES", {
+    ? new Date(script.updatedAt).toLocaleDateString(locale, {
         year: "numeric",
         month: "short",
         day: "numeric",
@@ -64,7 +68,7 @@ export function ScriptCard({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label={`Acciones para ${script.name}`}
+                aria-label={t("card.actions_aria", { name: script.name })}
                 disabled={isDeleting}
               >
                 <MoreHorizontal className="size-4" />
@@ -73,18 +77,18 @@ export function ScriptCard({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onRun(script)}>
                 <Play className="size-4" />
-                Ejecutar
+                {t("card.run")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(script)}>
                 <Pencil className="size-4" />
-                Editar
+                {t("card.edit")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
                 onClick={() => onDelete(script.id)}
               >
                 <Trash2 className="size-4" />
-                Eliminar
+                {t("card.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -94,11 +98,11 @@ export function ScriptCard({
       <CardContent className="flex flex-1 flex-col gap-3 px-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="font-mono text-xs">
-            {script.language ?? "bash"}
+            {script.language ?? t("card.default_language")}
           </Badge>
           {updatedAt && (
             <span className="text-muted-foreground text-xs">
-              Actualizado el {updatedAt}
+              {t("card.updated_on", { date: updatedAt })}
             </span>
           )}
         </div>
@@ -115,7 +119,7 @@ export function ScriptCard({
           disabled={isDeleting}
         >
           <Play className="size-4" />
-          Ejecutar
+          {t("card.run")}
         </Button>
       </CardContent>
     </Card>

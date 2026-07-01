@@ -1,0 +1,103 @@
+{
+  "page": {
+    "title": "Scripts",
+    "subtitle": "Guarda y ejecuta scripts bash reutilizables contra tu inventario.",
+    "create": "Nuevo script"
+  },
+  "empty": {
+    "title": "Sin scripts",
+    "description": "Crea tu primer script bash para automatizar tareas operativas."
+  },
+  "delete": {
+    "confirm_title": "Eliminar \"{{label}}\"",
+    "confirm_description": "Esta acción no se puede deshacer.",
+    "error": "No se pudo eliminar el script"
+  },
+  "card": {
+    "actions_aria": "Acciones para {{name}}",
+    "run": "Ejecutar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "updated_on": "Actualizado el {{date}}",
+    "default_language": "bash"
+  },
+  "form": {
+    "create_title": "Nuevo script",
+    "edit_title": "Editar script",
+    "create_subtitle": "Define un script bash reutilizable para tus tareas operativas.",
+    "edit_subtitle": "Actualiza los datos del script.",
+    "name_label": "Nombre",
+    "name_placeholder": "backup-nightly",
+    "name_required": "El nombre es obligatorio.",
+    "description_label": "Descripción",
+    "description_placeholder": "Copia diaria de la base de datos",
+    "language_label": "Lenguaje",
+    "language": {
+      "bash": "bash",
+      "bash_hint": "Ejecuta el script con bash. El contenido sin shebang se le antepone #!/usr/bin/env bash.",
+      "python": "python",
+      "python_hint": "Ejecuta el script con python3. El contenido sin shebang se le antepone #!/usr/bin/env python3."
+    },
+    "content_label": "Contenido",
+    "content_placeholder": "#!/bin/bash\nset -euo pipefail\n\necho \"Hello from $(hostname)\"\nuptime",
+    "content_required": "El contenido del script es obligatorio.",
+    "loading": "Cargando script...",
+    "load_error": "No se pudo cargar el script.",
+    "back_to_scripts": "Volver a scripts",
+    "back_aria": "Volver",
+    "cancel": "Cancelar",
+    "save_changes": "Guardar cambios",
+    "create": "Crear script",
+    "saving": "Guardando...",
+    "save_error": "No se pudo guardar."
+  },
+  "run": {
+    "header_subtitle": "Ejecución del script",
+    "script_not_found": "Script no encontrado.",
+    "loading": "Cargando…",
+    "back_aria": "Volver",
+    "new_run": "Nueva ejecución",
+    "idle_prompt": "Configura el inventario y pulsa Ejecutar para ver la salida aquí.",
+    "starting": "Iniciando ejecución…",
+    "running": "Ejecutando…",
+    "run_button": "Ejecutar",
+    "panel": {
+      "inventory": "INVENTARIO",
+      "groups": "Grupos",
+      "devices": "Dispositivos",
+      "search_placeholder": "Buscar…",
+      "no_results": "Sin resultados",
+      "no_match": "Ningún grupo ni dispositivo coincide con la búsqueda.",
+      "empty_inventory": "No hay inventario. Crea grupos o dispositivos primero.",
+      "options": "OPCIONES",
+      "become": "Become (sudo)",
+      "forks": "Forks"
+    },
+    "result_finished_with_status": "Ejecución finalizada — estado {{status}} (rc={{rc}})"
+  },
+  "console": {
+    "headings": {
+      "playbook": "PLAYBOOK",
+      "play": "PLAY",
+      "task": "TAREA",
+      "recap": "RESUMEN"
+    },
+    "runner": {
+      "starting": "iniciando",
+      "ok": "ok",
+      "changed": "changed",
+      "skipping": "skipping",
+      "fatal": "fatal",
+      "msg": "msg",
+      "rc": "rc",
+      "stdout": "stdout",
+      "stderr": "stderr",
+      "failed_excl": "FAILED",
+      "unreachable": "UNREACHABLE",
+      "unreachable_lower": "unreachable",
+      "failed_lower": "failed",
+      "skipped": "skipped",
+      "item": "item"
+    }
+  }
+}
