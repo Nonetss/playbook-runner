@@ -141,10 +141,10 @@ function JobDetailPageInner({ id }: { id: string }) {
   }
 
   return (
-    <main className="w-full flex-1 p-6 lg:px-8">
+    <main className="w-full min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6 lg:px-8">
       {/* Header */}
-      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
+      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
           <Button
             asChild
             variant="ghost"
@@ -155,8 +155,10 @@ function JobDetailPageInner({ id }: { id: string }) {
               <ArrowLeft className="size-4" />
             </a>
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">{job.name}</h1>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-2xl font-bold tracking-tight">
+              {job.name}
+            </h1>
             <div className="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-2 text-sm">
               {job.cronExpression ? (
                 <Badge variant="secondary" className="gap-1 font-mono text-xs">
@@ -178,8 +180,8 @@ function JobDetailPageInner({ id }: { id: string }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button asChild variant="outline">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
+          <Button asChild variant="outline" className="flex-1 sm:flex-none">
             <a href={`/jobs/${job.id}/edit`}>
               <Pencil className="size-4" />
               {t("detail.edit")}
@@ -188,6 +190,7 @@ function JobDetailPageInner({ id }: { id: string }) {
           <Button
             onClick={handleRunNow}
             disabled={runJob.isPending || !job.playbookId}
+            className="flex-1 sm:flex-none"
           >
             {runJob.isPending ? (
               <Loader2 className="size-4 animate-spin" />
@@ -200,9 +203,9 @@ function JobDetailPageInner({ id }: { id: string }) {
       </div>
 
       {/* Body: history + output */}
-      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+      <div className="grid gap-6 md:grid-cols-[260px_1fr] lg:grid-cols-[320px_1fr]">
         {/* History list */}
-        <section className="space-y-3">
+        <section className="space-y-3 md:max-h-[calc(100vh-12rem)] md:overflow-y-auto md:pr-1">
           <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
             {t("detail.history")}
           </h2>
@@ -244,11 +247,13 @@ function JobDetailPageInner({ id }: { id: string }) {
                             : t("detail.trigger_manual")}
                         </span>
                       </div>
-                      <div className="text-muted-foreground mt-1.5 flex items-center justify-between gap-2 text-xs">
-                        <span>
+                      <div className="text-muted-foreground mt-1.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-xs">
+                        <span className="truncate">
                           {formatDateTime(run.startedAt ?? run.createdAt)}
                         </span>
-                        <span className="font-mono">{formatDuration(run)}</span>
+                        <span className="font-mono shrink-0">
+                          {formatDuration(run)}
+                        </span>
                       </div>
                     </button>
                   </li>
@@ -259,8 +264,8 @@ function JobDetailPageInner({ id }: { id: string }) {
         </section>
 
         {/* Selected run output */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
+        <section className="space-y-3 md:min-w-0">
+          <div className="flex items-center justify-between gap-2">
             <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
               {t("detail.output")}
             </h2>
@@ -272,7 +277,7 @@ function JobDetailPageInner({ id }: { id: string }) {
               {selectedRun.error ? (
                 <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/5 px-3 py-2 text-sm text-red-600">
                   <XCircle className="mt-0.5 size-4 shrink-0" />
-                  <span>{selectedRun.error}</span>
+                  <span className="break-words">{selectedRun.error}</span>
                 </div>
               ) : null}
               <JobRunOutput

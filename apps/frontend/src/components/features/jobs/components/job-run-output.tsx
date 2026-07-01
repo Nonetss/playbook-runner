@@ -167,30 +167,35 @@ export function JobRunOutput({
   const lines = events.flatMap(describeEvent)
 
   return (
-    <div className="overflow-hidden rounded-xl bg-zinc-950 p-5">
-      <div className="max-h-[60vh] overflow-y-auto font-mono text-xs leading-[1.6]">
-        {lines.length === 0 ? (
-          <p className="select-none text-zinc-600">
-            {running
-              ? "Ejecución en curso, esperando salida…"
-              : (emptyHint ?? "Sin salida registrada.")}
-          </p>
-        ) : (
-          lines.map((line, i) => (
-            <p
-              // biome-ignore lint/suspicious/noArrayIndexKey: append-only log
-              key={i}
-              className={cn("whitespace-pre-wrap", toneClass[line.tone])}
-            >
-              {line.text || " "}
+    <div className="overflow-hidden rounded-xl bg-zinc-950 p-3 sm:p-5">
+      <div className="max-h-[60vh] overflow-x-auto overflow-y-auto font-mono text-[11px] leading-[1.6] sm:text-xs">
+        <div className="min-w-max">
+          {lines.length === 0 ? (
+            <p className="select-none text-zinc-600">
+              {running
+                ? "Ejecución en curso, esperando salida…"
+                : (emptyHint ?? "Sin salida registrada.")}
             </p>
-          ))
-        )}
-        {running ? (
-          <span className="mt-1 inline-block animate-pulse text-zinc-400">
-            ▋
-          </span>
-        ) : null}
+          ) : (
+            lines.map((line, i) => (
+              <p
+                // biome-ignore lint/suspicious/noArrayIndexKey: append-only log
+                key={i}
+                className={cn(
+                  "whitespace-pre-wrap break-words",
+                  toneClass[line.tone]
+                )}
+              >
+                {line.text || " "}
+              </p>
+            ))
+          )}
+          {running ? (
+            <span className="mt-1 inline-block animate-pulse text-zinc-400">
+              ▋
+            </span>
+          ) : null}
+        </div>
       </div>
     </div>
   )
