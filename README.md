@@ -197,6 +197,11 @@ have something to point a job at the first time you boot the app:
 | [`playbooks/ping.yml`](./playbooks/ping.yml) | Connects to every host and runs `ansible.builtin.ping` — the classic "is SSH + Python working?" smoke test. |
 | [`playbooks/apt-upgrade.yml`](./playbooks/apt-upgrade.yml) | Runs `apt update && apt upgrade` on Debian/Ubuntu hosts (with `become: true`). |
 | [`playbooks/clean-docker-img.yml`](./playbooks/clean-docker-img.yml) | Prunes unused Docker images on each host (uses `community.docker.docker_prune`) and prints the reclaimed space. |
+| [`playbooks/restart-service.yml`](./playbooks/restart-service.yml) | Restarts a `systemd` service (override `service_name`, defaults to `nginx`) and waits until it's `active` again. |
+| [`playbooks/disk-usage.yml`](./playbooks/disk-usage.yml) | Runs `df -h` on every host and prints the table — quick storage overview. |
+| [`playbooks/check-uptime.yml`](./playbooks/check-uptime.yml) | Prints how long each host has been up and when it booted — handy after a power outage. |
+| [`playbooks/gather-facts.yml`](./playbooks/gather-facts.yml) | Dumps a one-line summary per host: OS, kernel, CPU, RAM, IP and FQDN. |
+| [`playbooks/fail2ban-status.yml`](./playbooks/fail2ban-status.yml) | Shows the global `fail2ban-client` status and per-jail banned IPs (override `f2b_jails`). |
 
 Treat them as copy-paste starters — open one in the *Playbooks* page, hit
 *Run*, pick a group, and you should see the output stream in.

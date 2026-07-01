@@ -1,0 +1,17 @@
+- name: Uptime de todos los hosts
+  hosts: all
+  become: true
+  tasks:
+    - name: Obtener uptime
+      ansible.builtin.command: uptime -p
+      register: host_uptime
+      changed_when: false
+
+    - name: Obtener fecha y hora actuales
+      ansible.builtin.command: uptime -s
+      register: host_boot
+      changed_when: false
+
+    - name: Mostrar uptime
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} | {{ host_uptime.stdout }} (arrancó el {{ host_boot.stdout }})"

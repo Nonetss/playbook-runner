@@ -1,0 +1,15 @@
+- name: Recopilar facts de todos los hosts
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Resumen del host
+      ansible.builtin.debug:
+        msg: >-
+          {{ inventory_hostname }} |
+          OS={{ ansible_distribution }} {{ ansible_distribution_version }} |
+          kernel={{ ansible_kernel }} |
+          arch={{ ansible_architecture }} |
+          cpu={{ ansible_processor_vcpus }}x {{ ansible_processor[0] }} |
+          ram={{ ansible_memtotal_mb }} MB |
+          ip={{ ansible_default_ipv4.address | default('N/A') }} |
+          fqdn={{ ansible_fqdn }}

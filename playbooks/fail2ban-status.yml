@@ -1,0 +1,28 @@
+- name: Estado de fail2ban en todos los hosts
+  hosts: all
+  become: true
+  tasks:
+    - name: Comprobar que fail2ban está instalado
+      ansible.builtin.command: fail2ban-client --version
+      register: f2b_check
+      changed_when: false
+
+    - name: Estado global de fail2ban
+      ansible.builtin.command: fail2ban-client status
+      register: f2b_status
+      changed_when: false
+
+    - name: Estado por jail
+      ansible.builtin.command: fail2ban-client status {{ item }}
+      loop: "{{ f2b_jails | default(['sshd']) }}"
+      register: f2b_jail_status
+      changed_when: false
+
+    - name: Mostrar resultado
+      ansible.builtin.debug:
+        msg: |
+          {{ inventory_hostname }} | fail2ban {{ f2b_check.stdout }} | {{ f2b_status.stdout }}
+
+          {% for jail in f2b_jail_status.results %}
+          {{ jail.item }}: {{ jail.stdout }}
+          {% endfor %}

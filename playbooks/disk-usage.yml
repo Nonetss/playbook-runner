@@ -1,0 +1,12 @@
+- name: Uso de disco en todos los hosts
+  hosts: all
+  become: true
+  tasks:
+    - name: Obtener uso de disco
+      ansible.builtin.command: df -h --output=source,size,used,avail,pcent,target
+      register: disk_usage
+      changed_when: false
+
+    - name: Mostrar uso de disco
+      ansible.builtin.debug:
+        var: disk_usage.stdout_lines
