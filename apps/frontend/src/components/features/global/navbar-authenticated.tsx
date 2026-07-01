@@ -49,6 +49,9 @@ function prefetchForHref(
     case "/jobs":
       queryClient.prefetchQuery(orpc.jobs.list.queryOptions())
       return
+    case "/config":
+      queryClient.prefetchQuery(orpc.config.apiKeys.list.queryOptions())
+      return
     default:
       return
   }

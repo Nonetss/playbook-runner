@@ -1,10 +1,5 @@
 import type { User } from "better-auth"
-import {
-  LogIn,
-  LogOut,
-  UserCircle2,
-  User as UserIcon,
-} from "lucide-react"
+import { LogIn, LogOut, UserCircle2, User as UserIcon } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
