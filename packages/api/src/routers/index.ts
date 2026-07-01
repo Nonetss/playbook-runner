@@ -1,6 +1,6 @@
 import type { RouterClient } from "@orpc/server"
-import { auth } from "@playbook-runner/auth"
 import { protectedProcedure, publicProcedure } from "@/index"
+import { configRouter } from "@/routers/config"
 import { credentialsRouter } from "@/routers/credentials"
 import { inventoryRouter } from "@/routers/inventory"
 import { jobsRouter } from "@/routers/jobs"
@@ -17,23 +17,6 @@ export const appRouter = {
     .handler(() => {
       return "OK"
     }),
-  createApiKey: protectedProcedure
-    .route({
-      summary: "Create an API key",
-      description:
-        "Creates a new API key for the authenticated user. The key is valid for 30 days. Requires an active session.",
-      tags: ["API Keys"],
-    })
-    .handler(async ({ context }) => {
-      return await auth.api.createApiKey({
-        headers: context.headers,
-        body: {
-          configId: "default",
-          name: "API Key",
-          expiresIn: 3600 * 24 * 30,
-        },
-      })
-    }),
   privateData: protectedProcedure
     .route({
       summary: "Get private data",
@@ -48,6 +31,7 @@ export const appRouter = {
       }
     }),
 
+  config: configRouter,
   credentials: credentialsRouter,
   inventory: inventoryRouter,
   jobs: jobsRouter,

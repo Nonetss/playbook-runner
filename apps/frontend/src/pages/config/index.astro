@@ -1,0 +1,8 @@
+---
+import { ConfigPage } from "@/components/features/config"
+import Layout from "@/layouts/Layout.astro"
+---
+
+<Layout title="Configuración">
+  <ConfigPage client:only="react" />
+</Layout>
