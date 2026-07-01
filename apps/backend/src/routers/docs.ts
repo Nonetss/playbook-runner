@@ -15,7 +15,20 @@ const handler = new OpenAPIHandler(appRouter, {
       specPath: "/openapi.json",
       specGenerateOptions: {
         servers: [{ url: "/api" }],
-        info: { title: "API", version: "1.0.0" },
+        info: {
+          title: "Playbook Runner API",
+          version: "1.0.0",
+          contact: {
+            name: "Nonete",
+            email: "amorenolopezbarajas@pm.me",
+            url: "https://github.com/Nonetss",
+          },
+          description: "API for the Playbook Runner",
+          license: {
+            name: "GNU General Public License v3.0",
+            url: "https://raw.githubusercontent.com/Nonetss/playbook-runner/refs/heads/v0.0.8/LICENSE",
+          },
+        },
         security: [{ ApiKey: [] }, { BearerAuth: [] }],
         components: {
           securitySchemes: {
