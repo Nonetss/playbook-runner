@@ -2,11 +2,9 @@ import type { User } from "better-auth"
 import {
   LogIn,
   LogOut,
-  Shield,
   UserCircle2,
   User as UserIcon,
 } from "lucide-react"
-import { useEffect, useState } from "react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,11 +24,6 @@ export interface UserNavProps {
 }
 
 export function UserNav({ user }: UserNavProps) {
-  const [isAdminRoute, setIsAdminRoute] = useState(false)
-  useEffect(() => {
-    setIsAdminRoute(window.location.pathname.startsWith("/admin"))
-  }, [])
-
   if (!user) {
     return (
       <a href="/login" aria-label="Iniciar sesión" className={triggerClass}>
@@ -73,19 +66,6 @@ export function UserNav({ user }: UserNavProps) {
           <UserCircle2 className="size-4 shrink-0" aria-hidden />
           Mi perfil
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        {(user as { role?: string } | null)?.role === "admin" &&
-          (isAdminRoute ? (
-            <DropdownMenuItem onClick={() => (window.location.href = "/")}>
-              <Shield className="size-4 shrink-0" aria-hidden />
-              Salir del panel de administración
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem onClick={() => (window.location.href = "/admin")}>
-              <Shield className="size-4 shrink-0" aria-hidden />
-              Panel de administración
-            </DropdownMenuItem>
-          ))}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           variant="destructive"
