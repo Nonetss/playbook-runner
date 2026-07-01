@@ -1,0 +1,10 @@
+---
+import { RunScriptPage } from "@/components/features/scripts"
+import Layout from "@/layouts/Layout.astro"
+
+const { id } = Astro.params
+---
+
+<Layout title="Ejecutar script">
+  <RunScriptPage client:load id={id} />
+</Layout>

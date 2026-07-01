@@ -46,6 +46,9 @@ function prefetchForHref(
     case "/playbooks":
       queryClient.prefetchQuery(orpc.playbooks.list.queryOptions())
       return
+    case "/scripts":
+      queryClient.prefetchQuery(orpc.scripts.list.queryOptions())
+      return
     case "/jobs":
       queryClient.prefetchQuery(orpc.jobs.list.queryOptions())
       return

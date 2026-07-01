@@ -1,0 +1,10 @@
+---
+import { ScriptFormPage } from "@/components/features/scripts"
+import Layout from "@/layouts/Layout.astro"
+
+const { id } = Astro.params
+---
+
+<Layout title="Editar script">
+  <ScriptFormPage client:load id={id} />
+</Layout>
