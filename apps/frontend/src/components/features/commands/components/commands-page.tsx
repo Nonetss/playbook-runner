@@ -365,7 +365,7 @@ function CommandsPageInner() {
   const [selectedDevices, setSelectedDevices] = useState<Set<string>>(new Set())
   const [inventorySearch, setInventorySearch] = useState("")
   const [groupsExpanded, setGroupsExpanded] = useState(true)
-  const [devicesExpanded, setDevicesExpanded] = useState(true)
+  const [devicesExpanded, setDevicesExpanded] = useState(false)
   const [command, setCommand] = useState("uptime")
   const [module, setModule] = useState<CommandModule>("shell")
   const [become, setBecome] = useState(false)

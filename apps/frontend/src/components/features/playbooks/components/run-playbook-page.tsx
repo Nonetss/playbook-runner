@@ -303,7 +303,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
   const [selectedDevices, setSelectedDevices] = useState<Set<string>>(new Set())
   const [inventorySearch, setInventorySearch] = useState("")
   const [groupsExpanded, setGroupsExpanded] = useState(true)
-  const [devicesExpanded, setDevicesExpanded] = useState(true)
+  const [devicesExpanded, setDevicesExpanded] = useState(false)
   const [forks, setForks] = useState(1)
   const [extravars, setExtravars] = useState<{ key: string; value: string }[]>(
     []
