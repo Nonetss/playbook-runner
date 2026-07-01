@@ -1,5 +1,6 @@
 "use client"
 
+import { useMutation } from "@tanstack/react-query"
 import type { Credential } from "@/components/features/credentials/types"
 import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { useResourceMutation } from "@/hooks/useResourceMutation"
@@ -114,6 +115,9 @@ export const useCredentialUpdate = () =>
       error: "No se pudo actualizar la credencial",
     },
   })
+
+export const useCredentialGenerate = () =>
+  useMutation(orpc.credentials.generate.mutationOptions())
 
 export const useCredentialDelete = () =>
   useResourceMutation<{ id: number }, Credential, Credential[]>({

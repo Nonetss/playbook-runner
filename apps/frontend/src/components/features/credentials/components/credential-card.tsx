@@ -1,4 +1,12 @@
-import { KeyRound, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import {
+  KeyRound,
+  MoreHorizontal,
+  Pencil,
+  Terminal,
+  Trash2,
+} from "lucide-react"
+import { useState } from "react"
+import { ProvisionScriptDialog } from "@/components/features/credentials/components/provision-script-dialog"
 import type { Credential } from "@/components/features/credentials/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -29,6 +37,7 @@ export function CredentialCard({
   onDelete,
   isDeleting = false,
 }: CredentialCardProps) {
+  const [scriptOpen, setScriptOpen] = useState(false)
   const createdAt = credential.createdAt
     ? new Date(credential.createdAt).toLocaleDateString("es-ES", {
         year: "numeric",
@@ -71,6 +80,10 @@ export function CredentialCard({
                 <Pencil className="size-4" />
                 Editar
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setScriptOpen(true)}>
+                <Terminal className="size-4" />
+                Script de aprovisionamiento
+              </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
                 onClick={() => onDelete(credential.id)}
@@ -102,6 +115,12 @@ export function CredentialCard({
           {credential.publicKey}
         </p>
       </CardContent>
+
+      <ProvisionScriptDialog
+        open={scriptOpen}
+        onOpenChange={setScriptOpen}
+        credential={credential}
+      />
     </Card>
   )
 }

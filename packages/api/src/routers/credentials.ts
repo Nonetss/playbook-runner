@@ -1,8 +1,20 @@
 import z from "zod"
 import { credentialsHandler } from "@/handlers/credentials"
 import { protectedProcedure } from "@/index"
+import { generateEd25519KeyPair } from "@/lib/ssh-key"
 
 export const credentialsRouter = {
+  generate: protectedProcedure
+    .route({
+      summary: "Generate an SSH key pair",
+      description:
+        "Generates a new ed25519 SSH key pair. Does not persist anything — the caller must submit it via `create` to save it as a credential.",
+      tags: ["Credentials"],
+      method: "POST",
+    })
+    .input(z.object({ comment: z.string().optional() }))
+    .handler(({ input }) => generateEd25519KeyPair(input.comment ?? "")),
+
   create: protectedProcedure
     .route({
       summary: "Create a credential",
