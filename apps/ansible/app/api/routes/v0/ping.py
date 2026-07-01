@@ -33,7 +33,9 @@ from app.services.ansible.backend_client import (
     resolve_device,
 )
 from app.services.ansible.events import log_event_handler
-from app.services.ansible.materialize import _write_key_file  # type: ignore[attr-defined]
+from app.services.ansible.materialize import (
+    _write_key_file,  # type: ignore[attr-defined]
+)
 from app.services.ansible.runner import (
     AnsibleRunner,
     AnsibleRunnerConfig,

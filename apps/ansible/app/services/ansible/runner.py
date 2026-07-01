@@ -21,6 +21,7 @@ class HostVars(TypedDict, total=False):
 
     ansible_connection: str
     ansible_host: str
+    ansible_port: int
     ansible_user: str
     ansible_become_user: str
     ansible_ssh_private_key_file: str
