@@ -20,6 +20,7 @@ import {
   XCircle,
 } from "lucide-react"
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import {
   type CommandModule,
   type CommandRequest,
@@ -54,21 +55,28 @@ function lines(...items: TerminalLine[]): TerminalLine[] {
 
 // NOTE: keep parity with run-playbook-page.tsx's `describeEvent` — copy here
 // (see TODO at top of file).
-function describeEvent(event: RunEvent): TerminalLine[] {
+function describeEvent(
+  event: RunEvent,
+  t: (key: string, options?: Record<string, unknown>) => string
+): TerminalLine[] {
   switch (event.event) {
     case "playbook_on_start":
-      return lines({ text: sep("PLAYBOOK"), tone: "header" })
+      return lines({
+        text: sep(t("console.headings.playbook")),
+        tone: "header",
+      })
 
     case "playbook_on_play_start":
       return lines(
         { text: "", tone: "dim" },
-        { text: sep(`PLAY [${event.play ?? ""}]`), tone: "header" }
+        {
+          text: sep(`${t("console.headings.play")} [${event.play ?? ""}]`),
+          tone: "header",
+        }
       )
 
     case "playbook_on_task_start": {
-      const label = event.task_action
-        ? `TASK [${event.task ?? ""}]`
-        : `TASK [${event.task ?? ""}]`
+      const label = `${t("console.headings.task")} [${event.task ?? ""}]`
       return lines(
         { text: "", tone: "dim" },
         { text: sep(label, "-"), tone: "muted" }
@@ -76,12 +84,25 @@ function describeEvent(event: RunEvent): TerminalLine[] {
     }
 
     case "runner_on_start":
-      return lines({ text: `  → [${event.host ?? ""}] iniciando`, tone: "dim" })
+      return lines({
+        text: `  → [${event.host ?? ""}] ${t("console.runner.starting")}`,
+        tone: "dim",
+      })
 
     case "runner_on_ok": {
       const result: TerminalLine[] = event.changed
-        ? [{ text: `changed: [${event.host ?? ""}]`, tone: "changed" }]
-        : [{ text: `ok: [${event.host ?? ""}]`, tone: "ok" }]
+        ? [
+            {
+              text: `${t("console.runner.changed")}: [${event.host ?? ""}]`,
+              tone: "changed",
+            },
+          ]
+        : [
+            {
+              text: `${t("console.runner.ok")}: [${event.host ?? ""}]`,
+              tone: "ok",
+            },
+          ]
       if (event.stdout) {
         for (const line of event.stdout.split("\n")) {
           if (line) result.push({ text: `  ${line}`, tone: "dim" })
@@ -91,26 +112,38 @@ function describeEvent(event: RunEvent): TerminalLine[] {
     }
 
     case "runner_on_skipped":
-      return lines({ text: `skipping: [${event.host ?? ""}]`, tone: "muted" })
+      return lines({
+        text: `${t("console.runner.skipping")}: [${event.host ?? ""}]`,
+        tone: "muted",
+      })
 
     case "runner_on_failed": {
       const result: TerminalLine[] = [
-        { text: `fatal: [${event.host ?? ""}]: FAILED!`, tone: "fail" },
+        {
+          text: `${t("console.runner.fatal")}: [${event.host ?? ""}]: ${t("console.runner.failed_excl")}!`,
+          tone: "fail",
+        },
       ]
       if (event.msg) {
-        result.push({ text: `  msg: ${event.msg}`, tone: "fail" })
+        result.push({
+          text: `  ${t("console.runner.msg")}: ${event.msg}`,
+          tone: "fail",
+        })
       }
       if (event.rc != null) {
-        result.push({ text: `  rc: ${event.rc}`, tone: "fail" })
+        result.push({
+          text: `  ${t("console.runner.rc")}: ${event.rc}`,
+          tone: "fail",
+        })
       }
       if (event.stdout) {
-        result.push({ text: "  stdout:", tone: "muted" })
+        result.push({ text: `  ${t("console.runner.stdout")}:`, tone: "muted" })
         for (const line of event.stdout.split("\n")) {
           if (line) result.push({ text: `    ${line}`, tone: "dim" })
         }
       }
       if (event.stderr) {
-        result.push({ text: "  stderr:", tone: "fail" })
+        result.push({ text: `  ${t("console.runner.stderr")}:`, tone: "fail" })
         for (const line of event.stderr.split("\n")) {
           if (line) result.push({ text: `    ${line}`, tone: "fail" })
         }
@@ -120,10 +153,16 @@ function describeEvent(event: RunEvent): TerminalLine[] {
 
     case "runner_on_unreachable": {
       const result: TerminalLine[] = [
-        { text: `fatal: [${event.host ?? ""}]: UNREACHABLE!`, tone: "fail" },
+        {
+          text: `${t("console.runner.fatal")}: [${event.host ?? ""}]: ${t("console.runner.unreachable")}!`,
+          tone: "fail",
+        },
       ]
       if (event.msg) {
-        result.push({ text: `  msg: ${event.msg}`, tone: "fail" })
+        result.push({
+          text: `  ${t("console.runner.msg")}: ${event.msg}`,
+          tone: "fail",
+        })
       }
       return result
     }
@@ -131,14 +170,14 @@ function describeEvent(event: RunEvent): TerminalLine[] {
     case "runner_item_on_ok":
       return lines({
         text: event.changed
-          ? `  changed: [${event.host ?? ""}] (item)`
-          : `  ok: [${event.host ?? ""}] (item)`,
+          ? `  ${t("console.runner.changed")}: [${event.host ?? ""}] (${t("console.runner.item")})`
+          : `  ${t("console.runner.ok")}: [${event.host ?? ""}] (${t("console.runner.item")})`,
         tone: event.changed ? "changed" : "ok",
       })
 
     case "runner_item_on_failed":
       return lines({
-        text: `  failed: [${event.host ?? ""}] (item) — ${event.msg ?? ""}`,
+        text: `  ${t("console.runner.failed_lower")}: [${event.host ?? ""}] (${t("console.runner.item")}) — ${event.msg ?? ""}`,
         tone: "fail",
       })
 
@@ -146,7 +185,7 @@ function describeEvent(event: RunEvent): TerminalLine[] {
       if (!event.stats)
         return lines(
           { text: "", tone: "dim" },
-          { text: sep("PLAY RECAP"), tone: "header" }
+          { text: sep(t("console.headings.recap")), tone: "header" }
         )
 
       const { ok, changed, failures, dark, skipped } = event.stats
@@ -162,7 +201,7 @@ function describeEvent(event: RunEvent): TerminalLine[] {
 
       const result: TerminalLine[] = [
         { text: "", tone: "dim" },
-        { text: sep("PLAY RECAP"), tone: "header" },
+        { text: sep(t("console.headings.recap")), tone: "header" },
       ]
 
       for (const host of hosts) {
@@ -172,7 +211,7 @@ function describeEvent(event: RunEvent): TerminalLine[] {
         const d = dark[host] ?? 0
         const s = skipped[host] ?? 0
         const tone: Tone = f > 0 || d > 0 ? "fail" : c > 0 ? "changed" : "ok"
-        const stats = `ok=${o}  changed=${c}  unreachable=${d}  failed=${f}  skipped=${s}`
+        const stats = `${t("console.runner.ok")}=${o}  ${t("console.runner.changed")}=${c}  ${t("console.runner.unreachable_lower")}=${d}  ${t("console.runner.failed_lower")}=${f}  ${t("console.runner.skipped")}=${s}`
         result.push({
           text: `${host.padEnd(36)}: ${stats}`,
           tone,
@@ -300,63 +339,8 @@ function ToggleRow({
   )
 }
 
-const MODULES: {
-  value: CommandModule
-  label: string
-  hint: string
-}[] = [
-  {
-    value: "command",
-    label: "command",
-    hint: "Ejecuta el binario directamente, sin shell. No admite pipes, redirecciones ni variables. Más seguro y predecible.",
-  },
-  {
-    value: "shell",
-    label: "shell",
-    hint: "Ejecuta a través de /bin/sh. Admite |, >, &&, $VAR y comodines. Necesario para comandos con sintaxis de shell.",
-  },
-]
-
-/** Segmented control that makes the shell/command distinction obvious. */
-function ModulePicker({
-  value,
-  onChange,
-  disabled,
-}: {
-  value: CommandModule
-  onChange: (next: CommandModule) => void
-  disabled?: boolean
-}) {
-  const active = MODULES.find((m) => m.value === value) ?? MODULES[0]
-  return (
-    <div className="space-y-1.5">
-      <div className="grid grid-cols-2 gap-1.5">
-        {MODULES.map((m) => (
-          <button
-            key={m.value}
-            type="button"
-            onClick={() => onChange(m.value)}
-            disabled={disabled}
-            className={cn(
-              "flex items-center justify-center gap-1.5 rounded-md border px-2.5 py-1.5 font-mono text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-              value === m.value
-                ? "border-primary bg-primary/10 text-foreground"
-                : "border-input text-muted-foreground hover:bg-accent"
-            )}
-          >
-            <TerminalSquare className="size-3.5" />
-            {m.label}
-          </button>
-        ))}
-      </div>
-      <p className="text-muted-foreground text-[11px] leading-snug">
-        {active.hint}
-      </p>
-    </div>
-  )
-}
-
 function CommandsPageInner() {
+  const { t } = useTranslation("commands")
   const { data: groups = [] } = useGroupsList()
   const { data: devices = [] } = useDevicesList()
   const { phase, events, result, errorMessage, start, reset } = useRunCommand()
@@ -424,7 +408,23 @@ function CommandsPageInner() {
     void start(body)
   }
 
-  const terminalLines = useMemo(() => events.flatMap(describeEvent), [events])
+  const MODULES = [
+    {
+      value: "command" as const,
+      label: t("module.command"),
+      hint: t("module.command_hint"),
+    },
+    {
+      value: "shell" as const,
+      label: t("module.shell"),
+      hint: t("module.shell_hint"),
+    },
+  ]
+
+  const terminalLines = useMemo(
+    () => events.flatMap((event) => describeEvent(event, t)),
+    [events, t]
+  )
 
   return (
     <main className="flex h-[calc(100dvh-3.5rem)] w-full min-h-0 flex-col overflow-hidden">
@@ -435,11 +435,9 @@ function CommandsPageInner() {
         </div>
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-base font-semibold leading-tight">
-            Comandos
+            {t("page.title")}
           </h1>
-          <p className="text-muted-foreground text-xs">
-            Ejecución ad-hoc contra inventario
-          </p>
+          <p className="text-muted-foreground text-xs">{t("page.subtitle")}</p>
         </div>
         {phase !== "idle" ? (
           <Button
@@ -448,7 +446,7 @@ function CommandsPageInner() {
             onClick={reset}
             disabled={isRunning}
           >
-            Nueva ejecución
+            {t("actions.new_run")}
           </Button>
         ) : null}
       </div>
@@ -477,14 +475,12 @@ function CommandsPageInner() {
           >
             {phase === "idle" ? (
               <p className="select-none text-zinc-600">
-                Configura el comando y pulsa{" "}
-                <span className="text-zinc-400">Ejecutar</span> para ver la
-                salida aquí.
+                {t("console.idle_prompt")}
               </p>
             ) : terminalLines.length === 0 && isRunning ? (
               <p className="flex items-center gap-2 text-zinc-500">
                 <Loader2 className="size-3 animate-spin" />
-                Iniciando ejecución…
+                {t("console.starting")}
               </p>
             ) : (
               terminalLines.map((line, i) => (
@@ -528,9 +524,10 @@ function CommandsPageInner() {
                 <AlertTriangle className="size-3.5 shrink-0" />
               )}
               <span>
-                Ejecución finalizada — estado{" "}
-                <span className="font-semibold">{result.status}</span> (rc=
-                {result.rc ?? "?"})
+                {t("result.finished_with_status", {
+                  status: result.status,
+                  rc: result.rc ?? "?",
+                })}
               </span>
             </div>
           ) : null}
@@ -542,7 +539,7 @@ function CommandsPageInner() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-                Inventario
+                {t("panel.inventory")}
               </p>
               {selectionCount > 0 ? (
                 <button
@@ -554,7 +551,7 @@ function CommandsPageInner() {
                   disabled={isRunning}
                   className="text-muted-foreground hover:text-foreground text-[11px] transition-colors disabled:opacity-50"
                 >
-                  Limpiar ({selectionCount})
+                  {t("panel.clear", { count: selectionCount })}
                 </button>
               ) : null}
             </div>
@@ -564,7 +561,7 @@ function CommandsPageInner() {
                 <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
                 <Input
                   type="search"
-                  placeholder="Buscar…"
+                  placeholder={t("panel.search_placeholder")}
                   value={inventorySearch}
                   onChange={(e) => setInventorySearch(e.target.value)}
                   disabled={isRunning}
@@ -575,7 +572,7 @@ function CommandsPageInner() {
 
             {groups.length > 0 ? (
               <InventoryCollapsible
-                title="Grupos"
+                title={t("panel.groups")}
                 count={filteredGroups.length}
                 selectedCount={
                   filteredGroups.filter((g) => selectedGroups.has(g.id)).length
@@ -602,7 +599,7 @@ function CommandsPageInner() {
                   </ul>
                 ) : (
                   <p className="text-muted-foreground px-2 py-1 text-xs">
-                    Sin resultados
+                    {t("panel.no_results")}
                   </p>
                 )}
               </InventoryCollapsible>
@@ -610,7 +607,7 @@ function CommandsPageInner() {
 
             {devices.length > 0 ? (
               <InventoryCollapsible
-                title="Dispositivos"
+                title={t("panel.devices")}
                 count={filteredDevices.length}
                 selectedCount={
                   filteredDevices.filter((d) => selectedDevices.has(d.id))
@@ -638,7 +635,7 @@ function CommandsPageInner() {
                   </ul>
                 ) : (
                   <p className="text-muted-foreground px-2 py-1 text-xs">
-                    Sin resultados
+                    {t("panel.no_results")}
                   </p>
                 )}
               </InventoryCollapsible>
@@ -646,13 +643,13 @@ function CommandsPageInner() {
 
             {groups.length === 0 && devices.length === 0 ? (
               <p className="text-muted-foreground px-2 text-xs">
-                No hay inventario. Crea grupos o dispositivos primero.
+                {t("panel.empty_inventory")}
               </p>
             ) : searchQuery &&
               filteredGroups.length === 0 &&
               filteredDevices.length === 0 ? (
               <p className="text-muted-foreground px-2 text-xs">
-                Ningún grupo ni dispositivo coincide con la búsqueda.
+                {t("panel.no_match")}
               </p>
             ) : null}
           </div>
@@ -660,12 +657,12 @@ function CommandsPageInner() {
           {/* Command + module + become */}
           <div className="space-y-3 border-t pt-3">
             <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-              Comando
+              {t("panel.command_section")}
             </p>
 
             <div className="space-y-1.5">
               <Label htmlFor="cmd-text" className="text-xs">
-                Comando
+                {t("panel.command")}
               </Label>
               <div className="relative">
                 <span className="text-muted-foreground pointer-events-none absolute top-1.5 left-3 font-mono text-xs select-none">
@@ -679,17 +676,18 @@ function CommandsPageInner() {
                   rows={3}
                   spellCheck={false}
                   className="border-input bg-transparent ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border py-1.5 pr-3 pl-6 font-mono text-xs shadow-xs focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholder="uptime"
+                  placeholder={t("panel.command_placeholder")}
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Módulo</Label>
+              <Label className="text-xs">{t("panel.module")}</Label>
               <ModulePicker
                 value={module}
                 onChange={setModule}
                 disabled={isRunning}
+                modules={MODULES}
               />
             </div>
 
@@ -700,10 +698,10 @@ function CommandsPageInner() {
                   className="flex items-center gap-1.5 text-xs"
                 >
                   <ShieldAlert className="size-3.5" />
-                  Become (sudo)
+                  {t("panel.become")}
                 </Label>
                 <p className="text-muted-foreground mt-0.5 text-[11px] leading-snug">
-                  Ejecuta el comando con privilegios de root.
+                  {t("panel.become_hint")}
                 </p>
               </div>
               <Switch
@@ -716,7 +714,7 @@ function CommandsPageInner() {
 
             <div className="flex items-center gap-2">
               <Label htmlFor="cmd-forks" className="w-14 shrink-0 text-xs">
-                Forks
+                {t("panel.forks")}
               </Label>
               <Input
                 id="cmd-forks"
@@ -739,12 +737,12 @@ function CommandsPageInner() {
               {isRunning ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
-                  Ejecutando…
+                  {t("actions.running")}
                 </>
               ) : (
                 <>
                   <Play className="size-4" />
-                  Ejecutar
+                  {t("actions.run")}
                   {selectionCount > 0 ? (
                     <Badge variant="secondary" className="ml-1">
                       {selectionCount}
@@ -757,6 +755,46 @@ function CommandsPageInner() {
         </div>
       </div>
     </main>
+  )
+}
+
+function ModulePicker({
+  value,
+  onChange,
+  disabled,
+  modules,
+}: {
+  value: CommandModule
+  onChange: (next: CommandModule) => void
+  disabled?: boolean
+  modules: { value: CommandModule; label: string; hint: string }[]
+}) {
+  const active = modules.find((m) => m.value === value) ?? modules[0]
+  return (
+    <div className="space-y-1.5">
+      <div className="grid grid-cols-2 gap-1.5">
+        {modules.map((m) => (
+          <button
+            key={m.value}
+            type="button"
+            onClick={() => onChange(m.value)}
+            disabled={disabled}
+            className={cn(
+              "flex items-center justify-center gap-1.5 rounded-md border px-2.5 py-1.5 font-mono text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+              value === m.value
+                ? "border-primary bg-primary/10 text-foreground"
+                : "border-input text-muted-foreground hover:bg-accent"
+            )}
+          >
+            <TerminalSquare className="size-3.5" />
+            {m.label}
+          </button>
+        ))}
+      </div>
+      <p className="text-muted-foreground text-[11px] leading-snug">
+        {active.hint}
+      </p>
+    </div>
   )
 }
 

@@ -1,0 +1,64 @@
+{
+  "page": {
+    "title": "Ad-hoc commands",
+    "subtitle": "Run commands against your inventory."
+  },
+  "actions": {
+    "run": "Run",
+    "running": "Running…",
+    "new_run": "New run"
+  },
+  "result": {
+    "finished_with_status": "Run finished — status {{status}} (rc={{rc}})"
+  },
+  "panel": {
+    "inventory": "INVENTORY",
+    "groups": "Groups",
+    "devices": "Devices",
+    "clear": "Clear ({{count}})",
+    "search_placeholder": "Search…",
+    "no_results": "No results",
+    "no_match": "No group or device matches the search.",
+    "empty_inventory": "No inventory. Create groups or devices first.",
+    "command_section": "COMMAND",
+    "command": "Command",
+    "command_placeholder": "uptime",
+    "module": "Module",
+    "become": "Become (sudo)",
+    "become_hint": "Run the command with root privileges.",
+    "forks": "Forks"
+  },
+  "module": {
+    "command": "command",
+    "command_hint": "Runs the binary directly, without a shell. No pipes, redirects, or variables. Safer and more predictable.",
+    "shell": "shell",
+    "shell_hint": "Runs through /bin/sh. Supports |, >, &&, $VAR, and globbing. Needed for shell-flavored commands."
+  },
+  "console": {
+    "idle_prompt": "Configure the command and press Run to see the output here.",
+    "starting": "Starting run…",
+    "headings": {
+      "playbook": "PLAYBOOK",
+      "play": "PLAY",
+      "task": "TASK",
+      "recap": "PLAY RECAP"
+    },
+    "runner": {
+      "starting": "starting",
+      "ok": "ok",
+      "changed": "changed",
+      "skipping": "skipping",
+      "fatal": "fatal",
+      "msg": "msg",
+      "rc": "rc",
+      "stdout": "stdout",
+      "stderr": "stderr",
+      "failed_excl": "FAILED",
+      "unreachable": "UNREACHABLE",
+      "unreachable_lower": "unreachable",
+      "failed_lower": "failed",
+      "skipped": "skipped",
+      "item": "item"
+    }
+  }
+}

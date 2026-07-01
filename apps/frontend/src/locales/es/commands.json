@@ -1,0 +1,64 @@
+{
+  "page": {
+    "title": "Comandos",
+    "subtitle": "Ejecución ad-hoc contra inventario."
+  },
+  "actions": {
+    "run": "Ejecutar",
+    "running": "Ejecutando…",
+    "new_run": "Nueva ejecución"
+  },
+  "result": {
+    "finished_with_status": "Ejecución finalizada — estado {{status}} (rc={{rc}})"
+  },
+  "panel": {
+    "inventory": "INVENTARIO",
+    "groups": "Grupos",
+    "devices": "Dispositivos",
+    "clear": "Limpiar ({{count}})",
+    "search_placeholder": "Buscar…",
+    "no_results": "Sin resultados",
+    "no_match": "Ningún grupo ni dispositivo coincide con la búsqueda.",
+    "empty_inventory": "No hay inventario. Crea grupos o dispositivos primero.",
+    "command_section": "COMANDO",
+    "command": "Comando",
+    "command_placeholder": "uptime",
+    "module": "Módulo",
+    "become": "Become (sudo)",
+    "become_hint": "Ejecuta el comando con privilegios de root.",
+    "forks": "Forks"
+  },
+  "module": {
+    "command": "command",
+    "command_hint": "Ejecuta el binario directamente, sin shell. No admite pipes, redirecciones ni variables. Más seguro y predecible.",
+    "shell": "shell",
+    "shell_hint": "Ejecuta a través de /bin/sh. Admite |, >, &&, $VAR y comodines. Necesario para comandos con sintaxis de shell."
+  },
+  "console": {
+    "idle_prompt": "Configura el comando y pulsa Ejecutar para ver la salida aquí.",
+    "starting": "Iniciando ejecución…",
+    "headings": {
+      "playbook": "PLAYBOOK",
+      "play": "PLAY",
+      "task": "TAREA",
+      "recap": "RESUMEN"
+    },
+    "runner": {
+      "starting": "iniciando",
+      "ok": "ok",
+      "changed": "changed",
+      "skipping": "skipping",
+      "fatal": "fatal",
+      "msg": "msg",
+      "rc": "rc",
+      "stdout": "stdout",
+      "stderr": "stderr",
+      "failed_excl": "FAILED",
+      "unreachable": "UNREACHABLE",
+      "unreachable_lower": "unreachable",
+      "failed_lower": "failed",
+      "skipped": "skipped",
+      "item": "item"
+    }
+  }
+}
