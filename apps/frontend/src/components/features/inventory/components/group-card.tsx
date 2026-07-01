@@ -1,8 +1,8 @@
 import {
+  Folder,
   Link2,
   MoreHorizontal,
   Pencil,
-  Server,
   Settings2,
   Trash2,
 } from "lucide-react"
@@ -49,7 +49,7 @@ export function GroupCard({
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
             <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-md">
-              <Server className="size-4" />
+              <Folder className="size-4" />
             </div>
             <div className="min-w-0">
               <CardTitle className="truncate text-base">{group.name}</CardTitle>

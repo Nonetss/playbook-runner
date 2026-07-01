@@ -1,10 +1,10 @@
 import {
-  Folder,
   KeyRound,
   Link2,
   MoreHorizontal,
   Pencil,
   Radio,
+  Server,
   Trash2,
 } from "lucide-react"
 import type {
@@ -59,7 +59,7 @@ export function DeviceCard({
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
             <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-md">
-              <Folder className="size-4" />
+              <Server className="size-4" />
             </div>
             <div className="min-w-0">
               <CardTitle className="truncate text-base">
