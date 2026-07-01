@@ -47,6 +47,13 @@ it. The inventory panel on the right shows which hosts are in scope.
 
 ![Playbook execution](img/playbooks-exe.png)
 
+**API reference** — every endpoint is documented in an interactive OpenAPI
+reference (Scalar) served at `/scalar`, with request/response schemas, error
+codes, and ready-to-run `curl`/client snippets. The raw spec lives at
+`/openapi.json`.
+
+![API reference](img/scalar.png)
+
 ## What you can do with it
 
 - **Inventory** — store devices (host, port, IP) and groups. A device
