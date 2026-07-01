@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import type { Session, User } from "better-auth"
 import type { NavbarNavLink } from "@/components/features/global/navbar-mobile-menu"
 import { NavbarMobileMenu } from "@/components/features/global/navbar-mobile-menu"
+import { SettingsLink } from "@/components/features/global/settings-link"
 import { ThemeToggle } from "@/components/features/global/theme-toggle"
 import { UserNav } from "@/components/features/global/user-nav"
 import { AppProviders } from "@/components/providers/app-providers"
@@ -124,12 +125,14 @@ function NavbarAuthenticatedInner({
             onPrefetch={handlePrefetch}
           />
           <ThemeToggle className="relative right-0 top-0 translate-y-0" />
+          <SettingsLink />
           <UserNav user={user} />
         </div>
 
         {/* Desktop: lg+ actions */}
         <div className="hidden lg:flex shrink-0 items-center gap-2">
           <ThemeToggle className="relative right-0 top-0 translate-y-0" />
+          <SettingsLink />
           <UserNav user={user} />
         </div>
       </nav>
