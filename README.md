@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">Playbook</h1>
-<p align="center"><sub>R U N N E R</sub></p>
+<p align="center">R U N N E R</p>
 
 A self-hosted web UI to manage and run [Ansible](https://www.ansible.com/)
 playbooks against your inventory — without the operational weight of AWX or
