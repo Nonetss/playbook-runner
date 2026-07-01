@@ -1,8 +1,8 @@
 import {
+  type ComponentPropsWithoutRef,
   useLayoutEffect,
   useRef,
   useState,
-  type ComponentPropsWithoutRef,
 } from "react"
 import { cn } from "@/lib/utils"
 
@@ -25,7 +25,9 @@ const hiddenPill: PillMetrics = {
 function measurePill(container: HTMLElement, activeIndex: number): PillMetrics {
   if (activeIndex < 0) return hiddenPill
 
-  const items = container.querySelectorAll<HTMLElement>("[data-sliding-pill-item]")
+  const items = container.querySelectorAll<HTMLElement>(
+    "[data-sliding-pill-item]"
+  )
   const el = items[activeIndex]
   if (!el) return hiddenPill
 

@@ -1,4 +1,4 @@
-import { ArrowLeft, Loader2 } from "lucide-react"
+import { AlertTriangle, ArrowLeft, Loader2 } from "lucide-react"
 import * as React from "react"
 import {
   usePlaybookCreate,
@@ -15,7 +15,7 @@ const TEXTAREA_CLASS =
 
 const CONTENT_PLACEHOLDER = `---
 - name: Deploy web
-  hosts: webservers
+  hosts: all
   tasks:
     - name: Install nginx
       apt:
@@ -162,6 +162,19 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
           <Label htmlFor="content-field">
             Contenido<span aria-hidden> *</span>
           </Label>
+          <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+            <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+            <span>
+              Usa siempre{" "}
+              <code className="font-mono font-semibold">hosts: all</code> en tus
+              plays. Los hosts contra los que se ejecuta se eligen al lanzar el
+              run; el inventario se expone bajo el grupo{" "}
+              <code className="font-mono font-semibold">all</code>, así que
+              cualquier otro patrón (p.&nbsp;ej.{" "}
+              <code className="font-mono">docker_hosts</code>) no encontrará
+              hosts y la play se saltará.
+            </span>
+          </div>
           <textarea
             id="content-field"
             required
