@@ -56,5 +56,31 @@
     "save_changes": "Guardar cambios",
     "saving": "Guardando…",
     "save_error": "No se pudo guardar el job."
+  },
+  "status": {
+    "pending": "Pendiente",
+    "running": "En curso",
+    "ok": "Correcto",
+    "failed": "Fallido"
+  },
+  "detail": {
+    "title": "Job",
+    "loading": "Cargando job…",
+    "load_error": "No se pudo cargar el job.",
+    "back_aria": "Volver",
+    "back_to_jobs": "Volver a jobs",
+    "manual_execution": "Ejecución manual",
+    "disabled": "Desactivado",
+    "edit": "Editar",
+    "run_now": "Ejecutar ahora",
+    "history": "Historial",
+    "loading_short": "Cargando…",
+    "empty_runs_prefix": "Aún no hay ejecuciones. Pulsa",
+    "empty_runs_suffix": "o espera a la próxima ejecución programada.",
+    "trigger_schedule": "Programado",
+    "trigger_manual": "Manual",
+    "output": "Salida",
+    "select_run": "Selecciona una ejecución para ver su salida.",
+    "not_found": "Job no encontrado."
   }
 }

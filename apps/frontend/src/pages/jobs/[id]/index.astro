@@ -1,10 +1,13 @@
 ---
 import { JobDetailPage } from "@/components/features/jobs/components/job-detail-page"
 import Layout from "@/layouts/Layout.astro"
+import { getServerT } from "@/lib/i18n/server"
 
 const { id } = Astro.params
+const { locale } = Astro.locals
+const t = await getServerT(locale, "jobs")
 ---
 
-<Layout title="Job">
-  <JobDetailPage client:only="react" id={id} />
+<Layout title={t("detail.title")}>
+  <JobDetailPage client:only="react" id={id} locale={locale} />
 </Layout>

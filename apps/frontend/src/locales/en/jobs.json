@@ -56,5 +56,31 @@
     "save_changes": "Save changes",
     "saving": "Saving...",
     "save_error": "Could not save the job."
+  },
+  "status": {
+    "pending": "Pending",
+    "running": "Running",
+    "ok": "Success",
+    "failed": "Failed"
+  },
+  "detail": {
+    "title": "Job",
+    "loading": "Loading job…",
+    "load_error": "Could not load the job.",
+    "back_aria": "Back",
+    "back_to_jobs": "Back to jobs",
+    "manual_execution": "Manual execution",
+    "disabled": "Disabled",
+    "edit": "Edit",
+    "run_now": "Run now",
+    "history": "History",
+    "loading_short": "Loading…",
+    "empty_runs_prefix": "No runs yet. Press",
+    "empty_runs_suffix": "or wait for the next scheduled run.",
+    "trigger_schedule": "Scheduled",
+    "trigger_manual": "Manual",
+    "output": "Output",
+    "select_run": "Select a run to see its output.",
+    "not_found": "Job not found."
   }
 }

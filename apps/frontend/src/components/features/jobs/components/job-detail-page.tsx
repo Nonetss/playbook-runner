@@ -8,6 +8,7 @@ import {
   XCircle,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { JobRunOutput } from "@/components/features/jobs/components/job-run-output"
 import {
   useJobGet,
@@ -44,42 +45,44 @@ function formatDuration(run: JobRun): string {
 
 const STATUS_META: Record<
   JobRunStatus,
-  { label: string; className: string; icon: React.ElementType }
+  { labelKey: string; className: string; icon: React.ElementType }
 > = {
   pending: {
-    label: "Pendiente",
+    labelKey: "status.pending",
     className: "border-zinc-300 text-muted-foreground",
     icon: Clock,
   },
   running: {
-    label: "En curso",
+    labelKey: "status.running",
     className: "border-sky-500/40 bg-sky-500/10 text-sky-600",
     icon: Loader2,
   },
   ok: {
-    label: "Correcto",
+    labelKey: "status.ok",
     className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-600",
     icon: CheckCircle2,
   },
   failed: {
-    label: "Fallido",
+    labelKey: "status.failed",
     className: "border-red-500/40 bg-red-500/10 text-red-600",
     icon: XCircle,
   },
 }
 
 function StatusBadge({ status }: { status: JobRunStatus }) {
+  const { t } = useTranslation("jobs")
   const meta = STATUS_META[status]
   const Icon = meta.icon
   return (
     <Badge variant="outline" className={cn("gap-1", meta.className)}>
       <Icon className={cn("size-3", status === "running" && "animate-spin")} />
-      {meta.label}
+      {t(meta.labelKey)}
     </Badge>
   )
 }
 
 function JobDetailPageInner({ id }: { id: string }) {
+  const { t } = useTranslation("jobs")
   const { data: job, isPending: jobLoading, isError } = useJobGet(id)
   const runJob = useJobRun()
 
@@ -115,7 +118,7 @@ function JobDetailPageInner({ id }: { id: string }) {
       <main className="flex w-full flex-1 items-center justify-center p-6">
         <div className="text-muted-foreground flex items-center gap-2 text-sm">
           <Loader2 className="size-4 animate-spin" />
-          Cargando job…
+          {t("detail.loading")}
         </div>
       </main>
     )
@@ -125,12 +128,12 @@ function JobDetailPageInner({ id }: { id: string }) {
     return (
       <main className="w-full flex-1 p-6 lg:px-8">
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          No se pudo cargar el job.
+          {t("detail.load_error")}
         </div>
         <Button asChild variant="outline" className="mt-4">
           <a href="/jobs">
             <ArrowLeft className="size-4" />
-            Volver a jobs
+            {t("detail.back_to_jobs")}
           </a>
         </Button>
       </main>
@@ -142,7 +145,12 @@ function JobDetailPageInner({ id }: { id: string }) {
       {/* Header */}
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Button asChild variant="ghost" size="icon-sm" aria-label="Volver">
+          <Button
+            asChild
+            variant="ghost"
+            size="icon-sm"
+            aria-label={t("detail.back_aria")}
+          >
             <a href="/jobs">
               <ArrowLeft className="size-4" />
             </a>
@@ -156,14 +164,14 @@ function JobDetailPageInner({ id }: { id: string }) {
                   {job.cronExpression}
                 </Badge>
               ) : (
-                <span>Ejecución manual</span>
+                <span>{t("detail.manual_execution")}</span>
               )}
               {!job.enabled ? (
                 <Badge
                   variant="outline"
                   className="text-muted-foreground text-xs"
                 >
-                  Desactivado
+                  {t("detail.disabled")}
                 </Badge>
               ) : null}
             </div>
@@ -174,7 +182,7 @@ function JobDetailPageInner({ id }: { id: string }) {
           <Button asChild variant="outline">
             <a href={`/jobs/${job.id}/edit`}>
               <Pencil className="size-4" />
-              Editar
+              {t("detail.edit")}
             </a>
           </Button>
           <Button
@@ -186,7 +194,7 @@ function JobDetailPageInner({ id }: { id: string }) {
             ) : (
               <Play className="size-4" />
             )}
-            Ejecutar ahora
+            {t("detail.run_now")}
           </Button>
         </div>
       </div>
@@ -196,20 +204,20 @@ function JobDetailPageInner({ id }: { id: string }) {
         {/* History list */}
         <section className="space-y-3">
           <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-            Historial
+            {t("detail.history")}
           </h2>
 
           {runsLoading ? (
             <div className="text-muted-foreground flex items-center gap-2 py-4 text-sm">
               <Loader2 className="size-4 animate-spin" />
-              Cargando…
+              {t("detail.loading_short")}
             </div>
           ) : runs.length === 0 ? (
             <div className="rounded-xl border border-dashed bg-card px-4 py-8 text-center">
               <p className="text-muted-foreground text-sm">
-                Aún no hay ejecuciones. Pulsa{" "}
-                <span className="font-medium">Ejecutar ahora</span> o espera a
-                la próxima ejecución programada.
+                {t("detail.empty_runs_prefix")}{" "}
+                <span className="font-medium">{t("detail.run_now")}</span>{" "}
+                {t("detail.empty_runs_suffix")}
               </p>
             </div>
           ) : (
@@ -231,7 +239,9 @@ function JobDetailPageInner({ id }: { id: string }) {
                       <div className="flex items-center justify-between gap-2">
                         <StatusBadge status={run.status} />
                         <span className="text-muted-foreground text-xs">
-                          {run.trigger === "schedule" ? "Programado" : "Manual"}
+                          {run.trigger === "schedule"
+                            ? t("detail.trigger_schedule")
+                            : t("detail.trigger_manual")}
                         </span>
                       </div>
                       <div className="text-muted-foreground mt-1.5 flex items-center justify-between gap-2 text-xs">
@@ -252,7 +262,7 @@ function JobDetailPageInner({ id }: { id: string }) {
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-              Salida
+              {t("detail.output")}
             </h2>
             {selectedRun ? <StatusBadge status={selectedRun.status} /> : null}
           </div>
@@ -273,7 +283,7 @@ function JobDetailPageInner({ id }: { id: string }) {
           ) : (
             <div className="rounded-xl border border-dashed bg-card px-4 py-12 text-center">
               <p className="text-muted-foreground text-sm">
-                Selecciona una ejecución para ver su salida.
+                {t("detail.select_run")}
               </p>
             </div>
           )}
@@ -283,19 +293,25 @@ function JobDetailPageInner({ id }: { id: string }) {
   )
 }
 
-export function JobDetailPage({ id }: { id?: string }) {
-  if (!id) {
-    return (
-      <AppProviders>
-        <main className="flex flex-1 items-center justify-center p-6">
-          <p className="text-muted-foreground text-sm">Job no encontrado.</p>
-        </main>
-      </AppProviders>
-    )
-  }
+function JobNotFound() {
+  const { t } = useTranslation("jobs")
   return (
-    <AppProviders>
-      <JobDetailPageInner id={id} />
+    <main className="flex flex-1 items-center justify-center p-6">
+      <p className="text-muted-foreground text-sm">{t("detail.not_found")}</p>
+    </main>
+  )
+}
+
+export function JobDetailPage({
+  id,
+  locale,
+}: {
+  id?: string
+  locale?: string
+}) {
+  return (
+    <AppProviders initialLocale={locale}>
+      {id ? <JobDetailPageInner id={id} /> : <JobNotFound />}
     </AppProviders>
   )
 }
