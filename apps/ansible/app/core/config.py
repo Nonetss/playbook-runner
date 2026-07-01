@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     backend_resolve_path: str = "/api/run/resolve"
     backend_resolve_device_path: str = "/api/run/resolveDevice"
     backend_resolve_hosts_path: str = "/api/run/resolveHosts"
+    backend_resolve_script_path: str = "/api/run/resolveScript"
 
     # Shared secret guarding the internal run endpoint used by the backend
     # scheduler (service-to-service, no user session). Must match the backend's

@@ -132,6 +132,27 @@ def materialize_hosts(hosts: Iterable[Any], label: str) -> MaterializedHosts:
     )
 
 
+def write_script_file(run_dir: Path, name: str, content: str) -> Path:
+    """Escribe el contenido del script a un fichero ejecutable dentro de ``run_dir``.
+
+    El módulo Ansible ``script`` transfiere este fichero a cada host remoto y
+    lo ejecuta allí, por lo que:
+    - debe vivir bajo ``run_dir`` para que ``cleanup()`` lo elimine junto con
+      el resto del material del run;
+    - debe terminar en ``\\n`` para evitar sorpresas con shebangs en la
+      primera línea;
+    - se marca como ejecutable (``0o755``) para que ``ssh`` no se queje al
+      transferirlo (Ansible también ajusta el bit remoto, pero por si acaso).
+    """
+    run_dir.mkdir(parents=True, exist_ok=True)
+    safe_name = name.replace("/", "_").replace(" ", "_") or "script"
+    script_path = run_dir / f"{safe_name}.sh"
+    body = content if content.endswith("\n") else content + "\n"
+    script_path.write_text(body, encoding="utf-8")
+    script_path.chmod(0o755)
+    return script_path
+
+
 def materialize(bundle: ResolvedRunBundle) -> MaterializedRun:
     """Materializa el bundle en ficheros y devuelve un ``MaterializedRun``."""
     safe_name = bundle.playbook.name.replace("/", "_").replace(" ", "_") or "playbook"

@@ -25,13 +25,23 @@ class ResolvedPlaybook(BaseModel):
     content: str
 
 
+class ResolvedScript(BaseModel):
+    name: str
+    content: str
+
+
 class ResolvedRunBundle(BaseModel):
     playbook: ResolvedPlaybook
     hosts: list[ResolvedHost]
 
 
 class ResolvedHosts(BaseModel):
-    hosts: list[ResolvedHost] 
+    hosts: list[ResolvedHost]
+
+
+class ResolvedScriptBundle(BaseModel):
+    script: ResolvedScript
+    hosts: list[ResolvedHost]
 
 
 class ResolverNotFoundError(Exception):
@@ -118,6 +128,30 @@ async def resolve_hosts(
         response_model=ResolvedHosts,
     )
     return response.hosts
+
+
+async def resolve_script(
+    *,
+    cookie_header: str,
+    script_id: UUID,
+    inventory: list[dict[str, str]],
+) -> ResolvedScriptBundle:
+    """Llama al procedimiento ``run.resolveScript`` del backend.
+
+    Devuelve el contenido del script + la lista de hosts con credenciales.
+    Usado por el endpoint ``/script`` que ejecuta el módulo Ansible ``script``
+    (transfiere y corre el script en cada host remoto).
+    """
+    body = {
+        "scriptId": str(script_id),
+        "inventory": inventory,
+    }
+    return await _post_resolver(
+        path=settings.backend_resolve_script_path,
+        body=body,
+        cookie_header=cookie_header,
+        response_model=ResolvedScriptBundle,
+    )
 
 
 async def _post_resolver[T](
