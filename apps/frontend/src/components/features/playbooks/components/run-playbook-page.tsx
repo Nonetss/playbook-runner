@@ -3,15 +3,17 @@ import {
   ArrowLeft,
   Check,
   CheckCircle2,
+  ChevronDown,
   Folder,
   Loader2,
   Play,
   Plus,
+  Search,
   Server,
   Trash2,
   XCircle,
 } from "lucide-react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { useDevicesList } from "@/components/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/components/features/inventory/hooks/useGroups"
 import { usePlaybookGet } from "@/components/features/playbooks/hooks/usePlaybooks"
@@ -188,6 +190,57 @@ const toneClass: Record<Tone, string> = {
   dim: "text-zinc-600",
 }
 
+// ── InventoryCollapsible ──────────────────────────────────────────────────────
+
+type InventoryCollapsibleProps = {
+  title: string
+  count: number
+  selectedCount: number
+  expanded: boolean
+  onToggle: () => void
+  children: ReactNode
+}
+
+function InventoryCollapsible({
+  title,
+  count,
+  selectedCount,
+  expanded,
+  onToggle,
+  children,
+}: InventoryCollapsibleProps) {
+  return (
+    <div className="space-y-1">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="hover:bg-accent flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left transition-colors"
+      >
+        <ChevronDown
+          className={cn(
+            "text-muted-foreground size-3.5 shrink-0 transition-transform",
+            !expanded && "-rotate-90"
+          )}
+        />
+        <span className="min-w-0 flex-1 text-xs font-medium">{title}</span>
+        <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
+          {selectedCount > 0 ? `${selectedCount}/` : ""}
+          {count}
+        </span>
+      </button>
+      {expanded ? children : null}
+    </div>
+  )
+}
+
+function matchesInventorySearch(
+  query: string,
+  ...fields: (string | null | undefined)[]
+): boolean {
+  if (!query) return true
+  return fields.some((field) => field?.toLowerCase().includes(query))
+}
+
 // ── ToggleRow ─────────────────────────────────────────────────────────────────
 
 type ToggleRowProps = {
@@ -248,9 +301,30 @@ function RunPlaybookPageInner({ id }: { id: string }) {
 
   const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set())
   const [selectedDevices, setSelectedDevices] = useState<Set<string>>(new Set())
+  const [inventorySearch, setInventorySearch] = useState("")
+  const [groupsExpanded, setGroupsExpanded] = useState(true)
+  const [devicesExpanded, setDevicesExpanded] = useState(true)
   const [forks, setForks] = useState(1)
   const [extravars, setExtravars] = useState<{ key: string; value: string }[]>(
     []
+  )
+
+  const searchQuery = inventorySearch.trim().toLowerCase()
+
+  const filteredGroups = useMemo(
+    () =>
+      groups.filter((group) =>
+        matchesInventorySearch(searchQuery, group.name, group.description)
+      ),
+    [groups, searchQuery]
+  )
+
+  const filteredDevices = useMemo(
+    () =>
+      devices.filter((device) =>
+        matchesInventorySearch(searchQuery, device.name, device.ipAddress)
+      ),
+    [devices, searchQuery]
   )
 
   const terminalRef = useRef<HTMLDivElement>(null)
@@ -392,53 +466,95 @@ function RunPlaybookPageInner({ id }: { id: string }) {
               Inventario
             </p>
 
-            {groups.length > 0 ? (
-              <div className="space-y-1">
-                <p className="text-muted-foreground px-2 text-xs font-medium">
-                  Grupos
-                </p>
-                <ul className="space-y-0.5">
-                  {groups.map((group) => (
-                    <ToggleRow
-                      key={group.id}
-                      name={group.name}
-                      description={group.description}
-                      icon={Folder}
-                      selected={selectedGroups.has(group.id)}
-                      onToggle={() =>
-                        setSelectedGroups((s) => toggle(s, group.id))
-                      }
-                    />
-                  ))}
-                </ul>
+            {groups.length > 0 || devices.length > 0 ? (
+              <div className="relative">
+                <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
+                <Input
+                  type="search"
+                  placeholder="Buscar…"
+                  value={inventorySearch}
+                  onChange={(e) => setInventorySearch(e.target.value)}
+                  className="h-8 pl-8 text-xs"
+                />
               </div>
             ) : null}
 
+            {groups.length > 0 ? (
+              <InventoryCollapsible
+                title="Grupos"
+                count={filteredGroups.length}
+                selectedCount={
+                  filteredGroups.filter((g) => selectedGroups.has(g.id)).length
+                }
+                expanded={groupsExpanded}
+                onToggle={() => setGroupsExpanded((v) => !v)}
+              >
+                {filteredGroups.length > 0 ? (
+                  <ul className="space-y-0.5 pl-1">
+                    {filteredGroups.map((group) => (
+                      <ToggleRow
+                        key={group.id}
+                        name={group.name}
+                        description={group.description}
+                        icon={Folder}
+                        selected={selectedGroups.has(group.id)}
+                        onToggle={() =>
+                          setSelectedGroups((s) => toggle(s, group.id))
+                        }
+                      />
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-muted-foreground px-2 py-1 text-xs">
+                    Sin resultados
+                  </p>
+                )}
+              </InventoryCollapsible>
+            ) : null}
+
             {devices.length > 0 ? (
-              <div className="space-y-1">
-                <p className="text-muted-foreground px-2 text-xs font-medium">
-                  Dispositivos
-                </p>
-                <ul className="space-y-0.5">
-                  {devices.map((device) => (
-                    <ToggleRow
-                      key={device.id}
-                      name={device.name}
-                      description={device.ipAddress}
-                      icon={Server}
-                      selected={selectedDevices.has(device.id)}
-                      onToggle={() =>
-                        setSelectedDevices((s) => toggle(s, device.id))
-                      }
-                    />
-                  ))}
-                </ul>
-              </div>
+              <InventoryCollapsible
+                title="Dispositivos"
+                count={filteredDevices.length}
+                selectedCount={
+                  filteredDevices.filter((d) => selectedDevices.has(d.id))
+                    .length
+                }
+                expanded={devicesExpanded}
+                onToggle={() => setDevicesExpanded((v) => !v)}
+              >
+                {filteredDevices.length > 0 ? (
+                  <ul className="space-y-0.5 pl-1">
+                    {filteredDevices.map((device) => (
+                      <ToggleRow
+                        key={device.id}
+                        name={device.name}
+                        description={device.ipAddress}
+                        icon={Server}
+                        selected={selectedDevices.has(device.id)}
+                        onToggle={() =>
+                          setSelectedDevices((s) => toggle(s, device.id))
+                        }
+                      />
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-muted-foreground px-2 py-1 text-xs">
+                    Sin resultados
+                  </p>
+                )}
+              </InventoryCollapsible>
             ) : null}
 
             {groups.length === 0 && devices.length === 0 ? (
               <p className="text-muted-foreground px-2 text-xs">
                 No hay inventario. Crea grupos o dispositivos primero.
+              </p>
+            ) : searchQuery &&
+              filteredGroups.length === 0 &&
+              filteredDevices.length === 0 ? (
+              <p className="text-muted-foreground px-2 text-xs">
+                Ningún grupo ni dispositivo coincide con la búsqueda.
               </p>
             ) : null}
           </div>
