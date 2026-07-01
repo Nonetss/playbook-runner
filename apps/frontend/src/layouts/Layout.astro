@@ -44,7 +44,7 @@ const hasSession = !!user && !!session
     applyTheme()
     document.addEventListener("astro:after-swap", applyTheme)
     </script>
-    <link rel="icon" href="/logo.webp" type="image/webp">
+    <link rel="icon" href="/logo.svg" type="image/svg+xml">
   </head>
   <body class="flex min-h-screen flex-col">
     {guestNavbar || !hasSession ? (

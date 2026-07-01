@@ -81,7 +81,7 @@ function NavbarAuthenticatedInner({
           className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground transition-opacity duration-200 hover:opacity-80"
         >
           <img
-            src="/logo.webp"
+            src="/logo.svg"
             alt={nameApp}
             width={32}
             height={32}
