@@ -1,0 +1,18 @@
+{
+  "links": {
+    "home": "Inicio",
+    "credentials": "Credenciales",
+    "inventory": "Inventario",
+    "playbooks": "Playbooks",
+    "scripts": "Scripts",
+    "commands": "Comandos",
+    "jobs": "Jobs",
+    "config": "Configuración",
+    "me": "Mi perfil"
+  },
+  "actions": {
+    "sign_out": "Cerrar sesión",
+    "language": "Cambiar idioma",
+    "theme": "Cambiar tema"
+  }
+}

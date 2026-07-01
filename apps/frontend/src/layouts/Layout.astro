@@ -10,23 +10,13 @@ interface Props {
   guestNavbar?: boolean
 }
 
-const navLinks = [
-  { href: "/", label: "Inicio" },
-  { href: "/credentials", label: "Credenciales" },
-  { href: "/inventory", label: "Inventario" },
-  { href: "/playbooks", label: "Playbooks" },
-  { href: "/scripts", label: "Scripts" },
-  { href: "/commands", label: "Comandos" },
-  { href: "/jobs", label: "Jobs" },
-]
-
 const { title, guestNavbar = false } = Astro.props
 
-const { user, session } = Astro.locals
+const { user, session, locale } = Astro.locals
 const hasSession = !!user && !!session
 ---
 
-<html lang="es">
+<html lang={locale}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -48,16 +38,16 @@ const hasSession = !!user && !!session
   </head>
   <body class="flex min-h-screen flex-col">
     {guestNavbar || !hasSession ? (
-        <NavbarGuest client:load transition:persist nameApp="Playbook Runner"  />
+        <NavbarGuest client:only="react" transition:persist nameApp="Playbook Runner" locale={locale} />
       ) : (
         <NavbarAuthenticated
-          client:load
+          client:only="react"
           transition:persist
           user={user}
           session={session}
           nameApp="Playbook Runner"
           currentPath={Astro.url.pathname}
-          navLinks={navLinks}
+          locale={locale}
         />
       )}
     <div
@@ -66,6 +56,6 @@ const hasSession = !!user && !!session
     >
       <slot />
     </div>
-    <Toaster client:load />
+    <Toaster client:only="react" />
   </body>
 </html>
