@@ -1,7 +1,11 @@
 import { expect, test } from "@playwright/test"
-import { waitForHydration } from "./helpers"
+import { pinLocaleTo, TEST_LOCALE, waitForHydration } from "./helpers"
 
 test.describe("Navbar autenticada (escritorio)", () => {
+  test.beforeEach(async ({ context }) => {
+    await pinLocaleTo(context, TEST_LOCALE)
+  })
+
   test("muestra logo y los cinco links de navegación", async ({ page }) => {
     await page.goto("/")
     const banner = page.getByRole("banner")
@@ -35,7 +39,10 @@ test.describe("Navbar autenticada (escritorio)", () => {
       .first()
       .getByRole("link", { name: "Playbooks", exact: true })
 
-    await expect(activeLink).toHaveClass(/bg-secondary/)
+    // The desktop nav uses SlidingPillNav: the active link is marked with the
+    // `text-secondary-foreground` text color (the pill provides the background),
+    // not `bg-secondary` (which is the mobile menu's active class).
+    await expect(activeLink).toHaveClass(/text-secondary-foreground/)
     await expect(activeLink).toHaveAttribute("href", "/playbooks")
   })
 
@@ -65,6 +72,10 @@ test.describe("Navbar autenticada (escritorio)", () => {
 })
 
 test.describe("Dashboard autenticada", () => {
+  test.beforeEach(async ({ context }) => {
+    await pinLocaleTo(context, TEST_LOCALE)
+  })
+
   test("renderiza el saludo y la grilla de stats", async ({ page }) => {
     await page.goto("/")
     await expect(

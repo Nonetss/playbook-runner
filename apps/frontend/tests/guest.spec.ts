@@ -1,7 +1,16 @@
 import { expect, test } from "@playwright/test"
-import { fillSignInForm, waitForHydration } from "./helpers"
+import {
+  fillSignInForm,
+  pinLocaleTo,
+  TEST_LOCALE,
+  waitForHydration,
+} from "./helpers"
 
 test.describe("Visitantes sin sesión", () => {
+  test.beforeEach(async ({ context }) => {
+    await pinLocaleTo(context, TEST_LOCALE)
+  })
+
   test("la raíz redirige a /login", async ({ page }) => {
     const response = await page.goto("/", { waitUntil: "domcontentloaded" })
     expect(response, "el servidor debe responder").not.toBeNull()
@@ -37,7 +46,8 @@ test.describe("Visitantes sin sesión", () => {
 })
 
 test.describe("Formulario de login", () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, context }) => {
+    await pinLocaleTo(context, TEST_LOCALE)
     await page.goto("/login")
   })
 
@@ -73,11 +83,19 @@ test.describe("Formulario de login", () => {
 })
 
 test.describe("Theme toggle (visitante)", () => {
+  test.beforeEach(async ({ context }) => {
+    await pinLocaleTo(context, TEST_LOCALE)
+  })
+
   test("alterna la clase dark en <html> y persiste en localStorage", async ({
     page,
     context,
   }) => {
     await context.clearCookies()
+    // clearCookies also drops the pinned `locale` cookie, so re-pin it before
+    // navigating; otherwise the navbar renders in the browser-default language
+    // and the Spanish `/cambiar tema/i` label no longer matches.
+    await pinLocaleTo(context, TEST_LOCALE)
     await page.goto("/login")
 
     const html = page.locator("html")
@@ -108,5 +126,33 @@ test.describe("Theme toggle (visitante)", () => {
     })
     await page.goto("/login")
     await expect(page.locator("html")).toHaveClass(/dark/)
+  })
+})
+
+test.describe("Language switcher", () => {
+  test.beforeEach(async ({ context }) => {
+    await pinLocaleTo(context, TEST_LOCALE)
+  })
+
+  test("cambia el texto de la página a inglés y persiste la cookie", async ({
+    page,
+    context,
+  }) => {
+    await page.goto("/login")
+    await expect(
+      page.locator('[data-slot="card-title"]', { hasText: /iniciar sesión/i })
+    ).toBeVisible()
+
+    const switcher = page.getByTestId("language-switcher-trigger")
+    await switcher.click()
+    await page.getByTestId("language-option-en").click()
+
+    await expect(
+      page.locator('[data-slot="card-title"]', { hasText: /^sign in$/i })
+    ).toBeVisible()
+
+    const cookies = await context.cookies()
+    const localeCookie = cookies.find((c) => c.name === "locale")
+    expect(localeCookie?.value).toBe("en")
   })
 })
