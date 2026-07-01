@@ -17,7 +17,7 @@ const handler = new OpenAPIHandler(appRouter, {
         servers: [{ url: "/api" }],
         info: {
           title: "Playbook Runner API",
-          version: "1.0.0",
+          version: "v0.0.8",
           contact: {
             name: "Nonete",
             email: "amorenolopezbarajas@pm.me",
