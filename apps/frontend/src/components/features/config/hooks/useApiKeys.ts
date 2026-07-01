@@ -1,5 +1,3 @@
-"use client"
-
 import type { ApiKey, ApiKeyListItem } from "@/components/features/config/types"
 import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { useResourceMutation } from "@/hooks/useResourceMutation"

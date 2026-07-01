@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { notifyError } from "@/lib/toast"

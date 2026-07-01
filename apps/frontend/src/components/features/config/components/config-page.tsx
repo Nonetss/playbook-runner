@@ -1,5 +1,3 @@
-"use client"
-
 import { ExternalLink, KeyRound } from "lucide-react"
 import { useState } from "react"
 import { ApiKeyCreatedDialog } from "@/components/features/config/components/api-key-created-dialog"

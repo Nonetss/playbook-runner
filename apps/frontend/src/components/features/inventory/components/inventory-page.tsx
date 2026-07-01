@@ -1,5 +1,3 @@
-"use client"
-
 import { Folder, Server } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useCredentialsList } from "@/components/features/credentials/hooks/useCredentials"

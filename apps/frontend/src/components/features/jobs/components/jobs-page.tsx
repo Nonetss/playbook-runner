@@ -1,5 +1,3 @@
-"use client"
-
 import { BriefcaseIcon } from "lucide-react"
 import { JobCard } from "@/components/features/jobs/components/job-card"
 import {

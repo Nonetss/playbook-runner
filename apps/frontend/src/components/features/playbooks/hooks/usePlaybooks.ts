@@ -1,5 +1,3 @@
-"use client"
-
 import type { Playbook } from "@/components/features/playbooks/types"
 import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { useResourceMutation } from "@/hooks/useResourceMutation"

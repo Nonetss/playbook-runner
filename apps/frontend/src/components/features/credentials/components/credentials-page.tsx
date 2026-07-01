@@ -1,5 +1,3 @@
-"use client"
-
 import { KeyRound } from "lucide-react"
 import { useState } from "react"
 import { CredentialFormModal } from "@/components/features/credentials/components/credential-form-modal"

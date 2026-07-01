@@ -1,5 +1,3 @@
-"use client"
-
 import { BookText } from "lucide-react"
 import { PlaybookList } from "@/components/features/playbooks/components/playbook-list"
 import {

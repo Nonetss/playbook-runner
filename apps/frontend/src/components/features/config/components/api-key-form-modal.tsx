@@ -1,5 +1,3 @@
-"use client"
-
 import { useApiKeyCreate } from "@/components/features/config/hooks/useApiKeys"
 import { ResourceFormModal } from "@/components/shared/resource-form-modal"
 import type { ResourceFormDefinition } from "@/components/shared/resource-form-types"

@@ -1,5 +1,3 @@
-"use client"
-
 import {
   ArrowLeft,
   CheckCircle2,

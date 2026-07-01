@@ -1,5 +1,3 @@
-"use client"
-
 import { useMemo } from "react"
 import { useCredentialsList } from "@/components/features/credentials/hooks/useCredentials"
 import {

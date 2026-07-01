@@ -1,5 +1,3 @@
-"use client"
-
 import { useMutation } from "@tanstack/react-query"
 import type { Credential } from "@/components/features/credentials/types"
 import { useHydratedQuery } from "@/hooks/useHydratedQuery"

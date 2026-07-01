@@ -1,5 +1,3 @@
-"use client"
-
 import { Loader2, Plus, RotateCw } from "lucide-react"
 import type * as React from "react"
 import { Button } from "@/components/ui/button"
