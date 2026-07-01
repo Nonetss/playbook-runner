@@ -8,6 +8,7 @@ import {
   Trash2,
 } from "lucide-react"
 import * as React from "react"
+import { Trans, useTranslation } from "react-i18next"
 import { useDevicesList } from "@/components/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/components/features/inventory/hooks/useGroups"
 import {
@@ -100,6 +101,8 @@ function InventoryToggleRow({
 }
 
 function JobFormPageInner({ id }: JobFormPageProps) {
+  const { t } = useTranslation("jobs")
+  const { t: tCommon } = useTranslation("common")
   const isEditing = !!id
   const createJob = useJobCreate()
   const updateJob = useJobUpdate()
@@ -216,9 +219,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
       }
       window.location.href = "/jobs"
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "No se pudo guardar el job."
-      )
+      setError(err instanceof Error ? err.message : t("form.save_error"))
     }
   }
 
@@ -227,7 +228,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
       <main className="flex w-full flex-1 items-center justify-center p-6">
         <div className="text-muted-foreground flex items-center gap-2 text-sm">
           <Loader2 className="size-4 animate-spin" />
-          Cargando job…
+          {t("form.loading")}
         </div>
       </main>
     )
@@ -237,12 +238,12 @@ function JobFormPageInner({ id }: JobFormPageProps) {
     return (
       <main className="w-full flex-1 p-6 lg:px-8">
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          No se pudo cargar el job.
+          {t("form.load_error")}
         </div>
         <Button asChild variant="outline" className="mt-4">
           <a href="/jobs">
             <ArrowLeft className="size-4" />
-            Volver a jobs
+            {t("form.back_to_jobs")}
           </a>
         </Button>
       </main>
@@ -254,19 +255,22 @@ function JobFormPageInner({ id }: JobFormPageProps) {
   return (
     <main className="w-full flex-1 p-6 lg:px-8">
       <div className="mb-6 flex items-center gap-3">
-        <Button asChild variant="ghost" size="icon-sm" aria-label="Volver">
+        <Button
+          asChild
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t("form.back_aria")}
+        >
           <a href="/jobs">
             <ArrowLeft className="size-4" />
           </a>
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            {isEditing ? "Editar job" : "Nuevo job"}
+            {isEditing ? t("form.edit_title") : t("form.create_title")}
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            {isEditing
-              ? "Actualiza la configuración del job."
-              : "Configura un job para programar la ejecución de un playbook."}
+            {isEditing ? t("form.edit_subtitle") : t("form.create_subtitle")}
           </p>
         </div>
       </div>
@@ -275,28 +279,31 @@ function JobFormPageInner({ id }: JobFormPageProps) {
         {/* ── Info ── */}
         <section className="space-y-4">
           <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-            Información
+            {t("form.info_section")}
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="job-name">
-                Nombre<span aria-hidden> *</span>
+                {t("form.name_label")}
+                <span aria-hidden> *</span>
               </Label>
               <Input
                 id="job-name"
                 required
                 disabled={isSubmitting}
-                placeholder="backup-diario"
+                placeholder={t("form.name_placeholder")}
                 value={values.name}
                 onChange={(e) => set("name", e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="job-description">Descripción</Label>
+              <Label htmlFor="job-description">
+                {t("form.description_label")}
+              </Label>
               <Input
                 id="job-description"
                 disabled={isSubmitting}
-                placeholder="Backup diario de servidores de producción"
+                placeholder={t("form.description_placeholder")}
                 value={values.description}
                 onChange={(e) => set("description", e.target.value)}
               />
@@ -311,7 +318,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
               disabled={isSubmitting}
             />
             <Label htmlFor="job-enabled" className="cursor-pointer">
-              {values.enabled ? "Job activo" : "Job desactivado"}
+              {values.enabled ? t("form.active") : t("form.inactive")}
             </Label>
           </div>
         </section>
@@ -319,10 +326,10 @@ function JobFormPageInner({ id }: JobFormPageProps) {
         {/* ── Playbook ── */}
         <section className="space-y-4">
           <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-            Playbook
+            {t("form.playbook_section")}
           </h2>
           <div className="space-y-2">
-            <Label htmlFor="job-playbook">Playbook a ejecutar</Label>
+            <Label htmlFor="job-playbook">{t("form.playbook_label")}</Label>
             <Select
               value={values.playbookId || SELECT_EMPTY_VALUE}
               onValueChange={(next) =>
@@ -331,11 +338,11 @@ function JobFormPageInner({ id }: JobFormPageProps) {
               disabled={isSubmitting}
             >
               <SelectTrigger id="job-playbook" className="w-full">
-                <SelectValue placeholder="Sin playbook seleccionado" />
+                <SelectValue placeholder={t("form.playbook_placeholder")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={SELECT_EMPTY_VALUE}>
-                  Sin playbook seleccionado
+                  {t("form.playbook_placeholder")}
                 </SelectItem>
                 {playbooks.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
@@ -351,24 +358,27 @@ function JobFormPageInner({ id }: JobFormPageProps) {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-              Inventario
+              {t("form.inventory_section")}
             </h2>
             <span className="text-muted-foreground text-xs">
-              {selectionCount} elemento{selectionCount === 1 ? "" : "s"}{" "}
-              seleccionado{selectionCount === 1 ? "" : "s"}
+              <Trans
+                i18nKey="form.inventory_selected"
+                ns="jobs"
+                count={selectionCount}
+              />
             </span>
           </div>
 
           {groups.length === 0 && devices.length === 0 ? (
             <p className="text-muted-foreground text-sm">
-              No hay grupos ni dispositivos. Crea inventario primero.
+              {t("form.no_inventory")}
             </p>
           ) : (
             <div className="rounded-xl border">
               {groups.length > 0 ? (
                 <div className="p-3">
                   <p className="text-muted-foreground mb-1 px-2 text-xs font-medium">
-                    Grupos
+                    {t("form.groups_label")}
                   </p>
                   <ul className="space-y-0.5">
                     {groups.map((g) => (
@@ -392,7 +402,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
               {devices.length > 0 ? (
                 <div className="p-3">
                   <p className="text-muted-foreground mb-1 px-2 text-xs font-medium">
-                    Dispositivos
+                    {t("form.devices_label")}
                   </p>
                   <ul className="space-y-0.5">
                     {devices.map((d) => (
@@ -415,13 +425,13 @@ function JobFormPageInner({ id }: JobFormPageProps) {
         {/* ── Schedule ── */}
         <section className="space-y-4">
           <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-            Programación
+            {t("form.schedule_section")}
           </h2>
           <div className="space-y-2">
             <Label htmlFor="job-cron">
-              Expresión cron{" "}
+              {t("form.cron_label")}{" "}
               <span className="text-muted-foreground font-normal">
-                (opcional)
+                {t("form.cron_optional")}
               </span>
             </Label>
             <Input
@@ -433,11 +443,15 @@ function JobFormPageInner({ id }: JobFormPageProps) {
               className="font-mono"
             />
             <p className="text-muted-foreground text-xs">
-              Déjalo vacío para ejecutar solo manualmente. Ejemplo:{" "}
-              <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
-                0 2 * * *
-              </code>{" "}
-              (cada día a las 2:00).
+              <Trans
+                i18nKey="form.cron_hint"
+                ns="jobs"
+                components={{
+                  code: (
+                    <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs" />
+                  ),
+                }}
+              />
             </p>
           </div>
         </section>
@@ -445,12 +459,12 @@ function JobFormPageInner({ id }: JobFormPageProps) {
         {/* ── Options ── */}
         <section className="space-y-4">
           <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-            Opciones de ejecución
+            {t("form.options_section")}
           </h2>
 
           <div className="flex items-center gap-3">
             <Label htmlFor="job-forks" className="w-16 shrink-0 text-sm">
-              Forks
+              {t("form.forks_label")}
             </Label>
             <Input
               id="job-forks"
@@ -468,7 +482,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="text-sm">Variables extra</Label>
+              <Label className="text-sm">{t("form.extravars_label")}</Label>
               <Button
                 type="button"
                 variant="ghost"
@@ -478,12 +492,12 @@ function JobFormPageInner({ id }: JobFormPageProps) {
                 className="h-7 text-xs"
               >
                 <Plus className="size-3" />
-                Añadir
+                {t("form.extravars_add")}
               </Button>
             </div>
             {extravars.length === 0 ? (
               <p className="text-muted-foreground text-xs">
-                Sin variables extra.
+                {t("form.no_extravars")}
               </p>
             ) : (
               <ul className="space-y-2">
@@ -491,14 +505,14 @@ function JobFormPageInner({ id }: JobFormPageProps) {
                   // biome-ignore lint/suspicious/noArrayIndexKey: append-only
                   <li key={i} className="flex items-center gap-2">
                     <Input
-                      placeholder="VARIABLE"
+                      placeholder={t("form.extravars_key_placeholder")}
                       value={row.key}
                       onChange={(e) => updateExtravar(i, "key", e.target.value)}
                       disabled={isSubmitting}
                       className="font-mono text-xs"
                     />
                     <Input
-                      placeholder="valor"
+                      placeholder={t("form.extravars_value_placeholder")}
                       value={row.value}
                       onChange={(e) =>
                         updateExtravar(i, "value", e.target.value)
@@ -512,7 +526,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
                       size="icon-sm"
                       onClick={() => removeExtravar(i)}
                       disabled={isSubmitting}
-                      aria-label="Eliminar variable"
+                      aria-label={t("form.extravars_remove_aria")}
                     >
                       <Trash2 className="size-3.5" />
                     </Button>
@@ -536,18 +550,18 @@ function JobFormPageInner({ id }: JobFormPageProps) {
             variant="outline"
             disabled={isSubmitting}
           >
-            <a href="/jobs">Cancelar</a>
+            <a href="/jobs">{tCommon("actions.cancel")}</a>
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
-                Guardando…
+                {t("form.saving")}
               </>
             ) : isEditing ? (
-              "Guardar cambios"
+              t("form.save_changes")
             ) : (
-              "Crear job"
+              t("form.create")
             )}
           </Button>
         </div>

@@ -4,5 +4,5 @@ import Layout from "@/layouts/Layout.astro"
 ---
 
 <Layout title="Nuevo job">
-  <JobFormPage client:load />
+  <JobFormPage client:only="react" />
 </Layout>

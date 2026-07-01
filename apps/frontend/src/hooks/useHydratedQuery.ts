@@ -7,7 +7,7 @@ import {
 import { useHydrated } from "@/hooks/useHydrated"
 
 /**
- * SSR-safe wrapper around `useQuery` for Astro `client:load` islands.
+ * SSR-safe wrapper around `useQuery` for Astro `client:only` islands.
  *
  * Until hydration completes, cached data is ignored so the client matches the
  * server's pending state. After hydration, the shared browser QueryClient
