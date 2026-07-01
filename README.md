@@ -1,4 +1,7 @@
-# playbook-runner
+<p align="center">
+  <img src="apps/frontend/public/logo.svg" alt="playbook-runner logo" width="120">
+  Playbook Runner
+</p>
 
 A self-hosted web UI to manage and run [Ansible](https://www.ansible.com/)
 playbooks against your inventory — without the operational weight of AWX or
@@ -89,7 +92,7 @@ codes, and ready-to-run `curl`/client snippets. The raw spec lives at
 
 Three small services in one monorepo:
 
-```
+```txt
                   ┌────────────────┐
    browser ──────▶│  frontend      │  Astro SSR + React islands
                   │  :4321         │  (Caddy in front, see Dockerfile)
@@ -184,7 +187,7 @@ SQL, …), delete the `postgres` service from `compose.prod.yml` and point
 
 ## Project structure
 
-```
+```txt
 playbook-runner/
 ├── apps/
 │   ├── frontend/    # Astro + React UI
