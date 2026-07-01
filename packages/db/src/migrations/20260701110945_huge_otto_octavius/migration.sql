@@ -1,0 +1,1 @@
+ALTER TABLE "scripts" ADD COLUMN "language" text DEFAULT 'bash' NOT NULL;
