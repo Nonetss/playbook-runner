@@ -6,7 +6,7 @@
 # datos del admin inicial y opcionalmente levanta el stack con docker compose.
 #
 # Uso:
-#   curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/v0.0.9/scripts/bootstrap.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/v0.0.10/scripts/bootstrap.sh | bash
 #
 # Requisitos: docker, openssl, curl.
 #
@@ -21,7 +21,7 @@ set -Eeuo pipefail
 TARGET_DIR="$(pwd -P)"
 
 # Tag/branch desde donde se baja compose.prod.yml. Overrideable: PB_REF=main ...
-PB_REF="${PB_REF:-v0.0.9}"
+PB_REF="${PB_REF:-v0.0.10}"
 RAW_BASE="https://raw.githubusercontent.com/Nonetss/playbook-runner/${PB_REF}"
 
 # ── Output helpers ───────────────────────────────────────────────────────────
