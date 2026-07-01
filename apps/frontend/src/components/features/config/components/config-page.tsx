@@ -50,15 +50,16 @@ function ConfigPageInner() {
     >
       <div className="border-border bg-muted/40 -mt-2 mb-6 flex items-center justify-between rounded-lg border px-4 py-3 text-sm">
         <p className="text-muted-foreground">
-          En{" "}
+          En{"  "}
           <a
             href="/scalar"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-foreground inline-flex items-center gap-1 font-mono text-xs underline underline-offset-4 hover:text-primary"
+            className="text-foreground font-mono text-center whitespace-nowrap px-1 text-xs font-medium underline underline-offset-4 hover:text-primary"
           >
             {`${window.location.host}/scalar`}
-          </a>{" "}
+          </a>
+          {"  "}
           puedes consultar la documentación interactiva de los endpoints de la
           API.
         </p>
