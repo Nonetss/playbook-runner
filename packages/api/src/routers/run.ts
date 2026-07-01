@@ -58,6 +58,20 @@ export const runRouter = {
       })
     )
     .output(resolveOutputSchema)
+    .errors({
+      NOT_FOUND: {
+        message: "Playbook not found",
+        status: 404,
+      },
+      PRECONDITION_FAILED: {
+        message: "One or more devices have no credential",
+        status: 412,
+      },
+      BAD_REQUEST: {
+        message: "Inventory selection is empty or contains unknown devices",
+        status: 400,
+      },
+    })
     .handler(async ({ input }) => {
       try {
         return await runHandler.resolveRun(input.playbookId, input.inventory)
@@ -89,13 +103,20 @@ export const runRouter = {
       })
     )
     .output(resolveHostsOutputSchema)
+    .errors({
+      PRECONDITION_FAILED: {
+        message: "One or more devices have no credential",
+        status: 412,
+      },
+      BAD_REQUEST: {
+        message: "Inventory selection is empty or contains unknown devices",
+        status: 400,
+      },
+    })
     .handler(async ({ input }) => {
       try {
         return { hosts: await runHandler.resolveHosts(input.inventory) }
       } catch (err) {
-        if (err instanceof ResolveRunNotFoundError) {
-          throw new ORPCError("NOT_FOUND", { message: err.message })
-        }
         if (err instanceof ResolveRunCredentiallessError) {
           throw new ORPCError("PRECONDITION_FAILED", { message: err.message })
         }
@@ -121,6 +142,20 @@ export const runRouter = {
       })
     )
     .output(resolveScriptOutputSchema)
+    .errors({
+      NOT_FOUND: {
+        message: "Script not found",
+        status: 404,
+      },
+      PRECONDITION_FAILED: {
+        message: "One or more devices have no credential",
+        status: 412,
+      },
+      BAD_REQUEST: {
+        message: "Inventory selection is empty or contains unknown devices",
+        status: 400,
+      },
+    })
     .handler(async ({ input }) => {
       try {
         return await runHandler.resolveScript(input.scriptId, input.inventory)
@@ -148,6 +183,16 @@ export const runRouter = {
     })
     .input(z.object({ deviceId: z.string().uuid() }))
     .output(hostSchema)
+    .errors({
+      NOT_FOUND: {
+        message: "Device not found",
+        status: 404,
+      },
+      PRECONDITION_FAILED: {
+        message: "Device has no credential associated",
+        status: 412,
+      },
+    })
     .handler(async ({ input }) => {
       try {
         return await runHandler.resolveDevice(input.deviceId)

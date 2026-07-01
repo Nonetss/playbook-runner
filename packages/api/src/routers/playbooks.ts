@@ -2,11 +2,22 @@ import { z } from "zod"
 import { playbooksHandler } from "@/handlers/playbooks"
 import { protectedProcedure } from "@/index"
 
+const playbookSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  content: z.string(),
+  createdAt: z.coerce.date().nullable(),
+  updatedAt: z.coerce.date().nullable(),
+})
+
+export type Playbook = z.infer<typeof playbookSchema>
+
 export const playbooksRouter = {
   create: protectedProcedure
     .route({
       summary: "Create a playbook",
-      description: "Creates a new playbook.",
+      description: "Persists a new playbook (name, description, YAML content).",
       tags: ["Playbooks"],
       method: "POST",
     })
@@ -17,6 +28,7 @@ export const playbooksRouter = {
         content: z.string(),
       })
     )
+    .output(playbookSchema.nullable())
     .handler(async ({ input }) => {
       const playbook = await playbooksHandler.create(input)
       return playbook ?? null
@@ -25,10 +37,11 @@ export const playbooksRouter = {
   list: protectedProcedure
     .route({
       summary: "List playbooks",
-      description: "Lists all playbooks.",
+      description: "Returns every stored playbook, ordered by creation time.",
       tags: ["Playbooks"],
       method: "GET",
     })
+    .output(z.array(playbookSchema))
     .handler(async () => {
       const playbooks = await playbooksHandler.list()
       return playbooks ?? []
@@ -37,11 +50,13 @@ export const playbooksRouter = {
   get: protectedProcedure
     .route({
       summary: "Get a playbook",
-      description: "Gets a playbook by ID.",
+      description:
+        "Returns a single playbook by id, or null when no row matches.",
       tags: ["Playbooks"],
       method: "GET",
     })
     .input(z.object({ id: z.string() }))
+    .output(playbookSchema.nullable())
     .handler(async ({ input }) => {
       const playbook = await playbooksHandler.get(input.id)
       return playbook ?? null
@@ -50,7 +65,8 @@ export const playbooksRouter = {
   update: protectedProcedure
     .route({
       summary: "Update a playbook",
-      description: "Updates a playbook by ID.",
+      description:
+        "Replaces the name, description, and YAML content of an existing playbook.",
       tags: ["Playbooks"],
       method: "PUT",
     })
@@ -62,6 +78,7 @@ export const playbooksRouter = {
         content: z.string(),
       })
     )
+    .output(playbookSchema.nullable())
     .handler(async ({ input }) => {
       const playbook = await playbooksHandler.update(input.id, input)
       return playbook ?? null
@@ -70,11 +87,13 @@ export const playbooksRouter = {
   delete: protectedProcedure
     .route({
       summary: "Delete a playbook",
-      description: "Deletes a playbook by ID.",
+      description:
+        "Deletes a playbook by id. Returns the deleted row, or null.",
       tags: ["Playbooks"],
       method: "DELETE",
     })
     .input(z.object({ id: z.string() }))
+    .output(playbookSchema.nullable())
     .handler(async ({ input }) => {
       const playbook = await playbooksHandler.delete(input.id)
       return playbook ?? null

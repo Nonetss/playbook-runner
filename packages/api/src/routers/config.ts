@@ -2,6 +2,8 @@ import { auth } from "@playbook-runner/auth"
 import z from "zod"
 import { protectedProcedure } from "@/index"
 
+// `list` returns every field except the secret. `create` includes the secret
+// exactly once so the caller can store it.
 const apiKeyListItemSchema = z.object({
   id: z.string(),
   name: z.string().nullable(),
@@ -16,6 +18,11 @@ const apiKeySchema = apiKeyListItemSchema.extend({
   key: z.string(),
 })
 
+const apiKeyDeleteResultSchema = z.object({
+  id: z.string(),
+  success: z.boolean(),
+})
+
 export type ApiKeyListItem = z.infer<typeof apiKeyListItemSchema>
 export type ApiKey = z.infer<typeof apiKeySchema>
 
@@ -24,10 +31,11 @@ const apiKeysRouter = {
     .route({
       summary: "List API keys",
       description:
-        "Lists all API keys owned by the authenticated user. The full key value is never returned.",
+        "Lists all API keys owned by the authenticated user. The full key value is never returned; only metadata. Inherits UNAUTHORIZED / FORBIDDEN / INTERNAL_SERVER_ERROR from `protectedProcedure`.",
       tags: ["Config"],
       method: "GET",
     })
+    .output(z.array(apiKeyListItemSchema))
     .handler(async ({ context }) => {
       const result = await auth.api.listApiKeys({
         headers: context.headers,
@@ -55,6 +63,13 @@ const apiKeysRouter = {
           .optional(),
       })
     )
+    .output(apiKeySchema)
+    .errors({
+      BAD_REQUEST: {
+        message: "Invalid input — name/expiresIn out of range",
+        status: 400,
+      },
+    })
     .handler(async ({ context, input }) => {
       const result = await auth.api.createApiKey({
         headers: context.headers,
@@ -64,18 +79,24 @@ const apiKeysRouter = {
           ...(input.expiresIn ? { expiresIn: input.expiresIn } : {}),
         },
       })
-      const apiKey = apiKeySchema.parse(result)
-      return apiKey
+      return apiKeySchema.parse(result)
     }),
 
   delete: protectedProcedure
     .route({
       summary: "Delete an API key",
-      description: "Deletes an API key by ID for the authenticated user.",
+      description: "Deletes an API key by id for the authenticated user.",
       tags: ["Config"],
       method: "DELETE",
     })
     .input(z.object({ id: z.string() }))
+    .output(apiKeyDeleteResultSchema)
+    .errors({
+      NOT_FOUND: {
+        message: "API key not found",
+        status: 404,
+      },
+    })
     .handler(async ({ context, input }) => {
       const result = await auth.api.deleteApiKey({
         headers: context.headers,
