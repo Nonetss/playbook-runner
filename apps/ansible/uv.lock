@@ -27,30 +27,15 @@ wheels = [
 
 [[package]]
 name = "ansible"
-version = "0.1.0"
-source = { virtual = "." }
+version = "14.1.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ansible-core" },
-    { name = "ansible-runner" },
-    { name = "fastapi", extra = ["standard"] },
-    { name = "scalar-fastapi" },
 ]
-
-[package.dev-dependencies]
-dev = [
-    { name = "ruff" },
+sdist = { url = "https://files.pythonhosted.org/packages/fe/97/3aeeb9d199fd0f931452adebcf5336c01c739b1de2d4bada0744ff5d18e1/ansible-14.1.0.tar.gz", hash = "sha256:1ae7918469ed897ff716857ed98d1f5d5fce1710f6a42f601f0715548b67bf00", size = 49560987, upload-time = "2026-06-18T20:38:03.236Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/78/ba/2e7f2ef6102e79597147bba317c1648eeb92c10bd14163442ebcab9ac75b/ansible-14.1.0-py3-none-any.whl", hash = "sha256:13b7d9ce3c5b62f49b2be5cd36802adb9b1ee9f624e8db2e84b47cbfebf69cf2", size = 49543455, upload-time = "2026-06-18T20:37:56.086Z" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "ansible-core", specifier = ">=2.18.0" },
-    { name = "ansible-runner", specifier = ">=2.4.3" },
-    { name = "fastapi", extras = ["standard"], specifier = ">=0.138.2" },
-    { name = "scalar-fastapi", specifier = ">=1.8.2" },
-]
-
-[package.metadata.requires-dev]
-dev = [{ name = "ruff", specifier = ">=0.15.20" }]
 
 [[package]]
 name = "ansible-core"
@@ -612,6 +597,35 @@ sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9e/c3/059298687310d527a58bb01f3b1965787ee3b40dce76752eda8b44e9a2c5/pexpect-4.9.0-py2.py3-none-any.whl", hash = "sha256:7236d1e080e4936be2dc3e326cec0af72acf9212a7e1d060210e70a47e253523", size = 63772, upload-time = "2023-11-25T06:56:14.81Z" },
 ]
+
+[[package]]
+name = "playbook-runner-ansible"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "ansible" },
+    { name = "ansible-core" },
+    { name = "ansible-runner" },
+    { name = "fastapi", extra = ["standard"] },
+    { name = "scalar-fastapi" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "ansible", specifier = ">=14.1.0" },
+    { name = "ansible-core", specifier = ">=2.18.0" },
+    { name = "ansible-runner", specifier = ">=2.4.3" },
+    { name = "fastapi", extras = ["standard"], specifier = ">=0.138.2" },
+    { name = "scalar-fastapi", specifier = ">=1.8.2" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "ruff", specifier = ">=0.15.20" }]
 
 [[package]]
 name = "ptyprocess"
