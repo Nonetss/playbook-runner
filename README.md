@@ -6,8 +6,8 @@ Ansible Tower.
 
 If you've ever SSH'd into a box, run `ansible-playbook site.yml` and tailed
 the output in another terminal, this app gives you a browser tab and a database
-for all of that: playbooks, SSH credentials, devices, groups, scheduled
-runs, and a live log of every execution.
+for all of that: playbooks, ad-hoc commands, SSH credentials, devices, groups,
+scheduled runs, and a live log of every execution.
 
 ## TL;DR — install on a server
 
@@ -52,12 +52,21 @@ it. The inventory panel on the right shows which hosts are in scope.
 - **Inventory** — store devices (host, port, IP) and groups. A device
   belongs to a credential (SSH key + user), so a run can pick a group and
   the right key follows along to every host.
+- **Credentials** — store SSH credentials (user + private/public key). You
+  can **import** an existing key or **generate** a fresh ed25519 pair right
+  in the browser, and copy a ready-made **provisioning script** that creates
+  the user, authorizes the public key, and grants passwordless sudo on a
+  target host.
 - **Playbooks** — write Ansible YAML in the browser, save it, version it in
   the database. No more `scp`ing `.yml` files around.
 - **Run on demand** — pick a playbook, pick a group (or a hand-picked set
   of devices), click *Run*. Output streams into the browser via SSE
   (Server-Sent Events), so you see `PLAY [...]` and `TASK [...]` lines as
   ansible-runner emits them, with no polling.
+- **Ad-hoc commands** — for quick one-offs that don't deserve a playbook,
+  the *Comandos* page runs an ad-hoc Ansible module (`shell` or `command`,
+  with optional `become`) against a selection of devices/groups and streams
+  the output live, same as a playbook run.
 - **Schedule jobs** — same thing but with a cron expression. The backend
   keeps a cron loop in-process (`JOB_SCHEDULER_ENABLED=1`) and fires
   scheduled jobs on time. Disable it (`=0`) if you scale the backend to
@@ -88,7 +97,7 @@ Three small services in one monorepo:
                   │  + Drizzle ORM │
                   │  + cron loop   │
                   └───────┬────────┘
-                          │  /api/v0/run (HTTP, session cookie forwarded)
+                          │  /api/v0/{run,command} (HTTP, session cookie forwarded)
                           ▼
                   ┌────────────────┐
                   │  ansible       │  Python FastAPI
@@ -98,9 +107,10 @@ Three small services in one monorepo:
 ```
 
 The Python service is deliberately dumb: it has no database connection.
-It asks the backend for the run bundle (playbook content + deduped hosts
-- their private keys) over HTTP, materializes a temp inventory + key
-files, hands them to `ansible-runner`, and streams events back. All
+It asks the backend to resolve a run (playbook content or an ad-hoc
+command + the deduped hosts and their private keys) over HTTP,
+materializes a temp inventory + key files, hands them to `ansible-runner`
+(playbook mode or ad-hoc module mode), and streams events back. All
 business rules and authorization live in the backend.
 
 ## Stack
