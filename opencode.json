@@ -1,0 +1,19 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "lsp": true,
+  "formatter": true,
+  "permission": {
+    "bash": {
+      "bunx drizzle-kit": "deny",
+      "bun run db:generate": "deny",
+      "bun run db:migrate": "deny",
+      "bun run db:seed": "deny",
+      "bun run db:studio": "deny",
+      "bun run db:push": "deny",
+      "bun run db:pull": "deny",
+      "bun run db:reset": "deny",
+      "bun run db:reset:test": "deny",
+      "bun run db:reset:test:all": "deny"
+    }
+  }
+}

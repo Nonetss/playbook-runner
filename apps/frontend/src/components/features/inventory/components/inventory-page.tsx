@@ -208,33 +208,35 @@ function InventoryPageInner() {
       createLabel={tab === "groups" ? "Nuevo grupo" : "Nuevo dispositivo"}
       onCreate={tab === "groups" ? openCreateGroup : openCreateDevice}
     >
-      <div className="mb-6 inline-flex rounded-md border bg-card p-1">
-        <button
-          type="button"
-          onClick={() => setTab("groups")}
-          className={cn(
-            "inline-flex items-center gap-2 rounded-sm px-3 py-1.5 text-sm font-medium transition-colors",
-            tab === "groups"
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          <Folder className="size-4" />
-          Grupos
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("devices")}
-          className={cn(
-            "inline-flex items-center gap-2 rounded-sm px-3 py-1.5 text-sm font-medium transition-colors",
-            tab === "devices"
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          <Server className="size-4" />
-          Dispositivos
-        </button>
+      <div className="mb-6 flex justify-center">
+        <div className="inline-flex rounded-md border bg-card p-1">
+          <button
+            type="button"
+            onClick={() => setTab("groups")}
+            className={cn(
+              "inline-flex items-center gap-2 rounded-sm px-3 py-1.5 text-sm font-medium transition-colors",
+              tab === "groups"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Folder className="size-4" />
+            Grupos
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("devices")}
+            className={cn(
+              "inline-flex items-center gap-2 rounded-sm px-3 py-1.5 text-sm font-medium transition-colors",
+              tab === "devices"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Server className="size-4" />
+            Dispositivos
+          </button>
+        </div>
       </div>
 
       {tab === "groups" ? (
