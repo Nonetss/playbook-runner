@@ -14,7 +14,7 @@ runs, and a live log of every execution.
 Create an empty directory for the deployment, `cd` into it, and run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/v0.0.7/scripts/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/v0.0.8/scripts/bootstrap.sh | bash
 ```
 
 That runs `scripts/bootstrap.sh`, which asks you for the admin user/password and
@@ -28,7 +28,7 @@ that name so a plain `docker compose up -d` picks it up), pulls the images from
 > The script is interactive even when piped, because it reads your answers from
 > `/dev/tty`. It writes into the directory you run it from — not into a clone —
 > so an empty folder is all you need. To pin a different version, prefix it with
-> `PB_REF=<tag> `.
+> `PB_REF=<tag>`.
 
 ## Screenshots
 
@@ -99,7 +99,7 @@ Three small services in one monorepo:
 
 The Python service is deliberately dumb: it has no database connection.
 It asks the backend for the run bundle (playbook content + deduped hosts
-+ their private keys) over HTTP, materializes a temp inventory + key
+- their private keys) over HTTP, materializes a temp inventory + key
 files, hands them to `ansible-runner`, and streams events back. All
 business rules and authorization live in the backend.
 
