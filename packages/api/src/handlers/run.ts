@@ -5,6 +5,7 @@ import {
   inventoryDevices,
 } from "@playbook-runner/db/schema/inventory"
 import { playbooks } from "@playbook-runner/db/schema/playbooks"
+import { scripts } from "@playbook-runner/db/schema/scripts"
 import { eq, inArray } from "drizzle-orm"
 
 export type RunInventorySelection = {
@@ -23,6 +24,11 @@ export type ResolvedRunHost = {
 
 export type ResolvedRunBundle = {
   playbook: { name: string; content: string }
+  hosts: ResolvedRunHost[]
+}
+
+export type ResolvedScriptBundle = {
+  script: { name: string; content: string }
   hosts: ResolvedRunHost[]
 }
 
@@ -72,6 +78,36 @@ export const runHandler = {
    * it with a playbook) and the playbook-less `resolveHosts` oRPC procedure.
    */
   resolveHosts,
+
+  /**
+   * Resolve a stored script + inventory selection into an executable bundle.
+   * Mirrors `resolveRun` but the playbook slot is replaced by the script.
+   */
+  resolveScript: async (
+    scriptId: string,
+    inventory: RunInventorySelection[]
+  ): Promise<ResolvedScriptBundle> => {
+    const script = await db
+      .select({
+        id: scripts.id,
+        name: scripts.name,
+        content: scripts.content,
+      })
+      .from(scripts)
+      .where(eq(scripts.id, scriptId))
+      .then((rows) => rows[0] ?? null)
+
+    if (!script) {
+      throw new ResolveRunNotFoundError(`Script ${scriptId} not found`)
+    }
+
+    const hosts = await resolveHosts(inventory)
+
+    return {
+      script: { name: script.name, content: script.content },
+      hosts,
+    }
+  },
 
   /**
    * Resolve a single device's connection details for diagnostic-style runs

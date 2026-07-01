@@ -6,6 +6,7 @@ import { inventoryRouter } from "@/routers/inventory"
 import { jobsRouter } from "@/routers/jobs"
 import { playbooksRouter } from "@/routers/playbooks"
 import { runRouter } from "@/routers/run"
+import { scriptsRouter } from "@/routers/scripts"
 
 export const appRouter = {
   healthCheck: publicProcedure
@@ -36,6 +37,7 @@ export const appRouter = {
   inventory: inventoryRouter,
   jobs: jobsRouter,
   playbooks: playbooksRouter,
+  scripts: scriptsRouter,
   run: runRouter,
 }
 export type AppRouter = typeof appRouter

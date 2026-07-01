@@ -34,6 +34,14 @@ const resolveHostsOutputSchema = z.object({
   hosts: z.array(hostSchema),
 })
 
+const resolveScriptOutputSchema = z.object({
+  script: z.object({
+    name: z.string(),
+    content: z.string(),
+  }),
+  hosts: z.array(hostSchema),
+})
+
 export const runRouter = {
   resolve: protectedProcedure
     .route({
@@ -84,6 +92,38 @@ export const runRouter = {
     .handler(async ({ input }) => {
       try {
         return { hosts: await runHandler.resolveHosts(input.inventory) }
+      } catch (err) {
+        if (err instanceof ResolveRunNotFoundError) {
+          throw new ORPCError("NOT_FOUND", { message: err.message })
+        }
+        if (err instanceof ResolveRunCredentiallessError) {
+          throw new ORPCError("PRECONDITION_FAILED", { message: err.message })
+        }
+        if (err instanceof ResolveRunValidationError) {
+          throw new ORPCError("BAD_REQUEST", { message: err.message })
+        }
+        throw err
+      }
+    }),
+
+  resolveScript: protectedProcedure
+    .route({
+      summary: "Resolve a script + inventory selection",
+      description:
+        "Resolves a stored script (name + content) and an inventory selection into an executable bundle. Reuses host resolution from `resolve` (group expansion, credential join, dedupe).",
+      tags: ["Run"],
+      method: "POST",
+    })
+    .input(
+      z.object({
+        scriptId: z.string().uuid(),
+        inventory: z.array(inventorySelectionSchema).min(1),
+      })
+    )
+    .output(resolveScriptOutputSchema)
+    .handler(async ({ input }) => {
+      try {
+        return await runHandler.resolveScript(input.scriptId, input.inventory)
       } catch (err) {
         if (err instanceof ResolveRunNotFoundError) {
           throw new ORPCError("NOT_FOUND", { message: err.message })
