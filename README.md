@@ -14,7 +14,7 @@ runs, and a live log of every execution.
 Create an empty directory for the deployment, `cd` into it, and run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/v0.0.6/scripts/bootstrap.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/v0.0.7/scripts/bootstrap.sh | bash
 ```
 
 That runs `scripts/bootstrap.sh`, which asks you for the admin user/password and
