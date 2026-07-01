@@ -1,12 +1,9 @@
-<table align="center">
-  <tr>
-    <td><img src="apps/frontend/public/logo.svg" alt="playbook-runner logo" width="40" height="40"></td>
-    <td align="left">
-      <strong>Playbook</strong><br>
-      <sub>RUNNER</sub>
-    </td>
-  </tr>
-</table>
+<p align="center">
+  <img src="apps/frontend/public/logo.svg" alt="playbook-runner logo" width="72" height="72">
+</p>
+
+<h1 align="center">Playbook</h1>
+<p align="center"><sub>R U N N E R</sub></p>
 
 A self-hosted web UI to manage and run [Ansible](https://www.ansible.com/)
 playbooks against your inventory — without the operational weight of AWX or
