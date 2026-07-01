@@ -187,6 +187,20 @@ To swap the bundled PostgreSQL for an external managed DB (RDS, Cloud
 SQL, …), delete the `postgres` service from `compose.prod.yml` and point
 `DATABASE_URL` at it. Everything else stays the same.
 
+## Example playbooks
+
+A handful of ready-to-run playbooks ship under [`playbooks/`](./playbooks) so you
+have something to point a job at the first time you boot the app:
+
+| File | What it does |
+| --- | --- |
+| [`playbooks/ping.yml`](./playbooks/ping.yml) | Connects to every host and runs `ansible.builtin.ping` — the classic "is SSH + Python working?" smoke test. |
+| [`playbooks/apt-upgrade.yml`](./playbooks/apt-upgrade.yml) | Runs `apt update && apt upgrade` on Debian/Ubuntu hosts (with `become: true`). |
+| [`playbooks/clean-docker-img.yml`](./playbooks/clean-docker-img.yml) | Prunes unused Docker images on each host (uses `community.docker.docker_prune`) and prints the reclaimed space. |
+
+Treat them as copy-paste starters — open one in the *Playbooks* page, hit
+*Run*, pick a group, and you should see the output stream in.
+
 ## Project structure
 
 ```txt

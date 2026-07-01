@@ -1,0 +1,25 @@
+- name: Limpiar imágenes de Docker no utilizadas
+  hosts: all
+  become: true
+  vars:
+    # Si true, elimina TODAS las imágenes sin contenedor asociado (no solo las "dangling")
+    prune_all_images: true
+
+  tasks:
+    - name: Comprobar que Docker está instalado
+      ansible.builtin.command: docker --version
+      register: docker_check
+      changed_when: false
+
+    - name: Eliminar imágenes de Docker no utilizadas
+      community.docker.docker_prune:
+        images: true
+        images_filters:
+          dangling: false   # false = borra también las que no son "dangling" pero no se usan
+      when: prune_all_images
+      register: prune_result
+
+    - name: Mostrar espacio liberado
+      ansible.builtin.debug:
+        msg: "Espacio liberado: {{ prune_result.images_space_reclaimed | default(0) | filesizeformat }}"
+      when: prune_result is defined

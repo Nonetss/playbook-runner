@@ -1,0 +1,8 @@
+- name: Update & Upgrade
+  hosts: all
+  become: true
+  tasks:
+    - name: Actualizar y actualizar los paquetes
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: dist
