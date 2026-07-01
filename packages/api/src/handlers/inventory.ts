@@ -59,7 +59,7 @@ export const inventoryDeviceHandler = {
     const d = await db
       .select()
       .from(inventoryDevices)
-      .orderBy(asc(inventoryDevices.createdAt))
+      .orderBy(asc(inventoryDevices.ipAddress))
     return d
   },
 
