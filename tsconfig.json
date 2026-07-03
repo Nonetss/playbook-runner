@@ -1,3 +1,6 @@
 {
-  "extends": "@playbook-runner/config/tsconfig.base.json"
+  "extends": "@playbook-runner/config/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  }
 }
