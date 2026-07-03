@@ -5,7 +5,7 @@
    on every navigation, wiping that injected tag and leaving toasts unstyled.
    Importing it here bakes it into the bundled stylesheet so it always persists. */
 @import "sonner/dist/styles.css";
-@import "@fontsource-variable/outfit";
+@import "@fontsource-variable/bricolage-grotesque";
 @import "@fontsource-variable/geist-mono";
 
 @custom-variant dark (&:is(.dark *));
@@ -43,10 +43,11 @@
   --sidebar-accent-foreground: oklch(0.325 0 0);
   --sidebar-border: oklch(0.955 0.003 98);
   --sidebar-ring: oklch(0.7731 0 0);
-  --font-sans: "Outfit Variable", Outfit, sans-serif;
+  --font-sans:
+    "Bricolage Grotesque Variable", "Bricolage Grotesque", sans-serif;
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, monospace;
-  --radius: 0.375rem;
+  --radius: 0.25rem;
   --shadow-x: 0;
   --shadow-y: 1px;
   --shadow-blur: 3px;
@@ -70,6 +71,17 @@
   --shadow-offset-x: 0;
   --shadow-offset-y: 1px;
   --letter-spacing: 0em;
+  /* Layout chrome — keep navbar/footer components in sync with these values. */
+  --navbar-height: 3.6rem; /* matches former h-14 */
+  --footer-height: 13rem; /* mobile: stacked footer grid */
+  --layout-chrome-height: calc(var(--navbar-height) + var(--footer-height));
+}
+
+@media (min-width: 640px) {
+  :root {
+    --footer-height: 7.6rem; /* sm+: single-row footer */
+    --layout-chrome-height: calc(var(--navbar-height) + var(--footer-height));
+  }
 }
 
 .dark {
@@ -105,10 +117,11 @@
   --sidebar-accent-foreground: oklch(0.8074 0.0142 93.0137);
   --sidebar-border: oklch(0.955 0.003 98);
   --sidebar-ring: oklch(0.7731 0 0);
-  --font-sans: "Outfit Variable", Outfit, sans-serif;
+  --font-sans:
+    "Bricolage Grotesque Variable", "Bricolage Grotesque", sans-serif;
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, monospace;
-  --radius: 0.375rem;
+  --radius: 0.25rem;
   --shadow-x: 0;
   --shadow-y: 1px;
   --shadow-blur: 3px;
@@ -167,7 +180,8 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-sans: "Outfit Variable", Outfit, sans-serif;
+  --font-sans:
+    "Bricolage Grotesque Variable", "Bricolage Grotesque", sans-serif;
   --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, monospace;
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 
@@ -184,7 +198,7 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
-  --radius: 0.375rem;
+  --radius: 0.25rem;
   --tracking-tighter: calc(var(--tracking-normal) - 0.05em);
   --tracking-tight: calc(var(--tracking-normal) - 0.025em);
   --tracking-wide: calc(var(--tracking-normal) + 0.025em);
@@ -202,6 +216,10 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --height-navbar: var(--navbar-height);
+  --height-footer: var(--footer-height);
+  --height-layout-chrome: var(--layout-chrome-height);
 }
 
 @layer base {
@@ -211,5 +229,18 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     letter-spacing: var(--tracking-normal);
+    /* Bricolage Grotesque is a variable font with an optical-size axis:
+       this lets headings pick up the tighter display cut automatically. */
+    font-optical-sizing: auto;
+  }
+}
+
+@layer utilities {
+  /* Fills the space between navbar and footer without hardcoding their exact
+     heights: relies on the flex-col body + flex-1 content wrapper in Layout,
+     so the footer's real height is honored and no extra scroll leaks in. */
+  .min-h-main {
+    flex: 1 1 auto;
+    min-height: 0;
   }
 }

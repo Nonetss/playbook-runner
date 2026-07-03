@@ -18,6 +18,7 @@
     "@astrojs/node": "^11.0.0",
     "@astrojs/react": "^6.0.0",
     "@better-auth/api-key": "catalog:",
+    "@fontsource-variable/bricolage-grotesque": "^5.2.10",
     "@fontsource-variable/geist-mono": "^5.2.8",
     "@fontsource-variable/outfit": "^5.2.8",
     "@playbook-runner/api": "workspace:*",
