@@ -4,6 +4,7 @@ import { onError } from "@orpc/server"
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4"
 import { createContext } from "@playbook-runner/api/context"
 import { appRouter } from "@playbook-runner/api/routers/index"
+import { logger } from "@playbook-runner/logger"
 import { Hono } from "hono"
 
 const handler = new OpenAPIHandler(appRouter, {
@@ -48,7 +49,9 @@ const handler = new OpenAPIHandler(appRouter, {
       },
     }),
   ],
-  interceptors: [onError((error) => console.error(error))],
+  interceptors: [
+    onError((error) => logger.error({ err: error }, "docs error")),
+  ],
 })
 
 const router = new Hono()

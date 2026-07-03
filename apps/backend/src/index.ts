@@ -2,12 +2,13 @@ import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { db } from "@playbook-runner/db"
 import { env } from "@playbook-runner/env/server"
+import { logger } from "@playbook-runner/logger"
 import { migrate } from "drizzle-orm/node-postgres/migrator"
 import { Hono } from "hono"
 import { cors } from "hono/cors"
-import { logger } from "hono/logger"
 import { startJobScheduler } from "#jobs/scheduler"
 import { type AuthVariables, sessionMiddleware } from "#middlewares/auth"
+import { requestLogger } from "#middlewares/request-logger"
 import authRouter from "#routers/auth"
 import docsRouter from "#routers/docs"
 import rpcRouter from "#routers/rpc"
@@ -23,9 +24,9 @@ const migrationsFolder = resolve(
 )
 
 async function bootstrap() {
-  console.log("[migrate] applying Drizzle migrations…")
+  logger.info("applying Drizzle migrations…")
   await migrate(db, { migrationsFolder })
-  console.log("[migrate] schema is up to date")
+  logger.info("schema is up to date")
 
   await seed()
 
@@ -35,7 +36,7 @@ async function bootstrap() {
 
 const app = new Hono<{ Variables: AuthVariables }>()
 
-app.use(logger())
+app.use(requestLogger)
 app.use(
   "/*",
   cors({
@@ -54,7 +55,7 @@ app.route("/", docsRouter)
 app.get("/", (c) => c.text("OK"))
 
 bootstrap().catch((err) => {
-  console.error("[bootstrap] failed:", err)
+  logger.error({ err }, "bootstrap failed")
   process.exit(1)
 })
 

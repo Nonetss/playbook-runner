@@ -2,10 +2,11 @@ import { auth } from "@playbook-runner/auth"
 import { createDb } from "@playbook-runner/db"
 import { user } from "@playbook-runner/db/schema/auth"
 import { env } from "@playbook-runner/env/server"
+import { logger } from "@playbook-runner/logger"
 import { eq } from "drizzle-orm"
 
 export async function seed() {
-  console.log("Seeding database…")
+  logger.info("seeding database")
 
   const db = createDb()
   const email = env.SEED_ADMIN_EMAIL
@@ -19,7 +20,7 @@ export async function seed() {
     .limit(1)
 
   if (existing.length > 0 && existing[0]) {
-    console.log(`✓ User already exists: ${email} (id=${existing[0].id})`)
+    logger.info({ userId: existing[0].id, email }, "seed user already exists")
     return
   }
 
