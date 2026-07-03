@@ -16,6 +16,7 @@ COPY packages/auth/package.json packages/auth/
 COPY packages/config/package.json packages/config/
 COPY packages/db/package.json packages/db/
 COPY packages/env/package.json packages/env/
+COPY packages/logger/package.json packages/logger/
 RUN --mount=type=cache,target=/root/.bun/install/cache bun install --frozen-lockfile
 
 COPY . .
