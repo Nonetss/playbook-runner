@@ -17,6 +17,7 @@
     "@playbook-runner/auth": "workspace:*",
     "@playbook-runner/db": "workspace:*",
     "@playbook-runner/env": "workspace:*",
+    "@playbook-runner/logger": "workspace:*",
     "@orpc/server": "catalog:",
     "drizzle-orm": "catalog:",
     "zod": "catalog:"

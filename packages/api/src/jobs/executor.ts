@@ -1,6 +1,7 @@
 import { db } from "@playbook-runner/db"
 import { jobRuns, jobs } from "@playbook-runner/db/schema/jobs"
 import { env } from "@playbook-runner/env/server"
+import { logger } from "@playbook-runner/logger"
 import { eq } from "drizzle-orm"
 import { type RunInventorySelection, runHandler } from "#handlers/run"
 
@@ -213,7 +214,7 @@ export async function startJobRun(
   const opened = await openRun(jobId, trigger)
   if (!opened) return null
   void completeRun(opened.job, opened.runId).catch((err) => {
-    console.error(`[executor] run ${opened.runId} failed:`, err)
+    logger.error({ runId: opened.runId, err }, "run failed")
   })
   return opened.runId
 }
