@@ -600,7 +600,7 @@ wheels = [
 
 [[package]]
 name = "playbook-runner-ansible"
-version = "0.2.0"
+version = "0.3.1"
 source = { virtual = "." }
 dependencies = [
     { name = "ansible" },
