@@ -91,9 +91,20 @@ function JobDetailPageInner({ id }: { id: string }) {
     live: true,
   })
 
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  // Pre-select the run referenced in `?run=...` so the history feed and
+  // dashboard activity panel can deep-link straight to a run. Cleared once
+  // consumed so subsequent clicks inside this page follow the newest-run
+  // default again.
+  const initialRunId = useMemo(() => {
+    if (typeof window === "undefined") return null
+    return new URLSearchParams(window.location.search).get("run")
+  }, [])
 
-  // Default selection: keep the newest run focused as the list updates.
+  const [selectedId, setSelectedId] = useState<string | null>(initialRunId)
+
+  // Default selection: keep the newest run focused as the list updates,
+  // unless the user explicitly clicked a run already (`?run=...`) or chose
+  // a different one in the side list.
   useEffect(() => {
     if (runs.length === 0) {
       setSelectedId(null)

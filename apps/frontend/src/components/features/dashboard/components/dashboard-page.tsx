@@ -1,4 +1,5 @@
 import {
+  ActivityIcon,
   BriefcaseIcon,
   ChevronRight,
   Clock,
@@ -6,53 +7,38 @@ import {
   KeyRound,
   Plus,
   Server,
+  Timer,
   Users,
+  XCircle,
 } from "lucide-react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useCredentialsList } from "@/components/features/credentials/hooks/useCredentials"
 import { useDevicesList } from "@/components/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/components/features/inventory/hooks/useGroups"
-import { useJobsList } from "@/components/features/jobs/hooks/useJobs"
-import type { Job } from "@/components/features/jobs/types"
+import {
+  formatRunDurationMs,
+  formatRunTimestamp,
+  RunStatusBadge,
+  RunWindowPicker,
+} from "@/components/features/jobs/components/run-widgets"
+import {
+  useJobRunMetrics,
+  useJobRunsAll,
+  useJobsList,
+} from "@/components/features/jobs/hooks/useJobs"
+import type {
+  Job,
+  JobRunFeedRow,
+  JobRunMetricsWindow,
+} from "@/components/features/jobs/types"
 import { usePlaybooksList } from "@/components/features/playbooks/hooks/usePlaybooks"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { StatCard } from "@/components/ui/stat-card"
 import { authClient } from "@/lib/auth-client"
-
-function StatCard({
-  icon: Icon,
-  title,
-  value,
-  sub,
-  href,
-}: {
-  icon: React.ElementType
-  title: string
-  value: number | string
-  sub?: string
-  href: string
-}) {
-  return (
-    <a href={href} className="group block">
-      <Card className="transition-all group-hover:shadow-md">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            {title}
-          </CardTitle>
-          <div className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-md">
-            <Icon className="size-4" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <p className="text-3xl font-bold">{value}</p>
-          {sub && <p className="mt-1 text-xs text-muted-foreground">{sub}</p>}
-        </CardContent>
-      </Card>
-    </a>
-  )
-}
 
 function JobRow({ job, playbookName }: { job: Job; playbookName?: string }) {
   const { t } = useTranslation("dashboard")
@@ -102,6 +88,31 @@ function JobRow({ job, playbookName }: { job: Job; playbookName?: string }) {
   )
 }
 
+function ActivityRow({ run }: { run: JobRunFeedRow }) {
+  const { t } = useTranslation("jobs")
+  const href = run.jobId ? `/jobs/${run.jobId}?run=${run.id}` : "/history"
+  return (
+    <a
+      href={href}
+      className="group flex items-center justify-between gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-accent"
+    >
+      <div className="flex min-w-0 items-center gap-2">
+        <RunStatusBadge status={run.status} />
+        <span className="truncate text-sm">
+          {run.jobName ?? t("history.deleted_job")}
+        </span>
+      </div>
+      <div className="text-muted-foreground flex shrink-0 items-center gap-3 text-xs">
+        <span className="font-mono">{formatRunDurationMs(run.durationMs)}</span>
+        <span className="font-mono hidden sm:inline">
+          {formatRunTimestamp(run.startedAt ?? run.createdAt)}
+        </span>
+        <ChevronRight className="size-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
+      </div>
+    </a>
+  )
+}
+
 function DashboardPageInner() {
   const { data: session } = authClient.useSession()
   const user = session?.user
@@ -115,6 +126,11 @@ function DashboardPageInner() {
   const { data: credentials = [], isPending: credentialsPending } =
     useCredentialsList()
 
+  const [runWindow, setRunWindow] = useState<JobRunMetricsWindow>("24h")
+  // Live-polled so a freshly-triggered job updates the cards without refresh.
+  const { data: metrics } = useJobRunMetrics(runWindow, { live: true })
+  const { data: activityData } = useJobRunsAll({ live: true })
+
   const playbookMap = new Map(playbooks.map((p) => [p.id, p.name]))
 
   const enabledJobs = jobs.filter((j) => j.enabled).length
@@ -126,6 +142,10 @@ function DashboardPageInner() {
     devicesPending ||
     groupsPending ||
     credentialsPending
+
+  const activityRuns: JobRunFeedRow[] =
+    activityData?.pages.flatMap((p) => p.runs).slice(0, 8) ?? []
+  const successPct = metrics ? Math.round(metrics.successRate * 100) : null
 
   return (
     <main className="mx-auto w-full max-w-5xl space-y-8 px-4 py-8 md:px-6">
@@ -186,6 +206,91 @@ function DashboardPageInner() {
           href="/credentials"
         />
       </div>
+
+      {/* Run metrics + window selector */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+            {t("runs_metrics.title", { defaultValue: "Run metrics" })}
+          </h2>
+          <RunWindowPicker value={runWindow} onChange={setRunWindow} />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <StatCard
+            icon={ActivityIcon}
+            title={t("stats.success_rate")}
+            value={
+              successPct == null ? (metrics ? "0%" : "—") : `${successPct}%`
+            }
+            sub={
+              metrics
+                ? `${metrics.okCount}/${metrics.total} ${t("stats.avg_duration").toLowerCase()}`
+                : undefined
+            }
+            href="/history"
+          />
+          <StatCard
+            icon={Timer}
+            title={t("stats.runs_in_window")}
+            value={metrics ? metrics.total : "—"}
+            sub={
+              metrics
+                ? `${formatRunDurationMs(metrics.avgDurationMs)} ${t("stats.avg_duration").toLowerCase()}`
+                : undefined
+            }
+            href="/history"
+          />
+          <StatCard
+            icon={XCircle}
+            title={t("stats.failures")}
+            value={metrics ? metrics.failedCount : "—"}
+            sub={
+              metrics && metrics.total > 0
+                ? `${Math.round((metrics.failedCount / metrics.total) * 100)}%`
+                : undefined
+            }
+            href="/history"
+          />
+        </div>
+      </section>
+
+      {/* Recent activity */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="flex items-center gap-2 text-base font-semibold">
+            <ActivityIcon className="size-4" />
+            {t("dashboard_activity.title", { ns: "jobs" })}
+          </CardTitle>
+          <Button variant="ghost" size="sm" asChild>
+            <a href="/history" className="gap-1 text-xs text-muted-foreground">
+              {t("dashboard_activity.view_history", { ns: "jobs" })}
+              <ChevronRight className="size-3.5" />
+            </a>
+          </Button>
+        </CardHeader>
+        <CardContent className="px-3 pb-3">
+          {activityData == null ? (
+            <div className="space-y-2 py-2">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="h-10 animate-pulse rounded-lg bg-muted"
+                />
+              ))}
+            </div>
+          ) : activityRuns.length === 0 ? (
+            <p className="text-muted-foreground py-6 text-center text-sm">
+              {t("dashboard_activity.empty", { ns: "jobs" })}
+            </p>
+          ) : (
+            <div className="divide-y divide-border/50">
+              {activityRuns.map((run) => (
+                <ActivityRow key={run.id} run={run} />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Jobs list */}
       <Card>

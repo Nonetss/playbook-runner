@@ -63,6 +63,34 @@
     "ok": "Success",
     "failed": "Failed"
   },
+  "history": {
+    "page": {
+      "title": "Run history",
+      "subtitle": "Every execution across all jobs, newest first."
+    },
+    "metrics_title": "Run metrics",
+    "deleted_job": "(deleted job)",
+    "trigger_schedule": "Scheduled",
+    "trigger_manual": "Manual",
+    "headers": {
+      "job": "Job",
+      "status": "Status",
+      "trigger": "Trigger",
+      "duration": "Duration",
+      "timestamp": "Timestamp"
+    },
+    "loading": "Loading history…",
+    "load_error": "Could not load the run history.",
+    "empty": "No runs yet.",
+    "loaded_count": "{{count}} runs loaded",
+    "load_more": "Load more"
+  },
+  "dashboard_activity": {
+    "title": "Recent activity",
+    "subtitle": "Latest runs across all jobs",
+    "view_history": "View history",
+    "empty": "No runs yet."
+  },
   "detail": {
     "title": "Job",
     "loading": "Loading job…",
