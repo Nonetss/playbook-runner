@@ -4,8 +4,8 @@ import type { Credential } from "@/components/features/credentials/types"
 type CredentialListProps = {
   credentials: Credential[]
   onEdit: (credential: Credential) => void
-  onDelete: (id: number) => void
-  deletingId?: number | null
+  onDelete: (id: string) => void
+  deletingId?: string | null
 }
 
 export function CredentialList({

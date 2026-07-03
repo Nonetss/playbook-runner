@@ -48,7 +48,7 @@ function CredentialsPageInner() {
     }
   }
 
-  async function handleDelete(id: number) {
+  async function handleDelete(id: string) {
     const credential = credentials.find((item) => item.id === id)
     const label = credential?.name ?? "esta credencial"
     const confirmed = await confirm({
