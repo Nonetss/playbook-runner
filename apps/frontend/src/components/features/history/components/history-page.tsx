@@ -98,9 +98,6 @@ function HistoryPageInner() {
             {t("history.page.subtitle")}
           </p>
         </div>
-        <Button asChild variant="outline" size="sm">
-          <a href="/jobs">{tCommon("actions.back")}</a>
-        </Button>
       </header>
 
       {/* Aggregate metrics + window selector */}

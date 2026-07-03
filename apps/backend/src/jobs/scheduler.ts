@@ -1,6 +1,7 @@
 import { jobsHandler } from "@playbook-runner/api/handlers/jobs"
 import { executeJob } from "@playbook-runner/api/jobs/executor"
 import { env } from "@playbook-runner/env/server"
+import { logger } from "@playbook-runner/logger"
 
 /** How often (ms) the scheduler reconciles its cron set against the DB. */
 const RECONCILE_INTERVAL_MS = 60_000
@@ -25,7 +26,7 @@ function schedule(jobId: string, pattern: string) {
     try {
       await executeJob(jobId, "schedule")
     } catch (err) {
-      console.error(`[scheduler] job ${jobId} failed:`, err)
+      logger.error({ jobId, err }, "scheduled job failed")
     }
   })
   scheduled.set(jobId, { job, pattern })
@@ -71,21 +72,19 @@ async function reconcile() {
 /** Start the background job scheduler. Idempotent. */
 export function startJobScheduler() {
   if (env.JOB_SCHEDULER_ENABLED !== "1") {
-    console.log("[scheduler] disabled via JOB_SCHEDULER_ENABLED")
+    logger.info("job scheduler disabled via JOB_SCHEDULER_ENABLED")
     return
   }
   if (reconcileTimer) return
 
   void reconcile().catch((err) =>
-    console.error("[scheduler] initial reconcile failed:", err)
+    logger.error({ err }, "initial reconcile failed")
   )
   reconcileTimer = setInterval(() => {
-    void reconcile().catch((err) =>
-      console.error("[scheduler] reconcile failed:", err)
-    )
+    void reconcile().catch((err) => logger.error({ err }, "reconcile failed"))
   }, RECONCILE_INTERVAL_MS)
 
-  console.log("[scheduler] started")
+  logger.info("job scheduler started")
 }
 
 /** Stop the scheduler and clear all scheduled jobs (for tests / shutdown). */

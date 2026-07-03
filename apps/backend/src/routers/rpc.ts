@@ -2,10 +2,11 @@ import { onError } from "@orpc/server"
 import { RPCHandler } from "@orpc/server/fetch"
 import { createContext } from "@playbook-runner/api/context"
 import { appRouter } from "@playbook-runner/api/routers/index"
+import { logger } from "@playbook-runner/logger"
 import { Hono } from "hono"
 
 const handler = new RPCHandler(appRouter, {
-  interceptors: [onError((error) => console.error(error))],
+  interceptors: [onError((error) => logger.error({ err: error }, "rpc error"))],
 })
 
 const router = new Hono()
