@@ -1,6 +1,6 @@
 import { z } from "zod"
-import { scriptsHandler } from "@/handlers/scripts"
-import { protectedProcedure } from "@/index"
+import { scriptsHandler } from "#handlers/scripts"
+import { protectedProcedure } from "#index"
 
 const scriptSchema = z.object({
   id: z.string(),

@@ -3,9 +3,6 @@
   "compilerOptions": {
     "composite": true,
     "outDir": "dist",
-    "paths": {
-      "@/*": ["./src/*"]
-    },
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"
   }

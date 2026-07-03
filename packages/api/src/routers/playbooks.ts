@@ -1,6 +1,6 @@
 import { z } from "zod"
-import { playbooksHandler } from "@/handlers/playbooks"
-import { protectedProcedure } from "@/index"
+import { playbooksHandler } from "#handlers/playbooks"
+import { protectedProcedure } from "#index"
 
 const playbookSchema = z.object({
   id: z.string(),

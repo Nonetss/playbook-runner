@@ -1,6 +1,6 @@
 import { ORPCError, os } from "@orpc/server"
 
-import type { Context } from "@/context"
+import type { Context } from "#context"
 
 // `o` is the typed procedure builder; `os` is the namespace carrying the
 // middleware helper.

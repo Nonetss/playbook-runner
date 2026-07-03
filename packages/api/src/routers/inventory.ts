@@ -3,8 +3,8 @@ import {
   inventoryDeviceGroupHandler,
   inventoryDeviceHandler,
   inventoryGroupHandler,
-} from "@/handlers/inventory"
-import { protectedProcedure } from "@/index"
+} from "#handlers/inventory"
+import { protectedProcedure } from "#index"
 
 // Inputs
 const uuidSchema = z.string().uuid()

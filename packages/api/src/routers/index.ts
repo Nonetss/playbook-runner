@@ -1,13 +1,13 @@
 import type { RouterClient } from "@orpc/server"
 import z from "zod"
-import { protectedProcedure, publicProcedure } from "@/index"
-import { configRouter } from "@/routers/config"
-import { credentialsRouter } from "@/routers/credentials"
-import { inventoryRouter } from "@/routers/inventory"
-import { jobsRouter } from "@/routers/jobs"
-import { playbooksRouter } from "@/routers/playbooks"
-import { runRouter } from "@/routers/run"
-import { scriptsRouter } from "@/routers/scripts"
+import { protectedProcedure, publicProcedure } from "#index"
+import { configRouter } from "#routers/config"
+import { credentialsRouter } from "#routers/credentials"
+import { inventoryRouter } from "#routers/inventory"
+import { jobsRouter } from "#routers/jobs"
+import { playbooksRouter } from "#routers/playbooks"
+import { runRouter } from "#routers/run"
+import { scriptsRouter } from "#routers/scripts"
 
 // Response schemas for the root procedures.
 const healthCheckOutputSchema = z.literal("OK")

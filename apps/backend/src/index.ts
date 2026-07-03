@@ -6,12 +6,12 @@ import { migrate } from "drizzle-orm/node-postgres/migrator"
 import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { logger } from "hono/logger"
-import { startJobScheduler } from "@/jobs/scheduler"
-import { type AuthVariables, sessionMiddleware } from "@/middlewares/auth"
-import authRouter from "@/routers/auth"
-import docsRouter from "@/routers/docs"
-import rpcRouter from "@/routers/rpc"
-import { seed } from "@/scripts/seed"
+import { startJobScheduler } from "#jobs/scheduler"
+import { type AuthVariables, sessionMiddleware } from "#middlewares/auth"
+import authRouter from "#routers/auth"
+import docsRouter from "#routers/docs"
+import rpcRouter from "#routers/rpc"
+import { seed } from "#scripts/seed"
 
 // Both dev (bun runs the source from apps/backend/src) and prod
 // (tsdown bundle at apps/backend/dist) sit three directories below

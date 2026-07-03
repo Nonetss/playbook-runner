@@ -1,6 +1,6 @@
 import { auth } from "@playbook-runner/auth"
 import z from "zod"
-import { protectedProcedure } from "@/index"
+import { protectedProcedure } from "#index"
 
 // `list` returns every field except the secret. `create` includes the secret
 // exactly once so the caller can store it.
