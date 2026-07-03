@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/features/global/theme-toggle"
 import { UserNav } from "@/components/features/global/user-nav"
 import { AppProviders } from "@/components/providers/app-providers"
 import { SlidingPillNav } from "@/components/ui/sliding-pill-nav"
+import { useScrolled } from "@/hooks/useScrolled"
 import { orpc } from "@/lib/orpc"
 import { cn } from "@/lib/utils"
 
@@ -88,6 +89,7 @@ function NavbarAuthenticatedInner({
 }: NavbarAuthenticatedProps) {
   const queryClient = useQueryClient()
   const { t } = useTranslation("nav")
+  const scrolled = useScrolled()
 
   const navLinks = NAV_ITEMS.map(({ href, key }) => ({
     href,
@@ -103,7 +105,14 @@ function NavbarAuthenticatedInner({
   }
 
   return (
-    <header className="border-border bg-background sticky top-0 z-50 w-full border-b">
+    <header
+      className={cn(
+        "sticky top-0 z-50 w-full border-b transition-[border-color,background-color,backdrop-filter,box-shadow] duration-300",
+        scrolled
+          ? "border-border/60 bg-background/70 shadow-[0_1px_3px_0_rgb(0_0_0/0.05)] backdrop-blur-md backdrop-saturate-150 supports-backdrop-filter:bg-background/60"
+          : "border-transparent bg-background/95 supports-backdrop-filter:bg-background/80"
+      )}
+    >
       <nav className="flex h-14 w-full items-center justify-between gap-3 px-4 md:gap-4 md:px-6 lg:px-8">
         <a
           href="/"

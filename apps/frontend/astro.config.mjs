@@ -43,9 +43,11 @@ export default defineConfig({
     },
     plugins: [tailwindcss()],
     // Bundle every dependency into the SSR build so the production image
-    // only needs dist/ — no node_modules.
+    // only needs dist/ — no node_modules. Dev-only: forcing this on `astro
+    // dev` breaks CJS deps (e.g. `cookie`) with "exports is not defined",
+    // since Vite's dev SSR module runner can't inline them the same way.
     ssr: {
-      noExternal: true,
+      noExternal: process.argv.includes("dev") ? undefined : true,
     },
     resolve: {
       alias: {
