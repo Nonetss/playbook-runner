@@ -1,5 +1,5 @@
 import { Toaster as Sonner, type ToasterProps } from "sonner"
-import { useTheme } from "@/components/features/global/use-theme"
+import { useTheme } from "@/components/features/global/hooks/use-theme"
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme } = useTheme()

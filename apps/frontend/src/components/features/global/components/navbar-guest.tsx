@@ -1,5 +1,5 @@
-import { LanguageSwitcher } from "@/components/features/global/language-switcher"
-import { ThemeToggle } from "@/components/features/global/theme-toggle"
+import { LanguageSwitcher } from "@/components/features/global/components/language-switcher"
+import { ThemeToggle } from "@/components/features/global/components/theme-toggle"
 import { AppProviders } from "@/components/providers/app-providers"
 
 interface NavbarGuestProps {
