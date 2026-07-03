@@ -1,0 +1,19 @@
+{
+  "name": "@playbook-runner/logger",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@playbook-runner/env": "workspace:*",
+    "pino": "catalog:"
+  },
+  "devDependencies": {
+    "@playbook-runner/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "pino-pretty": "catalog:",
+    "typescript": "catalog:"
+  }
+}

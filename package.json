@@ -23,7 +23,9 @@
       "drizzle-orm": "^1.0.0-rc.4",
       "drizzle-kit": "^1.0.0-rc.4",
       "pg": "^8.22.0",
-      "@types/pg": "^8.20.0"
+      "@types/pg": "^8.20.0",
+      "pino": "^9.5.0",
+      "pino-pretty": "^11.3.0"
     }
   },
   "type": "module",

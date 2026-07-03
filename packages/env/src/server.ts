@@ -31,6 +31,12 @@ export const env = createEnv({
     SEED_ADMIN_EMAIL: z.email().default("admin@playbook-runner.local"),
     SEED_ADMIN_PASSWORD: z.string().min(8).default("admin1234"),
     SEED_ADMIN_NAME: z.string().default("Admin"),
+
+    // Minimum severity for the structured (pino) logger. Default `info`;
+    // set to `debug` while developing to surface verbose entries.
+    LOG_LEVEL: z
+      .enum(["fatal", "error", "warn", "info", "debug", "trace"])
+      .default("info"),
   },
   runtimeEnv: process.env,
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
