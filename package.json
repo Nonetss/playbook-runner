@@ -17,8 +17,13 @@
       "@orpc/openapi": "^1.13.14",
       "@orpc/zod": "^1.13.14",
       "better-auth": "1.6.22",
+      "@better-auth/api-key": "^1.6.22",
       "@orpc/client": "^1.13.14",
-      "@orpc/tanstack-query": "^1.13.14"
+      "@orpc/tanstack-query": "^1.13.14",
+      "drizzle-orm": "^1.0.0-rc.4",
+      "drizzle-kit": "^1.0.0-rc.4",
+      "pg": "^8.22.0",
+      "@types/pg": "^8.20.0"
     }
   },
   "type": "module",
@@ -43,12 +48,6 @@
     "test:e2e:ui": "turbo -F frontend test:e2e:ui",
     "test:e2e:headed": "turbo -F frontend test:e2e:headed",
     "check": "biome check --write ."
-  },
-  "dependencies": {
-    "@better-auth/core": "^1.6.22",
-    "@playbook-runner/env": "workspace:*",
-    "dotenv": "catalog:",
-    "zod": "catalog:"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",

@@ -2,6 +2,9 @@
   "name": "backend",
   "type": "module",
   "main": "src/index.ts",
+  "imports": {
+    "#*": "./src/*.ts"
+  },
   "scripts": {
     "build": "tsdown",
     "check-types": "tsc -b",
@@ -18,20 +21,15 @@
     "@playbook-runner/auth": "workspace:*",
     "@playbook-runner/db": "workspace:*",
     "@playbook-runner/env": "workspace:*",
-    "better-auth": "catalog:",
-    "dotenv": "^17.4.2",
-    "drizzle-orm": "^1.0.0-rc.4",
+    "drizzle-orm": "catalog:",
     "hono": "catalog:",
-    "pg": "^8.22.0",
-    "zod": "catalog:"
+    "pg": "catalog:"
   },
   "devDependencies": {
     "@playbook-runner/config": "workspace:*",
     "@types/bun": "catalog:",
-    "@types/pg": "^8.20.0",
-    "drizzle-kit": "^1.0.0-rc.4",
+    "@types/pg": "catalog:",
     "tsdown": "^0.21.9",
-    "tsx": "^4.22.4",
     "typescript": "catalog:"
   }
 }
