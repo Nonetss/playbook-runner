@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm"
 import {
   boolean,
+  index,
   integer,
   jsonb,
   pgEnum,
@@ -44,22 +45,36 @@ export const jobs = pgTable("jobs", {
 export type Job = typeof jobs.$inferSelect
 export type NewJob = typeof jobs.$inferInsert
 
-export const jobRuns = pgTable("job_runs", {
-  id: uuid().defaultRandom().primaryKey(),
-  jobId: uuid("job_id").references(() => jobs.id, {
-    onDelete: "cascade",
-  }),
-  status: jobRunStatusEnum().notNull().default("pending"),
-  trigger: text().notNull().default("manual"),
-  eventsJson: jsonb("events_json")
-    .$type<Array<Record<string, unknown>>>()
-    .notNull()
-    .default([]),
-  error: text(),
-  startedAt: timestamp("started_at"),
-  finishedAt: timestamp("finished_at"),
-  createdAt: timestamp("created_at").default(sql`now()`),
-})
+export const jobRuns = pgTable(
+  "job_runs",
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    jobId: uuid("job_id").references(() => jobs.id, {
+      onDelete: "cascade",
+    }),
+    status: jobRunStatusEnum().notNull().default("pending"),
+    trigger: text().notNull().default("manual"),
+    eventsJson: jsonb("events_json")
+      .$type<Array<Record<string, unknown>>>()
+      .notNull()
+      .default([]),
+    error: text(),
+    startedAt: timestamp("started_at"),
+    finishedAt: timestamp("finished_at"),
+    createdAt: timestamp("created_at").default(sql`now()`),
+  },
+  (table) => [
+    index("job_runs_created_at_idx").using(
+      "btree",
+      table.createdAt.desc().nullsLast()
+    ),
+    index("job_runs_job_id_created_at_idx").using(
+      "btree",
+      table.jobId.asc().nullsLast(),
+      table.createdAt.desc().nullsLast()
+    ),
+  ]
+)
 
 export type JobRun = typeof jobRuns.$inferSelect
 export type NewJobRun = typeof jobRuns.$inferInsert

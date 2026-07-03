@@ -1,0 +1,2 @@
+CREATE INDEX "job_runs_created_at_idx" ON "job_runs" ("created_at" DESC NULLS LAST);--> statement-breakpoint
+CREATE INDEX "job_runs_job_id_created_at_idx" ON "job_runs" ("job_id","created_at" DESC NULLS LAST);
