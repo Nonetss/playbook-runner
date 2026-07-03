@@ -1,4 +1,5 @@
-FROM node:24-slim AS base
+# ── Build stage ──────────────────────────────────────────────────────────────
+FROM node:24-slim AS build
 COPY --from=oven/bun:1 /usr/local/bin/bun /usr/local/bin/bun
 WORKDIR /app
 ENV SKIP_ENV_VALIDATION=1
@@ -20,8 +21,21 @@ RUN --mount=type=cache,target=/root/.bun/install/cache bun install --frozen-lock
 COPY . .
 
 ENV NODE_ENV=production
+# tsdown bundles the workspace packages AND every npm dependency into
+# dist/ (see tsdown.config.ts), so the runtime stage needs no node_modules.
 RUN cd apps/backend && bun run build
-ENV SKIP_ENV_VALIDATION=
+
+# ── Runtime stage ─────────────────────────────────────────────────────────────
+# node:24-slim keeps the `node -e` compose healthchecks working; bun is the
+# actual runtime (the app uses Bun.cron and Bun's `export default` serving).
+FROM node:24-slim AS runtime
+COPY --from=oven/bun:1 /usr/local/bin/bun /usr/local/bin/bun
+ENV NODE_ENV=production
+
+# bootstrap() resolves the migrations folder relative to the bundle:
+# dist/ -> ../../../packages/db/src/migrations, so keep the repo layout.
+COPY --from=build /app/apps/backend/dist /app/apps/backend/dist
+COPY --from=build /app/packages/db/src/migrations /app/packages/db/src/migrations
 
 EXPOSE 3000
 

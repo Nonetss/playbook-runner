@@ -1,6 +1,6 @@
-FROM node:24-slim AS base
+# ── Build stage ──────────────────────────────────────────────────────────────
+FROM node:24-slim AS build
 COPY --from=oven/bun:1 /usr/local/bin/bun /usr/local/bin/bun
-COPY --from=caddy:2-alpine /usr/bin/caddy /usr/local/bin/caddy
 WORKDIR /app
 ENV SKIP_ENV_VALIDATION=1
 
@@ -21,9 +21,16 @@ RUN --mount=type=cache,target=/root/.bun/install/cache bun install --frozen-lock
 COPY . .
 
 ENV NODE_ENV=production
+# vite.ssr.noExternal (astro.config.mjs) bundles every dependency into
+# dist/server, so the runtime stage needs no node_modules.
 RUN cd apps/frontend && bun run build
-ENV SKIP_ENV_VALIDATION=
 
+# ── Runtime stage ─────────────────────────────────────────────────────────────
+FROM node:24-slim AS runtime
+COPY --from=caddy:2-alpine /usr/bin/caddy /usr/local/bin/caddy
+ENV NODE_ENV=production
+
+COPY --from=build /app/apps/frontend/dist /app/apps/frontend/dist
 COPY apps/frontend/Caddyfile /etc/caddy/Caddyfile
 COPY apps/frontend/start.sh /start.sh
 RUN chmod +x /start.sh
