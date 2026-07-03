@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowLeft, Loader2 } from "lucide-react"
+import { ArrowLeft, Loader2 } from "lucide-react"
 import * as React from "react"
 import { useTranslation } from "react-i18next"
 import {
@@ -28,8 +28,7 @@ export type PlaybookFormPageProps = {
 }
 
 function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
-  const { t, i18n } = useTranslation("playbooks")
-  const cardLocale = i18n.language?.startsWith("en") ? "en-US" : "es-ES"
+  const { t } = useTranslation("playbooks")
   const isEditing = !!id
   const createPlaybook = usePlaybookCreate()
   const updatePlaybook = usePlaybookUpdate()

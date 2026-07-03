@@ -46,7 +46,7 @@ function GroupDetailPageInner({ id }: { id: string }) {
 
   const isMutatingRelation = assign.isPending || unassign.isPending
 
-  async function handleSave(e: React.FormEvent) {
+  async function handleSave(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!group) return
     await updateGroup.mutateAsync({
