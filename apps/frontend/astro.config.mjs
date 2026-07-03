@@ -42,6 +42,11 @@ export default defineConfig({
       },
     },
     plugins: [tailwindcss()],
+    // Bundle every dependency into the SSR build so the production image
+    // only needs dist/ — no node_modules.
+    ssr: {
+      noExternal: true,
+    },
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url)),

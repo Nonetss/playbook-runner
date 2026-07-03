@@ -5,5 +5,7 @@ export default defineConfig({
   format: "esm",
   outDir: "./dist",
   clean: true,
-  noExternal: [/@playbook-runner\/.*/],
+  // Bundle everything (workspace packages and npm deps alike) so the
+  // production image only needs the dist folder — no node_modules.
+  noExternal: [/.*/],
 })
