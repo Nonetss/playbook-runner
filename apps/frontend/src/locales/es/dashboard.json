@@ -17,7 +17,17 @@
     "scheduled_other": "programados",
     "groups_label": "grupo(s)",
     "groups_label_one": "grupo",
-    "groups_label_other": "grupos"
+    "groups_label_other": "grupos",
+    "success_rate": "Tasa de éxito",
+    "runs_in_window": "Ejecuciones en ventana",
+    "failures": "Fallos",
+    "no_runs_yet": "Sin ejecuciones",
+    "avg_duration": "Duración media"
+  },
+  "runs_window": {
+    "24h": "Últimas 24h",
+    "7d": "Últimos 7 días",
+    "30d": "Últimos 30 días"
   },
   "jobs_section": {
     "title": "Jobs",

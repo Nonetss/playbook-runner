@@ -26,7 +26,7 @@ const handler = new OpenAPIHandler(appRouter, {
           description: "API for the Playbook Runner",
           license: {
             name: "GNU General Public License v3.0",
-            url: "https://raw.githubusercontent.com/Nonetss/playbook-runner/refs/tags/v0.2.0/LICENSE",
+            url: "https://raw.githubusercontent.com/Nonetss/playbook-runner/refs/heads/main/LICENSE",
           },
         },
         security: [{ ApiKey: [] }, { BearerAuth: [] }],

@@ -63,6 +63,34 @@
     "ok": "Correcto",
     "failed": "Fallido"
   },
+  "history": {
+    "page": {
+      "title": "Historial de ejecuciones",
+      "subtitle": "Cada ejecución de todos los jobs, las más recientes primero."
+    },
+    "metrics_title": "Métricas de ejecución",
+    "deleted_job": "(job eliminado)",
+    "trigger_schedule": "Programado",
+    "trigger_manual": "Manual",
+    "headers": {
+      "job": "Job",
+      "status": "Estado",
+      "trigger": "Disparo",
+      "duration": "Duración",
+      "timestamp": "Fecha"
+    },
+    "loading": "Cargando historial…",
+    "load_error": "No se pudo cargar el historial de ejecuciones.",
+    "empty": "Aún no hay ejecuciones.",
+    "loaded_count": "{{count}} ejecuciones cargadas",
+    "load_more": "Cargar más"
+  },
+  "dashboard_activity": {
+    "title": "Actividad reciente",
+    "subtitle": "Últimas ejecuciones de todos los jobs",
+    "view_history": "Ver historial",
+    "empty": "Aún no hay ejecuciones."
+  },
   "detail": {
     "title": "Job",
     "loading": "Cargando job…",

@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query"
 import type { InventoryItem, Job } from "@/components/features/jobs/types"
 import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { useResourceMutation } from "@/hooks/useResourceMutation"
@@ -43,6 +47,54 @@ export const useJobRunGet = (id: string, options?: { enabled?: boolean }) =>
         query.state.data?.status === "running" ? 2000 : false,
     })
   )
+
+/**
+ * Infinite query over the cross-job run feed (`jobs.runs.listAll`). Each
+ * page carries `nextCursor`; we thread it through as the TanStack
+ * `pageParam` so load-more picks up exactly where the previous batch ended.
+ *
+ * Note: hydration gating for infinite queries would require a custom wrapper
+ * around `useInfiniteQuery` (since `InfiniteQueryObserverResult` is a
+ * discriminated union that can't be naively widened). The island mounts via
+ * `client:only`, so the first request fires post-hydration in practice.
+ */
+export function useJobRunsAll(options?: { pageSize?: number; live?: boolean }) {
+  const limit = options?.pageSize ?? 25
+  return useInfiniteQuery(
+    orpc.jobs.runs.listAll.infiniteOptions({
+      input: (cursor) => ({ limit, cursor: cursor ?? undefined }),
+      getNextPageParam: (last) => last.nextCursor ?? undefined,
+      initialPageParam: undefined as string | undefined,
+      refetchInterval: options?.live ? 15_000 : false,
+    })
+  )
+}
+
+/**
+ * Aggregate run metrics over a fixed window (24h / 7d / 30d). The aggregate
+ * is cheap to recompute, so it polls on a 15s cadence when `live` is requested.
+ */
+export function useJobRunMetrics(
+  window: "24h" | "7d" | "30d",
+  options?: { live?: boolean }
+) {
+  return useHydratedQuery(
+    orpc.jobs.runs.metrics.queryOptions({
+      input: { window },
+      refetchInterval: options?.live ? 15_000 : false,
+    })
+  )
+}
+
+/** Per-job rollups: latest status + recent success ratio (last 10 runs). */
+export function useJobRunRollups(options?: { live?: boolean }) {
+  return useHydratedQuery(
+    orpc.jobs.runs.rollups.queryOptions({
+      input: {},
+      refetchInterval: options?.live ? 15_000 : false,
+    })
+  )
+}
 
 // ── Mutation helpers ──────────────────────────────────────────────────────────
 

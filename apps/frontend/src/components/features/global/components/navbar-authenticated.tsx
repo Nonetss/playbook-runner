@@ -31,6 +31,7 @@ const NAV_ITEMS: { href: string; key: string }[] = [
   { href: "/scripts", key: "links.scripts" },
   { href: "/commands", key: "links.commands" },
   { href: "/jobs", key: "links.jobs" },
+  { href: "/history", key: "links.history" },
 ]
 
 function linkClassName(active: boolean) {
@@ -43,7 +44,28 @@ function linkClassName(active: boolean) {
 }
 
 function isNavLinkActive(href: string, currentPath: string) {
-  return href === "/" ? currentPath === "/" : currentPath.startsWith(href)
+  if (href === "/") return currentPath === "/"
+  return currentPath === href || currentPath.startsWith(`${href}/`)
+}
+
+/**
+ * Nested routes (e.g. a future `/jobs/[id]` sub-page) can match more than one
+ * nav item. Pick the longest matching href so the most specific tab lights
+ * up instead of whichever sibling happens to come first in `NAV_ITEMS`.
+ */
+function findActiveNavIndex(
+  links: { href: string }[],
+  currentPath: string
+): number {
+  let bestIndex = -1
+  let bestLength = -1
+  links.forEach(({ href }, index) => {
+    if (isNavLinkActive(href, currentPath) && href.length > bestLength) {
+      bestIndex = index
+      bestLength = href.length
+    }
+  })
+  return bestIndex
 }
 
 /**
@@ -72,6 +94,11 @@ function prefetchForHref(
     case "/jobs":
       queryClient.prefetchQuery(orpc.jobs.list.queryOptions())
       return
+    case "/history":
+      queryClient.prefetchQuery(
+        orpc.jobs.runs.listAll.queryOptions({ input: { limit: 25 } })
+      )
+      return
     case "/config":
       queryClient.prefetchQuery(orpc.config.apiKeys.list.queryOptions())
       return
@@ -96,9 +123,7 @@ function NavbarAuthenticatedInner({
     label: t(key),
   }))
 
-  const activeNavIndex = navLinks.findIndex(({ href }) =>
-    isNavLinkActive(href, currentPath)
-  )
+  const activeNavIndex = findActiveNavIndex(navLinks, currentPath)
 
   function handlePrefetch(href: string) {
     return () => prefetchForHref(queryClient, href)

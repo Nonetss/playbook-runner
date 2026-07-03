@@ -18,7 +18,17 @@
     "scheduled_other": "scheduled",
     "groups_label": "groups",
     "groups_label_one": "group",
-    "groups_label_other": "groups"
+    "groups_label_other": "groups",
+    "success_rate": "Success rate",
+    "runs_in_window": "Runs in window",
+    "failures": "Failures",
+    "no_runs_yet": "No runs yet",
+    "avg_duration": "Avg duration"
+  },
+  "runs_window": {
+    "24h": "Last 24h",
+    "7d": "Last 7 days",
+    "30d": "Last 30 days"
   },
   "jobs_section": {
     "title": "Jobs",

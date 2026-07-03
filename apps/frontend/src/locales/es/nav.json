@@ -7,6 +7,7 @@
     "scripts": "Scripts",
     "commands": "Comandos",
     "jobs": "Jobs",
+    "history": "Historial",
     "config": "Configuración",
     "me": "Mi perfil"
   },
