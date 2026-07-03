@@ -9,7 +9,7 @@ export const useCredentialsList = () => {
 }
 
 export const useCredentialGet = (
-  id: number,
+  id: string,
   options?: { enabled?: boolean }
 ) => {
   return useHydratedQuery(
@@ -33,7 +33,7 @@ function applyCreateOptimistic(
 ) {
   if (!current) return current
   const optimistic = {
-    id: -Date.now(),
+    id: `optimistic-${Date.now()}`,
     name: input.name,
     username: input.username,
     privateKey: input.privateKey,
@@ -45,7 +45,7 @@ function applyCreateOptimistic(
 function applyUpdateOptimistic(
   current: Credential[] | undefined,
   input: {
-    id: number
+    id: string
     name: string
     username: string
     privateKey: string
@@ -68,7 +68,7 @@ function applyUpdateOptimistic(
 
 function applyDeleteOptimistic(
   current: Credential[] | undefined,
-  input: { id: number }
+  input: { id: string }
 ) {
   if (!current) return current
   return current.filter(
@@ -95,7 +95,7 @@ export const useCredentialCreate = () =>
 export const useCredentialUpdate = () =>
   useResourceMutation<
     {
-      id: number
+      id: string
       name: string
       username: string
       privateKey: string
@@ -118,7 +118,7 @@ export const useCredentialGenerate = () =>
   useMutation(orpc.credentials.generate.mutationOptions())
 
 export const useCredentialDelete = () =>
-  useResourceMutation<{ id: number }, Credential, Credential[]>({
+  useResourceMutation<{ id: string }, Credential, Credential[]>({
     mutationFn: (input) =>
       orpc.credentials.delete.call(input) as Promise<Credential>,
     listKey,

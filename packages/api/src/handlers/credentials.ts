@@ -19,12 +19,12 @@ export const credentialsHandler = {
     return c
   },
 
-  get: async (id: number) => {
+  get: async (id: string) => {
     const c = await db.select().from(credentials).where(eq(credentials.id, id))
     return c[0] ?? null
   },
 
-  update: async (id: number, credential: NewCredential) => {
+  update: async (id: string, credential: NewCredential) => {
     const c = await db
       .update(credentials)
       .set(credential)
@@ -33,7 +33,7 @@ export const credentialsHandler = {
     return c[0] ?? null
   },
 
-  delete: async (id: number) => {
+  delete: async (id: string) => {
     const c = await db
       .delete(credentials)
       .where(eq(credentials.id, id))

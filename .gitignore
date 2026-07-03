@@ -67,6 +67,9 @@ temp
 .agents/
 .agents.lock
 
+# Astro
+.astro/
+
 # Node
 .node_modules/
 .node_modules.lock

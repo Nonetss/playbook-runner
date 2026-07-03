@@ -1,7 +1,7 @@
 import z from "zod"
-import { credentialsHandler } from "@/handlers/credentials"
-import { protectedProcedure } from "@/index"
-import { generateEd25519KeyPair } from "@/lib/ssh-key"
+import { credentialsHandler } from "#handlers/credentials"
+import { protectedProcedure } from "#index"
+import { generateEd25519KeyPair } from "#lib/ssh-key"
 
 const credentialSchema = z.object({
   id: z.string(),
@@ -79,7 +79,7 @@ export const credentialsRouter = {
       tags: ["Credentials"],
       method: "GET",
     })
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.string() }))
     .output(credentialSchema.nullable())
     .handler(async ({ input }) => {
       const credential = await credentialsHandler.get(input.id)
@@ -95,7 +95,7 @@ export const credentialsRouter = {
     })
     .input(
       z.object({
-        id: z.number(),
+        id: z.string(),
         name: z.string(),
         username: z.string(),
         privateKey: z.string(),
@@ -116,7 +116,7 @@ export const credentialsRouter = {
       tags: ["Credentials"],
       method: "DELETE",
     })
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.string() }))
     .output(credentialSchema.nullable())
     .handler(async ({ input }) => {
       const credential = await credentialsHandler.delete(input.id)

@@ -27,7 +27,7 @@ import {
 type CredentialCardProps = {
   credential: Credential
   onEdit: (credential: Credential) => void
-  onDelete: (id: number) => void
+  onDelete: (id: string) => void
   isDeleting?: boolean
 }
 

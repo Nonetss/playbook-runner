@@ -11,12 +11,10 @@
   },
   "scripts": {},
   "dependencies": {
-    "@better-auth/api-key": "^1.6.22",
+    "@better-auth/api-key": "catalog:",
     "@playbook-runner/db": "workspace:*",
     "@playbook-runner/env": "workspace:*",
-    "better-auth": "catalog:",
-    "dotenv": "catalog:",
-    "zod": "catalog:"
+    "better-auth": "catalog:"
   },
   "devDependencies": {
     "@playbook-runner/config": "workspace:*",

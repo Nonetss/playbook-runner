@@ -5,8 +5,8 @@ import {
   ResolveRunNotFoundError,
   ResolveRunValidationError,
   runHandler,
-} from "@/handlers/run"
-import { protectedProcedure } from "@/index"
+} from "#handlers/run"
+import { protectedProcedure } from "#index"
 
 const inventorySelectionSchema = z.object({
   id: z.string().uuid(),
