@@ -6,7 +6,7 @@
 # admin credentials, and optionally starts the stack with docker compose.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/v0.3.1/scripts/bootstrap.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/main/scripts/bootstrap.sh | bash
 #
 # Requirements: docker, openssl, curl.
 #
@@ -20,8 +20,8 @@ set -Eeuo pipefail
 # not where the script file lives. Works the same via `curl | bash` or cloned.
 TARGET_DIR="$(pwd -P)"
 
-# Tag/branch used to download compose.prod.yml. Override: PB_REF=main ...
-PB_REF="${PB_REF:-v0.3.1}"
+# Tag/branch used to download compose.prod.yml. Override: PB_REF=v1.0.0 ...
+PB_REF="${PB_REF:-main}"
 RAW_BASE="https://raw.githubusercontent.com/Nonetss/playbook-runner/${PB_REF}"
 
 # ── Output helpers ───────────────────────────────────────────────────────────
