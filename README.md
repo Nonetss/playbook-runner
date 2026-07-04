@@ -47,10 +47,10 @@ credential to a device so every run picks the right key automatically.
 
 ![Inventory](img/inventario.webp)
 
-**New job** — pick a playbook, select target groups or individual devices, set
-an optional cron schedule, tune forks, and inject extra variables.
+**Job history** — browse every job the server has executed: status, schedule,
+and outcome at a glance, with quick access to each run's details.
 
-![New job](img/cron.webp)
+![Job history](img/cron.webp)
 
 **Live execution** — output streams into the browser as ansible-runner emits
 it. The inventory panel on the right shows which hosts are in scope.
