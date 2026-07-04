@@ -2,25 +2,25 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Playbook Runner — bootstrap
 #
-# Genera el archivo `.env` con secretos aleatorios (openssl), te pregunta los
-# datos del admin inicial y opcionalmente levanta el stack con docker compose.
+# Generates a `.env` file with random secrets (openssl), prompts for the initial
+# admin credentials, and optionally starts the stack with docker compose.
 #
-# Uso:
+# Usage:
 #   curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/v0.3.1/scripts/bootstrap.sh | bash
 #
-# Requisitos: docker, openssl, curl.
+# Requirements: docker, openssl, curl.
 #
-# Se puede ejecutar suelto (curl | bash) o desde un repo clonado. En ambos
-# casos genera `.env` y `compose.prod.yml` en el DIRECTORIO ACTUAL.
+# Can be run standalone (curl | bash) or from a cloned repo. In both cases it
+# writes `.env` and `compose.prod.yml` in the CURRENT DIRECTORY.
 # ─────────────────────────────────────────────────────────────────────────────
 
 set -Eeuo pipefail
 
-# El stack se genera/levanta en el directorio donde corrés el script, no en
-# donde vive el script. Así funciona igual via `curl | bash` que clonado.
+# The stack is generated/started in the directory where you run the script,
+# not where the script file lives. Works the same via `curl | bash` or cloned.
 TARGET_DIR="$(pwd -P)"
 
-# Tag/branch desde donde se baja compose.prod.yml. Overrideable: PB_REF=main ...
+# Tag/branch used to download compose.prod.yml. Override: PB_REF=main ...
 PB_REF="${PB_REF:-v0.3.1}"
 RAW_BASE="https://raw.githubusercontent.com/Nonetss/playbook-runner/${PB_REF}"
 
@@ -38,15 +38,15 @@ note() { printf '%s%s%s\n'     "$C_DIM"   "$*" "$C_RESET"; }
 # ── Dependency check ─────────────────────────────────────────────────────────
 for cmd in docker openssl curl; do
     if ! command -v "$cmd" >/dev/null 2>&1; then
-        err "Falta el comando requerido: $cmd"
+        err "Missing required command: $cmd"
         exit 1
     fi
 done
 
-# El script es interactivo (pregunta admin/contraseña). Via `curl | bash` el
-# stdin es el propio script, así que leemos de la terminal real (/dev/tty).
+# This script is interactive (asks for admin/password). With `curl | bash`, stdin
+# is the script itself, so we read from the real terminal (/dev/tty).
 if [[ ! -r /dev/tty ]]; then
-    err "No hay terminal interactiva (/dev/tty). Corré el script desde una shell."
+    err "No interactive terminal (/dev/tty). Run this script from a shell."
     exit 1
 fi
 
@@ -56,8 +56,8 @@ cat <<'BANNER'
    Playbook Runner · bootstrap
 ─────────────────────────────────────────────────────────────
 BANNER
-note "Este script genera .env con secretos aleatorios."
-note "Si ya existe .env, abortá (borrálo a mano y volvé a correr)."
+note "This script generates .env with random secrets."
+note "If .env already exists, abort (delete it manually and run again)."
 echo
 
 # ── Prompt helpers ───────────────────────────────────────────────────────────
@@ -76,10 +76,10 @@ prompt_secret() {
     local label="$1" value=""
     while [[ -z "$value" ]]; do
         read -r -s -p "$(printf '%s: ' "$label")" value </dev/tty
-        # El newline va a /dev/tty, no a stdout: si fuera a stdout lo capturaría
-        # el $(...) que envuelve esta función y se colaría en el password.
+        # Newline goes to /dev/tty, not stdout: if it went to stdout, the $(...)
+        # wrapping this function would capture it and leak it into the password.
         echo >/dev/tty
-        # Defensa extra: nada de CR/LF dentro del valor.
+        # Extra guard: no CR/LF inside the value.
         value="${value//[$'\r\n']/}"
     done
     printf '%s' "$value"
@@ -102,91 +102,91 @@ gen_secret() {
     openssl rand -base64 48 | tr -d '\n'
 }
 
-# Password que va dentro de una URL (DATABASE_URL): sin caracteres que haya
-# que escapar (/, +, =). Hex es siempre URL-safe.
+# Password embedded in a URL (DATABASE_URL): no characters that need escaping
+# (/, +, =). Hex is always URL-safe.
 gen_password() {
     openssl rand -hex 32
 }
 
 # ── Inputs ───────────────────────────────────────────────────────────────────
-log "Configuración — respondé las preguntas."
+log "Configuration — answer the prompts."
 echo
 
-PUBLIC_URL=$(prompt "URL pública (la que verá el navegador)" "http://localhost:4321")
+PUBLIC_URL=$(prompt "Public URL (what the browser will see)" "http://localhost:4321")
 if [[ ! "$PUBLIC_URL" =~ ^https?:// ]]; then
-    err "URL inválida (tiene que empezar con http:// o https://)"
+    err "Invalid URL (must start with http:// or https://)"
     exit 1
 fi
 
-FRONTEND_PORT=$(prompt "Puerto del frontend en el host" "4321")
+FRONTEND_PORT=$(prompt "Frontend port on the host" "4321")
 if ! [[ "$FRONTEND_PORT" =~ ^[0-9]+$ ]] || (( FRONTEND_PORT < 1 || FRONTEND_PORT > 65535 )); then
-    err "Puerto inválido"
+    err "Invalid port"
     exit 1
 fi
 
-ADMIN_NAME=$(prompt "Nombre del admin" "Admin")
-[[ -n "$ADMIN_NAME" ]] || { err "El nombre no puede estar vacío"; exit 1; }
+ADMIN_NAME=$(prompt "Admin name" "Admin")
+[[ -n "$ADMIN_NAME" ]] || { err "Name cannot be empty"; exit 1; }
 
 ADMIN_EMAIL=""
 until is_email "$ADMIN_EMAIL"; do
-    ADMIN_EMAIL=$(prompt "Email del admin" "admin@playbook-runner.local")
-    is_email "$ADMIN_EMAIL" || err "Email inválido, probá de nuevo"
+    ADMIN_EMAIL=$(prompt "Admin email" "admin@playbook-runner.local")
+    is_email "$ADMIN_EMAIL" || err "Invalid email, try again"
 done
 
 ADMIN_PASSWORD=""
 until [[ ${#ADMIN_PASSWORD} -ge 8 ]]; do
-    ADMIN_PASSWORD=$(prompt_secret "Contraseña del admin (mín 8 caracteres)")
+    ADMIN_PASSWORD=$(prompt_secret "Admin password (min 8 characters)")
     if [[ ${#ADMIN_PASSWORD} -lt 8 ]]; then
-        err "Muy corta, mínimo 8 caracteres"
+        err "Too short, minimum 8 characters"
     fi
 done
 printf '\n'
 
-# ── OIDC opcional ────────────────────────────────────────────────────────────
+# ── Optional OIDC ────────────────────────────────────────────────────────────
 OIDC_ID=""; OIDC_SECRET=""; OIDC_ISSUER=""
-if prompt_confirm "¿Configurar SSO (OIDC) corporativo? (sino: solo email/password)"; then
+if prompt_confirm "Configure corporate SSO (OIDC)? (otherwise: email/password only)"; then
     OIDC_ID=$(prompt "OIDC Client ID")
     OIDC_SECRET=$(prompt_secret "OIDC Client Secret")
-    OIDC_ISSUER=$(prompt "OIDC Issuer (ej: https://keycloak.example.com/realms/mi-realm)")
+    OIDC_ISSUER=$(prompt "OIDC Issuer (e.g. https://keycloak.example.com/realms/my-realm)")
     if [[ -z "$OIDC_ID" || -z "$OIDC_SECRET" || -z "$OIDC_ISSUER" ]]; then
-        err "Faltan datos de OIDC — saliendo"
+        err "Missing OIDC settings — exiting"
         exit 1
     fi
 fi
 
-# ── Resumen ──────────────────────────────────────────────────────────────────
+# ── Summary ──────────────────────────────────────────────────────────────────
 echo
-log "Resumen de la configuración:"
-echo "  URL pública:       $PUBLIC_URL"
-echo "  Puerto frontend:   $FRONTEND_PORT"
+log "Configuration summary:"
+echo "  Public URL:        $PUBLIC_URL"
+echo "  Frontend port:     $FRONTEND_PORT"
 echo "  Admin:             $ADMIN_NAME <$ADMIN_EMAIL>"
-echo "  SSO (OIDC):        ${OIDC_ID:+activado (client_id=$OIDC_ID)}${OIDC_ID:-desactivado}"
+echo "  SSO (OIDC):        ${OIDC_ID:+enabled (client_id=$OIDC_ID)}${OIDC_ID:-disabled}"
 echo
 
-if ! prompt_confirm "¿Generar .env y arrancar?"; then
-    note "Abortado. No se escribió nada."
+if ! prompt_confirm "Generate .env and continue?"; then
+    note "Aborted. Nothing was written."
     exit 0
 fi
 
-# ── Generar secretos ─────────────────────────────────────────────────────────
-log "Generando secretos con openssl..."
+# ── Generate secrets ─────────────────────────────────────────────────────────
+log "Generating secrets with openssl..."
 POSTGRES_DB=playbook_runner
 POSTGRES_USER=playbook_runner
 POSTGRES_PASSWORD=$(gen_password)
 BETTER_AUTH_SECRET=$(gen_secret)
 INTERNAL_TOKEN=$(gen_secret)
-ok "Secretos generados (POSTGRES_PASSWORD, BETTER_AUTH_SECRET, INTERNAL_TOKEN)"
+ok "Secrets generated (POSTGRES_PASSWORD, BETTER_AUTH_SECRET, INTERNAL_TOKEN)"
 
-# ── Escribir .env ────────────────────────────────────────────────────────────
+# ── Write .env ───────────────────────────────────────────────────────────────
 ENV_FILE="$TARGET_DIR/.env"
 if [[ -f "$ENV_FILE" ]]; then
-    err "Ya existe $ENV_FILE — borrálo a mano si querés regenerarlo"
+    err "$ENV_FILE already exists — delete it manually if you want to regenerate"
     exit 1
 fi
 
 cat > "$ENV_FILE" <<EOF
-# Generado por scripts/bootstrap.sh el $(date -u +%FT%TZ)
-# No commitear — contiene secretos.
+# Generated by scripts/bootstrap.sh on $(date -u +%FT%TZ)
+# Do not commit — contains secrets.
 
 # ── Image registry ───────────────────────────────────────────────────────────
 ANSIBLE_IMAGE_TAG=latest
@@ -197,15 +197,15 @@ FRONTEND_IMAGE_TAG=latest
 FRONTEND_PORT=$FRONTEND_PORT
 CORS_ORIGIN=$PUBLIC_URL
 
-# ── PostgreSQL (solo se usa con el servicio postgres de compose.yml) ──────────
+# ── PostgreSQL (only used with the postgres service in compose.yml) ──────────
 POSTGRES_DB=$POSTGRES_DB
 POSTGRES_USER=$POSTGRES_USER
 POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 
 # ── Backend ──────────────────────────────────────────────────────────────────
-# OJO: docker compose NO interpola \${...} dentro de env_file, así que la URL
-# va con los valores ya resueltos. Si usás una DB externa (RDS, Cloud SQL, …)
-# reemplazá esta línea y borrá el servicio postgres de compose.yml.
+# NOTE: docker compose does NOT interpolate \${...} inside env_file, so the URL
+# is written with resolved values. For an external DB (RDS, Cloud SQL, …)
+# replace this line and remove the postgres service from compose.yml.
 DATABASE_URL=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:5432/$POSTGRES_DB
 
 BETTER_AUTH_URL=$PUBLIC_URL
@@ -218,9 +218,9 @@ SEED_ADMIN_NAME=$ADMIN_NAME
 SEED_ADMIN_EMAIL=$ADMIN_EMAIL
 SEED_ADMIN_PASSWORD=$ADMIN_PASSWORD
 
-# ── SSO / OIDC (opcional) ────────────────────────────────────────────────────
-# Si alguna de estas tres variables queda vacía, el SSO se desactiva
-# automáticamente y solo queda email/password.
+# ── SSO / OIDC (optional) ────────────────────────────────────────────────────
+# If any of these three variables is empty, SSO is disabled automatically
+# and only email/password remains.
 GENERIC_OAUTH_CLIENT_ID=$OIDC_ID
 GENERIC_OAUTH_CLIENT_SECRET=$OIDC_SECRET
 GENERIC_OAUTH_ISSUER=$OIDC_ISSUER
@@ -230,34 +230,34 @@ INTERNAL_TOKEN=$INTERNAL_TOKEN
 EOF
 
 chmod 600 "$ENV_FILE"
-ok ".env escrito en $ENV_FILE (permisos 600)"
+ok ".env written to $ENV_FILE (mode 600)"
 
 # ── compose.yml ──────────────────────────────────────────────────────────────
-# Lo guardamos como compose.yml (no compose.prod.yml) para que `docker compose
-# up -d` lo tome solo, sin -f. Si corremos sueltos (curl | bash) lo bajamos del
-# repo; si ya existe en la carpeta, lo respetamos.
+# Saved as compose.yml (not compose.prod.yml) so `docker compose up -d` picks
+# it up without -f. When run standalone (curl | bash) we download it from the
+# repo; if it already exists in the folder, we keep it.
 COMPOSE_FILE="$TARGET_DIR/compose.yml"
 if [[ ! -f "$COMPOSE_FILE" ]]; then
-    log "Descargando compose.yml ($PB_REF)..."
+    log "Downloading compose.yml ($PB_REF)..."
     curl -fsSL "$RAW_BASE/compose.prod.yml" -o "$COMPOSE_FILE"
-    ok "compose.yml descargado en $COMPOSE_FILE"
+    ok "compose.yml downloaded to $COMPOSE_FILE"
 fi
 
-# ── Levantar stack ───────────────────────────────────────────────────────────
-# El backend corre las migraciones de Drizzle y siembra el admin en su propio
-# arranque (bootstrap() en apps/backend/src/index.ts), así que con `up -d`
-# alcanza: no hace falta db:push / db:seed manuales.
+# ── Start stack ──────────────────────────────────────────────────────────────
+# The backend runs Drizzle migrations and seeds the admin on startup
+# (bootstrap() in apps/backend/src/index.ts), so `up -d` is enough — no manual
+# db:push / db:seed required.
 echo
-if prompt_confirm "¿Levantar el stack ahora con docker compose?"; then
+if prompt_confirm "Start the stack now with docker compose?"; then
     log "docker compose pull..."
     docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" pull
 
     log "docker compose up -d..."
     docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" up -d
 
-    ok "Listo. El backend migra y siembra el admin solo en su arranque."
-    ok "En ~1-2 min andá a $PUBLIC_URL y logueate con $ADMIN_EMAIL"
+    ok "Done. The backend migrates and seeds the admin on startup."
+    ok "In ~1-2 min go to $PUBLIC_URL and sign in with $ADMIN_EMAIL"
 else
-    note "Cuando quieras arrancar (desde esta carpeta):"
+    note "When you're ready to start (from this folder):"
     note "  docker compose up -d"
 fi
