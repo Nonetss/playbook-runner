@@ -65,9 +65,11 @@ export function UserNav({ user }: UserNavProps) {
             </div>
           </DropdownMenuLabel>
         </DropdownMenuGroup>
-        <DropdownMenuItem onClick={() => (window.location.href = "/me")}>
-          <UserCircle2 className="size-4 shrink-0" aria-hidden />
-          {tNav("links.me")}
+        <DropdownMenuItem asChild>
+          <a href="/me">
+            <UserCircle2 className="size-4 shrink-0" aria-hidden />
+            {tNav("links.me")}
+          </a>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
