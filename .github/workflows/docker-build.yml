@@ -15,28 +15,43 @@ env:
 
 jobs:
   build:
-    # Native arch runners instead of QEMU emulation: amd64 builds run on the
-    # regular x64 runner, arm64 builds run on GitHub's arm64 runner.
-    runs-on: ${{ matrix.platform == 'linux/arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    # Runners hosteados por GitHub, no self-hosted: no hay disco persistente
+    # entre corridas, así que aquí "no rebuild desde 0" viene del cache
+    # remoto (type=gha) en vez del cache local del builder de un runner
+    # persistente como en Gitea. Cada arch construye nativo en su runner
+    # (amd64 en ubuntu-latest, arm64 en el runner arm64 de GitHub) sin QEMU.
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     permissions:
       contents: read
       packages: write
     strategy:
       fail-fast: false
       matrix:
-        image:
+        include:
           - name: backend
             suffix: -backend
             dockerfile: apps/backend/Dockerfile
+            arch: amd64
+          - name: backend
+            suffix: -backend
+            dockerfile: apps/backend/Dockerfile
+            arch: arm64
           - name: ansible
             suffix: -ansible
             dockerfile: apps/ansible/Dockerfile
+            arch: amd64
+          - name: ansible
+            suffix: -ansible
+            dockerfile: apps/ansible/Dockerfile
+            arch: arm64
           - name: frontend
             suffix: -frontend
             dockerfile: apps/frontend/Dockerfile
-        platform:
-          - linux/amd64
-          - linux/arm64
+            arch: amd64
+          - name: frontend
+            suffix: -frontend
+            dockerfile: apps/frontend/Dockerfile
+            arch: arm64
     steps:
       - uses: actions/checkout@v4
 
@@ -50,56 +65,30 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (labels)
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/playbook-runner${{ matrix.image.suffix }}
-
-      - name: Prepare platform pair
+      - name: Build and push ${{ matrix.name }} (${{ matrix.arch }})
         run: |
-          platform=${{ matrix.platform }}
-          echo "PLATFORM_PAIR=${platform//\//-}" >> "$GITHUB_ENV"
+          IMAGE_ID=$(echo "${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/playbook-runner${{ matrix.suffix }}" | tr '[:upper:]' '[:lower:]')
 
-      - name: Build and push ${{ matrix.image.name }} image by digest
-        id: build
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ${{ matrix.image.dockerfile }}
-          platforms: ${{ matrix.platform }}
-          labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/playbook-runner${{ matrix.image.suffix }},push-by-digest=true,name-canonical=true,push=true
-          # Per-image/per-arch scope: without it the matrix builds share one
-          # cache scope and evict each other's layers on every run.
-          cache-from: type=gha,scope=${{ matrix.image.name }}-${{ env.PLATFORM_PAIR }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.image.name }}-${{ env.PLATFORM_PAIR }}
+          echo "Building ${{ matrix.name }} image natively on ${{ matrix.arch }} runner: $IMAGE_ID"
 
-      - name: Export digest
-        run: |
-          mkdir -p /tmp/digests
-          digest="${{ steps.build.outputs.digest }}"
-          touch "/tmp/digests/${digest#sha256:}"
-
-      - name: Upload digest
-        uses: actions/upload-artifact@v4
-        with:
-          name: digests-${{ matrix.image.name }}-${{ env.PLATFORM_PAIR }}
-          path: /tmp/digests/*
-          if-no-files-found: error
-          retention-days: 1
+          docker buildx build . \
+            -f "${{ matrix.dockerfile }}" \
+            --platform "linux/${{ matrix.arch }}" \
+            --cache-from "type=gha,scope=${{ matrix.name }}-${{ matrix.arch }}" \
+            --cache-to "type=gha,mode=max,scope=${{ matrix.name }}-${{ matrix.arch }}" \
+            -t "$IMAGE_ID:sha-${{ github.sha }}-${{ matrix.arch }}" \
+            --push
 
   merge:
+    needs: build
     runs-on: ubuntu-latest
-    needs:
-      - build
     permissions:
       contents: read
       packages: write
     strategy:
       fail-fast: false
       matrix:
-        image:
+        include:
           - name: backend
             suffix: -backend
           - name: ansible
@@ -107,16 +96,6 @@ jobs:
           - name: frontend
             suffix: -frontend
     steps:
-      - name: Download digests
-        uses: actions/download-artifact@v4
-        with:
-          path: /tmp/digests
-          pattern: digests-${{ matrix.image.name }}-*
-          merge-multiple: true
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
@@ -124,24 +103,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels)
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/playbook-runner${{ matrix.image.suffix }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=tag
-            type=sha,format=short
-            type=raw,value=latest
-
-      - name: Create manifest list and push
-        working-directory: /tmp/digests
+      - name: Create multi-arch manifest for ${{ matrix.name }}
         run: |
+          IMAGE_ID=$(echo "${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/playbook-runner${{ matrix.suffix }}" | tr '[:upper:]' '[:lower:]')
+          SHA_SHORT=$(echo "${{ github.sha }}" | cut -c1-8)
+
           docker buildx imagetools create \
-            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/playbook-runner${{ matrix.image.suffix }}@sha256:%s ' *)
+            -t "$IMAGE_ID:latest" \
+            -t "$IMAGE_ID:${{ env.IMAGE_TAG }}" \
+            -t "$IMAGE_ID:${{ env.IMAGE_TAG }}-$SHA_SHORT" \
+            "$IMAGE_ID:sha-${{ github.sha }}-amd64" \
+            "$IMAGE_ID:sha-${{ github.sha }}-arm64"
 
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/playbook-runner${{ matrix.image.suffix }}:${{ steps.meta.outputs.version }}
+          IMAGE_ID=$(echo "${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/playbook-runner${{ matrix.suffix }}" | tr '[:upper:]' '[:lower:]')
+          docker buildx imagetools inspect "$IMAGE_ID:${{ env.IMAGE_TAG }}"
