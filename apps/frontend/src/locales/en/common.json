@@ -58,5 +58,19 @@
     "deleted": "Deleted",
     "updated": "Updated",
     "created": "Created"
+  },
+  "run_console": {
+    "starting": "Starting run…",
+    "waiting": "Waiting for result…",
+    "no_output": "No output.",
+    "stderr": "stderr",
+    "status": {
+      "running": "Running",
+      "ok": "OK",
+      "changed": "Changed",
+      "failed": "Failed",
+      "unreachable": "Unreachable",
+      "skipped": "Skipped"
+    }
   }
 }

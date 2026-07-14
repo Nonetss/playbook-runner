@@ -58,5 +58,19 @@
     "deleted": "Eliminado",
     "updated": "Actualizado",
     "created": "Creado"
+  },
+  "run_console": {
+    "starting": "Iniciando ejecución…",
+    "waiting": "Esperando resultado…",
+    "no_output": "Sin salida.",
+    "stderr": "stderr",
+    "status": {
+      "running": "Ejecutando",
+      "ok": "OK",
+      "changed": "Cambiado",
+      "failed": "Fallido",
+      "unreachable": "Inaccesible",
+      "skipped": "Omitido"
+    }
   }
 }

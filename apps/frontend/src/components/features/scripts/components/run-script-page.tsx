@@ -1,10 +1,8 @@
 // Live console + run page for the Scripts feature.
 //
-// TODO: this page duplicates the event-describing helpers, terminal styling,
-// and inventory picker layout from `run-playbook-page.tsx` and
-// `commands-page.tsx`. Tracked to be refactored into a shared `<RunConsole>`
-// plus a single useRun* SSE helper in a follow-up; for now this change copies
-// them like the commands page did, to keep the run flows independent.
+// TODO: this page duplicates the inventory picker layout from
+// `run-playbook-page.tsx` and `commands-page.tsx`. Tracked to be refactored
+// into a shared picker plus a single useRun* SSE helper in a follow-up.
 
 import {
   AlertTriangle,
@@ -23,219 +21,20 @@ import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useDevicesList } from "@/components/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/components/features/inventory/hooks/useGroups"
-import type {
-  RunEvent,
-  RunSelection,
-} from "@/components/features/playbooks/hooks/useRunPlaybook"
+import type { RunSelection } from "@/components/features/playbooks/hooks/useRunPlaybook"
 import {
   type ScriptRequest,
   useRunScript,
 } from "@/components/features/scripts/hooks/useRunScript"
 import { useScriptGet } from "@/components/features/scripts/hooks/useScripts"
 import { AppProviders } from "@/components/providers/app-providers"
+import { RunHostConsole } from "@/components/shared/run-host-console"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
-
-// ── terminal ──────────────────────────────────────────────────────────────────
-
-type Tone = "ok" | "changed" | "fail" | "muted" | "info" | "header" | "dim"
-type TerminalLine = { text: string; tone: Tone }
-
-function sep(label: string, char = "*") {
-  const prefix = `${label} `
-  const fill = char.repeat(Math.max(0, 72 - prefix.length))
-  return `${prefix}${fill}`
-}
-
-function lines(...items: TerminalLine[]): TerminalLine[] {
-  return items
-}
-
-// NOTE: keep parity with run-playbook-page / commands-page `describeEvent`.
-function describeEvent(
-  event: RunEvent,
-  t: (key: string) => string
-): TerminalLine[] {
-  switch (event.event) {
-    case "playbook_on_start":
-      return lines({
-        text: sep(t("console.headings.playbook")),
-        tone: "header",
-      })
-
-    case "playbook_on_play_start":
-      return lines(
-        { text: "", tone: "dim" },
-        {
-          text: sep(`${t("console.headings.play")} [${event.play ?? ""}]`),
-          tone: "header",
-        }
-      )
-
-    case "playbook_on_task_start": {
-      const label = `${t("console.headings.task")} [${event.task ?? ""}]`
-      return lines(
-        { text: "", tone: "dim" },
-        { text: sep(label, "-"), tone: "muted" }
-      )
-    }
-
-    case "runner_on_start":
-      return lines({
-        text: `  → [${event.host ?? ""}] ${t("console.runner.starting")}`,
-        tone: "dim",
-      })
-
-    case "runner_on_ok": {
-      const result: TerminalLine[] = event.changed
-        ? [
-            {
-              text: `${t("console.runner.changed")}: [${event.host ?? ""}]`,
-              tone: "changed",
-            },
-          ]
-        : [
-            {
-              text: `${t("console.runner.ok")}: [${event.host ?? ""}]`,
-              tone: "ok",
-            },
-          ]
-      if (event.stdout) {
-        for (const line of event.stdout.split("\n")) {
-          if (line) result.push({ text: `  ${line}`, tone: "dim" })
-        }
-      }
-      return result
-    }
-
-    case "runner_on_skipped":
-      return lines({
-        text: `${t("console.runner.skipping")}: [${event.host ?? ""}]`,
-        tone: "muted",
-      })
-
-    case "runner_on_failed": {
-      const result: TerminalLine[] = [
-        {
-          text: `${t("console.runner.fatal")}: [${event.host ?? ""}]: ${t("console.runner.failed_excl")}!`,
-          tone: "fail",
-        },
-      ]
-      if (event.msg) {
-        result.push({
-          text: `  ${t("console.runner.msg")}: ${event.msg}`,
-          tone: "fail",
-        })
-      }
-      if (event.rc != null) {
-        result.push({
-          text: `  ${t("console.runner.rc")}: ${event.rc}`,
-          tone: "fail",
-        })
-      }
-      if (event.stdout) {
-        result.push({ text: `  ${t("console.runner.stdout")}:`, tone: "muted" })
-        for (const line of event.stdout.split("\n")) {
-          if (line) result.push({ text: `    ${line}`, tone: "dim" })
-        }
-      }
-      if (event.stderr) {
-        result.push({ text: `  ${t("console.runner.stderr")}:`, tone: "fail" })
-        for (const line of event.stderr.split("\n")) {
-          if (line) result.push({ text: `    ${line}`, tone: "fail" })
-        }
-      }
-      return result
-    }
-
-    case "runner_on_unreachable": {
-      const result: TerminalLine[] = [
-        {
-          text: `${t("console.runner.fatal")}: [${event.host ?? ""}]: ${t("console.runner.unreachable")}!`,
-          tone: "fail",
-        },
-      ]
-      if (event.msg) {
-        result.push({
-          text: `  ${t("console.runner.msg")}: ${event.msg}`,
-          tone: "fail",
-        })
-      }
-      return result
-    }
-
-    case "runner_item_on_ok":
-      return lines({
-        text: event.changed
-          ? `  ${t("console.runner.changed")}: [${event.host ?? ""}] (${t("console.runner.item")})`
-          : `  ${t("console.runner.ok")}: [${event.host ?? ""}] (${t("console.runner.item")})`,
-        tone: event.changed ? "changed" : "ok",
-      })
-
-    case "runner_item_on_failed":
-      return lines({
-        text: `  ${t("console.runner.failed_lower")}: [${event.host ?? ""}] (${t("console.runner.item")}) — ${event.msg ?? ""}`,
-        tone: "fail",
-      })
-
-    case "playbook_on_stats": {
-      if (!event.stats)
-        return lines(
-          { text: "", tone: "dim" },
-          { text: sep(t("console.headings.recap")), tone: "header" }
-        )
-
-      const { ok, changed, failures, dark, skipped } = event.stats
-      const hosts = Array.from(
-        new Set([
-          ...Object.keys(ok),
-          ...Object.keys(changed),
-          ...Object.keys(failures),
-          ...Object.keys(dark),
-          ...Object.keys(skipped),
-        ])
-      ).sort()
-
-      const result: TerminalLine[] = [
-        { text: "", tone: "dim" },
-        { text: sep(t("console.headings.recap")), tone: "header" },
-      ]
-
-      for (const host of hosts) {
-        const o = ok[host] ?? 0
-        const c = changed[host] ?? 0
-        const f = failures[host] ?? 0
-        const d = dark[host] ?? 0
-        const s = skipped[host] ?? 0
-        const tone: Tone = f > 0 || d > 0 ? "fail" : c > 0 ? "changed" : "ok"
-        const stats = `${t("console.runner.ok")}=${o}  ${t("console.runner.changed")}=${c}  ${t("console.runner.unreachable_lower")}=${d}  ${t("console.runner.failed_lower")}=${f}  ${t("console.runner.skipped")}=${s}`
-        result.push({
-          text: `${host.padEnd(36)}: ${stats}`,
-          tone,
-        })
-      }
-
-      return result
-    }
-
-    default:
-      return []
-  }
-}
-
-const toneClass: Record<Tone, string> = {
-  header: "text-zinc-100 font-semibold",
-  ok: "text-emerald-400",
-  changed: "text-amber-400",
-  fail: "text-red-400",
-  info: "text-zinc-300",
-  muted: "text-zinc-400",
-  dim: "text-zinc-600",
-}
 
 // ── InventoryCollapsible ──────────────────────────────────────────────────────
 
@@ -411,11 +210,6 @@ function RunScriptPageInner({ id }: { id: string }) {
     void start(body)
   }
 
-  const terminalLines = useMemo(
-    () => events.flatMap((event) => describeEvent(event, t)),
-    [events, t]
-  )
-
   return (
     <main className="flex h-[calc(100dvh-3.5rem)] w-full min-h-0 flex-col overflow-hidden">
       {/* Header */}
@@ -481,34 +275,13 @@ function RunScriptPageInner({ id }: { id: string }) {
 
           <div
             ref={terminalRef}
-            className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5 font-mono text-xs leading-[1.6]"
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5"
           >
-            {phase === "idle" ? (
-              <p className="select-none text-zinc-600">
-                {t("run.idle_prompt")}
-              </p>
-            ) : terminalLines.length === 0 && isRunning ? (
-              <p className="flex items-center gap-2 text-zinc-500">
-                <Loader2 className="size-3 animate-spin" />
-                {t("run.starting")}
-              </p>
-            ) : (
-              terminalLines.map((line, i) => (
-                <p
-                  // biome-ignore lint/suspicious/noArrayIndexKey: append-only log
-                  key={i}
-                  className={cn("whitespace-pre-wrap", toneClass[line.tone])}
-                >
-                  {line.text || " "}
-                </p>
-              ))
-            )}
-
-            {isRunning ? (
-              <span className="mt-1 inline-block animate-pulse text-zinc-400">
-                ▋
-              </span>
-            ) : null}
+            <RunHostConsole
+              phase={phase}
+              events={events}
+              idlePrompt={t("run.idle_prompt")}
+            />
           </div>
 
           {/* Result / error banners */}
