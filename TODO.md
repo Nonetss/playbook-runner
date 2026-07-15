@@ -11,6 +11,7 @@
 - [ ] Healthcheck alerts — notify or surface warnings when a healthcheck fails or degrades
 - [ ] Persist manual playbook executions in history (today only scheduled/manual job runs appear in `/history`)
 - [ ] Stop requiring `hosts: all` in playbooks — today run-time host selection is injected under a single `all` group, so custom patterns (e.g. `docker_hosts`) match nothing and plays are skipped; support real inventory groups / host patterns in playbook YAML
+- [ ] Default `all` inventory group — always expose a built-in `all` group that includes every host, so `hosts: all` and run-time host selection work out of the box without manually creating or maintaining that group
 - [ ] Schedule scripts as jobs — today scheduled jobs only reference `playbookId`; support cron jobs that run a stored script instead of a playbook
 - [ ] Playbook revision history — only the current content is stored; add change history and the ability to roll back to a previous version
 - [ ] Import/export playbooks — create playbooks from YAML files on disk and export them back to files (handy when migrating from Git repos)
