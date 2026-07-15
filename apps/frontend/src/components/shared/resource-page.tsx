@@ -7,7 +7,8 @@ export interface ResourcePageProps {
   title: string
   description?: string
   createLabel: string
-  onCreate: () => void
+  onCreate?: () => void
+  createHref?: string
   /** Hide the create CTA (e.g. when the feature has a custom layout). */
   hideCreate?: boolean
   className?: string
@@ -24,6 +25,7 @@ export function ResourcePage({
   description,
   createLabel,
   onCreate,
+  createHref,
   hideCreate = false,
   className,
   children,
@@ -43,12 +45,20 @@ export function ResourcePage({
           ) : null}
         </div>
 
-        {!hideCreate && (
-          <Button onClick={onCreate}>
-            <Plus className="size-4" />
-            {createLabel}
-          </Button>
-        )}
+        {!hideCreate &&
+          (createHref ? (
+            <Button asChild>
+              <a href={createHref}>
+                <Plus className="size-4" />
+                {createLabel}
+              </a>
+            </Button>
+          ) : (
+            <Button onClick={onCreate}>
+              <Plus className="size-4" />
+              {createLabel}
+            </Button>
+          ))}
       </div>
 
       {children}

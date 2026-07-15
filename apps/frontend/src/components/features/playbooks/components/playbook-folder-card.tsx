@@ -7,7 +7,11 @@ import {
 } from "lucide-react"
 import * as React from "react"
 import { useTranslation } from "react-i18next"
-import type { PlaybookFolder } from "@/components/features/playbooks/types"
+import type {
+  Playbook,
+  PlaybookFolder,
+} from "@/components/features/playbooks/types"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -29,8 +33,7 @@ const PLAYBOOK_DRAG_TYPE = "application/x-playbook-id"
 
 type PlaybookFolderCardProps = {
   folder: PlaybookFolder
-  playbookCount: number
-  onOpen: (folder: PlaybookFolder) => void
+  playbooks: Playbook[]
   onEdit: (folder: PlaybookFolder) => void
   onDelete: (folder: PlaybookFolder) => void
   onDropPlaybook: (folder: PlaybookFolder, playbookId: string) => void
@@ -39,8 +42,7 @@ type PlaybookFolderCardProps = {
 
 export function PlaybookFolderCard({
   folder,
-  playbookCount,
-  onOpen,
+  playbooks,
   onEdit,
   onDelete,
   onDropPlaybook,
@@ -48,6 +50,7 @@ export function PlaybookFolderCard({
 }: PlaybookFolderCardProps) {
   const { t } = useTranslation("playbooks")
   const [isDragOver, setIsDragOver] = React.useState(false)
+  const openHref = `/playbooks?folder=${encodeURIComponent(folder.id)}`
 
   function acceptsPlaybook(event: React.DragEvent) {
     return Array.from(event.dataTransfer.types).includes(PLAYBOOK_DRAG_TYPE)
@@ -78,10 +81,9 @@ export function PlaybookFolderCard({
       }}
     >
       <CardHeader className="px-4">
-        <button
-          type="button"
+        <a
+          href={openHref}
           className="flex min-w-0 items-start gap-3 overflow-hidden pr-2 text-left"
-          onClick={() => onOpen(folder)}
         >
           <span className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-md">
             <Folder className="size-4" />
@@ -94,7 +96,7 @@ export function PlaybookFolderCard({
               </CardDescription>
             ) : null}
           </span>
-        </button>
+        </a>
 
         <CardAction>
           <DropdownMenu>
@@ -109,9 +111,11 @@ export function PlaybookFolderCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onOpen(folder)}>
-                <FolderOpen className="size-4" />
-                {t("folder.open")}
+              <DropdownMenuItem asChild>
+                <a href={openHref}>
+                  <FolderOpen className="size-4" />
+                  {t("folder.open")}
+                </a>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(folder)}>
                 <Pencil className="size-4" />
@@ -136,17 +140,38 @@ export function PlaybookFolderCard({
           </p>
         ) : null}
         <p className="text-muted-foreground text-xs">
-          {t("folder.playbook_count", { count: playbookCount })}
+          {t("folder.playbook_count", { count: playbooks.length })}
         </p>
+        {playbooks.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {playbooks.slice(0, 4).map((playbook) => (
+              <Badge
+                key={playbook.id}
+                variant="outline"
+                className="max-w-full text-xs"
+                title={playbook.name}
+              >
+                <span className="truncate">{playbook.name}</span>
+              </Badge>
+            ))}
+            {playbooks.length > 4 ? (
+              <span className="text-muted-foreground text-xs">
+                +{playbooks.length - 4}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
         <Button
+          asChild
           variant="outline"
           size="sm"
           className="mt-auto w-full"
-          onClick={() => onOpen(folder)}
           disabled={isDeleting}
         >
-          <FolderOpen className="size-4" />
-          {t("folder.open")}
+          <a href={openHref}>
+            <FolderOpen className="size-4" />
+            {t("folder.open")}
+          </a>
         </Button>
       </CardContent>
     </Card>

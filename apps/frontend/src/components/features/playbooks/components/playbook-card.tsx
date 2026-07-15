@@ -31,9 +31,7 @@ const PLAYBOOK_DRAG_TYPE = "application/x-playbook-id"
 
 type PlaybookCardProps = {
   playbook: Playbook
-  onEdit: (playbook: Playbook) => void
   onDelete: (id: string) => void
-  onRun: (playbook: Playbook) => void
   onMove: (playbook: Playbook) => void
   isDeleting?: boolean
   locale?: string
@@ -41,9 +39,7 @@ type PlaybookCardProps = {
 
 export function PlaybookCard({
   playbook,
-  onEdit,
   onDelete,
-  onRun,
   onMove,
   isDeleting = false,
   locale = "es-ES",
@@ -100,13 +96,17 @@ export function PlaybookCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onRun(playbook)}>
-                <Play className="size-4" />
-                {t("card.run")}
+              <DropdownMenuItem asChild>
+                <a href={`/playbooks/${playbook.id}/run`}>
+                  <Play className="size-4" />
+                  {t("card.run")}
+                </a>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(playbook)}>
-                <Pencil className="size-4" />
-                {t("card.edit")}
+              <DropdownMenuItem asChild>
+                <a href={`/playbooks/${playbook.id}/edit`}>
+                  <Pencil className="size-4" />
+                  {t("card.edit")}
+                </a>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onMove(playbook)}>
                 <FolderInput className="size-4" />
@@ -141,14 +141,16 @@ export function PlaybookCard({
         </p>
 
         <Button
+          asChild
           variant="outline"
           size="sm"
           className="mt-auto w-full"
-          onClick={() => onRun(playbook)}
           disabled={isDeleting}
         >
-          <Play className="size-4" />
-          {t("card.run")}
+          <a href={`/playbooks/${playbook.id}/run`}>
+            <Play className="size-4" />
+            {t("card.run")}
+          </a>
         </Button>
       </CardContent>
     </Card>

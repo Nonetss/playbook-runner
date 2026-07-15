@@ -14,6 +14,7 @@ export interface ResourceListStateProps<TItem> {
     description?: string
     ctaLabel?: string
     onCta?: () => void
+    ctaHref?: string
     icon?: React.ReactNode
   }
   children: (items: TItem[]) => React.ReactNode
@@ -90,11 +91,20 @@ export function ResourceListState<TItem>({
             {empty.description}
           </p>
         ) : null}
-        {empty.ctaLabel && empty.onCta ? (
-          <Button className="mt-6" onClick={empty.onCta}>
-            <Plus className="size-4" />
-            {empty.ctaLabel}
-          </Button>
+        {empty.ctaLabel && (empty.onCta || empty.ctaHref) ? (
+          empty.ctaHref ? (
+            <Button asChild className="mt-6">
+              <a href={empty.ctaHref}>
+                <Plus className="size-4" />
+                {empty.ctaLabel}
+              </a>
+            </Button>
+          ) : (
+            <Button className="mt-6" onClick={empty.onCta}>
+              <Plus className="size-4" />
+              {empty.ctaLabel}
+            </Button>
+          )
         ) : null}
       </div>
     )

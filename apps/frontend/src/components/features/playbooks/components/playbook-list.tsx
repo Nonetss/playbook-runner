@@ -9,13 +9,10 @@ type PlaybookListProps = {
   playbooks: Playbook[]
   folders?: PlaybookFolder[]
   allPlaybooks?: Playbook[]
-  onOpenFolder: (folder: PlaybookFolder) => void
   onEditFolder: (folder: PlaybookFolder) => void
   onDeleteFolder: (folder: PlaybookFolder) => void
   onDropPlaybook: (folder: PlaybookFolder, playbookId: string) => void
-  onEdit: (playbook: Playbook) => void
   onDelete: (id: string) => void
-  onRun: (playbook: Playbook) => void
   onMove: (playbook: Playbook) => void
   deletingId?: string | null
   deletingFolderId?: string | null
@@ -26,13 +23,10 @@ export function PlaybookList({
   playbooks,
   folders = [],
   allPlaybooks = playbooks,
-  onOpenFolder,
   onEditFolder,
   onDeleteFolder,
   onDropPlaybook,
-  onEdit,
   onDelete,
-  onRun,
   onMove,
   deletingId = null,
   deletingFolderId = null,
@@ -40,28 +34,27 @@ export function PlaybookList({
 }: PlaybookListProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {folders.map((folder) => (
-        <PlaybookFolderCard
-          key={folder.id}
-          folder={folder}
-          playbookCount={
-            allPlaybooks.filter((playbook) => playbook.folderId === folder.id)
-              .length
-          }
-          onOpen={onOpenFolder}
-          onEdit={onEditFolder}
-          onDelete={onDeleteFolder}
-          onDropPlaybook={onDropPlaybook}
-          isDeleting={deletingFolderId === folder.id}
-        />
-      ))}
+      {folders.map((folder) => {
+        const folderPlaybooks = allPlaybooks.filter(
+          (playbook) => playbook.folderId === folder.id
+        )
+        return (
+          <PlaybookFolderCard
+            key={folder.id}
+            folder={folder}
+            playbooks={folderPlaybooks}
+            onEdit={onEditFolder}
+            onDelete={onDeleteFolder}
+            onDropPlaybook={onDropPlaybook}
+            isDeleting={deletingFolderId === folder.id}
+          />
+        )
+      })}
       {playbooks.map((playbook) => (
         <PlaybookCard
           key={playbook.id}
           playbook={playbook}
-          onEdit={onEdit}
           onDelete={onDelete}
-          onRun={onRun}
           onMove={onMove}
           locale={locale}
           isDeleting={deletingId === playbook.id}

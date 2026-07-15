@@ -91,24 +91,6 @@ function PlaybooksPageInner() {
     })
   }, [folderId, normalizedSearch, playbooks, resourceFilter])
 
-  function goToRun(playbook: Playbook) {
-    window.location.href = `/playbooks/${playbook.id}/run`
-  }
-
-  function goToCreate() {
-    window.location.href = activeFolder
-      ? `/playbooks/new?folder=${encodeURIComponent(activeFolder.id)}`
-      : "/playbooks/new"
-  }
-
-  function goToEdit(playbook: Playbook) {
-    window.location.href = `/playbooks/${playbook.id}/edit`
-  }
-
-  function openFolder(folder: PlaybookFolder) {
-    window.location.href = `/playbooks?folder=${encodeURIComponent(folder.id)}`
-  }
-
   function openFolderCreate() {
     setEditingFolder(null)
     setFolderFormOpen(true)
@@ -183,6 +165,9 @@ function PlaybooksPageInner() {
   const pageDescription = folderId
     ? (activeFolder?.description ?? t("folder.subtitle"))
     : t("page.subtitle")
+  const createHref = activeFolder
+    ? `/playbooks/new?folder=${encodeURIComponent(activeFolder.id)}`
+    : "/playbooks/new"
   const listItems = [...visibleFolders, ...visiblePlaybooks]
   const hasActiveFilters = search.trim().length > 0 || resourceFilter !== "all"
 
@@ -191,7 +176,7 @@ function PlaybooksPageInner() {
       title={pageTitle}
       description={pageDescription}
       createLabel={t("page.create")}
-      onCreate={goToCreate}
+      createHref={createHref}
     >
       <div className="mb-4 flex justify-between items-center gap-2">
         <div className="flex items-center gap-2">
@@ -277,7 +262,7 @@ function PlaybooksPageInner() {
               ? t("folder.empty_description")
               : t("empty.description"),
           ctaLabel: t("page.create"),
-          onCta: goToCreate,
+          ctaHref: createHref,
           icon: <BookText className="size-5" />,
         }}
       >
@@ -286,13 +271,10 @@ function PlaybooksPageInner() {
             playbooks={visiblePlaybooks}
             folders={visibleFolders}
             allPlaybooks={playbooks}
-            onOpenFolder={openFolder}
             onEditFolder={openFolderEdit}
             onDeleteFolder={handleFolderDelete}
             onDropPlaybook={handleDropPlaybook}
-            onEdit={goToEdit}
             onDelete={handleDelete}
-            onRun={goToRun}
             onMove={setMovingPlaybook}
             locale={cardLocale}
             deletingFolderId={
