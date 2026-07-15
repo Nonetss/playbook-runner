@@ -147,9 +147,9 @@ export function PlaybookCard({
           )}
         </div>
 
-        <p className="text-muted-foreground line-clamp-3 overflow-hidden break-all font-mono text-xs">
+        <pre className="text-muted-foreground max-h-[4.5rem] overflow-hidden rounded-md border border-border/40 bg-muted/20 px-2.5 py-2 font-mono text-xs leading-relaxed wrap-break-word whitespace-pre-wrap">
           {playbook.content}
-        </p>
+        </pre>
 
         <Button
           asChild
