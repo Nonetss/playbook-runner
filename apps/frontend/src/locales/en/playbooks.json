@@ -38,6 +38,8 @@
     "loading": "Loading playbook...",
     "load_error": "Could not load the playbook.",
     "back_to_playbooks": "Back to playbooks",
+    "run": "Run",
+    "run_aria": "Run playbook",
     "saving": "Saving...",
     "save_error": "Could not save."
   },
@@ -113,6 +115,8 @@
     "playbook_not_found": "Playbook not found.",
     "loading": "Loading...",
     "back_aria": "Back",
+    "edit": "Edit",
+    "edit_aria": "Edit playbook",
     "new_run": "New run",
     "idle_prompt": "Configure the inventory and press Run to see the output here.",
     "starting": "Starting run...",

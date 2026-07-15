@@ -38,6 +38,8 @@
     "loading": "Cargando playbook...",
     "load_error": "No se pudo cargar el playbook.",
     "back_to_playbooks": "Volver a playbooks",
+    "run": "Ejecutar",
+    "run_aria": "Ejecutar playbook",
     "saving": "Guardando...",
     "save_error": "No se pudo guardar."
   },
@@ -113,6 +115,8 @@
     "playbook_not_found": "Playbook no encontrado.",
     "loading": "Cargando…",
     "back_aria": "Volver",
+    "edit": "Editar",
+    "edit_aria": "Editar playbook",
     "new_run": "Nueva ejecución",
     "idle_prompt": "Configura el inventario y pulsa Ejecutar para ver la salida aquí.",
     "starting": "Iniciando ejecución…",

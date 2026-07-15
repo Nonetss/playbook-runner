@@ -6,6 +6,7 @@ import {
   ChevronDown,
   Folder,
   Loader2,
+  Pencil,
   Play,
   Plus,
   Search,
@@ -422,16 +423,26 @@ function RunPlaybookPageInner({ id }: { id: string }) {
             {t("run.header_subtitle")}
           </p>
         </div>
-        {phase !== "idle" ? (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={reset}
-            disabled={isRunning}
-          >
-            {t("run.new_run")}
-          </Button>
-        ) : null}
+        <div className="flex shrink-0 items-center gap-2">
+          {playbook ? (
+            <Button asChild variant="outline" size="sm">
+              <a href={`/playbooks/${id}/edit`} aria-label={t("run.edit_aria")}>
+                <Pencil className="size-4" />
+                {t("run.edit")}
+              </a>
+            </Button>
+          ) : null}
+          {phase !== "idle" ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={reset}
+              disabled={isRunning}
+            >
+              {t("run.new_run")}
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       {/* Body */}

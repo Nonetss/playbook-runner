@@ -1,4 +1,4 @@
-import { ArrowLeft, Loader2 } from "lucide-react"
+import { ArrowLeft, Loader2, Play } from "lucide-react"
 import * as React from "react"
 import { useTranslation } from "react-i18next"
 import { usePlaybookFoldersList } from "@/components/features/playbooks/hooks/usePlaybookFolders"
@@ -139,7 +139,7 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
             <ArrowLeft className="size-4" />
           </a>
         </Button>
-        <div>
+        <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-bold tracking-tight">
             {isEditing ? t("form.edit_title") : t("form.create_title")}
           </h1>
@@ -147,6 +147,14 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
             {isEditing ? t("form.edit_subtitle") : t("form.create_subtitle")}
           </p>
         </div>
+        {isEditing && id ? (
+          <Button asChild variant="outline" size="sm" className="shrink-0">
+            <a href={`/playbooks/${id}/run`} aria-label={t("form.run_aria")}>
+              <Play className="size-4" />
+              {t("form.run")}
+            </a>
+          </Button>
+        ) : null}
       </div>
 
       <form
