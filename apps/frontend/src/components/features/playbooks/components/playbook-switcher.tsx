@@ -64,7 +64,7 @@ export function PlaybookSwitcher({
     setOpen(false)
     setSearch("")
     if (playbookId !== currentId) {
-      navigate(`/playbooks/${playbookId}/run`)
+      navigate(`/playbooks/${playbookId}/run${window.location.search}`)
     }
   }
 

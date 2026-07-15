@@ -31,6 +31,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useRunInventorySelection } from "@/hooks/useRunInventorySelection"
 import { cn } from "@/lib/utils"
 
 // ── terminal ──────────────────────────────────────────────────────────────────
@@ -335,12 +336,21 @@ function ToggleRow({
 function RunPlaybookPageInner({ id }: { id: string }) {
   const { t } = useTranslation("playbooks")
   const { data: playbook } = usePlaybookGet(id)
-  const { data: groups = [] } = useGroupsList()
-  const { data: devices = [] } = useDevicesList()
+  const { data: groups = [], isPending: groupsLoading } = useGroupsList()
+  const { data: devices = [], isPending: devicesLoading } = useDevicesList()
   const { phase, events, result, errorMessage, start, reset } = useRunPlaybook()
 
-  const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set())
-  const [selectedDevices, setSelectedDevices] = useState<Set<string>>(new Set())
+  const inventoryReady = !groupsLoading && !devicesLoading
+  const {
+    selectedGroups,
+    setSelectedGroups,
+    selectedDevices,
+    setSelectedDevices,
+  } = useRunInventorySelection({
+    groups,
+    devices,
+    ready: inventoryReady,
+  })
   const [inventorySearch, setInventorySearch] = useState("")
   const [groupsExpanded, setGroupsExpanded] = useState(true)
   const [devicesExpanded, setDevicesExpanded] = useState(false)
