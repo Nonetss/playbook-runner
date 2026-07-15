@@ -19,18 +19,14 @@ import {
 
 type ScriptCardProps = {
   script: Script
-  onEdit: (script: Script) => void
   onDelete: (id: string) => void
-  onRun: (script: Script) => void
   isDeleting?: boolean
   locale?: string
 }
 
 export function ScriptCard({
   script,
-  onEdit,
   onDelete,
-  onRun,
   isDeleting = false,
   locale = "es-ES",
 }: ScriptCardProps) {
@@ -75,13 +71,17 @@ export function ScriptCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onRun(script)}>
-                <Play className="size-4" />
-                {t("card.run")}
+              <DropdownMenuItem asChild>
+                <a href={`/scripts/${script.id}/run`}>
+                  <Play className="size-4" />
+                  {t("card.run")}
+                </a>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(script)}>
-                <Pencil className="size-4" />
-                {t("card.edit")}
+              <DropdownMenuItem asChild>
+                <a href={`/scripts/${script.id}/edit`}>
+                  <Pencil className="size-4" />
+                  {t("card.edit")}
+                </a>
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
@@ -112,14 +112,16 @@ export function ScriptCard({
         </p>
 
         <Button
+          asChild
           variant="outline"
           size="sm"
           className="mt-auto w-full"
-          onClick={() => onRun(script)}
           disabled={isDeleting}
         >
-          <Play className="size-4" />
-          {t("card.run")}
+          <a href={`/scripts/${script.id}/run`}>
+            <Play className="size-4" />
+            {t("card.run")}
+          </a>
         </Button>
       </CardContent>
     </Card>

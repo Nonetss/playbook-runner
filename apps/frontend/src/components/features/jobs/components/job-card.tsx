@@ -28,10 +28,8 @@ import { Switch } from "@/components/ui/switch"
 type JobCardProps = {
   job: Job
   playbookName?: string
-  onEdit: (job: Job) => void
   onDelete: (id: string) => void
   onRun: (job: Job) => void
-  onView: (job: Job) => void
   onToggleEnabled: (id: string, enabled: boolean) => void
   isDeleting?: boolean
   isTogglingEnabled?: boolean
@@ -40,10 +38,8 @@ type JobCardProps = {
 export function JobCard({
   job,
   playbookName,
-  onEdit,
   onDelete,
   onRun,
-  onView,
   onToggleEnabled,
   isDeleting = false,
   isTogglingEnabled = false,
@@ -87,9 +83,11 @@ export function JobCard({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onView(job)}>
-                  <History className="size-4" />
-                  Ver ejecuciones
+                <DropdownMenuItem asChild>
+                  <a href={`/jobs/${job.id}`}>
+                    <History className="size-4" />
+                    Ver ejecuciones
+                  </a>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => onRun(job)}
@@ -98,9 +96,11 @@ export function JobCard({
                   <Play className="size-4" />
                   Ejecutar ahora
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onEdit(job)}>
-                  <Pencil className="size-4" />
-                  Editar
+                <DropdownMenuItem asChild>
+                  <a href={`/jobs/${job.id}/edit`}>
+                    <Pencil className="size-4" />
+                    Editar
+                  </a>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   variant="destructive"
@@ -156,14 +156,16 @@ export function JobCard({
         </div>
 
         <Button
+          asChild
           variant="outline"
           size="sm"
           className="mt-auto w-full"
-          onClick={() => onView(job)}
           disabled={isDeleting}
         >
-          <History className="size-4" />
-          Ver ejecuciones
+          <a href={`/jobs/${job.id}`}>
+            <History className="size-4" />
+            Ver ejecuciones
+          </a>
         </Button>
       </CardContent>
     </Card>

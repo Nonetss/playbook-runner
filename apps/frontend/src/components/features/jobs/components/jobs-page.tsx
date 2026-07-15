@@ -13,6 +13,7 @@ import { AppProviders } from "@/components/providers/app-providers"
 import { ResourceListState } from "@/components/shared/resource-list-state"
 import { ResourcePage } from "@/components/shared/resource-page"
 import { useConfirm } from "@/hooks/useConfirm"
+import { navigate } from "@/lib/navigate"
 import { notifyError } from "@/lib/toast"
 
 function JobsPageInner() {
@@ -27,22 +28,10 @@ function JobsPageInner() {
 
   const playbookMap = Object.fromEntries(playbooks.map((p) => [p.id, p.name]))
 
-  function goToCreate() {
-    window.location.href = "/jobs/new"
-  }
-
-  function goToEdit(job: Job) {
-    window.location.href = `/jobs/${job.id}/edit`
-  }
-
-  function goToDetail(job: Job) {
-    window.location.href = `/jobs/${job.id}`
-  }
-
   async function handleRunNow(job: Job) {
     if (!job.playbookId) return
     await runJob.mutateAsync({ id: job.id })
-    window.location.href = `/jobs/${job.id}`
+    navigate(`/jobs/${job.id}`)
   }
 
   async function handleDelete(id: string) {
@@ -89,7 +78,7 @@ function JobsPageInner() {
       title={t("page.title")}
       description={t("page.subtitle")}
       createLabel={t("page.create")}
-      onCreate={goToCreate}
+      createHref="/jobs/new"
     >
       <ResourceListState
         isPending={isPending}
@@ -101,7 +90,7 @@ function JobsPageInner() {
           title: t("empty.title"),
           description: t("empty.description"),
           ctaLabel: t("page.create"),
-          onCta: goToCreate,
+          ctaHref: "/jobs/new",
         }}
       >
         {(items) => (
@@ -113,10 +102,8 @@ function JobsPageInner() {
                 playbookName={
                   job.playbookId ? playbookMap[job.playbookId] : undefined
                 }
-                onEdit={goToEdit}
                 onDelete={handleDelete}
                 onRun={handleRunNow}
-                onView={goToDetail}
                 onToggleEnabled={handleToggleEnabled}
                 isDeleting={isDeletingId === job.id}
                 isTogglingEnabled={isTogglingId === job.id}

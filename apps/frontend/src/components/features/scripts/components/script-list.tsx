@@ -3,18 +3,14 @@ import type { Script } from "@/components/features/scripts/types"
 
 type ScriptListProps = {
   scripts: Script[]
-  onEdit: (script: Script) => void
   onDelete: (id: string) => void
-  onRun: (script: Script) => void
   deletingId?: string | null
   locale?: string
 }
 
 export function ScriptList({
   scripts,
-  onEdit,
   onDelete,
-  onRun,
   deletingId = null,
   locale,
 }: ScriptListProps) {
@@ -24,9 +20,7 @@ export function ScriptList({
         <ScriptCard
           key={script.id}
           script={script}
-          onEdit={onEdit}
           onDelete={onDelete}
-          onRun={onRun}
           locale={locale}
           isDeleting={deletingId === script.id}
         />

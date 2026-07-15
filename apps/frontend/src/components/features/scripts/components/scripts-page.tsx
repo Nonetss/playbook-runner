@@ -5,7 +5,6 @@ import {
   useScriptDelete,
   useScriptsList,
 } from "@/components/features/scripts/hooks/useScripts"
-import type { Script } from "@/components/features/scripts/types"
 import { AppProviders } from "@/components/providers/app-providers"
 import { ResourceListState } from "@/components/shared/resource-list-state"
 import { ResourcePage } from "@/components/shared/resource-page"
@@ -18,18 +17,6 @@ function ScriptsPageInner() {
   const { data: scripts = [], isPending, isError, refetch } = useScriptsList()
   const deleteScript = useScriptDelete()
   const confirm = useConfirm()
-
-  function goToRun(script: Script) {
-    window.location.href = `/scripts/${script.id}/run`
-  }
-
-  function goToCreate() {
-    window.location.href = "/scripts/new"
-  }
-
-  function goToEdit(script: Script) {
-    window.location.href = `/scripts/${script.id}/edit`
-  }
 
   async function handleDelete(id: string) {
     const script = scripts.find((item) => item.id === id)
@@ -59,7 +46,7 @@ function ScriptsPageInner() {
       title={t("page.title")}
       description={t("page.subtitle")}
       createLabel={t("page.create")}
-      onCreate={goToCreate}
+      createHref="/scripts/new"
     >
       <ResourceListState
         isPending={isPending}
@@ -70,16 +57,14 @@ function ScriptsPageInner() {
           title: t("empty.title"),
           description: t("empty.description"),
           ctaLabel: t("page.create"),
-          onCta: goToCreate,
+          ctaHref: "/scripts/new",
           icon: <FileCode className="size-5" />,
         }}
       >
         {(items) => (
           <ScriptList
             scripts={items}
-            onEdit={goToEdit}
             onDelete={handleDelete}
-            onRun={goToRun}
             locale={
               (typeof window === "undefined"
                 ? "en"
