@@ -541,7 +541,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                 selectedCount={
                   filteredGroups.filter((g) => selectedGroups.has(g.id)).length
                 }
-                expanded={groupsExpanded}
+                expanded={searchQuery ? true : groupsExpanded}
                 onToggle={() => setGroupsExpanded((v) => !v)}
               >
                 {filteredGroups.length > 0 ? (
@@ -575,7 +575,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                   filteredDevices.filter((d) => selectedDevices.has(d.id))
                     .length
                 }
-                expanded={devicesExpanded}
+                expanded={searchQuery ? true : devicesExpanded}
                 onToggle={() => setDevicesExpanded((v) => !v)}
               >
                 {filteredDevices.length > 0 ? (
