@@ -1,6 +1,7 @@
 import { ArrowLeft, Loader2 } from "lucide-react"
 import * as React from "react"
 import { useTranslation } from "react-i18next"
+import { usePlaybookFoldersList } from "@/components/features/playbooks/hooks/usePlaybookFolders"
 import {
   usePlaybookCreate,
   usePlaybookGet,
@@ -10,6 +11,14 @@ import { AppProviders } from "@/components/providers/app-providers"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const TEXTAREA_CLASS =
   "w-full min-w-0 flex-1 resize-y rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs leading-relaxed shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
@@ -18,9 +27,16 @@ type FormValues = {
   name: string
   description: string
   content: string
+  folderId: string | null
 }
 
-const EMPTY_VALUES: FormValues = { name: "", description: "", content: "" }
+function getInitialValues(): FormValues {
+  const folderId =
+    typeof window === "undefined"
+      ? null
+      : new URLSearchParams(window.location.search).get("folder")
+  return { name: "", description: "", content: "", folderId }
+}
 
 export type PlaybookFormPageProps = {
   /** When present the page edits an existing playbook; otherwise it creates one. */
@@ -32,13 +48,14 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
   const isEditing = !!id
   const createPlaybook = usePlaybookCreate()
   const updatePlaybook = usePlaybookUpdate()
+  const { data: folders = [] } = usePlaybookFoldersList()
   const {
     data: playbook,
     isPending: isLoading,
     isError: isLoadError,
   } = usePlaybookGet(id ?? "", { enabled: isEditing })
 
-  const [values, setValues] = React.useState<FormValues>(EMPTY_VALUES)
+  const [values, setValues] = React.useState<FormValues>(getInitialValues)
   const [error, setError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
@@ -47,11 +64,15 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
         name: playbook.name,
         description: playbook.description ?? "",
         content: playbook.content,
+        folderId: playbook.folderId,
       })
     }
   }, [isEditing, playbook])
 
   const isSubmitting = createPlaybook.isPending || updatePlaybook.isPending
+  const returnHref = values.folderId
+    ? `/playbooks?folder=${encodeURIComponent(values.folderId)}`
+    : "/playbooks"
 
   function updateField(key: keyof FormValues, value: string) {
     setValues((current) => ({ ...current, [key]: value }))
@@ -64,6 +85,7 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
       name: values.name,
       description: values.description || undefined,
       content: values.content,
+      folderId: values.folderId,
     }
     try {
       if (isEditing && id) {
@@ -71,7 +93,7 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
       } else {
         await createPlaybook.mutateAsync(payload)
       }
-      window.location.href = "/playbooks"
+      window.location.href = returnHref
     } catch (err) {
       setError(err instanceof Error ? err.message : t("form.save_error"))
     }
@@ -95,7 +117,7 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
           {t("form.load_error")}
         </div>
         <Button asChild variant="outline" className="mt-4">
-          <a href="/playbooks">
+          <a href={returnHref}>
             <ArrowLeft className="size-4" />
             {t("form.back_to_playbooks")}
           </a>
@@ -113,7 +135,7 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
           size="icon-sm"
           aria-label={t("run.back_aria")}
         >
-          <a href="/playbooks">
+          <a href={returnHref}>
             <ArrowLeft className="size-4" />
           </a>
         </Button>
@@ -128,7 +150,7 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5">
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-5 lg:grid-cols-3">
           <div className="space-y-2">
             <Label htmlFor="name-field">
               {t("form.name_label")}
@@ -154,6 +176,33 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
               value={values.description}
               onChange={(e) => updateField("description", e.target.value)}
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="folder-field">{t("form.folder_label")}</Label>
+            <Select
+              value={values.folderId ?? "__root__"}
+              onValueChange={(value) =>
+                setValues((current) => ({
+                  ...current,
+                  folderId: value === "__root__" ? null : value,
+                }))
+              }
+              disabled={isSubmitting}
+            >
+              <SelectTrigger id="folder-field" className="w-full">
+                <SelectValue placeholder={t("form.folder_placeholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="__root__">{t("folder.root")}</SelectItem>
+                  {folders.map((folder) => (
+                    <SelectItem key={folder.id} value={folder.id}>
+                      {folder.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -191,7 +240,7 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
             variant="outline"
             disabled={isSubmitting}
           >
-            <a href="/playbooks">{t("form.cancel")}</a>
+            <a href={returnHref}>{t("form.cancel")}</a>
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting

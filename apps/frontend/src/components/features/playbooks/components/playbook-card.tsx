@@ -1,4 +1,12 @@
-import { BookText, MoreHorizontal, Pencil, Play, Trash2 } from "lucide-react"
+import {
+  BookText,
+  FolderInput,
+  MoreHorizontal,
+  Pencil,
+  Play,
+  Trash2,
+} from "lucide-react"
+import type * as React from "react"
 import { useTranslation } from "react-i18next"
 import type { Playbook } from "@/components/features/playbooks/types"
 import { Badge } from "@/components/ui/badge"
@@ -17,12 +25,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
+
+const PLAYBOOK_DRAG_TYPE = "application/x-playbook-id"
 
 type PlaybookCardProps = {
   playbook: Playbook
   onEdit: (playbook: Playbook) => void
   onDelete: (id: string) => void
   onRun: (playbook: Playbook) => void
+  onMove: (playbook: Playbook) => void
   isDeleting?: boolean
   locale?: string
 }
@@ -32,6 +44,7 @@ export function PlaybookCard({
   onEdit,
   onDelete,
   onRun,
+  onMove,
   isDeleting = false,
   locale = "es-ES",
 }: PlaybookCardProps) {
@@ -45,7 +58,18 @@ export function PlaybookCard({
     : null
 
   return (
-    <Card className="h-full gap-4 py-4">
+    <Card
+      className={cn(
+        "h-full gap-4 py-4",
+        !isDeleting && "cursor-grab active:cursor-grabbing"
+      )}
+      draggable={!isDeleting}
+      onDragStart={(event: React.DragEvent<HTMLDivElement>) => {
+        event.dataTransfer.effectAllowed = "move"
+        event.dataTransfer.setData(PLAYBOOK_DRAG_TYPE, playbook.id)
+        event.dataTransfer.setData("text/plain", playbook.id)
+      }}
+    >
       <CardHeader className="px-4">
         <div className="flex min-w-0 items-start gap-3 overflow-hidden pr-2">
           <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-md">
@@ -83,6 +107,10 @@ export function PlaybookCard({
               <DropdownMenuItem onClick={() => onEdit(playbook)}>
                 <Pencil className="size-4" />
                 {t("card.edit")}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onMove(playbook)}>
+                <FolderInput className="size-4" />
+                {t("card.move")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"

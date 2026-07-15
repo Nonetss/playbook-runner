@@ -7,3 +7,11 @@ export type Playbook = NonNullable<
 export type PlaybookList = Awaited<
   ReturnType<AppRouterClient["playbooks"]["list"]>
 >
+
+export type PlaybookFolder = NonNullable<
+  Awaited<ReturnType<AppRouterClient["playbooks"]["folders"]["get"]>>
+>
+
+export type PlaybookFolderList = Awaited<
+  ReturnType<AppRouterClient["playbooks"]["folders"]["list"]>
+>
