@@ -27,6 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { navigate } from "@/lib/navigate"
 import { cn } from "@/lib/utils"
 
 const PLAYBOOK_DRAG_TYPE = "application/x-playbook-id"
@@ -56,12 +57,38 @@ export function PlaybookFolderCard({
     return Array.from(event.dataTransfer.types).includes(PLAYBOOK_DRAG_TYPE)
   }
 
+  function isInteractiveTarget(target: EventTarget | null) {
+    return (target as HTMLElement | null)?.closest(
+      '[data-slot="card-action"], a, button'
+    )
+  }
+
+  function openFolder() {
+    if (isDeleting) return
+    navigate(openHref)
+  }
+
   return (
     <Card
+      role="link"
+      tabIndex={isDeleting ? undefined : 0}
+      aria-label={`${t("folder.open")} ${folder.name}`}
       className={cn(
-        "h-full gap-4 py-4 transition-[box-shadow,background-color]",
+        "relative h-full gap-4 py-4 transition-[box-shadow,background-color]",
+        !isDeleting && "cursor-pointer",
         isDragOver && "bg-accent/50 ring-2 ring-primary"
       )}
+      onClick={(event) => {
+        if (isInteractiveTarget(event.target)) return
+        openFolder()
+      }}
+      onKeyDown={(event) => {
+        if (isDeleting) return
+        if (event.key !== "Enter" && event.key !== " ") return
+        if (isInteractiveTarget(event.target)) return
+        event.preventDefault()
+        openFolder()
+      }}
       onDragEnter={(event) => {
         if (acceptsPlaybook(event)) setIsDragOver(true)
       }}
@@ -81,10 +108,7 @@ export function PlaybookFolderCard({
       }}
     >
       <CardHeader className="px-4">
-        <a
-          href={openHref}
-          className="flex min-w-0 items-start gap-3 overflow-hidden pr-2 text-left"
-        >
+        <div className="flex min-w-0 items-start gap-3 overflow-hidden pr-2 text-left">
           <span className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-md">
             <Folder className="size-4" />
           </span>
@@ -96,7 +120,7 @@ export function PlaybookFolderCard({
               </CardDescription>
             ) : null}
           </span>
-        </a>
+        </div>
 
         <CardAction>
           <DropdownMenu>
