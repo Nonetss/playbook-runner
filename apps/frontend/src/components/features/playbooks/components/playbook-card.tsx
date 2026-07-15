@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -46,23 +47,23 @@ export function PlaybookCard({
   return (
     <Card className="h-full gap-4 py-4">
       <CardHeader className="px-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-start gap-3">
-            <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-md">
-              <BookText className="size-4" />
-            </div>
-            <div className="min-w-0">
-              <CardTitle className="truncate text-base">
-                {playbook.name}
-              </CardTitle>
-              {playbook.description && (
-                <CardDescription className="truncate">
-                  {playbook.description}
-                </CardDescription>
-              )}
-            </div>
+        <div className="flex min-w-0 items-start gap-3 overflow-hidden pr-2">
+          <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-md">
+            <BookText className="size-4" />
           </div>
+          <div className="min-w-0 flex-1 overflow-hidden">
+            <CardTitle className="truncate text-base">
+              {playbook.name}
+            </CardTitle>
+            {playbook.description && (
+              <CardDescription className="line-clamp-2 wrap-break-word">
+                {playbook.description}
+              </CardDescription>
+            )}
+          </div>
+        </div>
 
+        <CardAction>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -92,7 +93,7 @@ export function PlaybookCard({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
+        </CardAction>
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col gap-3 px-4">
@@ -107,7 +108,7 @@ export function PlaybookCard({
           )}
         </div>
 
-        <p className="text-muted-foreground line-clamp-3 font-mono text-xs whitespace-pre-wrap">
+        <p className="text-muted-foreground line-clamp-3 overflow-hidden break-all font-mono text-xs">
           {playbook.content}
         </p>
 
