@@ -19,8 +19,8 @@ import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useDevicesList } from "@/components/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/components/features/inventory/hooks/useGroups"
-import { usePlaybookGet } from "@/components/features/playbooks/hooks/usePlaybooks"
 import { PlaybookSwitcher } from "@/components/features/playbooks/components/playbook-switcher"
+import { usePlaybookGet } from "@/components/features/playbooks/hooks/usePlaybooks"
 import {
   type RunEvent,
   type RunSelection,
