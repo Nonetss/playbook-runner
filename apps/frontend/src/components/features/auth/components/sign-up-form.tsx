@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authClient } from "@/lib/auth-client"
+import { navigate } from "@/lib/navigate"
 
 export function SignUpForm() {
   const { t } = useTranslation("auth")
@@ -31,7 +32,7 @@ export function SignUpForm() {
         { name, email, password },
         {
           onSuccess: () => {
-            window.location.href = "/"
+            navigate("/")
           },
           onError: (ctx) => {
             setError(ctx.error.message || t("sign_up.errors.default"))

@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { navigate } from "@/lib/navigate"
 
 type FormValues = {
   name: string
@@ -92,7 +93,7 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
       } else {
         await createPlaybook.mutateAsync(payload)
       }
-      window.location.href = returnHref
+      navigate(returnHref)
     } catch (err) {
       setError(err instanceof Error ? err.message : t("form.save_error"))
     }

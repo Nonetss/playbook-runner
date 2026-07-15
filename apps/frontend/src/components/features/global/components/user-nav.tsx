@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { authClient } from "@/lib/auth-client"
+import { navigate } from "@/lib/navigate"
 
 const triggerClass =
   "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex size-9 items-center justify-center rounded-md border shadow-xs transition-colors outline-none data-[state=open]:bg-accent data-[state=open]:text-accent-foreground"
@@ -77,7 +78,7 @@ export function UserNav({ user }: UserNavProps) {
           className="cursor-pointer gap-2"
           onClick={async () => {
             await authClient.signOut()
-            window.location.href = "/login"
+            navigate("/login")
           }}
         >
           <LogOut className="size-4 shrink-0" aria-hidden />

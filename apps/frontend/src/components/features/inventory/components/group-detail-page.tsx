@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useConfirm } from "@/hooks/useConfirm"
+import { navigate } from "@/lib/navigate"
 import { cn } from "@/lib/utils"
 
 function GroupDetailPageInner({ id }: { id: string }) {
@@ -68,7 +69,7 @@ function GroupDetailPageInner({ id }: { id: string }) {
     })
     if (!confirmed) return
     await deleteGroup.mutateAsync({ id: group.id })
-    window.location.href = "/inventory"
+    navigate("/inventory")
   }
 
   async function handleToggleDevice(deviceId: string) {

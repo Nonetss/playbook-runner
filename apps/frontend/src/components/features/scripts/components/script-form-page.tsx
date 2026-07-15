@@ -11,6 +11,7 @@ import { CodeEditor } from "@/components/shared/code-editor"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { navigate } from "@/lib/navigate"
 import { cn } from "@/lib/utils"
 
 type ScriptLanguage = "bash" | "python"
@@ -133,7 +134,7 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
       } else {
         await createScript.mutateAsync(payload)
       }
-      window.location.href = "/scripts"
+      navigate("/scripts")
     } catch (err) {
       setError(err instanceof Error ? err.message : t("form.save_error"))
     }
@@ -167,8 +168,8 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
   }
 
   return (
-    <main className="flex w-full flex-1 flex-col p-6 lg:px-8">
-      <div className="mb-6 flex items-center gap-3">
+    <main className="flex h-[calc(100dvh-3.5rem)] min-h-0 w-full flex-col overflow-hidden p-6 lg:px-8">
+      <div className="mb-4 flex shrink-0 items-center gap-3">
         <Button
           asChild
           variant="ghost"
@@ -189,87 +190,101 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5">
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="name-field">
-              {t("form.name_label")}
-              <span aria-hidden> *</span>
-            </Label>
-            <Input
-              id="name-field"
-              required
-              disabled={isSubmitting}
-              placeholder={t("form.name_placeholder")}
-              value={values.name}
-              onBlur={() => setTouched(true)}
-              onChange={(e) => updateField("name", e.target.value)}
-              aria-invalid={nameMissing}
-            />
-            {nameMissing ? (
-              <p className="text-destructive text-xs">
-                {t("form.name_required")}
-              </p>
-            ) : null}
+      <form
+        onSubmit={handleSubmit}
+        className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-4 overflow-hidden"
+      >
+        <div className="shrink-0 space-y-5">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="name-field">
+                {t("form.name_label")}
+                <span aria-hidden> *</span>
+              </Label>
+              <Input
+                id="name-field"
+                required
+                disabled={isSubmitting}
+                placeholder={t("form.name_placeholder")}
+                value={values.name}
+                onBlur={() => setTouched(true)}
+                onChange={(e) => updateField("name", e.target.value)}
+                aria-invalid={nameMissing}
+              />
+              {nameMissing ? (
+                <p className="text-destructive text-xs">
+                  {t("form.name_required")}
+                </p>
+              ) : null}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description-field">
+                {t("form.description_label")}
+              </Label>
+              <Input
+                id="description-field"
+                disabled={isSubmitting}
+                placeholder={t("form.description_placeholder")}
+                value={values.description}
+                onChange={(e) => updateField("description", e.target.value)}
+              />
+            </div>
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="description-field">
-              {t("form.description_label")}
-            </Label>
-            <Input
-              id="description-field"
+            <Label>{t("form.language_label")}</Label>
+            <LanguagePicker
+              value={values.language}
+              onChange={(next) => updateField("language", next)}
               disabled={isSubmitting}
-              placeholder={t("form.description_placeholder")}
-              value={values.description}
-              onChange={(e) => updateField("description", e.target.value)}
+              labels={{
+                bash: t("form.language.bash"),
+                python: t("form.language.python"),
+              }}
+              hints={{
+                bash: t("form.language.bash_hint"),
+                python: t("form.language.python_hint"),
+              }}
             />
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label>{t("form.language_label")}</Label>
-          <LanguagePicker
-            value={values.language}
-            onChange={(next) => updateField("language", next)}
-            disabled={isSubmitting}
-            labels={{
-              bash: t("form.language.bash"),
-              python: t("form.language.python"),
-            }}
-            hints={{
-              bash: t("form.language.bash_hint"),
-              python: t("form.language.python_hint"),
-            }}
-          />
-        </div>
-
-        <div className="flex flex-1 flex-col space-y-2">
-          <Label id="content-field-label" htmlFor="content-field">
+        <div className="flex min-h-0 flex-col gap-2 overflow-hidden">
+          <Label
+            id="content-field-label"
+            htmlFor="content-field"
+            className="shrink-0"
+          >
             {t("form.content_label")}
             <span aria-hidden> *</span>
           </Label>
-          <CodeEditor
-            id="content-field"
-            ariaLabelledBy="content-field-label"
-            required
-            disabled={isSubmitting}
-            placeholder={t("form.content_placeholder")}
-            value={values.content}
-            language={values.language}
-            onBlur={() => setTouched(true)}
-            onChange={(content) => updateField("content", content)}
-            ariaInvalid={contentMissing}
-          />
+          <div className="min-h-0 flex-1">
+            <CodeEditor
+              id="content-field"
+              ariaLabelledBy="content-field-label"
+              required
+              disabled={isSubmitting}
+              placeholder={t("form.content_placeholder")}
+              value={values.content}
+              language={values.language}
+              onBlur={() => setTouched(true)}
+              onChange={(content) => updateField("content", content)}
+              ariaInvalid={contentMissing}
+              className="h-full"
+            />
+          </div>
           {contentMissing ? (
-            <p className="text-destructive text-xs">
+            <p className="text-destructive shrink-0 text-xs">
               {t("form.content_required")}
             </p>
           ) : null}
         </div>
 
-        {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        {error ? (
+          <p className="shrink-0 text-sm text-destructive">{error}</p>
+        ) : null}
 
-        <div className="flex justify-end gap-2 pb-2">
+        <div className="flex shrink-0 justify-end gap-2 pb-2">
           <Button
             asChild
             type="button"

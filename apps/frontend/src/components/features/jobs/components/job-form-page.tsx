@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { navigate } from "@/lib/navigate"
 import { cn } from "@/lib/utils"
 
 const SELECT_EMPTY_VALUE = "__none__"
@@ -217,7 +218,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
       } else {
         await createJob.mutateAsync(payload)
       }
-      window.location.href = "/jobs"
+      navigate("/jobs")
     } catch (err) {
       setError(err instanceof Error ? err.message : t("form.save_error"))
     }

@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authClient } from "@/lib/auth-client"
+import { navigate } from "@/lib/navigate"
 
 // The form is a standalone `client:only` island, so it must sit behind the i18n
 // provider (which gates rendering until i18next is ready). Without it the form
@@ -43,7 +44,7 @@ function SignInFormInner() {
         { email, password },
         {
           onSuccess: () => {
-            window.location.href = "/"
+            navigate("/")
           },
           onError: (ctx) => {
             setError(ctx.error.message || t("sign_in.errors.default"))
