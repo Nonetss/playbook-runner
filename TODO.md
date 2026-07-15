@@ -16,5 +16,6 @@
 - [ ] Import/export playbooks — create playbooks from YAML files on disk and export them back to files (handy when migrating from Git repos)
 - [ ] Secrets for sensitive extravars — SSH keys live in credentials, but there is no way to manage secret playbook variables (e.g. Ansible Vault or an equivalent)
 - [ ] Fine-grained permissions — assign who can view, create, edit, run, or delete per area (playbooks, scripts, inventory, jobs, credentials, etc.); today only coarse roles exist (`admin` / `user` / `pending`)
+- [ ] System info collectors + dashboard — run scripts or commands on hosts that gather system state (e.g. `df -h`, memory, CPU), post structured results to an endpoint, and show them in a dashboard instead of raw job logs; unclear whether collectors are one-off scripts, scheduled jobs, or playbook tasks — needs design
 
 ## Done
