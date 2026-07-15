@@ -38,7 +38,7 @@ export function ApiKeyCard({
     day: "numeric",
   })
 
-  const label = apiKey.name?.trim() || t("unnamed")
+  const label = apiKey.name?.trim() || t("api_keys.unnamed")
   const createdAt = dateFormatter.format(new Date(apiKey.createdAt))
   const expiresAt = apiKey.expiresAt
     ? dateFormatter.format(new Date(apiKey.expiresAt))
@@ -69,8 +69,8 @@ export function ApiKeyCard({
                 variant="ghost"
                 size="icon-sm"
                 aria-label={
-                  t("card.menu_aria", { defaultValue: "" }) ||
-                  `${t("actions_aria")} ${label}`
+                  t("api_keys.card.menu_aria", { defaultValue: "" }) ||
+                  `${t("api_keys.actions_aria")} ${label}`
                 }
                 disabled={isDeleting}
               >
@@ -93,7 +93,7 @@ export function ApiKeyCard({
       <CardContent className="min-w-0 space-y-3 overflow-hidden px-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="font-mono text-xs">
-            {t("default_label")}
+            {t("api_keys.default_label")}
           </Badge>
           <Badge variant="outline" className="text-xs">
             {apiKey.enabled
@@ -103,11 +103,11 @@ export function ApiKeyCard({
         </div>
 
         <div className="text-muted-foreground space-y-0.5 text-xs">
-          <p>{t("created_at", { date: createdAt })}</p>
+          <p>{t("api_keys.created_at", { date: createdAt })}</p>
           {expiresAt ? (
-            <p>{t("card.expires_on", { date: expiresAt })}</p>
+            <p>{t("api_keys.card.expires_on", { date: expiresAt })}</p>
           ) : (
-            <p>{t("card.no_expiry")}</p>
+            <p>{t("api_keys.card.no_expiry")}</p>
           )}
         </div>
       </CardContent>
