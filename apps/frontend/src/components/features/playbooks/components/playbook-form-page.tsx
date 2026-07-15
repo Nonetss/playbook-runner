@@ -8,6 +8,7 @@ import {
   usePlaybookUpdate,
 } from "@/components/features/playbooks/hooks/usePlaybooks"
 import { AppProviders } from "@/components/providers/app-providers"
+import { CodeEditor } from "@/components/shared/code-editor"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -19,9 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
-const TEXTAREA_CLASS =
-  "w-full min-w-0 flex-1 resize-y rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs leading-relaxed shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
 
 type FormValues = {
   name: string
@@ -80,6 +78,7 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
 
   async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault()
+    if (values.content.trim().length === 0) return
     setError(null)
     const payload = {
       name: values.name,
@@ -207,7 +206,7 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
         </div>
 
         <div className="flex flex-1 flex-col space-y-2">
-          <Label htmlFor="content-field">
+          <Label id="content-field-label" htmlFor="content-field">
             {t("form.content_label")}
             <span aria-hidden> *</span>
           </Label>
@@ -218,16 +217,15 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
               __html: t("form.hosts_all_warning"),
             }}
           />
-          <textarea
+          <CodeEditor
             id="content-field"
+            ariaLabelledBy="content-field-label"
             required
             disabled={isSubmitting}
             placeholder={t("form.content_placeholder")}
             value={values.content}
-            spellCheck={false}
-            className={TEXTAREA_CLASS}
-            style={{ minHeight: "24rem" }}
-            onChange={(e) => updateField("content", e.target.value)}
+            language="yaml"
+            onChange={(content) => updateField("content", content)}
           />
         </div>
 
@@ -242,7 +240,10 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
           >
             <a href={returnHref}>{t("form.cancel")}</a>
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            disabled={isSubmitting || values.content.trim().length === 0}
+          >
             {isSubmitting
               ? t("form.saving")
               : isEditing

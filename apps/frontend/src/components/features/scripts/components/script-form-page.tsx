@@ -7,20 +7,11 @@ import {
   useScriptUpdate,
 } from "@/components/features/scripts/hooks/useScripts"
 import { AppProviders } from "@/components/providers/app-providers"
+import { CodeEditor } from "@/components/shared/code-editor"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
-
-// Not font-mono (Geist Mono): that branded webfont has no box-drawing
-// glyphs (═, ─, │…), which scripts commonly use as section separators. The
-// browser falls back per-character to a font with a different advance
-// width, so those glyphs collide with neighboring text. A native OS
-// terminal-font stack has full, correctly-metriced Unicode coverage.
-const TEXTAREA_CLASS =
-  "w-full min-w-0 flex-1 resize-y rounded-md border border-input bg-transparent px-3 py-2 text-xs leading-relaxed shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
-const TEXTAREA_FONT_STACK =
-  'ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace'
 
 type ScriptLanguage = "bash" | "python"
 
@@ -253,22 +244,21 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
         </div>
 
         <div className="flex flex-1 flex-col space-y-2">
-          <Label htmlFor="content-field">
+          <Label id="content-field-label" htmlFor="content-field">
             {t("form.content_label")}
             <span aria-hidden> *</span>
           </Label>
-          <textarea
+          <CodeEditor
             id="content-field"
+            ariaLabelledBy="content-field-label"
             required
             disabled={isSubmitting}
             placeholder={t("form.content_placeholder")}
             value={values.content}
-            spellCheck={false}
-            className={TEXTAREA_CLASS}
-            style={{ minHeight: "24rem", fontFamily: TEXTAREA_FONT_STACK }}
+            language={values.language}
             onBlur={() => setTouched(true)}
-            onChange={(e) => updateField("content", e.target.value)}
-            aria-invalid={contentMissing}
+            onChange={(content) => updateField("content", content)}
+            ariaInvalid={contentMissing}
           />
           {contentMissing ? (
             <p className="text-destructive text-xs">
