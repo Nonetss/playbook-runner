@@ -126,8 +126,8 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
   }
 
   return (
-    <main className="flex w-full flex-1 flex-col p-6 lg:px-8">
-      <div className="mb-6 flex items-center gap-3">
+    <main className="flex h-[calc(100dvh-3.5rem)] min-h-0 w-full flex-col overflow-hidden p-6 lg:px-8">
+      <div className="mb-4 flex shrink-0 items-center gap-3">
         <Button
           asChild
           variant="ghost"
@@ -148,8 +148,11 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5">
-        <div className="grid gap-5 lg:grid-cols-3">
+      <form
+        onSubmit={handleSubmit}
+        className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-4 overflow-hidden"
+      >
+        <div className="grid shrink-0 gap-5 lg:grid-cols-3">
           <div className="space-y-2">
             <Label htmlFor="name-field">
               {t("form.name_label")}
@@ -205,33 +208,42 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col space-y-2">
-          <Label id="content-field-label" htmlFor="content-field">
+        <div className="flex min-h-0 flex-col gap-2 overflow-hidden">
+          <Label
+            id="content-field-label"
+            htmlFor="content-field"
+            className="shrink-0"
+          >
             {t("form.content_label")}
             <span aria-hidden> *</span>
           </Label>
           <div
-            className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400"
+            className="flex shrink-0 items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400"
             // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: t("form.hosts_all_warning"),
             }}
           />
-          <CodeEditor
-            id="content-field"
-            ariaLabelledBy="content-field-label"
-            required
-            disabled={isSubmitting}
-            placeholder={t("form.content_placeholder")}
-            value={values.content}
-            language="yaml"
-            onChange={(content) => updateField("content", content)}
-          />
+          <div className="min-h-0 flex-1">
+            <CodeEditor
+              id="content-field"
+              ariaLabelledBy="content-field-label"
+              required
+              disabled={isSubmitting}
+              placeholder={t("form.content_placeholder")}
+              value={values.content}
+              language="yaml"
+              onChange={(content) => updateField("content", content)}
+              className="h-full"
+            />
+          </div>
         </div>
 
-        {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        {error ? (
+          <p className="shrink-0 text-sm text-destructive">{error}</p>
+        ) : null}
 
-        <div className="flex justify-end gap-2 pb-2">
+        <div className="flex shrink-0 justify-end gap-2 pb-2">
           <Button
             asChild
             type="button"

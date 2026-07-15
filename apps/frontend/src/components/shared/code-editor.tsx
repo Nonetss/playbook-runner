@@ -23,8 +23,8 @@ const TERMINAL_FONT_STACK =
 
 const editorTheme = EditorView.theme({
   "&": {
-    position: "absolute",
-    inset: "0",
+    height: "100%",
+    maxHeight: "100%",
     backgroundColor: "transparent",
     color: "var(--foreground)",
     fontSize: "0.75rem",
@@ -34,6 +34,8 @@ const editorTheme = EditorView.theme({
   },
   ".cm-scroller": {
     height: "100%",
+    overflow: "auto !important",
+    overscrollBehavior: "contain",
     fontFamily: TERMINAL_FONT_STACK,
     lineHeight: "1.625",
   },
@@ -149,7 +151,16 @@ export function CodeEditor({
     })
 
     viewRef.current = view
+
+    const resizeObserver = new ResizeObserver(() => {
+      requestAnimationFrame(() => {
+        view.requestMeasure()
+      })
+    })
+    resizeObserver.observe(containerRef.current)
+
     return () => {
+      resizeObserver.disconnect()
       view.destroy()
       viewRef.current = null
     }
@@ -161,6 +172,7 @@ export function CodeEditor({
     view.dispatch({
       changes: { from: 0, to: view.state.doc.length, insert: value },
     })
+    view.requestMeasure()
   }, [value])
 
   React.useEffect(() => {
@@ -214,7 +226,7 @@ export function CodeEditor({
     <div
       ref={containerRef}
       className={cn(
-        "relative min-h-96 w-full min-w-0 flex-1 overflow-hidden rounded-md border border-input bg-transparent shadow-xs transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 dark:bg-input/30",
+        "flex h-full min-h-48 w-full min-w-0 flex-col overflow-hidden rounded-md border border-input bg-transparent shadow-xs transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 dark:bg-input/30",
         disabled && "cursor-not-allowed opacity-50",
         ariaInvalid &&
           "border-destructive ring-destructive/20 dark:ring-destructive/40",
