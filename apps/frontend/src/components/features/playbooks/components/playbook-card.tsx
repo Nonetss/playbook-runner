@@ -1,5 +1,6 @@
 import {
   BookText,
+  Folder,
   FolderInput,
   MoreHorizontal,
   Pencil,
@@ -31,6 +32,7 @@ const PLAYBOOK_DRAG_TYPE = "application/x-playbook-id"
 
 type PlaybookCardProps = {
   playbook: Playbook
+  folderName?: string
   onDelete: (id: string) => void
   onMove: (playbook: Playbook) => void
   isDeleting?: boolean
@@ -39,6 +41,7 @@ type PlaybookCardProps = {
 
 export function PlaybookCard({
   playbook,
+  folderName,
   onDelete,
   onMove,
   isDeleting = false,
@@ -129,6 +132,14 @@ export function PlaybookCard({
           <Badge variant="secondary" className="font-mono text-xs">
             {t("card.yaml")}
           </Badge>
+          {folderName ? (
+            <Badge variant="outline" className="max-w-full text-xs">
+              <Folder className="size-3" />
+              <span className="truncate">
+                {t("card.in_folder", { name: folderName })}
+              </span>
+            </Badge>
+          ) : null}
           {updatedAt && (
             <span className="text-muted-foreground text-xs">
               {t("card.updated_on", { date: updatedAt })}

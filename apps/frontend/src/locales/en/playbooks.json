@@ -15,6 +15,7 @@
     "move": "Move to...",
     "delete": "Delete",
     "updated_on": "Updated on {{date}}",
+    "in_folder": "In {{name}}",
     "yaml": "YAML"
   },
   "form": {

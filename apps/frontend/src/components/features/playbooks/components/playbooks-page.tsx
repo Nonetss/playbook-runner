@@ -83,7 +83,8 @@ function PlaybooksPageInner() {
   const visiblePlaybooks = React.useMemo(() => {
     if (resourceFilter === "folders") return []
     return playbooks.filter((playbook) => {
-      if (playbook.folderId !== folderId) return false
+      const isGlobalRootSearch = !folderId && normalizedSearch.length > 0
+      if (!isGlobalRootSearch && playbook.folderId !== folderId) return false
       if (!normalizedSearch) return true
       return `${playbook.name} ${playbook.description ?? ""} ${playbook.content}`
         .toLocaleLowerCase()
@@ -270,6 +271,7 @@ function PlaybooksPageInner() {
           <PlaybookList
             playbooks={visiblePlaybooks}
             folders={visibleFolders}
+            allFolders={folders}
             allPlaybooks={playbooks}
             onEditFolder={openFolderEdit}
             onDeleteFolder={handleFolderDelete}

@@ -8,6 +8,7 @@ import type {
 type PlaybookListProps = {
   playbooks: Playbook[]
   folders?: PlaybookFolder[]
+  allFolders?: PlaybookFolder[]
   allPlaybooks?: Playbook[]
   onEditFolder: (folder: PlaybookFolder) => void
   onDeleteFolder: (folder: PlaybookFolder) => void
@@ -22,6 +23,7 @@ type PlaybookListProps = {
 export function PlaybookList({
   playbooks,
   folders = [],
+  allFolders = folders,
   allPlaybooks = playbooks,
   onEditFolder,
   onDeleteFolder,
@@ -54,6 +56,9 @@ export function PlaybookList({
         <PlaybookCard
           key={playbook.id}
           playbook={playbook}
+          folderName={
+            allFolders.find((folder) => folder.id === playbook.folderId)?.name
+          }
           onDelete={onDelete}
           onMove={onMove}
           locale={locale}
