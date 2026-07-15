@@ -138,7 +138,14 @@
       "extravars_remove_aria": "Remove variable",
       "extravars_add": "Add variable"
     },
-    "result_finished_with_status": "Run finished — status {{status}} (rc={{rc}})"
+    "result_finished_with_status": "Run finished — status {{status}} (rc={{rc}})",
+    "switcher": {
+      "label": "Playbook",
+      "search_placeholder": "Search playbooks…",
+      "search_label": "Search playbooks",
+      "no_results": "No playbooks",
+      "no_match": "No playbooks match your search"
+    }
   },
   "run_modal": {
     "title": "Run \"{{name}}\"",

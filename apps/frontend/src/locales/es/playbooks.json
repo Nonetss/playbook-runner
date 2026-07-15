@@ -138,7 +138,14 @@
       "extravars_remove_aria": "Eliminar variable",
       "extravars_add": "Añadir variable"
     },
-    "result_finished_with_status": "Ejecución finalizada — estado {{status}} (rc={{rc}})"
+    "result_finished_with_status": "Ejecución finalizada — estado {{status}} (rc={{rc}})",
+    "switcher": {
+      "label": "Playbook",
+      "search_placeholder": "Buscar playbooks…",
+      "search_label": "Buscar playbooks",
+      "no_results": "No hay playbooks",
+      "no_match": "Ningún playbook coincide con la búsqueda"
+    }
   },
   "run_modal": {
     "title": "Ejecutar \"{{name}}\"",

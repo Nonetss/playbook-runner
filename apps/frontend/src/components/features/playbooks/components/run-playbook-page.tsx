@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   ArrowLeft,
+  BookText,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -19,6 +20,7 @@ import { useTranslation } from "react-i18next"
 import { useDevicesList } from "@/components/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/components/features/inventory/hooks/useGroups"
 import { usePlaybookGet } from "@/components/features/playbooks/hooks/usePlaybooks"
+import { PlaybookSwitcher } from "@/components/features/playbooks/components/playbook-switcher"
 import {
   type RunEvent,
   type RunSelection,
@@ -332,7 +334,7 @@ function ToggleRow({
 
 function RunPlaybookPageInner({ id }: { id: string }) {
   const { t } = useTranslation("playbooks")
-  const { data: playbook, isPending: playbookLoading } = usePlaybookGet(id)
+  const { data: playbook } = usePlaybookGet(id)
   const { data: groups = [] } = useGroupsList()
   const { data: devices = [] } = useDevicesList()
   const { phase, events, result, errorMessage, start, reset } = useRunPlaybook()
@@ -413,15 +415,16 @@ function RunPlaybookPageInner({ id }: { id: string }) {
             <ArrowLeft className="size-4" />
           </a>
         </Button>
+        <div className="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-md">
+          <BookText className="size-4.5" />
+        </div>
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-base font-semibold leading-tight">
-            {playbookLoading
-              ? t("run.loading")
-              : (playbook?.name ?? t("run.playbook_not_found"))}
-          </h1>
-          <p className="text-muted-foreground text-xs">
             {t("run.header_subtitle")}
-          </p>
+          </h1>
+          <div className="mt-1.5">
+            <PlaybookSwitcher currentId={id} disabled={isRunning} />
+          </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {playbook ? (
