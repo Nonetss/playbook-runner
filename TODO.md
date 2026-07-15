@@ -15,5 +15,6 @@
 - [ ] Playbook revision history — only the current content is stored; add change history and the ability to roll back to a previous version
 - [ ] Import/export playbooks — create playbooks from YAML files on disk and export them back to files (handy when migrating from Git repos)
 - [ ] Secrets for sensitive extravars — SSH keys live in credentials, but there is no way to manage secret playbook variables (e.g. Ansible Vault or an equivalent)
+- [ ] Fine-grained permissions — assign who can view, create, edit, run, or delete per area (playbooks, scripts, inventory, jobs, credentials, etc.); today only coarse roles exist (`admin` / `user` / `pending`)
 
 ## Done
