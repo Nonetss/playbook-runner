@@ -26,6 +26,8 @@ export type JobRun = {
   trigger: string
   eventsJson: JobRunEvent[] | null
   error: string | null
+  hostsOk: number | null
+  hostsFailed: number | null
   startedAt: Date | string | null
   finishedAt: Date | string | null
   createdAt: Date | string | null
@@ -47,6 +49,8 @@ export type JobRunFeedRow = {
   finishedAt: Date | string | null
   createdAt: Date | string | null
   durationMs: number | null
+  hostsOk: number | null
+  hostsFailed: number | null
 }
 
 export type JobRunMetricsWindow = "24h" | "7d" | "30d"

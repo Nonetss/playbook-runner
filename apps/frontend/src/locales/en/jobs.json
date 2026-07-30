@@ -61,6 +61,7 @@
     "pending": "Pending",
     "running": "Running",
     "ok": "Success",
+    "partial": "Partial",
     "failed": "Failed"
   },
   "history": {
@@ -75,6 +76,7 @@
     "headers": {
       "job": "Job",
       "status": "Status",
+      "hosts": "Hosts",
       "trigger": "Trigger",
       "duration": "Duration",
       "timestamp": "Timestamp"
@@ -110,5 +112,12 @@
     "output": "Output",
     "select_run": "Select a run to see its output.",
     "not_found": "Job not found."
+  },
+  "hosts": {
+    "ok": "{{count}} ok",
+    "ok_other": "{{count}} ok",
+    "failed": "{{count}} failed",
+    "failed_other": "{{count}} failed",
+    "summary_title": "OK: {{ok}} · Failed: {{failed}} · Total: {{total}}"
   }
 }

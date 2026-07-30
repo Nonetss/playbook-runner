@@ -1,21 +1,17 @@
-import {
-  ArrowLeft,
-  CheckCircle2,
-  Clock,
-  Loader2,
-  Pencil,
-  Play,
-  XCircle,
-} from "lucide-react"
+import { ArrowLeft, Clock, Loader2, Pencil, Play, XCircle } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { JobRunOutput } from "@/components/features/jobs/components/job-run-output"
+import {
+  RunHostSummary,
+  RunStatusBadge,
+} from "@/components/features/jobs/components/run-widgets"
 import {
   useJobGet,
   useJobRun,
   useJobRunsList,
 } from "@/components/features/jobs/hooks/useJobs"
-import type { JobRun, JobRunStatus } from "@/components/features/jobs/types"
+import type { JobRun } from "@/components/features/jobs/types"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -41,44 +37,6 @@ function formatDuration(run: JobRun): string {
   const m = Math.floor(secs / 60)
   const s = secs % 60
   return `${m}m ${s}s`
-}
-
-const STATUS_META: Record<
-  JobRunStatus,
-  { labelKey: string; className: string; icon: React.ElementType }
-> = {
-  pending: {
-    labelKey: "status.pending",
-    className: "border-zinc-300 text-muted-foreground",
-    icon: Clock,
-  },
-  running: {
-    labelKey: "status.running",
-    className: "border-sky-500/40 bg-sky-500/10 text-sky-600",
-    icon: Loader2,
-  },
-  ok: {
-    labelKey: "status.ok",
-    className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-600",
-    icon: CheckCircle2,
-  },
-  failed: {
-    labelKey: "status.failed",
-    className: "border-red-500/40 bg-red-500/10 text-red-600",
-    icon: XCircle,
-  },
-}
-
-function StatusBadge({ status }: { status: JobRunStatus }) {
-  const { t } = useTranslation("jobs")
-  const meta = STATUS_META[status]
-  const Icon = meta.icon
-  return (
-    <Badge variant="outline" className={cn("gap-1", meta.className)}>
-      <Icon className={cn("size-3", status === "running" && "animate-spin")} />
-      {t(meta.labelKey)}
-    </Badge>
-  )
 }
 
 function JobDetailPageInner({ id }: { id: string }) {
@@ -251,7 +209,11 @@ function JobDetailPageInner({ id }: { id: string }) {
                       )}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <StatusBadge status={run.status} />
+                        <RunStatusBadge
+                          status={run.status}
+                          hostsOk={run.hostsOk}
+                          hostsFailed={run.hostsFailed}
+                        />
                         <span className="text-muted-foreground text-xs">
                           {run.trigger === "schedule"
                             ? t("detail.trigger_schedule")
@@ -262,6 +224,10 @@ function JobDetailPageInner({ id }: { id: string }) {
                         <span className="truncate">
                           {formatDateTime(run.startedAt ?? run.createdAt)}
                         </span>
+                        <RunHostSummary
+                          hostsOk={run.hostsOk}
+                          hostsFailed={run.hostsFailed}
+                        />
                         <span className="font-mono shrink-0">
                           {formatDuration(run)}
                         </span>
@@ -280,7 +246,19 @@ function JobDetailPageInner({ id }: { id: string }) {
             <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
               {t("detail.output")}
             </h2>
-            {selectedRun ? <StatusBadge status={selectedRun.status} /> : null}
+            {selectedRun ? (
+              <div className="flex items-center gap-2">
+                <RunHostSummary
+                  hostsOk={selectedRun.hostsOk}
+                  hostsFailed={selectedRun.hostsFailed}
+                />
+                <RunStatusBadge
+                  status={selectedRun.status}
+                  hostsOk={selectedRun.hostsOk}
+                  hostsFailed={selectedRun.hostsFailed}
+                />
+              </div>
+            ) : null}
           </div>
 
           {selectedRun ? (

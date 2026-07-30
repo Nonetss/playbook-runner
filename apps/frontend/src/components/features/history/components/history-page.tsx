@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next"
 import {
   formatRunDurationMs,
   formatRunTimestamp,
+  RunHostSummary,
   RunStatusBadge,
   RunWindowPicker,
 } from "@/components/features/jobs/components/run-widgets"
@@ -42,12 +43,21 @@ function FeedRow({ run }: { run: JobRunFeedRow }) {
   return (
     <a
       href={runHref(run)}
-      className="grid grid-cols-[1.4fr_1fr_0.8fr_0.6fr_1fr] items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 transition-colors hover:border-border hover:bg-accent/50"
+      className="grid grid-cols-[1.4fr_0.9fr_0.9fr_0.7fr_0.6fr_1fr] items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 transition-colors hover:border-border hover:bg-accent/50"
     >
       <span className="truncate text-sm font-medium">
         {run.jobName ?? t("history.deleted_job")}
       </span>
-      <RunStatusBadge status={run.status} />
+      <RunStatusBadge
+        status={run.status}
+        hostsOk={run.hostsOk}
+        hostsFailed={run.hostsFailed}
+      />
+      {/* Wrapper keeps the grid cell occupied even when the run carries no
+          recap and the summary renders nothing. */}
+      <span className="truncate">
+        <RunHostSummary hostsOk={run.hostsOk} hostsFailed={run.hostsFailed} />
+      </span>
       <span className="text-muted-foreground text-xs">
         {run.trigger === "schedule"
           ? t("history.trigger_schedule")
@@ -168,9 +178,10 @@ function HistoryPageInner() {
       ) : (
         <>
           <div className="rounded-xl border bg-card">
-            <div className="grid grid-cols-[1.4fr_1fr_0.8fr_0.6fr_1fr] gap-3 border-b px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="grid grid-cols-[1.4fr_0.9fr_0.9fr_0.7fr_0.6fr_1fr] gap-3 border-b px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               <span>{t("history.headers.job")}</span>
               <span>{t("history.headers.status")}</span>
+              <span>{t("history.headers.hosts")}</span>
               <span>{t("history.headers.trigger")}</span>
               <span>{t("history.headers.duration")}</span>
               <span>{t("history.headers.timestamp")}</span>

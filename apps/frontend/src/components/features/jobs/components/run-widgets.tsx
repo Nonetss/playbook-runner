@@ -1,4 +1,10 @@
-import { CheckCircle2, Clock, Loader2, XCircle } from "lucide-react"
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Loader2,
+  XCircle,
+} from "lucide-react"
 import type { ElementType } from "react"
 import { useTranslation } from "react-i18next"
 import type {
@@ -8,8 +14,34 @@ import type {
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
+/**
+ * Per-host recap counts attached to a finished run. Both null when Ansible
+ * never reported a recap (run still in flight, or it died before the play).
+ */
+export type RunHostCounts = {
+  hostsOk?: number | null
+  hostsFailed?: number | null
+}
+
+/**
+ * What the UI shows for a run. Adds `partial` on top of the stored statuses:
+ * a run is stored as `failed` the moment a single host fails, but when other
+ * hosts did succeed that's a partial failure, not a total one — worth amber
+ * rather than red.
+ */
+export type RunOutcome = JobRunStatus | "partial"
+
+export function runOutcome(
+  run: { status: JobRunStatus } & RunHostCounts
+): RunOutcome {
+  if (run.status !== "failed") return run.status
+  const ok = run.hostsOk ?? 0
+  const failed = run.hostsFailed ?? 0
+  return ok > 0 && failed > 0 ? "partial" : "failed"
+}
+
 export const RUN_STATUS_META: Record<
-  JobRunStatus,
+  RunOutcome,
   { className: string; icon: ElementType }
 > = {
   pending: {
@@ -24,21 +56,62 @@ export const RUN_STATUS_META: Record<
     className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-600",
     icon: CheckCircle2,
   },
+  partial: {
+    className: "border-amber-500/40 bg-amber-500/10 text-amber-600",
+    icon: AlertTriangle,
+  },
   failed: {
     className: "border-red-500/40 bg-red-500/10 text-red-600",
     icon: XCircle,
   },
 }
 
-export function RunStatusBadge({ status }: { status: JobRunStatus }) {
+export function RunStatusBadge({
+  status,
+  hostsOk,
+  hostsFailed,
+}: { status: JobRunStatus } & RunHostCounts) {
   const { t } = useTranslation("jobs")
-  const meta = RUN_STATUS_META[status]
+  const outcome = runOutcome({ status, hostsOk, hostsFailed })
+  const meta = RUN_STATUS_META[outcome]
   const Icon = meta.icon
   return (
     <Badge variant="outline" className={cn("gap-1", meta.className)}>
       <Icon className={cn("size-3", status === "running" && "animate-spin")} />
-      {t(`status.${status}`)}
+      {t(`status.${outcome}`)}
     </Badge>
+  )
+}
+
+/**
+ * "4 ok · 1 failed" summary of a run's hosts. Renders nothing when the run
+ * carries no recap, so in-flight rows stay clean.
+ */
+export function RunHostSummary({
+  hostsOk,
+  hostsFailed,
+  className,
+}: RunHostCounts & { className?: string }) {
+  const { t } = useTranslation("jobs")
+  const ok = hostsOk ?? 0
+  const failed = hostsFailed ?? 0
+  if (hostsOk == null && hostsFailed == null) return null
+  if (ok + failed === 0) return null
+  return (
+    <span
+      className={cn("text-muted-foreground text-xs", className)}
+      title={t("hosts.summary_title", { ok, failed, total: ok + failed })}
+    >
+      {failed > 0 ? (
+        <>
+          <span className="text-amber-600">
+            {t("hosts.failed", { count: failed })}
+          </span>
+          {" · "}
+        </>
+      ) : null}
+      {t("hosts.ok", { count: ok })}
+    </span>
   )
 }
 

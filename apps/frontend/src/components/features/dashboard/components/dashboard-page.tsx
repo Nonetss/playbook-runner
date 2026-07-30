@@ -97,7 +97,11 @@ function ActivityRow({ run }: { run: JobRunFeedRow }) {
       className="group flex items-center justify-between gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-accent"
     >
       <div className="flex min-w-0 items-center gap-2">
-        <RunStatusBadge status={run.status} />
+        <RunStatusBadge
+          status={run.status}
+          hostsOk={run.hostsOk}
+          hostsFailed={run.hostsFailed}
+        />
         <span className="truncate text-sm">
           {run.jobName ?? t("history.deleted_job")}
         </span>
