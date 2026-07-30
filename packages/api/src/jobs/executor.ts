@@ -16,6 +16,57 @@ type RunOutcome = {
 
 const INTERNAL_RUN_PATH = "/ansible/api/v0/run/internal"
 
+/** The per-host recap Ansible emits once at the end of a play. */
+type RunStats = {
+  ok?: Record<string, number>
+  changed?: Record<string, number>
+  failures?: Record<string, number>
+  dark?: Record<string, number>
+  skipped?: Record<string, number>
+}
+
+/**
+ * Count how many hosts finished clean vs. how many failed or were unreachable,
+ * reading the `playbook_on_stats` recap out of the captured events. Returns
+ * nulls when no recap was captured (run aborted before Ansible reported), so
+ * callers can distinguish "unknown" from "zero hosts".
+ *
+ * A host counts as failed when it has any `failures` or `dark` (unreachable)
+ * entries; every other host mentioned in the recap counts as ok. This is what
+ * makes a run where 1 of 5 hosts failed render as *partial* rather than a flat
+ * red "failed" in the UI.
+ */
+function countHostOutcomes(events: RunEvent[]): {
+  hostsOk: number | null
+  hostsFailed: number | null
+} {
+  const recap = events.findLast((e) => e.event === "playbook_on_stats") as
+    | { stats?: RunStats | null }
+    | undefined
+  const stats = recap?.stats
+  if (!stats) return { hostsOk: null, hostsFailed: null }
+
+  const hosts = new Set<string>()
+  for (const bucket of [
+    stats.ok,
+    stats.changed,
+    stats.failures,
+    stats.dark,
+    stats.skipped,
+  ]) {
+    for (const host of Object.keys(bucket ?? {})) hosts.add(host)
+  }
+
+  let hostsOk = 0
+  let hostsFailed = 0
+  for (const host of hosts) {
+    const failed = (stats.failures?.[host] ?? 0) + (stats.dark?.[host] ?? 0)
+    if (failed > 0) hostsFailed++
+    else hostsOk++
+  }
+  return { hostsOk, hostsFailed }
+}
+
 /**
  * Consume a `text/event-stream` body, splitting on `\n\n` frames and pulling
  * out the `event:` name and JSON `data:` payload of each. Mirrors the parser
@@ -147,12 +198,16 @@ async function completeRun(
     }
   }
 
+  const { hostsOk, hostsFailed } = countHostOutcomes(outcome.events)
+
   await db
     .update(jobRuns)
     .set({
       status: outcome.ok ? "ok" : "failed",
       eventsJson: outcome.events,
       error: outcome.error,
+      hostsOk,
+      hostsFailed,
       finishedAt: new Date(),
     })
     .where(eq(jobRuns.id, runId))

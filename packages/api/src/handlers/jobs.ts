@@ -104,6 +104,8 @@ const RUN_BASE_COLUMNS = {
   startedAt: jobRuns.startedAt,
   finishedAt: jobRuns.finishedAt,
   createdAt: jobRuns.createdAt,
+  hostsOk: jobRuns.hostsOk,
+  hostsFailed: jobRuns.hostsFailed,
   jobName: jobs.name,
 } as const
 
@@ -116,6 +118,8 @@ function shapeRun<
     startedAt: Date | string | null
     finishedAt: Date | string | null
     createdAt: Date | string | null
+    hostsOk: number | null
+    hostsFailed: number | null
     jobName: string | null
   },
 >(row: T) {
@@ -125,6 +129,8 @@ function shapeRun<
     jobName: row.jobName,
     status: row.status,
     trigger: row.trigger,
+    hostsOk: row.hostsOk,
+    hostsFailed: row.hostsFailed,
     startedAt: row.startedAt,
     finishedAt: row.finishedAt,
     createdAt: row.createdAt,

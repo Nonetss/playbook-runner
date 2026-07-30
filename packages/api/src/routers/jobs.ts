@@ -31,6 +31,10 @@ const jobRunSchema = z.object({
   trigger: z.string(),
   eventsJson: z.array(z.record(z.string(), z.unknown())).nullable(),
   error: z.string().nullable(),
+  // Per-host recap counts; null when the run produced no `playbook_on_stats`
+  // (still in flight, or it failed before Ansible reported).
+  hostsOk: z.number().int().nullable(),
+  hostsFailed: z.number().int().nullable(),
   startedAt: z.coerce.date().nullable(),
   finishedAt: z.coerce.date().nullable(),
   createdAt: z.coerce.date().nullable(),
@@ -64,6 +68,10 @@ const jobRunFeedRowSchema = z.object({
   finishedAt: z.coerce.date().nullable(),
   createdAt: z.coerce.date().nullable(),
   durationMs: z.number().int().nullable(),
+  // Per-host recap counts. A `failed` run with `hostsOk > 0` is a partial
+  // failure — the feed renders it amber with the split instead of flat red.
+  hostsOk: z.number().int().nullable(),
+  hostsFailed: z.number().int().nullable(),
 })
 
 const jobRunFeedPageSchema = z.object({

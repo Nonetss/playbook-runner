@@ -59,6 +59,13 @@ export const jobRuns = pgTable(
       .notNull()
       .default([]),
     error: text(),
+    // Per-host outcome derived from the run's `playbook_on_stats` recap. Null
+    // when the run never produced a recap (still running, or it blew up before
+    // Ansible reported), which is what lets the UI tell "no data" apart from
+    // a genuine zero. A run with both > 0 is a *partial* failure: some hosts
+    // succeeded even though the run as a whole is marked `failed`.
+    hostsOk: integer("hosts_ok"),
+    hostsFailed: integer("hosts_failed"),
     startedAt: timestamp("started_at"),
     finishedAt: timestamp("finished_at"),
     createdAt: timestamp("created_at").default(sql`now()`),
