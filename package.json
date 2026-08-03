@@ -49,12 +49,15 @@
     "test:e2e": "turbo -F frontend test:e2e",
     "test:e2e:ui": "turbo -F frontend test:e2e:ui",
     "test:e2e:headed": "turbo -F frontend test:e2e:headed",
-    "check": "biome check --write ."
+    "check": "biome check --write .",
+    "tailwind:check": "cd apps/frontend && tailwint",
+    "tailwind:fix": "cd apps/frontend && tailwint --fix"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
     "@playbook-runner/config": "workspace:*",
     "@types/bun": "catalog:",
+    "tailwint": "^1.1.13",
     "turbo": "^2.9.16",
     "typescript": "catalog:"
   },
