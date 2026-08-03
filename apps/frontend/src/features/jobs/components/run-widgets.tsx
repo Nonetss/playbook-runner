@@ -42,23 +42,23 @@ export const RUN_STATUS_META: Record<
   { className: string; icon: ElementType }
 > = {
   pending: {
-    className: "border-zinc-300 text-muted-foreground",
+    className: "border-border/60 bg-muted/20 text-muted-foreground",
     icon: Clock,
   },
   running: {
-    className: "border-sky-500/40 bg-sky-500/10 text-sky-600",
+    className: "border-primary/40 bg-primary/10 text-primary",
     icon: Loader2,
   },
   ok: {
-    className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-600",
+    className: "border-border bg-muted/20 text-foreground",
     icon: CheckCircle2,
   },
   partial: {
-    className: "border-amber-500/40 bg-amber-500/10 text-amber-600",
+    className: "border-destructive/40 bg-destructive/10 text-destructive",
     icon: AlertTriangle,
   },
   failed: {
-    className: "border-red-500/40 bg-red-500/10 text-red-600",
+    className: "border-destructive/40 bg-destructive/10 text-destructive",
     icon: XCircle,
   },
 }
@@ -101,7 +101,7 @@ export function RunHostSummary({
     >
       {failed > 0 ? (
         <>
-          <span className="text-amber-600">
+          <span className="text-destructive">
             {t("hosts.failed", { count: failed })}
           </span>
           {" · "}

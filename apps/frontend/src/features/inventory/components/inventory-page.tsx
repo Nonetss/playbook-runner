@@ -223,7 +223,7 @@ function InventoryPageInner() {
             aria-hidden
             className={cn(
               "pointer-events-none absolute top-1 bottom-1 left-1 rounded-sm bg-primary shadow-sm",
-              "motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.34,1.2,0.64,1)]",
+              "motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.16,1,0.3,1)]",
               tab === "devices" && "motion-safe:translate-x-full"
             )}
             style={{ width: "calc((100% - 0.5rem) / 2)" }}

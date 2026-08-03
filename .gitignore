@@ -80,3 +80,5 @@ temp
 # Bun
 .bun/
 .bun.lock
+
+.impeccable/

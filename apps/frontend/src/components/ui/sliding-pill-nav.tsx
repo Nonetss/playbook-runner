@@ -82,7 +82,7 @@ export function SlidingPillNav({
           aria-hidden
           className={cn(
             "pointer-events-none absolute left-0 top-0 rounded-lg bg-secondary shadow-sm",
-            "motion-safe:transition-[transform,width,height] motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.34,1.2,0.64,1)]",
+            "motion-safe:transition-[transform,width,height] motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.16,1,0.3,1)]",
             pillClassName
           )}
           style={{
