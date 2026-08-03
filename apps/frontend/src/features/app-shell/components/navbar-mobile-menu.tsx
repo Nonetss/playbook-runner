@@ -1,7 +1,7 @@
 import { Menu } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { flushSync } from "react-dom"
+import { useTranslation } from "react-i18next"
 import { AppLink } from "@/components/ui/app-link"
 import {
   Sheet,
@@ -89,15 +89,21 @@ export function NavbarMobileMenu({
                     key={href}
                     href={href}
                     className={cn(
-                      "rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+                      "relative rounded-lg px-3 py-2.5 font-medium text-sm transition-colors",
                       isActive
-                        ? "bg-secondary text-secondary-foreground shadow-sm"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     )}
                     onClick={closeBeforeNavigate}
                     onMouseEnter={onPrefetch?.(href)}
                     onFocus={onPrefetch?.(href)}
                   >
+                    {isActive ? (
+                      <span
+                        aria-hidden
+                        className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-primary"
+                      />
+                    ) : null}
                     {label}
                   </AppLink>
                 )
