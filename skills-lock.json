@@ -57,6 +57,12 @@
       "sourceType": "autoskills-registry",
       "computedHash": "bc1c40e71ec13faa82ab7e9464bfd57cc282780a1087b021d26ba0d2c082059b"
     },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "5e539d6bfd03da45238437d38eff5986720c2935ad624fe7ccc9ab55b6c922ca"
+    },
     "organization": {
       "source": "better-auth/skills",
       "sourceType": "autoskills-registry",
