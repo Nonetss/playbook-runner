@@ -15,8 +15,8 @@ The system SHALL build a per-request context exposing the resolved `user`, `sess
 ### Requirement: Public procedures
 The system SHALL provide a public procedure builder that requires no authentication.
 
-#### Scenario: Health check is publicly accessible
-- **WHEN** any client calls the `healthCheck` procedure
+#### Scenario: Version-one health check is publicly accessible
+- **WHEN** any client calls the `v1.healthCheck` procedure
 - **THEN** the system SHALL return `"OK"` without requiring authentication
 
 ### Requirement: Protected procedures
@@ -31,18 +31,19 @@ The system SHALL provide a protected procedure builder that rejects requests lac
 - **THEN** the handler SHALL execute with the user available on the context
 
 ### Requirement: Private data endpoint
-The system SHALL provide a protected `privateData` procedure that returns the authenticated user together with a message.
+The system SHALL provide a protected `v1.privateData` procedure that returns the authenticated user together with a message.
 
-#### Scenario: Authenticated user reads private data
-- **WHEN** an authenticated user calls `privateData`
+#### Scenario: Authenticated user reads version-one private data
+- **WHEN** an authenticated user calls `v1.privateData`
 - **THEN** the system SHALL return the user and a private message
 
 ### Requirement: RPC handler mounting
-The system SHALL serve all procedures through an RPC handler mounted under `/rpc`, dispatching each procedure by its name.
+The system SHALL serve all procedures through an RPC handler mounted under
+`/rpc`, dispatching versioned procedures by name.
 
-#### Scenario: Procedure is reachable by name
-- **WHEN** a request is sent to `/rpc/<procedureName>`
-- **THEN** the corresponding procedure SHALL be invoked
+#### Scenario: Version-one procedure is reachable by name
+- **WHEN** a request is sent to `/rpc/v1/<feature>/<procedure>`
+- **THEN** the corresponding version-one procedure SHALL be invoked
 
 ### Requirement: Resolve run procedure
 The system SHALL provide a protected procedure that resolves a playbook run request into an executable bundle. Given `{ playbookId, inventory: [{ id, type: "group" | "device" }] }`, it SHALL return the playbook's `name` and `content` together with a de-duplicated list of target hosts, each carrying its address, username, SSH port (when set), and the credential's private key. Group selections SHALL be expanded to their member devices via the device-group relations, and the result merged with directly-selected devices and de-duplicated by device id.
