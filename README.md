@@ -40,22 +40,22 @@ that name so a plain `docker compose up -d` picks it up), pulls the images from
 **Dashboard** — at a glance: jobs, playbooks, devices, and credentials, with
 quick-access shortcuts to the most common actions.
 
-![Dashboard](img/home.webp)
+![Dashboard](img/home.png)
 
 **Inventory** — manage devices, groups, and SSH credentials. Assign a
 credential to a device so every run picks the right key automatically.
 
-![Inventory](img/inventario.webp)
+![Inventory](img/inventario.png)
 
 **Job history** — browse every job the server has executed: status, schedule,
 and outcome at a glance, with quick access to each run's details.
 
-![Job history](img/cron.webp)
+![Job history](img/cron.png)
 
 **Live execution** — output streams into the browser as ansible-runner emits
 it. The inventory panel on the right shows which hosts are in scope.
 
-![Playbook execution](img/playbooks.webp)
+![Playbook execution](img/playbooks.png)
 
 **API reference** — every endpoint is documented in an interactive OpenAPI
 reference (Scalar) served at `/scalar`, with request/response schemas, error
