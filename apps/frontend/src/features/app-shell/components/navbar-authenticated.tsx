@@ -26,9 +26,7 @@ export interface NavbarAuthenticatedProps {
 function pillTextClassName(active: boolean) {
   return cn(
     "transition-colors duration-300",
-    active
-      ? "text-secondary-foreground"
-      : "text-muted-foreground hover:text-foreground"
+    active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
   )
 }
 
@@ -117,6 +115,7 @@ function NavbarAuthenticatedInner({
           <SlidingPillNav
             activeIndex={activeIndex}
             className="flex items-center gap-0.5 rounded-lg border bg-muted/40 p-1"
+            pillClassName="rounded-lg border border-border/60 bg-background shadow-sm"
           >
             {navLinks.map(({ href, label }) => {
               const isActive = isNavLinkActive(href, currentPath)
