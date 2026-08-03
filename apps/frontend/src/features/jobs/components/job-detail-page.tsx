@@ -159,7 +159,7 @@ function JobDetailPageInner({ id }: { id: string }) {
 
   if (jobLoading) {
     return (
-      <main className="flex h-[calc(100dvh-3.5rem)] w-full flex-1 items-center justify-center">
+      <main className="flex h-[calc(100dvh-var(--navbar-height))] w-full flex-1 items-center justify-center">
         <div className="text-muted-foreground flex items-center gap-2 text-sm">
           <Loader2 className="size-4 animate-spin" />
           {t("detail.loading")}
@@ -170,7 +170,7 @@ function JobDetailPageInner({ id }: { id: string }) {
 
   if (isError || !job) {
     return (
-      <main className="flex h-[calc(100dvh-3.5rem)] w-full flex-1 flex-col items-center justify-center gap-4 p-6">
+      <main className="flex h-[calc(100dvh-var(--navbar-height))] w-full flex-1 flex-col items-center justify-center gap-4 p-6">
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
           {t("detail.load_error")}
         </div>
@@ -185,13 +185,14 @@ function JobDetailPageInner({ id }: { id: string }) {
   }
 
   return (
-    <main className="flex h-[calc(100dvh-3.5rem)] w-full min-h-0 flex-col overflow-hidden">
+    <main className="flex h-[calc(100dvh-var(--navbar-height))] w-full min-h-0 flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex shrink-0 items-center gap-3 border-b px-6 py-3">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b px-3 py-3 sm:px-6">
         <Button
           asChild
           variant="ghost"
-          size="icon-sm"
+          size="icon"
+          className="size-10 shrink-0 sm:size-8"
           aria-label={t("detail.back_aria")}
         >
           <a href="/jobs">
@@ -224,8 +225,13 @@ function JobDetailPageInner({ id }: { id: string }) {
             ) : null}
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Button asChild variant="outline" size="sm">
+        <div className="flex w-full shrink-0 gap-2 sm:ml-auto sm:w-auto">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="min-h-10 flex-1 sm:min-h-8 sm:flex-none"
+          >
             <a href={`/jobs/${job.id}/edit`}>
               <Pencil className="size-4" />
               {t("detail.edit")}
@@ -233,6 +239,7 @@ function JobDetailPageInner({ id }: { id: string }) {
           </Button>
           <Button
             size="sm"
+            className="min-h-10 flex-1 sm:min-h-8 sm:flex-none"
             onClick={handleRunNow}
             disabled={
               runJob.isPending || watch.phase === "running" || !job.playbookId
@@ -249,11 +256,11 @@ function JobDetailPageInner({ id }: { id: string }) {
       </div>
 
       {/* Body */}
-      <div className="flex min-h-0 flex-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
         {/* ── Terminal ── */}
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-zinc-950">
           {/* Faux terminal title bar */}
-          <div className="flex shrink-0 items-center gap-2 border-b border-zinc-800/80 px-4 py-2">
+          <div className="flex shrink-0 items-center gap-2 border-b border-zinc-800/80 px-3 py-2 sm:px-4">
             <span className="flex gap-1.5">
               <span className="size-2.5 rounded-full bg-red-500/80" />
               <span className="size-2.5 rounded-full bg-amber-500/80" />
@@ -266,7 +273,7 @@ function JobDetailPageInner({ id }: { id: string }) {
             </span>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5">
+          <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain p-3 sm:p-5">
             {isWatchingSelected ? (
               <PlaybookRunConsole
                 events={watch.events}
@@ -286,7 +293,7 @@ function JobDetailPageInner({ id }: { id: string }) {
 
           {/* Error / result banners */}
           {isWatchingSelected && watch.errorMessage ? (
-            <div className="mx-5 mb-4 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400">
+            <div className="mx-3 mb-3 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400 sm:mx-5 sm:mb-4">
               <XCircle className="mt-0.5 size-3.5 shrink-0" />
               <span className="wrap-break-word">{watch.errorMessage}</span>
             </div>
@@ -295,7 +302,7 @@ function JobDetailPageInner({ id }: { id: string }) {
           {isWatchingSelected && watch.phase === "done" && watch.result ? (
             <div
               className={cn(
-                "mx-5 mb-4 flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs",
+                "mx-3 mb-3 flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs sm:mx-5 sm:mb-4",
                 watch.result.ok
                   ? "border-emerald-900/50 bg-emerald-950/40 text-emerald-400"
                   : "border-amber-900/50 bg-amber-950/40 text-amber-400"
@@ -315,7 +322,7 @@ function JobDetailPageInner({ id }: { id: string }) {
           ) : null}
 
           {!isWatchingSelected && selectedRun?.error ? (
-            <div className="mx-5 mb-4 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400">
+            <div className="mx-3 mb-3 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400 sm:mx-5 sm:mb-4">
               <XCircle className="mt-0.5 size-3.5 shrink-0" />
               <span className="wrap-break-word">{selectedRun.error}</span>
             </div>
@@ -323,7 +330,7 @@ function JobDetailPageInner({ id }: { id: string }) {
         </div>
 
         {/* ── History sidebar ── */}
-        <div className="flex w-72 shrink-0 flex-col gap-3 overflow-y-auto border-l p-4">
+        <div className="flex h-[38%] min-h-40 max-h-64 shrink-0 flex-col gap-2 overflow-y-auto border-t p-3 sm:gap-3 sm:p-4 lg:h-auto lg:min-h-0 lg:max-h-none lg:w-72 lg:border-t-0 lg:border-l">
           <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
             {t("detail.history")}
           </p>
@@ -340,7 +347,7 @@ function JobDetailPageInner({ id }: { id: string }) {
               {t("detail.empty_runs_suffix")}
             </p>
           ) : (
-            <ul className="space-y-0.5">
+            <ul className="space-y-1 lg:space-y-0.5">
               {runs.map((run) => {
                 const active = run.id === selectedId
                 return (
@@ -349,7 +356,7 @@ function JobDetailPageInner({ id }: { id: string }) {
                       type="button"
                       onClick={() => handleSelectRun(run.id)}
                       className={cn(
-                        "w-full rounded-md px-2 py-1.5 text-left text-sm transition-colors",
+                        "min-h-11 w-full rounded-md px-2 py-2.5 text-left text-sm transition-colors lg:min-h-0 lg:py-1.5",
                         active ? "bg-accent" : "hover:bg-accent/50"
                       )}
                     >
