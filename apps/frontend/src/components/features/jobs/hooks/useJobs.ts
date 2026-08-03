@@ -290,7 +290,8 @@ export function useJobRunWatch() {
     unsubscribeRef.current = consumeEventIterator(
       client.v1.jobs.runs.watch({ runId }),
       {
-        onEvent: (event) => setEvents((prev) => [...prev, event as JobRunEvent]),
+        onEvent: (event) =>
+          setEvents((prev) => [...prev, event as JobRunEvent]),
         onSuccess: (value) => {
           if (value) {
             setResult(value)
