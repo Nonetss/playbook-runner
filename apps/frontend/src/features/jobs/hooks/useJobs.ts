@@ -20,8 +20,10 @@ export const useJobGet = (id: string, options?: { enabled?: boolean }) =>
   )
 
 /**
- * List a job's runs. While `live` is on, polls so a freshly-triggered run
- * flips from `running` to its terminal status without a manual refresh.
+ * List a job's runs. While `live` is on, polls only as long as one of the
+ * listed runs is still `running`, so a freshly-triggered run flips to its
+ * terminal status without a manual refresh — then polling stops on its own
+ * instead of continuing indefinitely while the page stays open.
  */
 export const useJobRunsList = (
   jobId: string,
@@ -31,7 +33,12 @@ export const useJobRunsList = (
     orpc.jobs.runs.list.queryOptions({
       input: { jobId },
       enabled: !!jobId && (options?.enabled ?? true),
-      refetchInterval: options?.live ? 3000 : false,
+      refetchInterval: options?.live
+        ? (query) =>
+            query.state.data?.some((run) => run.status === "running")
+              ? 3000
+              : false
+        : false,
     })
   )
 
