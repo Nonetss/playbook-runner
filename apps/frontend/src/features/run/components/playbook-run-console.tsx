@@ -212,10 +212,10 @@ const STATUS_META: Record<
   { icon: typeof Server; textClass: string }
 > = {
   running: { icon: Loader2, textClass: "text-primary" },
-  ok: { icon: CheckCircle2, textClass: "text-foreground" },
-  changed: { icon: CheckCircle2, textClass: "text-destructive" },
-  failed: { icon: XCircle, textClass: "text-destructive" },
-  unreachable: { icon: AlertTriangle, textClass: "text-destructive" },
+  ok: { icon: CheckCircle2, textClass: "text-emerald-600 dark:text-emerald-400" },
+  changed: { icon: CheckCircle2, textClass: "text-amber-600 dark:text-amber-400" },
+  failed: { icon: XCircle, textClass: "text-red-600 dark:text-red-400" },
+  unreachable: { icon: AlertTriangle, textClass: "text-red-600 dark:text-red-400" },
   skipped: { icon: MinusCircle, textClass: "text-muted-foreground" },
 }
 

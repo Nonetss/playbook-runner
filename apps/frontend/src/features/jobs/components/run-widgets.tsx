@@ -50,15 +50,15 @@ export const RUN_STATUS_META: Record<
     icon: Loader2,
   },
   ok: {
-    className: "border-border bg-muted/20 text-foreground",
+    className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
     icon: CheckCircle2,
   },
   partial: {
-    className: "border-destructive/40 bg-destructive/10 text-destructive",
+    className: "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400",
     icon: AlertTriangle,
   },
   failed: {
-    className: "border-destructive/40 bg-destructive/10 text-destructive",
+    className: "border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400",
     icon: XCircle,
   },
 }
@@ -101,7 +101,7 @@ export function RunHostSummary({
     >
       {failed > 0 ? (
         <>
-          <span className="text-destructive">
+          <span className="text-red-600 dark:text-red-400">
             {t("hosts.failed", { count: failed })}
           </span>
           {" · "}
