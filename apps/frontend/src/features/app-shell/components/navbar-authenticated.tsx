@@ -13,12 +13,9 @@ import { NavbarMobileMenu } from "@/features/app-shell/components/navbar-mobile-
 import { ThemeToggle } from "@/features/app-shell/components/theme-toggle"
 import { UserNav } from "@/features/app-shell/components/user-nav"
 import { navTriggerClass } from "@/features/app-shell/nav-trigger"
-import {
-  getSiteNavItems,
-  isNavLinkActive,
-} from "@/features/app-shell/site-nav"
-import { useScrolled } from "@/hooks/useScrolled"
+import { getSiteNavItems, isNavLinkActive } from "@/features/app-shell/site-nav"
 import { usePathname } from "@/hooks/usePathname"
+import { useScrolled } from "@/hooks/useScrolled"
 import { cn } from "@/lib/utils"
 
 export interface NavbarAuthenticatedProps {

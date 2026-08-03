@@ -1,0 +1,291 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-01T14:10:32Z",
+  "title": "Design System: nonete",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Brand Terracotta",
+        "canonical": "oklch(0.6724 0.1308 38.7559)",
+        "tonalRamp": [
+          "oklch(0.18 0.05 38.7559)",
+          "oklch(0.30 0.08 38.7559)",
+          "oklch(0.42 0.10 38.7559)",
+          "oklch(0.54 0.12 38.7559)",
+          "oklch(0.6724 0.1308 38.7559)",
+          "oklch(0.78 0.10 38.7559)",
+          "oklch(0.88 0.06 38.7559)",
+          "oklch(0.96 0.02 38.7559)"
+        ]
+      },
+      "neutral-bg": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "oklch(0.9818 0.0054 95.0986)",
+        "tonalRamp": [
+          "oklch(0.20 0.005 95)",
+          "oklch(0.34 0.027 95.7)",
+          "oklch(0.53 0.008 97.4)",
+          "oklch(0.72 0.005 96)",
+          "oklch(0.86 0.005 95)",
+          "oklch(0.92 0.004 98.3)",
+          "oklch(0.966 0.006 97.3)",
+          "oklch(0.9818 0.0054 95.1)"
+        ]
+      },
+      "neutral-fg": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(0.3438 0.0269 95.7226)",
+        "tonalRamp": [
+          "oklch(0.18 0.002 106.5)",
+          "oklch(0.34 0.027 95.7)",
+          "oklch(0.53 0.008 97.4)",
+          "oklch(0.77 0.017 99)",
+          "oklch(0.92 0.005 98)",
+          "oklch(0.96 0.005 98)",
+          "oklch(0.98 0.005 95)",
+          "oklch(0.99 0.005 95)"
+        ]
+      },
+      "neutral-card": {
+        "role": "neutral",
+        "displayName": "Card Tint",
+        "canonical": "oklch(0.9665 0.0067 97.3521 / 0.4)",
+        "tonalRamp": [
+          "oklch(0.20 0.005 95 / 0.4)",
+          "oklch(0.34 0.027 95.7 / 0.4)",
+          "oklch(0.53 0.008 97.4 / 0.4)",
+          "oklch(0.72 0.005 96 / 0.4)",
+          "oklch(0.85 0.005 95 / 0.4)",
+          "oklch(0.92 0.004 98.3 / 0.4)",
+          "oklch(0.966 0.006 97.3 / 0.4)",
+          "oklch(0.98 0.005 95 / 0.4)"
+        ]
+      },
+      "neutral-border": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "oklch(0.94 0.003 97.3627)",
+        "tonalRamp": [
+          "oklch(0.30 0.005 100 / 0.6)",
+          "oklch(0.40 0.005 100 / 0.6)",
+          "oklch(0.55 0.005 100 / 0.5)",
+          "oklch(0.70 0.005 100 / 0.5)",
+          "oklch(0.80 0.004 98 / 0.5)",
+          "oklch(0.88 0.003 97 / 0.5)",
+          "oklch(0.94 0.003 97.3)",
+          "oklch(0.96 0.003 97)"
+        ]
+      },
+      "destructive": {
+        "role": "destructive",
+        "displayName": "Editorial Ink",
+        "canonical": "oklch(0.1908 0.002 106.5859)",
+        "tonalRamp": [
+          "oklch(0.18 0.002 106.5)",
+          "oklch(0.30 0.04 30)",
+          "oklch(0.42 0.10 25)",
+          "oklch(0.54 0.15 24)",
+          "oklch(0.63 0.21 25)",
+          "oklch(0.74 0.18 28)",
+          "oklch(0.86 0.10 35)",
+          "oklch(0.95 0.04 50)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page titles in PageHero/DetailPageHeader. Single line. tracking-tight."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Row names, tile titles, dialog titles. tracking-tight."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Prose, descriptions, form values. Default reading text."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Micro-caps field labels and tile subaccess. The signature detail."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Technical values: cron expressions, IDs, durations, timestamps. Always tabular-nums."
+      }
+    },
+    "shadows": [
+      {
+        "name": "ambient-focus",
+        "value": "0 0 0 2px var(--ring)",
+        "purpose": "Keyboard focus ring on interactive elements only."
+      },
+      {
+        "name": "dialog-overlay",
+        "value": "0 0 0 100vmax oklch(0 0 0 / 0.5)",
+        "purpose": "Dialog backdrop (Radix default, not a design choice)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "ease-out",
+        "purpose": "Default easing for dash-enter and dash-pop utilities."
+      },
+      {
+        "name": "dash-enter",
+        "value": "dash-enter 0.3s ease-out both",
+        "purpose": "Staggered list/grid entrance; per-item --dash-delay (~40ms)."
+      },
+      {
+        "name": "dash-pop",
+        "value": "dash-pop 0.25s ease-out both",
+        "purpose": "Pop-in for icons nested inside dash-enter containers."
+      },
+      {
+        "name": "theme-reveal",
+        "value": "clip-path circle grow 0.4s",
+        "purpose": "Theme toggle circular reveal (use-theme-toggle.ts)."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "2xl", "value": "1536px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Page Hero",
+      "kind": "custom",
+      "refersTo": "page-shell-default",
+      "description": "Icon + title + description + meta row. The signature header used at the top of every list page and overview.",
+      "html": "<header class=\"ds-page-hero\">\n  <div class=\"ds-page-hero-row\">\n    <div class=\"ds-page-hero-id\">\n      <div class=\"ds-page-hero-icon\">\n        <svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/></svg>\n      </div>\n      <div class=\"ds-page-hero-text\">\n        <h1 class=\"ds-page-hero-title\">Crons</h1>\n        <p class=\"ds-page-hero-desc\">Jobs programados del sistema.</p>\n      </div>\n    </div>\n    <div class=\"ds-page-hero-meta\">\n      <button type=\"button\" class=\"ds-btn-primary\">Crear cron</button>\n    </div>\n  </div>\n</header>",
+      "css": ".ds-page-hero { display: flex; flex-direction: column; gap: 1rem; }\n.ds-page-hero-row { display: flex; flex-direction: column; gap: 0.75rem; justify-content: space-between; }\n@media (min-width: 640px) { .ds-page-hero-row { flex-direction: row; align-items: flex-start; } }\n.ds-page-hero-id { display: flex; min-width: 0; align-items: center; gap: 0.625rem; }\n.ds-page-hero-icon { display: flex; width: 1.25rem; height: 1.25rem; flex-shrink: 0; align-items: center; justify-content: center; color: var(--primary); }\n.ds-page-hero-text { min-width: 0; }\n.ds-page-hero-title { margin: 0; font-family: var(--font-sans); font-size: 1.125rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.025em; }\n.ds-page-hero-desc { margin: 0.125rem 0 0 0; font-size: 0.75rem; color: var(--muted-foreground); }\n.ds-page-hero-meta { display: flex; width: 100%; flex-wrap: wrap; align-items: center; gap: 0.5rem; }\n@media (min-width: 640px) { .ds-page-hero-meta { width: auto; justify-content: flex-end; } }\n\n.ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; height: 2.25rem; padding: 0 1rem; border: 0; border-radius: 0.25rem; background-color: var(--primary); color: var(--primary-foreground); font-family: var(--font-sans); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: opacity 0.15s ease-out; }\n.ds-btn-primary:hover { opacity: 0.9; }\n.ds-btn-primary:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }"
+    },
+    {
+      "name": "Row List Container",
+      "kind": "card",
+      "refersTo": "row-list-container",
+      "description": "Single divide-y container for any list page. One container per page; rows are never free-floating cards.",
+      "html": "<div class=\"ds-list\">\n  <a class=\"ds-row\" href=\"/crons/abc\" style=\"--dash-delay: 0ms;\">\n    <span class=\"ds-row-dot\" aria-hidden=\"true\"></span>\n    <div class=\"ds-row-name\">nightly-backup</div>\n    <div class=\"ds-row-meta\">\n      <div class=\"ds-row-meta-item\"><span class=\"ds-row-meta-label\">Expresión</span><span class=\"ds-row-meta-value\">0 3 * * *</span></div>\n      <div class=\"ds-row-meta-item\"><span class=\"ds-row-meta-label\">Última</span><span class=\"ds-row-meta-value\">hace 4 h</span></div>\n    </div>\n  </a>\n  <a class=\"ds-row ds-row-disabled\" href=\"/crons/def\" style=\"--dash-delay: 40ms;\">\n    <span class=\"ds-row-dot ds-row-dot-inactive\" aria-hidden=\"true\"></span>\n    <div class=\"ds-row-name\">metrics-flush</div>\n    <div class=\"ds-row-meta\">\n      <div class=\"ds-row-meta-item\"><span class=\"ds-row-meta-label\">Expresión</span><span class=\"ds-row-meta-value\">*/15 * * * *</span></div>\n      <div class=\"ds-row-meta-item\"><span class=\"ds-row-meta-label\">Estado</span><span class=\"ds-row-meta-value\">Deshabilitado</span></div>\n    </div>\n  </a>\n</div>",
+      "css": ".ds-list { overflow: hidden; border-radius: 0.75rem; border: 1px solid var(--border); background-color: oklch(0.9665 0.0067 97.3521 / 0.4); }\n.ds-row { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.25rem; border-top: 1px solid var(--border); text-decoration: none; color: var(--foreground); transition: background-color 0.15s ease-out; animation: ds-dash-enter 0.3s ease-out both; animation-delay: var(--dash-delay, 0ms); }\n.ds-row:first-child { border-top: 0; }\n.ds-row:hover { background-color: oklch(0.9341 0.0153 90.239 / 0.4); }\n.ds-row:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }\n.ds-row-disabled { opacity: 0.6; }\n.ds-row-dot { display: inline-block; width: 0.375rem; height: 0.375rem; border-radius: 9999px; background-color: var(--primary); flex-shrink: 0; }\n.ds-row-dot-inactive { background-color: var(--border); }\n.ds-row-name { font-family: var(--font-sans); font-weight: 500; font-size: 0.875rem; letter-spacing: -0.01em; flex: 1; min-width: 0; }\n.ds-row:hover .ds-row-name { color: var(--primary); }\n.ds-row-meta { display: grid; grid-template-columns: auto auto; gap: 0.5rem 1.5rem; align-items: center; }\n.ds-row-meta-item { display: flex; flex-direction: column; gap: 0.125rem; }\n.ds-row-meta-label { font-family: var(--font-sans); font-size: 0.625rem; font-weight: 500; color: oklch(0.5341 0.0078 97.4503 / 0.8); text-transform: uppercase; letter-spacing: 0.12em; }\n.ds-row-meta-value { font-family: var(--font-mono); font-size: 0.75rem; font-variant-numeric: tabular-nums; color: var(--muted-foreground); }\n@keyframes ds-dash-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }"
+    },
+    {
+      "name": "Section Nav Tile",
+      "kind": "card",
+      "refersTo": "section-nav-tile",
+      "description": "Quiet tile used in section-nav grids (home hubs, /admin, /config). Flat accent icon, no backdrop box.",
+      "html": "<a class=\"ds-snav\" href=\"/crons\" style=\"--dash-delay: 0ms;\">\n  <svg class=\"ds-snav-icon\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/></svg>\n  <div class=\"ds-snav-body\">\n    <h2 class=\"ds-snav-title\">Crons</h2>\n    <p class=\"ds-snav-desc\">Jobs programados que ejecuta el worker del sistema.</p>\n  </div>\n  <div class=\"ds-snav-cta\">\n    Entrar\n    <svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m9 6 6 6-6 6\"/></svg>\n  </div>\n</a>",
+      "css": ".ds-snav { position: relative; display: flex; flex-direction: column; overflow: hidden; border-radius: 0.75rem; border: 1px solid var(--border); background-color: oklch(0.9665 0.0067 97.3521 / 0.4); padding: 1.25rem; color: var(--foreground); text-decoration: none; transition: background-color 0.15s ease-out; animation: ds-dash-enter 0.3s ease-out both; animation-delay: var(--dash-delay, 0ms); }\n.ds-snav:hover { background-color: oklch(0.9341 0.0153 90.239 / 0.4); }\n.ds-snav:hover .ds-snav-cta { color: var(--foreground); }\n.ds-snav:hover .ds-snav-cta svg { transform: translateX(2px); }\n.ds-snav:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }\n.ds-snav-icon { color: var(--primary); width: 1.25rem; height: 1.25rem; }\n.ds-snav-body { margin-top: 1rem; min-height: 0; flex: 1; }\n.ds-snav-title { margin: 0; font-family: var(--font-sans); font-size: 1rem; font-weight: 500; letter-spacing: -0.01em; }\n.ds-snav-desc { margin: 0.125rem 0 0 0; font-size: 0.75rem; color: var(--muted-foreground); line-height: 1.5; }\n.ds-snav-cta { margin-top: 1.5rem; display: flex; align-items: center; gap: 0.25rem; font-family: var(--font-sans); font-size: 0.75rem; color: var(--muted-foreground); transition: color 0.15s ease-out; }\n.ds-snav-cta svg { transition: transform 0.15s ease-out; }"
+    },
+    {
+      "name": "State Card",
+      "kind": "card",
+      "refersTo": "state-card-default",
+      "description": "Dashed placeholder for empty/loading/error states. No icon box; tone controls the icon color.",
+      "html": "<div class=\"ds-state dash-enter\" style=\"--dash-delay: 0ms;\">\n  <div class=\"ds-state-icon\">\n    <svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 8v4\"/><path d=\"M12 16h.01\"/></svg>\n  </div>\n  <div class=\"ds-state-body\">\n    <p class=\"ds-state-title\">Sin resultados</p>\n    <p class=\"ds-state-desc\">No hay crons que coincidan con tu búsqueda. Probá limpiar los filtros.</p>\n  </div>\n  <div class=\"ds-state-action\">\n    <button type=\"button\" class=\"ds-btn-outline\">Limpiar filtros</button>\n  </div>\n</div>",
+      "css": ".ds-state { position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; overflow: hidden; border-radius: 0.75rem; border: 1px dashed var(--border); background-color: oklch(0.9665 0.0067 97.3521 / 0.4); padding: 4rem 1.5rem; text-align: center; }\n.ds-state-icon { display: flex; width: 2.5rem; height: 2.5rem; align-items: center; justify-content: center; color: var(--muted-foreground); animation: ds-dash-pop 0.25s ease-out both; animation-delay: var(--dash-delay, 0ms); }\n.ds-state-title { margin: 0; font-family: var(--font-sans); font-size: 1rem; font-weight: 500; letter-spacing: -0.01em; color: var(--foreground); }\n.ds-state-desc { margin: 0.25rem auto 0 auto; max-width: 24rem; font-family: var(--font-sans); font-size: 0.875rem; line-height: 1.5; color: var(--muted-foreground); }\n.ds-state-action { position: relative; margin-top: 0.25rem; }\n\n.ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; height: 2.25rem; padding: 0 1rem; border: 1px solid var(--border); border-radius: 0.25rem; background-color: transparent; color: var(--foreground); font-family: var(--font-sans); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: background-color 0.15s ease-out; }\n.ds-btn-outline:hover { background-color: oklch(0.9341 0.0153 90.239 / 0.4); }\n.ds-btn-outline:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }\n\n@keyframes ds-dash-pop { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }\n@keyframes ds-dash-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }"
+    },
+    {
+      "name": "Form Dialog",
+      "kind": "custom",
+      "refersTo": "form-dialog-header",
+      "description": "Editorial chrome: p-0 frame, border-b header, border-t footer, tracking-tight title, micro-caps labels.",
+      "html": "<div class=\"ds-dialog-backdrop\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"ds-dialog-title\">\n  <div class=\"ds-dialog\">\n    <header class=\"ds-dialog-header\">\n      <h2 id=\"ds-dialog-title\" class=\"ds-dialog-title\">Crear cron</h2>\n      <p class=\"ds-dialog-desc\">Definí nombre, expresión y handler. El worker lo recoge en el próximo tick.</p>\n    </header>\n    <form class=\"ds-dialog-form\">\n      <div class=\"ds-dialog-body\">\n        <div class=\"ds-field\">\n          <label class=\"ds-field-label\" for=\"ds-field-name\">Nombre</label>\n          <input id=\"ds-field-name\" type=\"text\" class=\"ds-input\" value=\"nightly-backup\"/>\n        </div>\n        <div class=\"ds-field\">\n          <label class=\"ds-field-label\" for=\"ds-field-expr\">Expresión</label>\n          <input id=\"ds-field-expr\" type=\"text\" class=\"ds-input ds-input-mono\" value=\"0 3 * * *\" />\n        </div>\n      </div>\n      <footer class=\"ds-dialog-footer\">\n        <button type=\"button\" class=\"ds-btn-outline\">Cancelar</button>\n        <button type=\"submit\" class=\"ds-btn-primary\">Crear cron</button>\n      </footer>\n    </form>\n  </div>\n</div>",
+      "css": ".ds-dialog-backdrop { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background-color: oklch(0 0 0 / 0.5); padding: 1rem; }\n.ds-dialog { display: flex; flex-direction: column; width: 100%; max-width: 32rem; max-height: calc(100vh - 2rem); background-color: var(--background); border: 1px solid var(--border); border-radius: 0.5rem; overflow: hidden; }\n.ds-dialog-header { display: flex; flex-direction: column; gap: 0.375rem; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); text-align: left; }\n.ds-dialog-title { margin: 0; font-family: var(--font-sans); font-size: 1.125rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.025em; color: var(--foreground); }\n.ds-dialog-desc { margin: 0; font-family: var(--font-sans); font-size: 0.75rem; line-height: 1.5; color: var(--muted-foreground); }\n.ds-dialog-form { display: flex; flex-direction: column; overflow-y: auto; }\n.ds-dialog-body { display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem 1.5rem; }\n.ds-dialog-footer { display: flex; justify-content: flex-end; gap: 0.5rem; padding: 1rem 1.5rem; border-top: 1px solid var(--border); }\n\n.ds-field { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }\n.ds-field-label { display: block; font-family: var(--font-sans); font-size: 0.625rem; font-weight: 500; color: oklch(0.5341 0.0078 97.4503 / 0.8); text-transform: uppercase; letter-spacing: 0.12em; }\n\n.ds-input { display: block; width: 100%; height: 2.25rem; padding: 0 0.75rem; border: 1px solid var(--input); border-radius: 0.375rem; background-color: transparent; color: var(--foreground); font-family: var(--font-sans); font-size: 0.875rem; }\n.ds-input:focus { outline: 2px solid var(--ring); outline-offset: 2px; border-color: var(--ring); }\n.ds-input-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Field Label",
+      "kind": "custom",
+      "refersTo": "field-label",
+      "description": "The micro-caps label signature. Repeats across fact rows, tile subaccess, filter rows, and form fields.",
+      "html": "<div class=\"ds-label-stack\">\n  <p class=\"ds-label\">Expresión</p>\n  <div class=\"ds-label-value\">0 3 * * *</div>\n</div>",
+      "css": ".ds-label-stack { display: flex; flex-direction: column; gap: 0.375rem; min-width: 0; }\n.ds-label { margin: 0; font-family: var(--font-sans); font-size: 0.625rem; font-weight: 500; color: oklch(0.5341 0.0078 97.4503 / 0.8); text-transform: uppercase; letter-spacing: 0.12em; }\n.ds-label-value { font-family: var(--font-mono); font-size: 0.75rem; font-variant-numeric: tabular-nums; color: var(--foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "page-shell-default",
+      "description": "Compact 8-px icon-left search input used in FilterBar rows.",
+      "html": "<div class=\"ds-search\">\n  <svg class=\"ds-search-icon\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"7\"/><path d=\"m21 21-3.5-3.5\"/></svg>\n  <input type=\"search\" class=\"ds-search-input\" placeholder=\"Buscar…\" />\n</div>",
+      "css": ".ds-search { position: relative; width: 100%; }\n@media (min-width: 640px) { .ds-search { max-width: 20rem; } }\n.ds-search-icon { position: absolute; top: 50%; left: 0.625rem; width: 0.875rem; height: 0.875rem; transform: translateY(-50%); color: var(--muted-foreground); pointer-events: none; }\n.ds-search-input { display: block; width: 100%; height: 2rem; padding: 0 0.75rem 0 2rem; border: 1px solid var(--input); border-radius: 0.375rem; background-color: transparent; color: var(--foreground); font-family: var(--font-sans); font-size: 0.875rem; }\n.ds-search-input::placeholder { color: var(--muted-foreground); }\n.ds-search-input:focus { outline: 2px solid var(--ring); outline-offset: 2px; border-color: var(--ring); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Marginalia: cronógrafo tipográfico.",
+    "overview": "nonete is a quiet-editorial technical console. Every page reads like a watchmaker's catalogue page or a typeset datasheet: a single primary hero, a facts strip or list, and a state column — never a wall of cards. The personality is typography-first, monochrome-by-default, one-accent-by-policy: hierarchy comes from size, weight, tracking, and tabular numerals, not from a rainbow of semantic colors. The single warm accent (Brand Terracotta) is reserved for the hero icon, the primary CTA, and the 'alive' state dot. Everything else is the foreground / muted-foreground / border vocabulary of a printed page.\n\nDensity is calm rather than compact. Containers are flat by default (no shadows, no glows); depth comes from border-y rules, divide-y lists, and one optional rounded-xl border bg-card/40 for navigation tiles or state blocks. Motion is short and useful: a 0.3s staggered entrance (dash-enter, ~40ms per item) and a 0.25s pop (dash-pop) for nested icons. The whole product lives in a 6xl overview / 4xl detail rhythm, framed by PageShell, headed by PageHero (or DetailPageHeader for detail pages). Anti-references: 'shadcn by default with badge primary + badge outline + icon box primary/15', and any surface that uses cards where a divide-y list would do.",
+    "keyCharacteristics": [
+      "Monochrome page; one warm accent reserved for three jobs.",
+      "Hierarchy lives in type, not color.",
+      "Lists are divide-y, not free-floating cards.",
+      "Hairlines (border-y, divide-y, dialog border-b / border-t) carry structure.",
+      "Motion is staggered entrance + pop, never decorative."
+    ],
+    "rules": [
+      {
+        "name": "The Marginalia Rule",
+        "body": "Every screen must pass this test: if the design 'shows up' because it adds color, a card, a glow, or a chip cluster, it is almost certainly out of style. It earns notice by making the eye land on the name, the expression, and the state — not on the chrome.",
+        "section": "overview"
+      },
+      {
+        "name": "The One Accent Rule",
+        "body": "Brand Terracotta appears on ≤ 3 elements per screen: hero icon, primary CTA, alive-state dot. It is never used for badges, success indicators, info, or warning. Its rarity is the point.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Green-No-Blue-No-Amber Rule",
+        "body": "Inventing semantic colors for success / info / warning is prohibited. Success is communicated by a bg-foreground dot and the word 'ok'; failure is the destructive ramp above; everything else is mute.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular-Nums Rule",
+        "body": "Any column or list of values rendered with font-mono must include tabular-nums so digits line up. Default Tailwind doesn't apply it; add it on every mono block that aligns.",
+        "section": "typography"
+      },
+      {
+        "name": "The Label-Not-Badge Rule",
+        "body": "Field labels, counts, and statuses are typeset as micro-caps text, not as Badge components. If a value can be expressed as <FieldLabel/> it must be.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Surfaces are flat at rest. Shadows appear only as a response to state (focus ring, dialog overlay, dropdown menus) and use the small Tailwind/Shadcn ramp. Decorative shadow-md / shadow-lg / shadow-xl on rows, tiles, or heroes is out of style.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use PageShell to frame every authenticated page; let it own QueryProvider, padding, and max-width.",
+      "Do keep the page header to one icon, one title, one description, and one primary action. Counters and statuses are typeset, not badged.",
+      "Do express state as a dot (bg-primary / bg-border / bg-destructive / bg-foreground) plus a micro-caps label, never as a filled Badge.",
+      "Do reserve Brand Terracotta for hero icon, primary CTA, and 'alive' state dot.",
+      "Do wrap list rows in one divide-y container; one container per page.",
+      "Do use FieldLabel (text-[0.625rem] uppercase tracking-[0.12em]) for every fact-row label and form label.",
+      "Do use font-mono tabular-nums for cron expressions, durations, ISO timestamps, and IDs.",
+      "Do animate list entrances with dash-enter and a --dash-delay step of ~40ms.",
+      "Do reach for FormDialog + FormField for every create/edit dialog; let it own header/footer hairlines.",
+      "Do keep DialogHeader border-b and DialogFooter border-t; long bodies separated with border-t.",
+      "Do reach for AppLink for internal routing; raw <a> is out.",
+      "Do format dates through @/lib/format; never reinvent formatDate."
+    ],
+    "donts": [
+      "Don't wrap an icon in rounded-lg bg-primary/15 text-primary on a row or tile; the flat accent is the accent.",
+      "Don't invent semantic colors for success / info / warning; success is bg-foreground + word, failure is destructive, neutral state is bg-border.",
+      "Don't render rows as free-floating cards with shadow-md; one divide-y container.",
+      "Don't count things with Badge variant=\"outline\"; typeset '3 activos · 5 total' as text.",
+      "Don't nest cards (Card inside Card, or Card around a facts grid); border-y + <dl> is enough.",
+      "Don't use gradients, glow, or decorative shadow-lg / shadow-xl in product chrome.",
+      "Don't build chip / pill clusters in the hero or on tiles; subaccess is a typographic list.",
+      "Don't add another <main class=\"container…\"> in the .astro; PageShell is the frame.",
+      "Don't use formatDate / formatDateTime locals; the helper @/lib/format is the source of truth.",
+      "Don't link internally with raw <a>; AppLink is the source of truth.",
+      "Don't use generic DialogContent + Label for forms; reach for FormDialog + FieldLabel.",
+      "Don't reach for Badge, Button chips, or primary-colored borders when type and dots would do."
+    ]
+  }
+}

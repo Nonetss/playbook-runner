@@ -1,6 +1,6 @@
+import { AppLink } from "@/components/ui/app-link"
 import { AppLogo } from "@/features/app-shell/components/app-logo"
 import { ThemeToggle } from "@/features/app-shell/components/theme-toggle"
-import { AppLink } from "@/components/ui/app-link"
 import { useScrolled } from "@/hooks/useScrolled"
 import { cn } from "@/lib/utils"
 
