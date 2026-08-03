@@ -16,7 +16,7 @@ The system SHALL build a per-request context exposing the resolved `user`, `sess
 The system SHALL provide a public procedure builder that requires no authentication.
 
 #### Scenario: Version-one health check is publicly accessible
-- **WHEN** any client calls the `v1.healthCheck` procedure
+- **WHEN** any client calls the `v1.health.check` procedure
 - **THEN** the system SHALL return `"OK"` without requiring authentication
 
 ### Requirement: Protected procedures
@@ -31,10 +31,10 @@ The system SHALL provide a protected procedure builder that rejects requests lac
 - **THEN** the handler SHALL execute with the user available on the context
 
 ### Requirement: Private data endpoint
-The system SHALL provide a protected `v1.privateData` procedure that returns the authenticated user together with a message.
+The system SHALL provide a protected `v1.private.data` procedure that returns the authenticated user together with a message.
 
 #### Scenario: Authenticated user reads version-one private data
-- **WHEN** an authenticated user calls `v1.privateData`
+- **WHEN** an authenticated user calls `v1.private.data`
 - **THEN** the system SHALL return the user and a private message
 
 ### Requirement: RPC handler mounting
