@@ -111,6 +111,7 @@
     "trigger_manual": "Manual",
     "output": "Output",
     "select_run": "Select a run to see its output.",
+    "result_finished_with_status": "Run finished — status {{status}}",
     "not_found": "Job not found."
   },
   "hosts": {

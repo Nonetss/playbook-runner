@@ -1,5 +1,15 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { ArrowLeft, Clock, Loader2, Pencil, Play, XCircle } from "lucide-react"
+import {
+  AlertTriangle,
+  ArrowLeft,
+  BriefcaseIcon,
+  CheckCircle2,
+  Clock,
+  Loader2,
+  Pencil,
+  Play,
+  XCircle,
+} from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
@@ -149,7 +159,7 @@ function JobDetailPageInner({ id }: { id: string }) {
 
   if (jobLoading) {
     return (
-      <main className="flex w-full flex-1 items-center justify-center p-6">
+      <main className="flex h-[calc(100dvh-3.5rem)] w-full flex-1 items-center justify-center">
         <div className="text-muted-foreground flex items-center gap-2 text-sm">
           <Loader2 className="size-4 animate-spin" />
           {t("detail.loading")}
@@ -160,11 +170,11 @@ function JobDetailPageInner({ id }: { id: string }) {
 
   if (isError || !job) {
     return (
-      <main className="w-full flex-1 p-6 lg:px-8">
+      <main className="flex h-[calc(100dvh-3.5rem)] w-full flex-1 flex-col items-center justify-center gap-4 p-6">
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
           {t("detail.load_error")}
         </div>
-        <Button asChild variant="outline" className="mt-4">
+        <Button asChild variant="outline">
           <a href="/jobs">
             <ArrowLeft className="size-4" />
             {t("detail.back_to_jobs")}
@@ -175,58 +185,58 @@ function JobDetailPageInner({ id }: { id: string }) {
   }
 
   return (
-    <main className="w-full min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6 lg:px-8">
+    <main className="flex h-[calc(100dvh-3.5rem)] w-full min-h-0 flex-col overflow-hidden">
       {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
-        <div className="flex min-w-0 items-center gap-3">
-          <Button
-            asChild
-            variant="ghost"
-            size="icon-sm"
-            aria-label={t("detail.back_aria")}
-          >
-            <a href="/jobs">
-              <ArrowLeft className="size-4" />
-            </a>
-          </Button>
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-2xl font-bold tracking-tight">
-              {job.name}
-            </h1>
-            <div className="text-muted-foreground mt-0.5 flex flex-wrap items-center gap-2 text-sm">
-              {job.cronExpression ? (
-                <Badge variant="secondary" className="gap-1 font-mono text-xs">
-                  <Clock className="size-3" />
-                  {job.cronExpression}
-                </Badge>
-              ) : (
-                <span>{t("detail.manual_execution")}</span>
-              )}
-              {!job.enabled ? (
-                <Badge
-                  variant="outline"
-                  className="text-muted-foreground text-xs"
-                >
-                  {t("detail.disabled")}
-                </Badge>
-              ) : null}
-            </div>
+      <div className="flex shrink-0 items-center gap-3 border-b px-6 py-3">
+        <Button
+          asChild
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t("detail.back_aria")}
+        >
+          <a href="/jobs">
+            <ArrowLeft className="size-4" />
+          </a>
+        </Button>
+        <div className="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-md">
+          <BriefcaseIcon className="size-4.5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-base font-semibold leading-tight">
+            {job.name}
+          </h1>
+          <div className="text-muted-foreground mt-1.5 flex flex-wrap items-center gap-2 text-xs">
+            {job.cronExpression ? (
+              <Badge variant="secondary" className="gap-1 font-mono text-xs">
+                <Clock className="size-3" />
+                {job.cronExpression}
+              </Badge>
+            ) : (
+              <span>{t("detail.manual_execution")}</span>
+            )}
+            {!job.enabled ? (
+              <Badge
+                variant="outline"
+                className="text-muted-foreground text-xs"
+              >
+                {t("detail.disabled")}
+              </Badge>
+            ) : null}
           </div>
         </div>
-
-        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
-          <Button asChild variant="outline" className="flex-1 sm:flex-none">
+        <div className="flex shrink-0 items-center gap-2">
+          <Button asChild variant="outline" size="sm">
             <a href={`/jobs/${job.id}/edit`}>
               <Pencil className="size-4" />
               {t("detail.edit")}
             </a>
           </Button>
           <Button
+            size="sm"
             onClick={handleRunNow}
             disabled={
               runJob.isPending || watch.phase === "running" || !job.playbookId
             }
-            className="flex-1 sm:flex-none"
           >
             {runJob.isPending || watch.phase === "running" ? (
               <Loader2 className="size-4 animate-spin" />
@@ -238,29 +248,85 @@ function JobDetailPageInner({ id }: { id: string }) {
         </div>
       </div>
 
-      {/* Body: history + output */}
-      <div className="grid gap-6 md:grid-cols-[260px_1fr] lg:grid-cols-[320px_1fr]">
-        {/* History list */}
-        <section className="space-y-3 md:max-h-[calc(100vh-12rem)] md:overflow-y-auto md:pr-1">
-          <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+      {/* Body */}
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+        {/* ── Terminal ── */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-zinc-950 p-5">
+          {isWatchingSelected ? (
+            <JobRunOutput
+              events={watch.events}
+              running={watch.phase === "running"}
+            />
+          ) : selectedRun ? (
+            <JobRunOutput
+              events={selectedRun.eventsJson ?? []}
+              running={selectedRun.status === "running"}
+            />
+          ) : (
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <p className="select-none font-mono text-xs text-zinc-600">
+                {t("detail.select_run")}
+              </p>
+            </div>
+          )}
+
+          {/* Error / result banners */}
+          {isWatchingSelected && watch.errorMessage ? (
+            <div className="mt-3 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400">
+              <XCircle className="mt-0.5 size-3.5 shrink-0" />
+              <span className="wrap-break-word">{watch.errorMessage}</span>
+            </div>
+          ) : null}
+
+          {isWatchingSelected && watch.phase === "done" && watch.result ? (
+            <div
+              className={cn(
+                "mt-3 flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs",
+                watch.result.ok
+                  ? "border-emerald-900/50 bg-emerald-950/40 text-emerald-400"
+                  : "border-amber-900/50 bg-amber-950/40 text-amber-400"
+              )}
+            >
+              {watch.result.ok ? (
+                <CheckCircle2 className="size-3.5 shrink-0" />
+              ) : (
+                <AlertTriangle className="size-3.5 shrink-0" />
+              )}
+              <span>
+                {t("detail.result_finished_with_status", {
+                  status: watch.result.status,
+                })}
+              </span>
+            </div>
+          ) : null}
+
+          {!isWatchingSelected && selectedRun?.error ? (
+            <div className="mt-3 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400">
+              <XCircle className="mt-0.5 size-3.5 shrink-0" />
+              <span className="wrap-break-word">{selectedRun.error}</span>
+            </div>
+          ) : null}
+        </div>
+
+        {/* ── History sidebar ── */}
+        <div className="flex w-72 shrink-0 flex-col gap-3 overflow-y-auto border-l p-4">
+          <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
             {t("detail.history")}
-          </h2>
+          </p>
 
           {runsLoading ? (
-            <div className="text-muted-foreground flex items-center gap-2 py-4 text-sm">
-              <Loader2 className="size-4 animate-spin" />
+            <div className="text-muted-foreground flex items-center gap-2 py-2 text-xs">
+              <Loader2 className="size-3.5 animate-spin" />
               {t("detail.loading_short")}
             </div>
           ) : runs.length === 0 ? (
-            <div className="rounded-xl border border-dashed bg-card px-4 py-8 text-center">
-              <p className="text-muted-foreground text-sm">
-                {t("detail.empty_runs_prefix")}{" "}
-                <span className="font-medium">{t("detail.run_now")}</span>{" "}
-                {t("detail.empty_runs_suffix")}
-              </p>
-            </div>
+            <p className="text-muted-foreground px-2 text-xs">
+              {t("detail.empty_runs_prefix")}{" "}
+              <span className="font-medium">{t("detail.run_now")}</span>{" "}
+              {t("detail.empty_runs_suffix")}
+            </p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="space-y-0.5">
               {runs.map((run) => {
                 const active = run.id === selectedId
                 return (
@@ -269,10 +335,8 @@ function JobDetailPageInner({ id }: { id: string }) {
                       type="button"
                       onClick={() => handleSelectRun(run.id)}
                       className={cn(
-                        "w-full rounded-lg border px-3 py-2.5 text-left transition-colors",
-                        active
-                          ? "border-primary bg-accent"
-                          : "hover:bg-accent/50"
+                        "w-full rounded-md px-2 py-1.5 text-left text-sm transition-colors",
+                        active ? "bg-accent" : "hover:bg-accent/50"
                       )}
                     >
                       <div className="flex items-center justify-between gap-2">
@@ -287,7 +351,7 @@ function JobDetailPageInner({ id }: { id: string }) {
                             : t("detail.trigger_manual")}
                         </span>
                       </div>
-                      <div className="text-muted-foreground mt-1.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-xs">
+                      <div className="text-muted-foreground mt-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-xs">
                         <span className="truncate">
                           {formatDateTime(run.startedAt ?? run.createdAt)}
                         </span>
@@ -305,71 +369,7 @@ function JobDetailPageInner({ id }: { id: string }) {
               })}
             </ul>
           )}
-        </section>
-
-        {/* Selected run output (or the live-streaming run just triggered) */}
-        <section className="space-y-3 md:min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-              {t("detail.output")}
-            </h2>
-            {isWatchingSelected ? (
-              <RunStatusBadge
-                status={
-                  watch.phase === "running"
-                    ? "running"
-                    : (watch.result?.status ?? "failed")
-                }
-              />
-            ) : selectedRun ? (
-              <div className="flex items-center gap-2">
-                <RunHostSummary
-                  hostsOk={selectedRun.hostsOk}
-                  hostsFailed={selectedRun.hostsFailed}
-                />
-                <RunStatusBadge
-                  status={selectedRun.status}
-                  hostsOk={selectedRun.hostsOk}
-                  hostsFailed={selectedRun.hostsFailed}
-                />
-              </div>
-            ) : null}
-          </div>
-
-          {isWatchingSelected ? (
-            <>
-              {watch.errorMessage ? (
-                <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/5 px-3 py-2 text-sm text-red-600">
-                  <XCircle className="mt-0.5 size-4 shrink-0" />
-                  <span className="wrap-break-word">{watch.errorMessage}</span>
-                </div>
-              ) : null}
-              <JobRunOutput
-                events={watch.events}
-                running={watch.phase === "running"}
-              />
-            </>
-          ) : selectedRun ? (
-            <>
-              {selectedRun.error ? (
-                <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/5 px-3 py-2 text-sm text-red-600">
-                  <XCircle className="mt-0.5 size-4 shrink-0" />
-                  <span className="wrap-break-word">{selectedRun.error}</span>
-                </div>
-              ) : null}
-              <JobRunOutput
-                events={selectedRun.eventsJson ?? []}
-                running={selectedRun.status === "running"}
-              />
-            </>
-          ) : (
-            <div className="rounded-xl border border-dashed bg-card px-4 py-12 text-center">
-              <p className="text-muted-foreground text-sm">
-                {t("detail.select_run")}
-              </p>
-            </div>
-          )}
-        </section>
+        </div>
       </div>
     </main>
   )
