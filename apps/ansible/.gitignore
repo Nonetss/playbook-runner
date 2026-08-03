@@ -219,8 +219,5 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# Ansible
-playbook/
-
 # Generated gRPC stubs (regenerate with `bun run generate-grpc`)
 app/grpc/gen/

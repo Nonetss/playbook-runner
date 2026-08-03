@@ -1,0 +1,322 @@
+import { ArrowLeft, Loader2, TerminalSquare } from "lucide-react"
+import * as React from "react"
+import { useTranslation } from "react-i18next"
+import { AppProviders } from "@/components/providers/app-providers"
+import { CodeEditor } from "@/components/shared/code-editor"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  useScriptCreate,
+  useScriptGet,
+  useScriptUpdate,
+} from "@/features/scripts/hooks/useScripts"
+import { navigate } from "@/lib/navigate"
+import { cn } from "@/lib/utils"
+
+type ScriptLanguage = "bash" | "python"
+
+type FormValues = {
+  name: string
+  description: string
+  content: string
+  language: ScriptLanguage
+}
+
+const EMPTY_VALUES: FormValues = {
+  name: "",
+  description: "",
+  content: "",
+  language: "bash",
+}
+
+function LanguagePicker({
+  value,
+  onChange,
+  disabled,
+  labels,
+  hints,
+}: {
+  value: ScriptLanguage
+  onChange: (next: ScriptLanguage) => void
+  disabled?: boolean
+  labels: Record<ScriptLanguage, string>
+  hints: Record<ScriptLanguage, string>
+}) {
+  const active = value
+  return (
+    <div className="space-y-1.5">
+      <div className="grid grid-cols-2 gap-1.5">
+        {(["bash", "python"] as ScriptLanguage[]).map((lang) => (
+          <button
+            key={lang}
+            type="button"
+            onClick={() => onChange(lang)}
+            disabled={disabled}
+            className={cn(
+              "flex items-center justify-center gap-1.5 rounded-md border px-2.5 py-1.5 font-mono text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
+              value === lang
+                ? "border-primary bg-primary/10 text-foreground"
+                : "border-input text-muted-foreground hover:bg-accent"
+            )}
+          >
+            <TerminalSquare className="size-3.5" />
+            {labels[lang]}
+          </button>
+        ))}
+      </div>
+      <p className="text-muted-foreground text-[11px] leading-snug">
+        {hints[active]}
+      </p>
+    </div>
+  )
+}
+
+export type ScriptFormPageProps = {
+  /** When present the page edits an existing script; otherwise it creates one. */
+  id?: string
+}
+
+function ScriptFormPageInner({ id }: ScriptFormPageProps) {
+  const { t } = useTranslation("scripts")
+  const isEditing = !!id
+  const createScript = useScriptCreate()
+  const updateScript = useScriptUpdate()
+  const {
+    data: script,
+    isPending: isLoading,
+    isError: isLoadError,
+  } = useScriptGet(id ?? "", { enabled: isEditing })
+
+  const [values, setValues] = React.useState<FormValues>(EMPTY_VALUES)
+  const [error, setError] = React.useState<string | null>(null)
+  const [touched, setTouched] = React.useState(false)
+
+  React.useEffect(() => {
+    if (isEditing && script) {
+      setValues({
+        name: script.name,
+        description: script.description ?? "",
+        content: script.content,
+        language: script.language ?? "bash",
+      })
+    }
+  }, [isEditing, script])
+
+  const isSubmitting = createScript.isPending || updateScript.isPending
+
+  const trimmedName = values.name.trim()
+  const trimmedContent = values.content.trim()
+  const nameMissing = touched && trimmedName.length === 0
+  const contentMissing = touched && trimmedContent.length === 0
+
+  function updateField<K extends keyof FormValues>(
+    key: K,
+    value: FormValues[K]
+  ) {
+    setValues((current) => ({ ...current, [key]: value }))
+  }
+
+  async function handleSubmit(e: React.SyntheticEvent) {
+    e.preventDefault()
+    setTouched(true)
+    if (trimmedName.length === 0 || trimmedContent.length === 0) return
+    setError(null)
+    const payload = {
+      name: trimmedName,
+      description: values.description || undefined,
+      content: values.content,
+      language: values.language,
+    }
+    try {
+      if (isEditing && id) {
+        await updateScript.mutateAsync({ id, ...payload })
+      } else {
+        await createScript.mutateAsync(payload)
+      }
+      navigate("/scripts")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("form.save_error"))
+    }
+  }
+
+  if (isEditing && isLoading) {
+    return (
+      <main className="flex w-full flex-1 items-center justify-center p-6 lg:px-8">
+        <div className="text-muted-foreground flex items-center gap-2 text-sm">
+          <Loader2 className="size-4 animate-spin" />
+          {t("form.loading")}
+        </div>
+      </main>
+    )
+  }
+
+  if (isEditing && (isLoadError || !script)) {
+    return (
+      <main className="w-full flex-1 p-6 lg:px-8">
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          {t("form.load_error")}
+        </div>
+        <Button asChild variant="outline" className="mt-4">
+          <a href="/scripts">
+            <ArrowLeft className="size-4" />
+            {t("form.back_to_scripts")}
+          </a>
+        </Button>
+      </main>
+    )
+  }
+
+  return (
+    <main className="flex h-[calc(100dvh-3.5rem)] min-h-0 w-full flex-col overflow-hidden p-6 lg:px-8">
+      <div className="mb-4 flex shrink-0 items-center gap-3">
+        <Button
+          asChild
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t("form.back_aria")}
+        >
+          <a href="/scripts">
+            <ArrowLeft className="size-4" />
+          </a>
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {isEditing ? t("form.edit_title") : t("form.create_title")}
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            {isEditing ? t("form.edit_subtitle") : t("form.create_subtitle")}
+          </p>
+        </div>
+      </div>
+
+      <form
+        onSubmit={handleSubmit}
+        className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-4 overflow-hidden"
+      >
+        <div className="shrink-0 space-y-5">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="name-field">
+                {t("form.name_label")}
+                <span aria-hidden> *</span>
+              </Label>
+              <Input
+                id="name-field"
+                required
+                disabled={isSubmitting}
+                placeholder={t("form.name_placeholder")}
+                value={values.name}
+                onBlur={() => setTouched(true)}
+                onChange={(e) => updateField("name", e.target.value)}
+                aria-invalid={nameMissing}
+              />
+              {nameMissing ? (
+                <p className="text-destructive text-xs">
+                  {t("form.name_required")}
+                </p>
+              ) : null}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description-field">
+                {t("form.description_label")}
+              </Label>
+              <Input
+                id="description-field"
+                disabled={isSubmitting}
+                placeholder={t("form.description_placeholder")}
+                value={values.description}
+                onChange={(e) => updateField("description", e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>{t("form.language_label")}</Label>
+            <LanguagePicker
+              value={values.language}
+              onChange={(next) => updateField("language", next)}
+              disabled={isSubmitting}
+              labels={{
+                bash: t("form.language.bash"),
+                python: t("form.language.python"),
+              }}
+              hints={{
+                bash: t("form.language.bash_hint"),
+                python: t("form.language.python_hint"),
+              }}
+            />
+          </div>
+        </div>
+
+        <div className="flex min-h-0 flex-col gap-2 overflow-hidden">
+          <Label
+            id="content-field-label"
+            htmlFor="content-field"
+            className="shrink-0"
+          >
+            {t("form.content_label")}
+            <span aria-hidden> *</span>
+          </Label>
+          <div className="min-h-0 flex-1">
+            <CodeEditor
+              id="content-field"
+              ariaLabelledBy="content-field-label"
+              required
+              disabled={isSubmitting}
+              placeholder={t("form.content_placeholder")}
+              value={values.content}
+              language={values.language}
+              onBlur={() => setTouched(true)}
+              onChange={(content) => updateField("content", content)}
+              ariaInvalid={contentMissing}
+              className="h-full"
+            />
+          </div>
+          {contentMissing ? (
+            <p className="text-destructive shrink-0 text-xs">
+              {t("form.content_required")}
+            </p>
+          ) : null}
+        </div>
+
+        {error ? (
+          <p className="shrink-0 text-sm text-destructive">{error}</p>
+        ) : null}
+
+        <div className="flex shrink-0 justify-end gap-2 pb-2">
+          <Button
+            asChild
+            type="button"
+            variant="outline"
+            disabled={isSubmitting}
+          >
+            <a href="/scripts">{t("form.cancel")}</a>
+          </Button>
+          <Button
+            type="submit"
+            disabled={
+              isSubmitting ||
+              trimmedName.length === 0 ||
+              trimmedContent.length === 0
+            }
+          >
+            {isSubmitting
+              ? t("form.saving")
+              : isEditing
+                ? t("form.save_changes")
+                : t("form.create")}
+          </Button>
+        </div>
+      </form>
+    </main>
+  )
+}
+
+export function ScriptFormPage(props: ScriptFormPageProps) {
+  return (
+    <AppProviders>
+      <ScriptFormPageInner {...props} />
+    </AppProviders>
+  )
+}

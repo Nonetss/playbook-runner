@@ -1,0 +1,30 @@
+import { ApiKeyCard } from "@/features/config/components/api-key-card"
+import type { ApiKeyListItem } from "@/features/config/types"
+
+type ApiKeyListProps = {
+  apiKeys: ApiKeyListItem[]
+  onDelete: (id: string) => void
+  deletingId?: string | null
+  locale?: string
+}
+
+export function ApiKeyList({
+  apiKeys,
+  onDelete,
+  deletingId = null,
+  locale,
+}: ApiKeyListProps) {
+  return (
+    <div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {apiKeys.map((apiKey) => (
+        <ApiKeyCard
+          key={apiKey.id}
+          apiKey={apiKey}
+          onDelete={onDelete}
+          locale={locale}
+          isDeleting={deletingId === apiKey.id}
+        />
+      ))}
+    </div>
+  )
+}

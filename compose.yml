@@ -14,7 +14,7 @@ services:
       ANSIBLE_PLAYBOOK_PATH: /app/playbook
       BACKEND_GRPC_TARGET: backend:50052
     volumes:
-      - ./apps/ansible/playbook:/app/playbook
+      - ./.data/ansible-runner:/app/playbook
     ports:
       - "8000:8000"
     expose:

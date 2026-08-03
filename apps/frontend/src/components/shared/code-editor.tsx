@@ -7,7 +7,7 @@ import { oneDark } from "@codemirror/theme-one-dark"
 import { placeholder as placeholderExtension } from "@codemirror/view"
 import { basicSetup, EditorView } from "codemirror"
 import * as React from "react"
-import { useTheme } from "@/components/features/global/hooks/use-theme"
+import { useTheme } from "@/features/app-shell/hooks/use-theme"
 import { cn } from "@/lib/utils"
 
 export type CodeEditorLanguage = "bash" | "python" | "yaml"

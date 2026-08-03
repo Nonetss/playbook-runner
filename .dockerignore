@@ -35,6 +35,6 @@ docker-compose.yml
 **/.ruff_cache
 .pyrightconfig.json
 
-# apps/ansible runtime state — bind-mounted at runtime, never bake into image
-# (playbook/ssh_key is a secret; inventory/env/artifacts are live host state)
-apps/ansible/playbook/
+# Runtime state is bind-mounted at runtime, never baked into an image.
+# It includes secrets, live inventory, environment, and runner artifacts.
+.data/

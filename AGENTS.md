@@ -18,8 +18,10 @@ Package versions pinned via root `workspaces.catalog`. Bun 1.3.14 with `linker =
 
 ## Frontend feature structure
 
-- Each feature under `apps/frontend/src/components/features/<name>/` always has a `components/` and a `hooks/` subfolder — create both even if `hooks/` stays empty for now. Don't leave component files loose at the feature root.
-- If a feature needs a stable public import path (e.g. `@/components/features/me`), add a barrel `index.ts`/`index.tsx` at the feature root that re-exports from `components/` (see `features/me/index.tsx` re-exporting `components/profile-page.tsx`). Otherwise import straight from `features/<name>/components/<file>`.
+- Feature modules live under `apps/frontend/src/features/<name>/`, not under the generic `components/` namespace. Feature-owned React components go in `components/`, hooks in `hooks/`, and feature-wide types in `types.ts`. Only create a subfolder when it owns files; empty `hooks/` or `components/` folders are not required.
+- If a feature needs a stable public import path (e.g. `@/features/me`), add a barrel `index.ts`/`index.tsx` at the feature root that re-exports from `components/` (see `features/me/index.tsx` re-exporting `components/profile-page.tsx`). Otherwise import straight from `@/features/<name>/components/<file>`.
+- Shared execution streams, run types, inventory-selection behavior, and execution console UI belong to `@/features/run`; `scripts`, `commands`, and `inventory` must not import execution primitives from `playbooks`.
+- Generic reusable UI stays under `apps/frontend/src/components/ui/`, and cross-feature resource primitives stay under `apps/frontend/src/components/shared/`.
 - Cross-feature and cross-component imports use the `@/` absolute alias, not relative paths.
 - Any React component mounted from an `.astro` file uses `client:only="react"`, never `client:load` (or other `client:*` directives) — this repo skips SSR-then-hydrate for React islands entirely.
 
@@ -71,6 +73,7 @@ Per-package dev: `apps/backend` runs `bun run --hot src/index.ts`; `apps/fronten
 
 ## Env & runtime gotchas
 
+- Mutable Ansible runner state lives under the ignored root directory `.data/ansible-runner/`, never inside `apps/ansible/`. Local `apps/ansible/.env` points `ANSIBLE_PLAYBOOK_PATH` to `../../.data/ansible-runner`; Compose bind-mounts the same directory at `/app/playbook`.
 - `DATABASE_URL` is read from **`apps/backend/.env`** — `packages/db/drizzle.config.ts` calls `dotenv.config({ path: "../../apps/backend/.env" })` explicitly. There is no `packages/db/.env`.
 - Frontend `PUBLIC_SERVER_URL` defaults to `http://localhost:3000` in `astro.config.mjs`. In Docker it's a build arg (compose sets `http://localhost:4321`).
 - `BETTER_AUTH_URL` must differ between local dev (`http://localhost:3000`) and Docker (`http://backend:3000`, set in `compose.yml`).

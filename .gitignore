@@ -8,6 +8,9 @@ dist
 build
 *.tsbuildinfo
 
+# Local runtime state
+.data/
+
 # Generated files
 apps/frontend/src/routeTree.gen.ts
 

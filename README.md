@@ -215,17 +215,28 @@ Treat them as copy-paste starters — open one in the *Playbooks* page, hit
 
 ```txt
 playbook-runner/
+├── .data/           # Ignored local runtime state (inventory, keys, artifacts)
 ├── apps/
 │   ├── frontend/    # Astro + React UI
 │   ├── backend/     # Hono API + oRPC + cron loop + auth
 │   └── ansible/     # Python service wrapping ansible-runner
-└── packages/
-    ├── api/         # oRPC routers and handlers
-    ├── auth/        # Better Auth configuration
-    ├── config/      # Shared tsconfig base
-    ├── db/          # Drizzle schema, migrations, relations
-    └── env/         # Zod-validated env vars (server + web)
+├── packages/
+│   ├── api/         # oRPC routers and handlers
+│   ├── auth/        # Better Auth configuration
+│   ├── config/      # Shared tsconfig base
+│   ├── db/          # Drizzle schema, migrations, relations
+│   ├── env/         # Zod-validated env vars (server + web)
+│   ├── grpc/        # Shared TypeScript gRPC infrastructure
+│   └── logger/      # Shared structured logging
+├── proto/           # Shared gRPC contracts
+└── python/          # Shared Python packages
 ```
+
+Local Ansible runner state lives under `.data/ansible-runner`. Docker Compose
+bind-mounts that directory at `/app/playbook`; it is intentionally excluded from
+Git and Docker build contexts because it can contain inventory and SSH keys. Local
+development sets `ANSIBLE_PLAYBOOK_PATH=../../.data/ansible-runner` in
+`apps/ansible/.env`.
 
 ## Configuration
 

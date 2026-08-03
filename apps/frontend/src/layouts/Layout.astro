@@ -1,9 +1,9 @@
 ---
 import "@/styles/global.css"
 import { ClientRouter, fade } from "astro:transitions"
-import { NavbarAuthenticated } from "@/components/features/global/components/navbar-authenticated"
-import { NavbarGuest } from "@/components/features/global/components/navbar-guest"
 import { Toaster } from "@/components/ui/sonner"
+import { NavbarAuthenticated } from "@/features/app-shell/components/navbar-authenticated"
+import { NavbarGuest } from "@/features/app-shell/components/navbar-guest"
 
 interface Props {
   title: string
