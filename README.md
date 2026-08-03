@@ -101,18 +101,18 @@ Three small services in one monorepo:
 
 ```txt
                   ┌────────────────┐
-   browser ──────▶│  frontend      │  Astro SSR + React islands
+   browser ─────▶│  frontend      │  Astro SSR + React islands
                   │  :4321         │  (Caddy in front, see Dockerfile)
                   └───────┬────────┘
                           │  /rpc, /api (proxied)
                           ▼
                   ┌────────────────┐         ┌────────────────┐
-                  │  backend       │────────▶│  postgres      │
+                  │  backend       │───────▶│  postgres      │
                   │  :3000         │         │  :5432         │
                   │  Hono + oRPC   │         └────────────────┘
                   │  + Better Auth │
                   │  + Drizzle ORM │
-                  │  + cron loop   │◀────────────────────────┐
+                  │  + cron loop   │◀───────────────────────┐
                   └───────┬────────┘                         │
                           │  gRPC :50051 — RunnerService     │  gRPC :50052
                           │  (RunBundle/RunPing/RunCommand/  │  PingService
