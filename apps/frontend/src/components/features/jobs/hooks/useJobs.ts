@@ -250,44 +250,54 @@ export const useJobRun = () => {
   })
 }
 
-export type JobRunStreamPhase = "idle" | "running" | "done" | "error"
+export type JobRunWatchPhase = "idle" | "running" | "done" | "error"
 
-export type JobRunStreamResult = {
+export type JobRunWatchResult = {
   runId: string
   status: "ok" | "failed"
   ok: boolean
 }
 
 /**
- * Run a job now with live streaming (`jobs.runs.stream`): opens the event
- * iterator over `/rpc`, accumulates events, and exposes phase/result so the
- * job detail page can render a live console instead of waiting on
- * `useJobRunsList`'s 3s poll. The run is still persisted server-side exactly
- * like a background run, so `runs.list` picks it up regardless — callers
- * should invalidate that query once `phase` settles.
+ * Attach to a run's live events (`jobs.runs.watch`) — whether it was just
+ * triggered from this tab, is a cron-scheduled run already in progress, or
+ * was started from another tab entirely. Replays whatever already happened
+ * before subscribing, then streams the rest. `watchingRunId` lets a caller
+ * check which run (if any) this hook is currently attached to, so it can
+ * decide whether to (re)attach as the polled run list changes.
+ *
+ * `phase` settles to `"idle"` (not `"done"`) if the run turns out not to
+ * have been live at all (already finished, or never existed) — nothing to
+ * show; the caller should rely on the polled/stored data for it instead.
  */
-export function useJobRunStream() {
-  const [phase, setPhase] = useState<JobRunStreamPhase>("idle")
+export function useJobRunWatch() {
+  const [watchingRunId, setWatchingRunId] = useState<string | null>(null)
+  const [phase, setPhase] = useState<JobRunWatchPhase>("idle")
   const [events, setEvents] = useState<JobRunEvent[]>([])
-  const [result, setResult] = useState<JobRunStreamResult | null>(null)
+  const [result, setResult] = useState<JobRunWatchResult | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const unsubscribeRef = useRef<(() => void) | null>(null)
 
-  const start = useCallback((jobId: string) => {
+  const start = useCallback((runId: string) => {
     unsubscribeRef.current?.()
 
+    setWatchingRunId(runId)
     setEvents([])
     setResult(null)
     setErrorMessage(null)
     setPhase("running")
 
     unsubscribeRef.current = consumeEventIterator(
-      client.v1.jobs.runs.stream({ id: jobId }),
+      client.v1.jobs.runs.watch({ runId }),
       {
         onEvent: (event) => setEvents((prev) => [...prev, event as JobRunEvent]),
         onSuccess: (value) => {
-          if (value) setResult(value)
-          setPhase("done")
+          if (value) {
+            setResult(value)
+            setPhase("done")
+          } else {
+            setPhase("idle")
+          }
         },
         onError: (err) => {
           setErrorMessage(err instanceof Error ? err.message : "Error de red")
@@ -300,11 +310,12 @@ export function useJobRunStream() {
   const reset = useCallback(() => {
     unsubscribeRef.current?.()
     unsubscribeRef.current = null
+    setWatchingRunId(null)
     setPhase("idle")
     setEvents([])
     setResult(null)
     setErrorMessage(null)
   }, [])
 
-  return { phase, events, result, errorMessage, start, reset }
+  return { watchingRunId, phase, events, result, errorMessage, start, reset }
 }

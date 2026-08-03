@@ -10,6 +10,7 @@ import {
 import { RunnerServiceClient } from "@playbook-runner/grpc/stubs"
 import { logger } from "@playbook-runner/logger"
 import { eq } from "drizzle-orm"
+import { beginLiveRun, finishLiveRun, publishRunEvent } from "#v1/jobs/live"
 import { type RunInventorySelection, runHandler } from "#v1/run/handler"
 import {
   RUN_TIMEOUT_MS,
@@ -77,14 +78,15 @@ function countHostOutcomes(events: RunEventRecord[]): {
 
 /**
  * Resolve a job's playbook + inventory and stream it through the ansible
- * service's `RunnerService.RunBundle` (gRPC). Yields each task event live
- * (consumed by `streamJobRunLive` for a browser actively watching) and
- * returns the fully accumulated output once the run finishes (consumed by
- * `completeRun`, which only cares about the final outcome).
+ * service's `RunnerService.RunBundle` (gRPC), publishing each event to the
+ * live registry (`#v1/jobs/live`) as it arrives — regardless of whether
+ * anyone is currently watching — and returning the fully accumulated output
+ * once the run finishes, for persistence.
  */
-async function* streamRun(
-  job: typeof jobs.$inferSelect
-): AsyncGenerator<RunEventRecord, RunOutcome, void> {
+async function streamRun(
+  job: typeof jobs.$inferSelect,
+  runId: string
+): Promise<RunOutcome> {
   if (!job.playbookId) {
     return { events: [], ok: false, error: "El job no tiene playbook asignado" }
   }
@@ -141,7 +143,7 @@ async function* streamRun(
       } else if (frame.task) {
         const record = taskEventToRecord(frame.task)
         events.push(record)
-        yield record
+        publishRunEvent(runId, record)
       }
     }
   } catch (err) {
@@ -156,21 +158,21 @@ async function* streamRun(
   return { events, ok: error ? false : ok, error }
 }
 
-/** Drains an async generator, discarding yielded values, to get its return value. */
-async function drain<T, R>(gen: AsyncGenerator<T, R, void>): Promise<R> {
-  let step = await gen.next()
-  while (!step.done) step = await gen.next()
-  return step.value
-}
-
-/** Stream the playbook for an already-recorded run and persist the result. */
+/**
+ * Stream the playbook for an already-recorded run, publishing events to the
+ * live registry as they happen (so any caller — the scheduler, a "run now"
+ * click, or someone attaching later via `jobs.runs.watch` — sees the same
+ * run), and persist the result once it finishes.
+ */
 async function completeRun(
   job: typeof jobs.$inferSelect,
   runId: string
 ): Promise<void> {
+  beginLiveRun(runId)
+
   let outcome: RunOutcome
   try {
-    outcome = await drain(streamRun(job))
+    outcome = await streamRun(job, runId)
   } catch (err) {
     outcome = {
       events: [],
@@ -192,6 +194,12 @@ async function completeRun(
       finishedAt: new Date(),
     })
     .where(eq(jobRuns.id, runId))
+
+  finishLiveRun(runId, {
+    runId,
+    status: outcome.ok ? "ok" : "failed",
+    ok: outcome.ok,
+  })
 }
 
 /** Load the job and open a `running` run row. Returns null if the job is gone. */
@@ -240,8 +248,9 @@ export async function executeJob(
 /**
  * Start a job execution without waiting for the playbook to finish: records the
  * run, kicks off streaming in the background, and returns the run id right away
- * so callers (e.g. the "run now" RPC) can respond immediately and let the UI
- * poll for progress.
+ * so callers (e.g. the "run now" RPC) can respond immediately. The run is live
+ * from the moment this returns — `jobs.runs.watch(runId)` can attach to it
+ * immediately, or at any later point while it's still going.
  */
 export async function startJobRun(
   jobId: string,
@@ -253,52 +262,4 @@ export async function startJobRun(
     logger.error({ runId: opened.runId, err }, "run failed")
   })
   return opened.runId
-}
-
-/**
- * Same as `startJobRun`, but yields each event live instead of running in
- * the background — for a browser actively watching the job detail page
- * (`jobs.runs.stream`, an oRPC event iterator). Persists the finished run
- * exactly like `completeRun` does, so the run still shows up in history
- * (and survives) even if the caller disconnects mid-stream.
- */
-export async function* streamJobRunLive(
-  jobId: string
-): AsyncGenerator<
-  RunEventRecord,
-  { runId: string; status: "ok" | "failed"; ok: boolean },
-  void
-> {
-  const opened = await openRun(jobId, "manual")
-  if (!opened) {
-    throw new Error("El job no existe o fue eliminado")
-  }
-  const { job, runId } = opened
-
-  let outcome: RunOutcome
-  try {
-    outcome = yield* streamRun(job)
-  } catch (err) {
-    outcome = {
-      events: [],
-      ok: false,
-      error: err instanceof Error ? err.message : "Error inesperado",
-    }
-  }
-
-  const { hostsOk, hostsFailed } = countHostOutcomes(outcome.events)
-
-  await db
-    .update(jobRuns)
-    .set({
-      status: outcome.ok ? "ok" : "failed",
-      eventsJson: outcome.events,
-      error: outcome.error,
-      hostsOk,
-      hostsFailed,
-      finishedAt: new Date(),
-    })
-    .where(eq(jobRuns.id, runId))
-
-  return { runId, status: outcome.ok ? "ok" : "failed", ok: outcome.ok }
 }

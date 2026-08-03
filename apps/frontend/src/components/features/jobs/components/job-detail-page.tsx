@@ -9,8 +9,9 @@ import {
 } from "@/components/features/jobs/components/run-widgets"
 import {
   useJobGet,
+  useJobRun,
   useJobRunsList,
-  useJobRunStream,
+  useJobRunWatch,
 } from "@/components/features/jobs/hooks/useJobs"
 import type { JobRun } from "@/components/features/jobs/types"
 import { AppProviders } from "@/components/providers/app-providers"
@@ -45,7 +46,8 @@ function JobDetailPageInner({ id }: { id: string }) {
   const { t } = useTranslation("jobs")
   const queryClient = useQueryClient()
   const { data: job, isPending: jobLoading, isError } = useJobGet(id)
-  const jobStream = useJobRunStream()
+  const runJob = useJobRun()
+  const watch = useJobRunWatch()
 
   const { data: runs = [], isPending: runsLoading } = useJobRunsList(id, {
     // Poll while anything is running so the status flips without a refresh.
@@ -81,27 +83,47 @@ function JobDetailPageInner({ id }: { id: string }) {
     [runs, selectedId]
   )
 
-  // Once the live stream settles, the run row is already persisted — jump
-  // the history selection to it and let the (already-polling) runs list pick
-  // it up, instead of waiting for the next 3s tick to reveal it.
+  // Whenever the currently-selected run shows as `running` in the polled
+  // list — whether it's cron-triggered, started from another tab, or just
+  // hasn't been picked up by `watch` yet — attach to its live events. This
+  // is what makes *any* in-progress run watchable, not just the one this
+  // page happened to trigger itself.
   useEffect(() => {
-    if (jobStream.phase !== "done" && jobStream.phase !== "error") return
-    if (jobStream.result?.runId) setSelectedId(jobStream.result.runId)
+    if (selectedRun?.status !== "running") return
+    if (watch.watchingRunId === selectedRun.id) return
+    watch.start(selectedRun.id)
+  }, [selectedRun?.id, selectedRun?.status, watch.watchingRunId, watch.start])
+
+  // Once a watched run settles, its row is already persisted — refresh the
+  // (already-polling) runs list so history/badges catch up immediately
+  // instead of waiting for the next 3s tick.
+  useEffect(() => {
+    if (watch.phase !== "done" && watch.phase !== "error") return
     queryClient.invalidateQueries({
       queryKey: orpc.jobs.runs.list.queryKey({ input: { jobId: id } }),
     })
-  }, [jobStream.phase, jobStream.result, queryClient, id])
+  }, [watch.phase, queryClient, id])
 
-  function handleRunNow() {
-    jobStream.start(id)
+  async function handleRunNow() {
+    const { runId } = await runJob.mutateAsync({ id })
+    if (runId) {
+      setSelectedId(runId)
+      watch.start(runId)
+    }
   }
 
   function handleSelectRun(runId: string) {
-    jobStream.reset()
+    if (watch.watchingRunId !== runId) watch.reset()
     setSelectedId(runId)
   }
 
-  const isStreaming = jobStream.phase !== "idle"
+  // Only treat the live view as authoritative for the run currently
+  // selected — clicking a different (finished) history row falls back to
+  // its persisted `eventsJson` instead of stale live state.
+  const isWatchingSelected =
+    watch.watchingRunId !== null &&
+    watch.watchingRunId === selectedId &&
+    watch.phase !== "idle"
 
   if (jobLoading) {
     return (
@@ -179,10 +201,12 @@ function JobDetailPageInner({ id }: { id: string }) {
           </Button>
           <Button
             onClick={handleRunNow}
-            disabled={jobStream.phase === "running" || !job.playbookId}
+            disabled={
+              runJob.isPending || watch.phase === "running" || !job.playbookId
+            }
             className="flex-1 sm:flex-none"
           >
-            {jobStream.phase === "running" ? (
+            {runJob.isPending || watch.phase === "running" ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
               <Play className="size-4" />
@@ -267,12 +291,12 @@ function JobDetailPageInner({ id }: { id: string }) {
             <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
               {t("detail.output")}
             </h2>
-            {isStreaming ? (
+            {isWatchingSelected ? (
               <RunStatusBadge
                 status={
-                  jobStream.phase === "running"
+                  watch.phase === "running"
                     ? "running"
-                    : (jobStream.result?.status ?? "failed")
+                    : (watch.result?.status ?? "failed")
                 }
               />
             ) : selectedRun ? (
@@ -290,19 +314,17 @@ function JobDetailPageInner({ id }: { id: string }) {
             ) : null}
           </div>
 
-          {isStreaming ? (
+          {isWatchingSelected ? (
             <>
-              {jobStream.errorMessage ? (
+              {watch.errorMessage ? (
                 <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/5 px-3 py-2 text-sm text-red-600">
                   <XCircle className="mt-0.5 size-4 shrink-0" />
-                  <span className="wrap-break-word">
-                    {jobStream.errorMessage}
-                  </span>
+                  <span className="wrap-break-word">{watch.errorMessage}</span>
                 </div>
               ) : null}
               <JobRunOutput
-                events={jobStream.events}
-                running={jobStream.phase === "running"}
+                events={watch.events}
+                running={watch.phase === "running"}
               />
             </>
           ) : selectedRun ? (

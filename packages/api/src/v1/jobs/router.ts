@@ -1,8 +1,9 @@
 import { eventIterator } from "@orpc/server"
 import { z } from "zod"
 import { protectedProcedure } from "#index"
-import { startJobRun, streamJobRunLive } from "#v1/jobs/executor"
+import { startJobRun } from "#v1/jobs/executor"
 import { jobRunsHandler, jobsHandler } from "#v1/jobs/handler"
+import { watchLiveRun } from "#v1/jobs/live"
 import { taskEventSchema } from "#v1/run/router"
 
 // ---------- Response schemas (colocated) -------------------------------------
@@ -50,12 +51,16 @@ const startRunResultSchema = z.object({
   runId: z.string().nullable(),
 })
 
-// Terminal value of `runs.stream`'s event iterator, once the run finishes.
-const jobRunStreamResultSchema = z.object({
-  runId: z.string(),
-  status: z.enum(["ok", "failed"]),
-  ok: z.boolean(),
-})
+// Terminal value of `runs.watch`'s event iterator. `null` means the run
+// wasn't (or is no longer) live — the caller should fall back to whatever
+// `runs.list`/`runs.get` already has persisted for it.
+const jobRunWatchResultSchema = z
+  .object({
+    runId: z.string(),
+    status: z.enum(["ok", "failed"]),
+    ok: z.boolean(),
+  })
+  .nullable()
 
 // ---------- Run feed / metrics output schemas ---------------------------------
 
@@ -251,17 +256,17 @@ export const jobsRouter = {
     }),
 
   runs: {
-    stream: protectedProcedure
+    watch: protectedProcedure
       .route({
-        summary: "Run a job now with live streaming",
+        summary: "Watch a job run live",
         description:
-          "Like `run`, but streams each task event live to the caller as an event iterator instead of firing the run in the background. The run is still persisted exactly like a background run (survives a mid-stream disconnect), so it shows up in `runs.list` either way.",
+          "Attaches to a run's live events — from the scheduler, another tab's `run`, or this one — as an event iterator: replays whatever already happened, then streams the rest until it finishes. Returns `null` immediately if the run isn't (or is no longer) live, e.g. it already finished; callers should fall back to `runs.list`/`runs.get` in that case.",
         tags: ["Jobs"],
         method: "POST",
       })
-      .input(z.object({ id: z.string() }))
-      .output(eventIterator(taskEventSchema, jobRunStreamResultSchema))
-      .handler(({ input }) => streamJobRunLive(input.id)),
+      .input(z.object({ runId: z.string() }))
+      .output(eventIterator(taskEventSchema, jobRunWatchResultSchema))
+      .handler(({ input }) => watchLiveRun(input.runId)),
 
     list: protectedProcedure
       .route({
