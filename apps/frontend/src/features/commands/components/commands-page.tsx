@@ -272,7 +272,7 @@ function CommandsPageInner() {
 
           {/* Result / error banners */}
           {phase === "error" ? (
-            <div className="mx-5 mb-4 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400">
+            <div className="mx-5 mb-4 flex shrink-0 items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
               <XCircle className="mt-0.5 size-3.5 shrink-0" />
               <span>{errorMessage}</span>
             </div>
@@ -283,8 +283,8 @@ function CommandsPageInner() {
               className={cn(
                 "mx-5 mb-4 flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs",
                 result.ok
-                  ? "border-emerald-900/50 bg-emerald-950/40 text-emerald-400"
-                  : "border-amber-900/50 bg-amber-950/40 text-amber-400"
+                  ? "border-border bg-muted/20 text-foreground"
+                  : "border-destructive/40 bg-destructive/10 text-destructive"
               )}
             >
               {result.ok ? (

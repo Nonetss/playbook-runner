@@ -211,12 +211,12 @@ const STATUS_META: Record<
   HostOutcome,
   { icon: typeof Server; textClass: string }
 > = {
-  running: { icon: Loader2, textClass: "text-sky-400" },
-  ok: { icon: CheckCircle2, textClass: "text-emerald-400" },
-  changed: { icon: CheckCircle2, textClass: "text-amber-400" },
-  failed: { icon: XCircle, textClass: "text-red-400" },
-  unreachable: { icon: AlertTriangle, textClass: "text-red-400" },
-  skipped: { icon: MinusCircle, textClass: "text-zinc-500" },
+  running: { icon: Loader2, textClass: "text-primary" },
+  ok: { icon: CheckCircle2, textClass: "text-foreground" },
+  changed: { icon: CheckCircle2, textClass: "text-destructive" },
+  failed: { icon: XCircle, textClass: "text-destructive" },
+  unreachable: { icon: AlertTriangle, textClass: "text-destructive" },
+  skipped: { icon: MinusCircle, textClass: "text-muted-foreground" },
 }
 
 function HostResultRow({ result }: { result: TaskHostResult }) {
@@ -278,7 +278,7 @@ function HostResultRow({ result }: { result: TaskHostResult }) {
         <pre
           className={cn(
             "mt-1 pl-5 whitespace-pre-wrap wrap-break-word text-[12px] leading-relaxed",
-            stderrIsError ? "text-red-400" : "text-zinc-600"
+            stderrIsError ? "text-destructive" : "text-muted-foreground"
           )}
           style={{ fontFamily: TERMINAL_FONT_STACK }}
         >
@@ -305,7 +305,7 @@ function TaskCard({ task }: { task: TaskBlock }) {
           {task.name || "—"}
         </span>
         {failCount > 0 ? (
-          <span className="shrink-0 font-mono text-[11px] text-red-400">
+          <span className="shrink-0 font-mono text-[11px] text-destructive">
             {failCount} fallo{failCount === 1 ? "" : "s"}
           </span>
         ) : null}
@@ -337,10 +337,10 @@ function RecapCard({ rows }: { rows: RecapRow[] }) {
         {rows.map((row) => {
           const tone =
             row.failed > 0 || row.unreachable > 0
-              ? "text-red-400"
+              ? "text-destructive"
               : row.changed > 0
-                ? "text-amber-400"
-                : "text-emerald-400"
+                ? "text-destructive"
+                : "text-foreground"
           return (
             <div
               key={row.host}

@@ -75,9 +75,9 @@ function ProfileCard({ user }: { user: User }) {
               variant="secondary"
               className={
                 role === "admin"
-                  ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-0 text-xs"
+                  ? "bg-destructive/10 text-destructive border-0 text-xs"
                   : role === "pending"
-                    ? "bg-orange-500/10 text-orange-700 dark:text-orange-400 border-0 text-xs"
+                    ? "bg-destructive/10 text-destructive border-0 text-xs"
                     : "text-xs"
               }
             >

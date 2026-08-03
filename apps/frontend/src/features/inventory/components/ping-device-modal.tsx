@@ -56,8 +56,8 @@ function describeEvent(event: RunEvent): { text: string; tone: Tone } | null {
 }
 
 const toneClass: Record<Tone, string> = {
-  ok: "text-emerald-600 dark:text-emerald-400",
-  changed: "text-amber-600 dark:text-amber-400",
+  ok: "text-foreground",
+  changed: "text-destructive",
   fail: "text-destructive",
   info: "text-foreground",
   muted: "text-muted-foreground",
@@ -133,8 +133,8 @@ export function PingDeviceModal({
               className={cn(
                 "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm",
                 result.ok
-                  ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400"
-                  : "border-amber-500/30 bg-amber-500/5 text-amber-600 dark:text-amber-400"
+                  ? "border-border bg-muted/20 text-foreground"
+                  : "border-destructive/40 bg-destructive/10 text-destructive"
               )}
             >
               {result.ok ? (

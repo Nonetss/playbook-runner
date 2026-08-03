@@ -15,10 +15,10 @@ function ApiStatusInner({ className }: { className?: string }) {
 
   const dot =
     status === "connected"
-      ? "bg-green-500"
+      ? "bg-foreground"
       : status === "disconnected"
-        ? "bg-red-500"
-        : "bg-orange-400"
+        ? "bg-destructive"
+        : "bg-primary"
 
   const label =
     status === "connected"

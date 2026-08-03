@@ -227,7 +227,7 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
             <span aria-hidden> *</span>
           </Label>
           <div
-            className="flex shrink-0 items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400"
+            className="flex shrink-0 items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive"
             // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: t("form.hosts_all_warning"),
