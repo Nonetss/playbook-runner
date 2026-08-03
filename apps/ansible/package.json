@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "uv run fastapi dev",
-    "start": "uv run fastapi run"
+    "start": "uv run fastapi run",
+    "format": "uv run ruff check --select I --fix . && uv run ruff format .",
+    "check-types": "uv run basedpyright -p ../../pyrightconfig.json"
   }
 }

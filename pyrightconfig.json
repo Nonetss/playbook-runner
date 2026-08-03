@@ -1,5 +1,5 @@
 {
-  "include": ["apps/agent/app"],
+  "include": ["apps/ansible/app"],
   "exclude": [
     "**/.venv",
     "**/__pycache__",

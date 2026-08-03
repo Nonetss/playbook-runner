@@ -14,5 +14,15 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "basedpyright>=1.39.9",
     "ruff>=0.15.20",
 ]
+
+[tool.basedpyright]
+typeCheckingMode = "basic"
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
