@@ -1,24 +1,23 @@
 import { env } from "@playbook-runner/env/server"
-import { pino } from "pino"
+import pino, { type Logger, type LoggerOptions } from "pino"
 
-const isProd = env.NODE_ENV === "production"
+const isProduction = env.NODE_ENV === "production"
 
-export const logger = pino({
+const options: LoggerOptions = {
   level: env.LOG_LEVEL,
-  base: { service: "playbook-runner" },
-  ...(isProd
-    ? {}
-    : {
-        transport: {
-          target: "pino-pretty",
-          options: {
-            colorize: true,
-            translateTime: "SYS:HH:MM:ss.l",
-            ignore: "pid,hostname",
-          },
-        },
-      }),
-})
+  base: { service: "playbook-runner-backend" },
+  timestamp: pino.stdTimeFunctions.isoTime,
+}
+
+export const logger: Logger = isProduction
+  ? pino(options)
+  : pino({
+      ...options,
+      transport: {
+        target: "pino-pretty",
+        options: { colorize: true, translateTime: "HH:MM:ss.l" },
+      },
+    })
 
 /** Bindings shape for `logger.child` calls. */
 export type LogBindings = Record<string, unknown>

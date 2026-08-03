@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     )
 
     backend_url: str = "http://localhost:3000"
+    environment: str = "development"
+    log_level: str = "info"
     ansible_playbook_path: str = ""
     ansible_user: str = "ansible"
     ansible_become_user: str = "root"
