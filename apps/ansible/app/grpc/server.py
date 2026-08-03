@@ -3,13 +3,18 @@ from grpc_toolkit import start_grpc_server as _start_grpc_server
 
 from app.core.config import settings
 from app.grpc.services.ping import PingServicer
-from app.grpc.stubs import add_PingServiceServicer_to_server
+from app.grpc.services.runner import RunnerServicer
+from app.grpc.stubs import (
+    add_PingServiceServicer_to_server,
+    add_RunnerServiceServicer_to_server,
+)
 
 GRPC_PORT = 50051
 
 
 def _register(server: grpc.aio.Server) -> None:
     add_PingServiceServicer_to_server(PingServicer(), server)
+    add_RunnerServiceServicer_to_server(RunnerServicer(), server)
 
 
 async def start_grpc_server() -> grpc.aio.Server:

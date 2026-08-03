@@ -2,7 +2,8 @@
 # Production compose overlay.
 #
 # - Services talk to each other over the docker network via service-name DNS
-#   (no localhost). See BACKEND_URL / ANSIBLE_URL / BETTER_AUTH_URL below.
+#   (no localhost): backend and ansible reach each other only over gRPC (see
+#   BACKEND_GRPC_TARGET / ANSIBLE_GRPC_TARGET below); see BETTER_AUTH_URL too.
 # - Only the frontend publishes a host port; backend, ansible, and postgres
 #   stay internal (reachable on the network as `backend:3000`, `ansible:8000`,
 #   `postgres:5432`).
@@ -57,7 +58,6 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      BACKEND_URL: http://backend:3000
       BACKEND_GRPC_TARGET: backend:50052
       # Same secret again, this time guarding gRPC in both directions. Without
       # it the ansible service boots but its gRPC server rejects every call.
@@ -85,7 +85,6 @@ services:
     env_file: .env
     environment:
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:?BETTER_AUTH_URL is required (public URL, e.g. https://your-domain.com)}
-      ANSIBLE_URL: http://ansible:8000
       ANSIBLE_GRPC_TARGET: ansible:50051
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4321}
       NODE_ENV: production

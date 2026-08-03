@@ -1,0 +1,105 @@
+syntax = "proto3";
+
+package run;
+
+// Called by the backend to execute an already-resolved selection: the
+// backend resolves the playbook/hosts/script/device against its own
+// database (`packages/api/src/v1/run/handler.ts`, the same logic the job
+// scheduler uses) and streams the run over one of these RPCs. Ansible itself
+// never touches the database or a user session — it only executes.
+service RunnerService {
+  rpc RunBundle (RunBundleRequest) returns (stream RunEvent);
+  rpc RunPing (RunPingRequest) returns (stream RunEvent);
+  rpc RunCommand (RunCommandRequest) returns (stream RunEvent);
+  rpc RunScript (RunScriptRequest) returns (stream RunEvent);
+}
+
+message Host {
+  string name = 1;
+  string address = 2;
+  optional int32 port = 3;
+  string username = 4;
+  string private_key = 5;
+  string connection = 6; // "ssh"
+}
+
+message Playbook {
+  string name = 1;
+  string content = 2;
+}
+
+message Script {
+  string name = 1;
+  string content = 2;
+  string language = 3; // "bash" | "python"
+}
+
+message RunBundleRequest {
+  Playbook playbook = 1;
+  repeated Host hosts = 2;
+  int32 forks = 3;
+  map<string, string> extravars = 4;
+}
+
+message RunPingRequest {
+  Host host = 1;
+}
+
+message RunCommandRequest {
+  repeated Host hosts = 1;
+  string module = 2; // "shell" | "command"
+  string command = 3;
+  bool become = 4;
+  int32 forks = 5;
+}
+
+message RunScriptRequest {
+  Script script = 1;
+  repeated Host hosts = 2;
+  bool become = 3;
+  int32 forks = 4;
+}
+
+// One frame of a run stream. Exactly one of these is set per event,
+// mirroring the `event`/`done`/`error` SSE frames `app/services/ansible/sse.py`
+// used to emit.
+message RunEvent {
+  oneof payload {
+    TaskEvent task = 1;
+    Done done = 2;
+    string error = 3;
+  }
+}
+
+// A single ansible-runner event, reduced to the fields the backend persists
+// (mirrors `event_payload()` in `app/services/ansible/sse.py`).
+message TaskEvent {
+  string event = 1;
+  optional string host = 2;
+  optional string play = 3;
+  optional string task = 4;
+  optional string task_action = 5;
+  optional bool changed = 6;
+  optional string msg = 7;
+  optional string stdout = 8;
+  optional string stderr = 9;
+  optional int32 rc = 10;
+  // Only set on the `playbook_on_stats` event.
+  optional Stats stats = 11;
+}
+
+// Per-host recap counters, host name -> count.
+message Stats {
+  map<string, int32> ok = 1;
+  map<string, int32> changed = 2;
+  map<string, int32> failures = 3;
+  map<string, int32> dark = 4;
+  map<string, int32> skipped = 5;
+}
+
+// Terminal frame once the run finishes (no more TaskEvents follow).
+message Done {
+  string status = 1;
+  int32 rc = 2;
+  bool ok = 3;
+}

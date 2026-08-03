@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from app.core.config import settings
-from app.services.ansible.backend_client import ResolvedRunBundle
+from app.services.ansible.models import ResolvedRunBundle
 from app.services.ansible.runner import HostVars, Inventory
 
 

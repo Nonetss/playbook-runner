@@ -10,4 +10,9 @@ export {
   unary,
 } from "#client"
 export type { GrpcServer, StartGrpcServerOptions } from "#server"
-export { startGrpcServer, stopGrpcServer } from "#server"
+export {
+  grpcError,
+  grpcStatus,
+  startGrpcServer,
+  stopGrpcServer,
+} from "#server"

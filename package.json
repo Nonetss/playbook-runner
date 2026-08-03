@@ -59,7 +59,7 @@
     "@playbook-runner/config": "workspace:*",
     "@types/bun": "catalog:",
     "tailwint": "^1.1.13",
-    "turbo": "^2.9.16",
+    "turbo": "^2.10.8",
     "typescript": "catalog:"
   },
   "packageManager": "bun@1.3.14"

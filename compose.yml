@@ -11,7 +11,6 @@ services:
       - path: apps/ansible/.env
         required: false
     environment:
-      BACKEND_URL: http://backend:3000
       ANSIBLE_PLAYBOOK_PATH: /app/playbook
       BACKEND_GRPC_TARGET: backend:50052
     volumes:
@@ -60,7 +59,6 @@ services:
         required: false
     environment:
       CORS_ORIGIN: http://localhost:4321
-      ANSIBLE_URL: http://ansible:8000
       ANSIBLE_GRPC_TARGET: ansible:50051
     depends_on:
       ansible:

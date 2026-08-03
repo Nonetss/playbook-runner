@@ -1,20 +1,28 @@
 import { db } from "@playbook-runner/db"
 import { jobRuns, jobs } from "@playbook-runner/db/schema/jobs"
 import { env } from "@playbook-runner/env/server"
+import {
+  getClient,
+  grpcStatusName,
+  isGrpcError,
+  serverStream,
+} from "@playbook-runner/grpc"
+import { RunnerServiceClient } from "@playbook-runner/grpc/stubs"
 import { logger } from "@playbook-runner/logger"
 import { eq } from "drizzle-orm"
 import { type RunInventorySelection, runHandler } from "#v1/run/handler"
-
-/** A single SSE event parsed from the ansible stream. */
-type RunEvent = Record<string, unknown> & { event?: string }
+import {
+  RUN_TIMEOUT_MS,
+  type RunEventRecord,
+  taskEventToRecord,
+  toProtoHost,
+} from "#v1/run/proto"
 
 type RunOutcome = {
-  events: RunEvent[]
+  events: RunEventRecord[]
   ok: boolean
   error: string | null
 }
-
-const INTERNAL_RUN_PATH = "/ansible/api/v0/run/internal"
 
 /** The per-host recap Ansible emits once at the end of a play. */
 type RunStats = {
@@ -36,7 +44,7 @@ type RunStats = {
  * makes a run where 1 of 5 hosts failed render as *partial* rather than a flat
  * red "failed" in the UI.
  */
-function countHostOutcomes(events: RunEvent[]): {
+function countHostOutcomes(events: RunEventRecord[]): {
   hostsOk: number | null
   hostsFailed: number | null
 } {
@@ -68,53 +76,9 @@ function countHostOutcomes(events: RunEvent[]): {
 }
 
 /**
- * Consume a `text/event-stream` body, splitting on `\n\n` frames and pulling
- * out the `event:` name and JSON `data:` payload of each. Mirrors the parser
- * the frontend uses so both ends agree on the wire format.
- */
-async function consumeSse(
-  body: ReadableStream<Uint8Array>,
-  onFrame: (eventName: string | undefined, data: unknown) => void
-): Promise<void> {
-  const reader = body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ""
-
-  const handle = (frame: string) => {
-    let eventName: string | undefined
-    const dataLines: string[] = []
-    for (const line of frame.split("\n")) {
-      if (line.startsWith("event:")) eventName = line.slice(6).trim()
-      else if (line.startsWith("data:"))
-        dataLines.push(line.slice(5).trimStart())
-    }
-    if (dataLines.length === 0) return
-    try {
-      onFrame(eventName, JSON.parse(dataLines.join("\n")))
-    } catch {
-      // ignore malformed frame
-    }
-  }
-
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-    let sep = buffer.indexOf("\n\n")
-    while (sep !== -1) {
-      const frame = buffer.slice(0, sep)
-      buffer = buffer.slice(sep + 2)
-      if (frame.trim()) handle(frame)
-      sep = buffer.indexOf("\n\n")
-    }
-  }
-  if (buffer.trim()) handle(buffer)
-}
-
-/**
  * Resolve a job's playbook + inventory and stream it through the ansible
- * service's internal endpoint, accumulating every event. Returns the captured
- * output and whether the run succeeded.
+ * service's `RunnerService.RunBundle` (gRPC), accumulating every event.
+ * Returns the captured output and whether the run succeeded.
  */
 async function streamRun(job: typeof jobs.$inferSelect): Promise<RunOutcome> {
   if (!job.playbookId) {
@@ -141,44 +105,47 @@ async function streamRun(job: typeof jobs.$inferSelect): Promise<RunOutcome> {
     }
   }
 
-  const res = await fetch(`${env.ANSIBLE_URL}${INTERNAL_RUN_PATH}`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      accept: "text/event-stream",
-      "x-internal-token": env.INTERNAL_TOKEN,
-    },
-    body: JSON.stringify({
-      bundle,
-      forks: job.forks,
-      extravars: job.extravarsJson ?? {},
-    }),
-  })
-
-  if (!res.ok || !res.body) {
-    let detail = `HTTP ${res.status}`
-    try {
-      const payload = (await res.json()) as { detail?: string }
-      if (payload?.detail) detail = payload.detail
-    } catch {
-      // keep status fallback
+  if (!env.SERVICE_TOKEN) {
+    return {
+      events: [],
+      ok: false,
+      error: "gRPC is not configured (SERVICE_TOKEN is missing)",
     }
-    return { events: [], ok: false, error: detail }
   }
 
-  const events: RunEvent[] = []
+  const client = getClient(RunnerServiceClient, env.ANSIBLE_GRPC_TARGET)
+  const events: RunEventRecord[] = []
   let ok = false
   let error: string | null = null
 
-  await consumeSse(res.body, (eventName, data) => {
-    if (eventName === "done") {
-      ok = Boolean((data as { ok?: boolean })?.ok)
-    } else if (eventName === "error") {
-      error = (data as { error?: string })?.error ?? "Error en la ejecución"
-    } else {
-      events.push(data as RunEvent)
+  try {
+    const stream = serverStream(
+      client.runBundle.bind(client),
+      {
+        playbook: bundle.playbook,
+        hosts: bundle.hosts.map(toProtoHost),
+        forks: job.forks,
+        extravars: (job.extravarsJson ?? {}) as Record<string, string>,
+      },
+      { token: env.SERVICE_TOKEN, timeoutMs: RUN_TIMEOUT_MS }
+    )
+    for await (const frame of stream) {
+      if (frame.done) {
+        ok = frame.done.ok
+      } else if (frame.error !== undefined) {
+        error = frame.error
+      } else if (frame.task) {
+        events.push(taskEventToRecord(frame.task))
+      }
     }
-  })
+  } catch (err) {
+    const detail = isGrpcError(err)
+      ? `gRPC ${grpcStatusName(err)}: ${err.details}`
+      : err instanceof Error
+        ? err.message
+        : "Error en la ejecución"
+    return { events, ok: false, error: detail }
+  }
 
   return { events, ok: error ? false : ok, error }
 }

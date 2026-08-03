@@ -1,210 +1,104 @@
-import z from "zod"
-import { errors } from "#errors"
+import { eventIterator } from "@orpc/server"
+import { z } from "zod"
 import { protectedProcedure } from "#index"
-import {
-  ResolveRunCredentiallessError,
-  ResolveRunNotFoundError,
-  ResolveRunValidationError,
-  runHandler,
-} from "#v1/run/handler"
+import { streamHandler } from "#v1/run/stream-handler"
+import { streamInput } from "#v1/run/stream-input"
 
-const inventorySelectionSchema = z.object({
-  id: z.string().uuid(),
-  type: z.enum(["group", "device"]),
+const statsSchema = z.object({
+  ok: z.record(z.string(), z.number()),
+  changed: z.record(z.string(), z.number()),
+  failures: z.record(z.string(), z.number()),
+  dark: z.record(z.string(), z.number()),
+  skipped: z.record(z.string(), z.number()),
 })
 
-const hostSchema = z.object({
-  name: z.string(),
-  address: z.string(),
-  port: z.number().int().min(1).max(65535).optional(),
-  username: z.string(),
-  privateKey: z.string(),
-  connection: z.literal("ssh"),
+// A single ansible-runner event, reduced to the fields the frontend renders.
+const taskEventSchema = z.object({
+  event: z.string(),
+  host: z.string().optional(),
+  play: z.string().optional(),
+  task: z.string().optional(),
+  task_action: z.string().optional(),
+  changed: z.boolean().optional(),
+  msg: z.string().optional(),
+  stdout: z.string().optional(),
+  stderr: z.string().optional(),
+  rc: z.number().int().optional(),
+  stats: statsSchema.optional(),
 })
 
-const resolveOutputSchema = z.object({
-  playbook: z.object({
-    name: z.string(),
-    content: z.string(),
-  }),
-  hosts: z.array(hostSchema),
+// Terminal value of the event iterator, once the run finishes.
+const runResultSchema = z.object({
+  status: z.string(),
+  rc: z.number().int(),
+  ok: z.boolean(),
 })
 
-const resolveHostsOutputSchema = z.object({
-  hosts: z.array(hostSchema),
-})
+const resolveErrors = {
+  NOT_FOUND: { status: 404, message: "Not Found" },
+  BAD_REQUEST: { status: 400, message: "Bad Request" },
+  PRECONDITION_FAILED: { status: 412, message: "Precondition Failed" },
+  SERVICE_UNAVAILABLE: { status: 503, message: "Service Unavailable" },
+} as const
 
-const resolveScriptOutputSchema = z.object({
-  script: z.object({
-    name: z.string(),
-    content: z.string(),
-    language: z.enum(["bash", "python"]),
-  }),
-  hosts: z.array(hostSchema),
-})
-
+/**
+ * Ad-hoc / interactive execution: ping a device, run a playbook, run an
+ * ad-hoc command, or run a stored script — each streams live progress back
+ * to the browser as an oRPC event iterator. Resolves the selection against
+ * the database (`runHandler`), then executes on the ansible service over
+ * `RunnerService` (gRPC). Ansible itself never touches the database or a
+ * user session; the backend is the only thing that talks to it.
+ */
 export const runRouter = {
-  resolve: protectedProcedure
+  ping: protectedProcedure
     .route({
-      summary: "Resolve a playbook run",
+      summary: "Ping a device",
       description:
-        "Resolves a playbook + inventory selection into an executable bundle: playbook content and a de-duplicated list of target hosts with credentials. Group selections are expanded to devices via the device-group relation.",
+        "Resolves the device's stored SSH credential, then streams a one-task `ansible.builtin.ping` run against it.",
       tags: ["Run"],
       method: "POST",
     })
-    .input(
-      z.object({
-        playbookId: z.string().uuid(),
-        inventory: z.array(inventorySelectionSchema).min(1),
-      })
-    )
-    .output(resolveOutputSchema)
-    .errors({
-      NOT_FOUND: {
-        message: "Playbook not found",
-        status: 404,
-      },
-      PRECONDITION_FAILED: {
-        message: "One or more devices have no credential",
-        status: 412,
-      },
-      BAD_REQUEST: {
-        message: "Inventory selection is empty or contains unknown devices",
-        status: 400,
-      },
-    })
-    .handler(async ({ input }) => {
-      try {
-        return await runHandler.resolveRun(input.playbookId, input.inventory)
-      } catch (err) {
-        if (err instanceof ResolveRunNotFoundError) {
-          throw errors.NOT_FOUND({ message: err.message })
-        }
-        if (err instanceof ResolveRunCredentiallessError) {
-          throw errors.PRECONDITION_FAILED({ message: err.message })
-        }
-        if (err instanceof ResolveRunValidationError) {
-          throw errors.BAD_REQUEST({ message: err.message })
-        }
-        throw err
-      }
-    }),
+    .input(streamInput.ping)
+    .output(eventIterator(taskEventSchema, runResultSchema))
+    .errors(resolveErrors)
+    .handler(({ input }) => streamHandler.ping(input)),
 
-  resolveHosts: protectedProcedure
+  run: protectedProcedure
     .route({
-      summary: "Resolve hosts for an inventory selection",
+      summary: "Run a playbook",
       description:
-        "Resolves an inventory selection (devices and/or groups) into a de-duplicated list of hosts with credentials, without requiring a playbook. Group selections are expanded to devices via the device-group relation. Used by ad-hoc command execution.",
+        "Resolves a playbook + inventory selection (expanding groups to devices), then streams the playbook run.",
       tags: ["Run"],
       method: "POST",
     })
-    .input(
-      z.object({
-        inventory: z.array(inventorySelectionSchema).min(1),
-      })
-    )
-    .output(resolveHostsOutputSchema)
-    .errors({
-      PRECONDITION_FAILED: {
-        message: "One or more devices have no credential",
-        status: 412,
-      },
-      BAD_REQUEST: {
-        message: "Inventory selection is empty or contains unknown devices",
-        status: 400,
-      },
-    })
-    .handler(async ({ input }) => {
-      try {
-        return { hosts: await runHandler.resolveHosts(input.inventory) }
-      } catch (err) {
-        if (err instanceof ResolveRunCredentiallessError) {
-          throw errors.PRECONDITION_FAILED({ message: err.message })
-        }
-        if (err instanceof ResolveRunValidationError) {
-          throw errors.BAD_REQUEST({ message: err.message })
-        }
-        throw err
-      }
-    }),
+    .input(streamInput.run)
+    .output(eventIterator(taskEventSchema, runResultSchema))
+    .errors(resolveErrors)
+    .handler(({ input }) => streamHandler.run(input)),
 
-  resolveScript: protectedProcedure
+  command: protectedProcedure
     .route({
-      summary: "Resolve a script + inventory selection",
+      summary: "Run an ad-hoc command",
       description:
-        "Resolves a stored script (name + content) and an inventory selection into an executable bundle. Reuses host resolution from `resolve` (group expansion, credential join, dedupe).",
+        "Resolves an inventory selection (no playbook), then streams an ad-hoc `shell`/`command` module run against the resolved hosts.",
       tags: ["Run"],
       method: "POST",
     })
-    .input(
-      z.object({
-        scriptId: z.string().uuid(),
-        inventory: z.array(inventorySelectionSchema).min(1),
-      })
-    )
-    .output(resolveScriptOutputSchema)
-    .errors({
-      NOT_FOUND: {
-        message: "Script not found",
-        status: 404,
-      },
-      PRECONDITION_FAILED: {
-        message: "One or more devices have no credential",
-        status: 412,
-      },
-      BAD_REQUEST: {
-        message: "Inventory selection is empty or contains unknown devices",
-        status: 400,
-      },
-    })
-    .handler(async ({ input }) => {
-      try {
-        return await runHandler.resolveScript(input.scriptId, input.inventory)
-      } catch (err) {
-        if (err instanceof ResolveRunNotFoundError) {
-          throw errors.NOT_FOUND({ message: err.message })
-        }
-        if (err instanceof ResolveRunCredentiallessError) {
-          throw errors.PRECONDITION_FAILED({ message: err.message })
-        }
-        if (err instanceof ResolveRunValidationError) {
-          throw errors.BAD_REQUEST({ message: err.message })
-        }
-        throw err
-      }
-    }),
+    .input(streamInput.command)
+    .output(eventIterator(taskEventSchema, runResultSchema))
+    .errors(resolveErrors)
+    .handler(({ input }) => streamHandler.command(input)),
 
-  resolveDevice: protectedProcedure
+  script: protectedProcedure
     .route({
-      summary: "Resolve a single device for diagnostic runs",
+      summary: "Run a stored script",
       description:
-        "Returns the host (address, port, username, private key) for a single device, looked up by id. Used by the ansible service to run ad-hoc tasks (ping, etc.) against a stored device without going through a playbook.",
+        "Resolves a stored script + inventory selection, then streams the script run (Ansible `script` module) against the resolved hosts.",
       tags: ["Run"],
       method: "POST",
     })
-    .input(z.object({ deviceId: z.string().uuid() }))
-    .output(hostSchema)
-    .errors({
-      NOT_FOUND: {
-        message: "Device not found",
-        status: 404,
-      },
-      PRECONDITION_FAILED: {
-        message: "Device has no credential associated",
-        status: 412,
-      },
-    })
-    .handler(async ({ input }) => {
-      try {
-        return await runHandler.resolveDevice(input.deviceId)
-      } catch (err) {
-        if (err instanceof ResolveRunNotFoundError) {
-          throw errors.NOT_FOUND({ message: err.message })
-        }
-        if (err instanceof ResolveRunCredentiallessError) {
-          throw errors.PRECONDITION_FAILED({ message: err.message })
-        }
-        throw err
-      }
-    }),
+    .input(streamInput.script)
+    .output(eventIterator(taskEventSchema, runResultSchema))
+    .errors(resolveErrors)
+    .handler(({ input }) => streamHandler.script(input)),
 }

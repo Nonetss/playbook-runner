@@ -241,7 +241,7 @@ The two files to know:
   Better Auth secret, the OAuth client credentials, the seed admin.
 - **`apps/backend/.env`** (consumed by the backend and by `drizzle-kit`)
   — the full server-side schema: `DATABASE_URL`, `BETTER_AUTH_URL`,
-  `BETTER_AUTH_SECRET`, `GENERIC_OAUTH_*`, `INTERNAL_TOKEN`,
+  `BETTER_AUTH_SECRET`, `GENERIC_OAUTH_*`, `SERVICE_TOKEN`,
   `JOB_SCHEDULER_ENABLED`, `SEED_ADMIN_*`.
 
 Copy from `.env.example` and `apps/backend/.env.example` and fill in

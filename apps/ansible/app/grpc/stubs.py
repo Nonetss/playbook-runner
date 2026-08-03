@@ -3,9 +3,27 @@
 
 import ping_pb2
 import ping_pb2_grpc
+import run_pb2
+import run_pb2_grpc
 
 PingRequest = ping_pb2.PingRequest
 PingResponse = ping_pb2.PingResponse
 PingServiceStub = ping_pb2_grpc.PingServiceStub
 PingServiceServicer = ping_pb2_grpc.PingServiceServicer
 add_PingServiceServicer_to_server = ping_pb2_grpc.add_PingServiceServicer_to_server
+
+Host = run_pb2.Host
+Playbook = run_pb2.Playbook
+Script = run_pb2.Script
+
+RunBundleRequest = run_pb2.RunBundleRequest
+RunPingRequest = run_pb2.RunPingRequest
+RunCommandRequest = run_pb2.RunCommandRequest
+RunScriptRequest = run_pb2.RunScriptRequest
+RunEvent = run_pb2.RunEvent
+TaskEvent = run_pb2.TaskEvent
+Stats = run_pb2.Stats
+Done = run_pb2.Done
+RunnerServiceStub = run_pb2_grpc.RunnerServiceStub
+RunnerServiceServicer = run_pb2_grpc.RunnerServiceServicer
+add_RunnerServiceServicer_to_server = run_pb2_grpc.add_RunnerServiceServicer_to_server

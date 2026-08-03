@@ -19,8 +19,8 @@ export const appRouter = {
   inventory: inventoryRouter,
   jobs: jobsRouter,
   playbooks: playbooksRouter,
-  scripts: scriptsRouter,
   run: runRouter,
+  scripts: scriptsRouter,
 }
 export type AppRouter = typeof appRouter
 export type AppRouterClient = RouterClient<typeof appRouter>

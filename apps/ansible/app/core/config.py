@@ -9,7 +9,6 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    backend_url: str = "http://localhost:3000"
     environment: str = "development"
     log_level: str = "info"
     ansible_playbook_path: str = ""
@@ -18,15 +17,6 @@ class Settings(BaseSettings):
     ansible_ssh_key: str = ""
 
     run_scratch_dir: str = "/tmp/ansible-runs"
-    backend_resolve_path: str = "/api/v1/run/resolve"
-    backend_resolve_device_path: str = "/api/v1/run/resolveDevice"
-    backend_resolve_hosts_path: str = "/api/v1/run/resolveHosts"
-    backend_resolve_script_path: str = "/api/v1/run/resolveScript"
-
-    # Shared secret guarding the internal run endpoint used by the backend
-    # scheduler (service-to-service, no user session). Must match the backend's
-    # INTERNAL_TOKEN. When empty the internal endpoint is disabled.
-    internal_token: str = ""
 
     # Shared secret guarding gRPC in both directions (backend <-> ansible).
     # Must match the backend's SERVICE_TOKEN. When empty the gRPC server here
