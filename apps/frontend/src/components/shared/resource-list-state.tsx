@@ -54,12 +54,12 @@ export function ResourceListState<TItem>({
     return (
       <div
         className={cn(
-          "rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive",
+          "rounded-lg border border-destructive/20 bg-destructive/8 px-5 py-4 text-sm text-destructive shadow-sm",
           className
         )}
       >
         <div className="flex items-center justify-between gap-3">
-          <span>{t("labels.error_loading_data")}</span>
+          <span className="font-medium">{t("labels.error_loading_data")}</span>
           {onRetry ? (
             <Button type="button" size="xs" variant="outline" onClick={onRetry}>
               <RotateCw className="size-3" />
@@ -76,12 +76,12 @@ export function ResourceListState<TItem>({
     return (
       <div
         className={cn(
-          "rounded-xl border border-dashed bg-card px-6 py-12 text-center",
+          "rounded-lg border border-dashed border-border/60 bg-card/50 px-6 py-12 text-center backdrop-blur-sm transition-all",
           className
         )}
       >
         {empty.icon ? (
-          <div className="bg-primary/10 text-primary mx-auto mb-4 flex size-12 items-center justify-center rounded-full">
+          <div className="bg-primary/12 text-primary ring-primary/10 mx-auto mb-4 flex size-12 items-center justify-center rounded-lg ring-1">
             {empty.icon}
           </div>
         ) : null}
