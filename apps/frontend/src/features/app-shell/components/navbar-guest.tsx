@@ -1,15 +1,17 @@
+import { AppProviders } from "@/components/providers/app-providers"
 import { AppLink } from "@/components/ui/app-link"
 import { AppLogo } from "@/features/app-shell/components/app-logo"
+import { LanguageSwitcher } from "@/features/app-shell/components/language-switcher"
 import { ThemeToggle } from "@/features/app-shell/components/theme-toggle"
 import { useScrolled } from "@/hooks/useScrolled"
 import { cn } from "@/lib/utils"
 
 interface NavbarGuestProps {
   nameApp: string
-  locale?: string
+  locale: string
 }
 
-export function NavbarGuest({ nameApp }: NavbarGuestProps) {
+function NavbarGuestInner({ nameApp }: NavbarGuestProps) {
   const scrolled = useScrolled()
 
   return (
@@ -31,8 +33,19 @@ export function NavbarGuest({ nameApp }: NavbarGuestProps) {
           {nameApp}
         </AppLink>
 
-        <ThemeToggle />
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <LanguageSwitcher />
+          <ThemeToggle />
+        </div>
       </nav>
     </header>
+  )
+}
+
+export function NavbarGuest(props: NavbarGuestProps) {
+  return (
+    <AppProviders initialLocale={props.locale}>
+      <NavbarGuestInner {...props} />
+    </AppProviders>
   )
 }

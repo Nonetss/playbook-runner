@@ -1,32 +1,7 @@
-import {
-  BriefcaseIcon,
-  ClipboardListIcon,
-  FileCode2,
-  HistoryIcon,
-  KeyRound,
-  ServerIcon,
-  TerminalIcon,
-} from "lucide-react"
-import type { ComponentType } from "react"
-
-export type SiteNavIconComponent = ComponentType<{ className?: string }>
-
-export interface SiteNavSubItem {
-  href: string
-  label: string
-  description: string
-  icon: SiteNavIconComponent
-}
-
 export interface SiteNavItem {
   href: string
-  label: string
-  description: string
-  icon: SiteNavIconComponent
-  /** Hidden from the navbar unless the user is an admin. */
-  adminOnly?: boolean
-  /** Subroutes of this section: navbar dropdown, etc. */
-  subItems?: SiteNavSubItem[]
+  /** Translation key inside the `nav` namespace's `links` object. */
+  labelKey: string
 }
 
 /** True when `pathname` is exactly `href` or a nested route under it. */
@@ -36,59 +11,17 @@ export function isNavLinkActive(href: string, pathname: string) {
 }
 
 /**
- * Single source of truth for site navigation: navbar (desktop + mobile),
- * section sidebars and section landing pages all read from here.
+ * Single source of truth for site navigation: navbar (desktop + mobile)
+ * reads from here. Labels are translation keys, resolved via
+ * `useTranslation("nav")` in each consumer so switching language updates
+ * them live.
  */
 export const siteNavItems: SiteNavItem[] = [
-  {
-    href: "/credentials",
-    label: "Credentials",
-    description: "Manage SSH credentials and keys",
-    icon: KeyRound,
-  },
-  {
-    href: "/inventory",
-    label: "Inventory",
-    description: "Manage hosts and groups",
-    icon: ServerIcon,
-  },
-  {
-    href: "/playbooks",
-    label: "Playbooks",
-    description: "View and manage Ansible playbooks",
-    icon: FileCode2,
-  },
-  {
-    href: "/scripts",
-    label: "Scripts",
-    description: "Manage custom scripts",
-    icon: TerminalIcon,
-  },
-  {
-    href: "/commands",
-    label: "Commands",
-    description: "Run ad-hoc commands",
-    icon: ClipboardListIcon,
-  },
-  {
-    href: "/jobs",
-    label: "Jobs",
-    description: "Automated playbook executions",
-    icon: BriefcaseIcon,
-  },
-  {
-    href: "/history",
-    label: "History",
-    description: "View all execution runs",
-    icon: HistoryIcon,
-  },
+  { href: "/credentials", labelKey: "links.credentials" },
+  { href: "/inventory", labelKey: "links.inventory" },
+  { href: "/playbooks", labelKey: "links.playbooks" },
+  { href: "/scripts", labelKey: "links.scripts" },
+  { href: "/commands", labelKey: "links.commands" },
+  { href: "/jobs", labelKey: "links.jobs" },
+  { href: "/history", labelKey: "links.history" },
 ]
-
-export function getSiteNavItemByHref(href: string) {
-  return siteNavItems.find((item) => item.href === href)
-}
-
-/** Sections visible to the current user. */
-export function getSiteNavItems(isAdmin: boolean) {
-  return siteNavItems.filter((item) => !item.adminOnly || isAdmin)
-}

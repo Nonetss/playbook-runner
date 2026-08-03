@@ -1,6 +1,6 @@
 import { Menu } from "lucide-react"
-import type { CSSProperties } from "react"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { flushSync } from "react-dom"
 import { AppLink } from "@/components/ui/app-link"
 import {
@@ -11,19 +11,26 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { navTriggerClass } from "@/features/app-shell/nav-trigger"
-import type { SiteNavItem } from "@/features/app-shell/site-nav"
 import { isNavLinkActive } from "@/features/app-shell/site-nav"
 import { cn } from "@/lib/utils"
 
+export interface NavbarNavLink {
+  href: string
+  label: string
+}
+
 interface NavbarMobileMenuProps {
-  navLinks: SiteNavItem[]
+  navLinks: NavbarNavLink[]
   currentPath: string
+  onPrefetch?: (href: string) => () => void
 }
 
 export function NavbarMobileMenu({
   navLinks,
   currentPath,
+  onPrefetch,
 }: NavbarMobileMenuProps) {
+  const { t } = useTranslation("common")
   const [open, setOpen] = useState(false)
 
   // Navbar is `transition:persist`ed. If the sheet portal is still in the DOM
@@ -52,15 +59,12 @@ export function NavbarMobileMenu({
   return (
     <div className="shrink-0 lg:hidden">
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild>
-          <button
-            type="button"
-            aria-label="Abrir menú de navegación"
-            aria-haspopup="dialog"
-            className={navTriggerClass}
-          >
-            <Menu className="size-4 shrink-0" aria-hidden />
-          </button>
+        <SheetTrigger
+          type="button"
+          aria-label={t("labels.open_navigation")}
+          className={navTriggerClass}
+        >
+          <Menu className="size-4 shrink-0" aria-hidden />
         </SheetTrigger>
         {/* Mount content only while open so close unmounts the portal
             immediately — no exit animation racing View Transitions. */}
@@ -71,66 +75,31 @@ export function NavbarMobileMenu({
           >
             <SheetHeader className="border-border border-b px-4 py-4 text-left">
               <SheetTitle className="font-mono font-semibold text-popover-foreground text-sm tracking-wide">
-                Navegación
+                {t("labels.navigation_title")}
               </SheetTitle>
             </SheetHeader>
             <nav
               className="flex flex-col gap-0.5 p-3"
-              aria-label="Enlaces principales"
+              aria-label={t("labels.primary_links")}
             >
-              {navLinks.map(({ href, label, subItems }, i) => {
+              {navLinks.map(({ href, label }) => {
                 const isActive = isNavLinkActive(href, currentPath)
                 return (
-                  <div
+                  <AppLink
                     key={href}
-                    className="dash-enter flex flex-col gap-0.5"
-                    style={{ "--dash-delay": `${i * 45}ms` } as CSSProperties}
+                    href={href}
+                    className={cn(
+                      "rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-secondary text-secondary-foreground shadow-sm"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    )}
+                    onClick={closeBeforeNavigate}
+                    onMouseEnter={onPrefetch?.(href)}
+                    onFocus={onPrefetch?.(href)}
                   >
-                    <AppLink
-                      href={href}
-                      className={cn(
-                        "relative rounded-lg px-3 py-2.5 font-medium text-sm transition-colors",
-                        isActive
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      )}
-                      onClick={closeBeforeNavigate}
-                    >
-                      {isActive ? (
-                        <span
-                          aria-hidden
-                          className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-primary"
-                        />
-                      ) : null}
-                      {label}
-                    </AppLink>
-
-                    {subItems ? (
-                      <div className="ml-3.5 flex flex-col gap-0.5 border-border border-l py-0.5 pl-2.5">
-                        {subItems.map((sub) => {
-                          const subActive = isNavLinkActive(
-                            sub.href,
-                            currentPath
-                          )
-                          return (
-                            <AppLink
-                              key={sub.href}
-                              href={sub.href}
-                              className={cn(
-                                "rounded-md px-2.5 py-2 font-medium text-xs transition-colors",
-                                subActive
-                                  ? "text-primary"
-                                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                              )}
-                              onClick={closeBeforeNavigate}
-                            >
-                              {sub.label}
-                            </AppLink>
-                          )
-                        })}
-                      </div>
-                    ) : null}
-                  </div>
+                    {label}
+                  </AppLink>
                 )
               })}
             </nav>

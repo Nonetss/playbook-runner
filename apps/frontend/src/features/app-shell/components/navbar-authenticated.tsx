@@ -1,49 +1,97 @@
+import { useQueryClient } from "@tanstack/react-query"
 import type { Session, User } from "better-auth"
-import { ChevronDown, ChevronRight, Settings } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { AppLink } from "@/components/ui/app-link"
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card"
 import { SlidingPillNav } from "@/components/ui/sliding-pill-nav"
 import { AppLogo } from "@/features/app-shell/components/app-logo"
+import { LanguageSwitcher } from "@/features/app-shell/components/language-switcher"
 import { NavbarMobileMenu } from "@/features/app-shell/components/navbar-mobile-menu"
+import { SettingsLink } from "@/features/app-shell/components/settings-link"
 import { ThemeToggle } from "@/features/app-shell/components/theme-toggle"
 import { UserNav } from "@/features/app-shell/components/user-nav"
-import { navTriggerClass } from "@/features/app-shell/nav-trigger"
-import { getSiteNavItems, isNavLinkActive } from "@/features/app-shell/site-nav"
-import { usePathname } from "@/hooks/usePathname"
+import { isNavLinkActive, siteNavItems } from "@/features/app-shell/site-nav"
 import { useScrolled } from "@/hooks/useScrolled"
+import { orpc } from "@/lib/orpc"
 import { cn } from "@/lib/utils"
 
 export interface NavbarAuthenticatedProps {
   user: User
   session: Session
   nameApp: string
-  currentPath?: string
-  locale?: string
+  currentPath: string
+  locale: string
 }
 
 function pillTextClassName(active: boolean) {
   return cn(
     "transition-colors duration-300",
-    active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+    active
+      ? "text-secondary-foreground"
+      : "text-muted-foreground hover:text-foreground"
   )
+}
+
+/**
+ * Map a section's nav href to the oRPC list query options whose data should
+ * be prefetched on hover. Each section owns one main list — keep this list
+ * aligned with the top-level resources (inventory / credentials / playbooks).
+ */
+function prefetchForHref(
+  queryClient: ReturnType<typeof useQueryClient>,
+  href: string
+) {
+  switch (href) {
+    case "/inventory":
+      queryClient.prefetchQuery(orpc.inventory.devices.list.queryOptions())
+      queryClient.prefetchQuery(orpc.inventory.groups.list.queryOptions())
+      return
+    case "/credentials":
+      queryClient.prefetchQuery(orpc.credentials.list.queryOptions())
+      return
+    case "/playbooks":
+      queryClient.prefetchQuery(orpc.playbooks.list.queryOptions())
+      return
+    case "/scripts":
+      queryClient.prefetchQuery(orpc.scripts.list.queryOptions())
+      return
+    case "/jobs":
+      queryClient.prefetchQuery(orpc.jobs.list.queryOptions())
+      return
+    case "/history":
+      queryClient.prefetchQuery(
+        orpc.jobs.runs.listAll.queryOptions({ input: { limit: 25 } })
+      )
+      return
+    case "/config":
+      queryClient.prefetchQuery(orpc.config.apiKeys.list.queryOptions())
+      return
+    default:
+      return
+  }
 }
 
 function NavbarAuthenticatedInner({
   user,
   session: _session,
   nameApp,
+  currentPath,
 }: NavbarAuthenticatedProps) {
-  const navLinks = getSiteNavItems(false)
-  const currentPath = usePathname()
+  const queryClient = useQueryClient()
+  const { t } = useTranslation("nav")
+  const scrolled = useScrolled()
+
+  const navLinks = siteNavItems.map(({ href, labelKey }) => ({
+    href,
+    label: t(labelKey),
+  }))
   const activeIndex = navLinks.findIndex(({ href }) =>
     isNavLinkActive(href, currentPath)
   )
-  const scrolled = useScrolled()
+
+  function handlePrefetch(href: string) {
+    return () => prefetchForHref(queryClient, href)
+  }
 
   return (
     <header
@@ -71,84 +119,22 @@ function NavbarAuthenticatedInner({
             className="flex items-center gap-0.5 rounded-lg border bg-muted/40 p-1"
             pillClassName="rounded-lg border border-border/60 bg-background shadow-sm"
           >
-            {navLinks.map(({ href, label, subItems }) => {
+            {navLinks.map(({ href, label }) => {
               const isActive = isNavLinkActive(href, currentPath)
-              const pill = (
-                <div
-                  data-sliding-pill-item
-                  className={cn(
-                    "relative z-10 flex items-center gap-1 rounded-lg px-3.5 py-1.5 font-medium text-xs",
-                    pillTextClassName(isActive)
-                  )}
-                >
-                  <AppLink href={href} className="block">
-                    {label}
-                  </AppLink>
-                  {subItems ? (
-                    <ChevronDown className="size-3 opacity-60" aria-hidden />
-                  ) : null}
-                </div>
-              )
-
               return (
                 <li key={href}>
-                  {subItems ? (
-                    <HoverCard openDelay={100} closeDelay={100}>
-                      <HoverCardTrigger asChild>{pill}</HoverCardTrigger>
-                      <HoverCardContent
-                        align="start"
-                        sideOffset={8}
-                        className="w-auto min-w-52 rounded-xl border bg-popover/95 p-1 shadow-md"
-                      >
-                        <div className="flex flex-col gap-0.5">
-                          {subItems.map((sub) => {
-                            const subActive = isNavLinkActive(
-                              sub.href,
-                              currentPath
-                            )
-                            const SubIcon = sub.icon
-                            return (
-                              <AppLink
-                                key={sub.href}
-                                href={sub.href}
-                                className={cn(
-                                  "group/link relative flex min-h-10 items-center justify-between gap-5 rounded-lg px-2.5 font-medium text-xs outline-none transition-[background-color,color,transform,box-shadow] duration-150 hover:translate-x-0.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-popover",
-                                  subActive
-                                    ? "bg-primary text-primary-foreground shadow-xs"
-                                    : "text-foreground/80 hover:bg-muted/60 hover:text-foreground"
-                                )}
-                              >
-                                <span className="flex items-center gap-2.5">
-                                  <span
-                                    className={cn(
-                                      "flex size-6 shrink-0 items-center justify-center rounded-md transition-colors",
-                                      subActive
-                                        ? "bg-primary-foreground/15 text-primary-foreground"
-                                        : "bg-muted text-muted-foreground group-hover/link:bg-background group-hover/link:text-foreground"
-                                    )}
-                                  >
-                                    <SubIcon className="size-3.5" />
-                                  </span>
-                                  {sub.label}
-                                </span>
-                                <ChevronRight
-                                  className={cn(
-                                    "size-3.5 shrink-0 transition-[color,transform] duration-150 group-hover/link:translate-x-0.5",
-                                    subActive
-                                      ? "text-primary-foreground/90"
-                                      : "text-muted-foreground/60 group-hover/link:text-foreground"
-                                  )}
-                                  aria-hidden
-                                />
-                              </AppLink>
-                            )
-                          })}
-                        </div>
-                      </HoverCardContent>
-                    </HoverCard>
-                  ) : (
-                    pill
-                  )}
+                  <AppLink
+                    href={href}
+                    data-sliding-pill-item
+                    className={cn(
+                      "relative z-10 block rounded-lg px-3.5 py-1.5 font-medium text-xs",
+                      pillTextClassName(isActive)
+                    )}
+                    onMouseEnter={handlePrefetch(href)}
+                    onFocus={handlePrefetch(href)}
+                  >
+                    {label}
+                  </AppLink>
                 </li>
               )
             })}
@@ -157,29 +143,23 @@ function NavbarAuthenticatedInner({
 
         {/* Mobile/tablet: < lg - mobile menu */}
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:hidden">
+          <LanguageSwitcher />
           <ThemeToggle />
+          <SettingsLink />
           <UserNav user={user} />
-          <AppLink
-            href="/config"
-            aria-label="Configuración"
-            className={navTriggerClass}
-          >
-            <Settings className="size-4 shrink-0" aria-hidden />
-          </AppLink>
-          <NavbarMobileMenu navLinks={navLinks} currentPath={currentPath} />
+          <NavbarMobileMenu
+            navLinks={navLinks}
+            currentPath={currentPath}
+            onPrefetch={handlePrefetch}
+          />
         </div>
 
         {/* Desktop: lg+ actions */}
         <div className="hidden shrink-0 items-center gap-2 lg:flex">
+          <LanguageSwitcher />
           <ThemeToggle />
+          <SettingsLink />
           <UserNav user={user} />
-          <AppLink
-            href="/config"
-            aria-label="Configuración"
-            className={navTriggerClass}
-          >
-            <Settings className="size-4 shrink-0" aria-hidden />
-          </AppLink>
         </div>
       </nav>
     </header>
@@ -188,7 +168,7 @@ function NavbarAuthenticatedInner({
 
 export function NavbarAuthenticated(props: NavbarAuthenticatedProps) {
   return (
-    <AppProviders>
+    <AppProviders initialLocale={props.locale}>
       <NavbarAuthenticatedInner {...props} />
     </AppProviders>
   )
