@@ -1,7 +1,10 @@
 import { executeJob } from "@playbook-runner/api/v1/jobs/executor"
 import { jobsHandler } from "@playbook-runner/api/v1/jobs/handler"
+import { db } from "@playbook-runner/db"
+import { jobRuns } from "@playbook-runner/db/schema/jobs"
 import { env } from "@playbook-runner/env/server"
 import { logger } from "@playbook-runner/logger"
+import { eq } from "drizzle-orm"
 
 /** How often (ms) the scheduler reconciles its cron set against the DB. */
 const RECONCILE_INTERVAL_MS = 60_000
@@ -66,6 +69,31 @@ async function reconcile() {
   // Remove jobs that are no longer enabled / scheduled / present.
   for (const jobId of scheduled.keys()) {
     if (!seen.has(jobId)) unschedule(jobId)
+  }
+}
+
+/**
+ * Mark any run left in "running" status as failed. A "running" row can only
+ * survive to the next boot if the previous process died mid-run (a live
+ * process always settles its own runs to a terminal status), so this should
+ * run once at startup, before the scheduler starts firing new runs.
+ */
+export async function recoverOrphanedRuns() {
+  const recovered = await db
+    .update(jobRuns)
+    .set({
+      status: "failed",
+      error: "El proceso se reinició mientras el job estaba en ejecución",
+      finishedAt: new Date(),
+    })
+    .where(eq(jobRuns.status, "running"))
+    .returning({ id: jobRuns.id })
+
+  if (recovered.length > 0) {
+    logger.warn(
+      { count: recovered.length, runIds: recovered.map((r) => r.id) },
+      "recovered orphaned job runs"
+    )
   }
 }
 
