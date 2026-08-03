@@ -1,13 +1,14 @@
 # `@playbook-runner/api`
 
-Public oRPC API surface for Playbook Runner. Routers live in `src/routers/`,
-backed by handlers in `src/handlers/` and DB schemas from `@playbook-runner/db`.
-The backend (`apps/backend`) serves the oRPC + OpenAPI routes generated from
-`appRouter`.
+Public oRPC API surface for Playbook Runner. `src/router.ts` owns the public
+contract and nests the current router (`src/routers/index.ts`) under `v1`.
+The backend serves the resulting procedures at `/rpc/v1/...` and `/api/v1/...`.
+Feature routers live in `src/routers/`, backed by handlers in `src/handlers/`
+and DB schemas from `@playbook-runner/db`.
 
 ## API endpoint documentation standard
 
-Every procedure exposed by `appRouter` (`src/routers/index.ts`) MUST follow
+Every procedure exposed by the version router (`src/routers/index.ts`) MUST follow
 the shape below. This drives the generated OpenAPI document served at
 `/openapi.json` and rendered at `/scalar`.
 
@@ -34,18 +35,20 @@ That is: **`.route({ summary, description, tags, method })` + `.input()` (when a
 
 ### Common errors live on the base procedures
 
-`publicProcedure` and `protectedProcedure` (in `src/index.ts`) declare the
-errors common to all endpoints exactly once:
+`errorMap` in `src/errors.ts` declares every standard oRPC error exactly once;
+`publicProcedure` and `protectedProcedure` (in `src/index.ts`) share that map.
+Feature code throws through the exported `errors` constructors, never through
+`new ORPCError(...)`:
 
-| Procedure          | Declared errors                                                   |
-| ------------------ | ---------------------------------------------------------------- |
-| `publicProcedure`  | `INTERNAL_SERVER_ERROR`                                           |
-| `protectedProcedure` (on top of public) | `UNAUTHORIZED`, `FORBIDDEN`                       |
+| Procedure | Available standard errors |
+| --- | --- |
+| `publicProcedure` | The complete `errorMap`, including `INTERNAL_SERVER_ERROR` |
+| `protectedProcedure` | The complete `errorMap`; missing authentication throws `errors.UNAUTHORIZED()` |
 
 Endpoints **must not** re-declare these. They add only their own specifics
 (`NOT_FOUND`, `BAD_REQUEST`, `CONFLICT`, `PRECONDITION_FAILED`, ...).
-`requireAuth`'s `throw new ORPCError("UNAUTHORIZED")` aligns with the declared
-`UNAUTHORIZED` on `protectedProcedure`.
+Endpoint `.errors(...)` declarations remain documentation for the failures the
+endpoint can raise; they do not create ad-hoc error constructors.
 
 ### `.output()` — typed response schema
 
@@ -94,9 +97,9 @@ to the keys that actually vary.
 
 ```ts
 import { z } from "zod"
-import { devicesHandler } from "@/handlers/devices"
-import { protectedProcedure } from "@/index"
-import { deviceSchema } from "@/routers/inventory/schemas"
+import { devicesHandler } from "#handlers/devices"
+import { protectedProcedure } from "#index"
+import { deviceSchema } from "#routers/inventory/schemas"
 
 export const devicesRouter = {
   get: protectedProcedure
@@ -141,9 +144,9 @@ And confirm:
 - [ ] has `summary`, `description`, `tags`, `method`.
 - [ ] has `.output(...)`.
 - [ ] `.errors(...)` lists only the codes the endpoint can actually throw.
-- [ ] does **not** re-declare `INTERNAL_SERVER_ERROR` / `UNAUTHORIZED` / `FORBIDDEN`.
+- [ ] throws errors through `errors.<CODE>()`, never `new ORPCError(...)`.
 - [ ] does **not** include default-only fields (`deprecated: false`,
       `inputStructure: "compact"`, `outputStructure: "compact"`, etc.).
 - [ ] uses a shared resource schema (no per-endpoint drift on `list` vs `get`).
 - [ ] returns a non-null body if `.output(schema)` is non-nullable; the
-      handler should throw `ORPCError("NOT_FOUND")` instead of returning `null`.
+      handler should throw `errors.NOT_FOUND()` instead of returning `null`.

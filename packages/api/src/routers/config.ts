@@ -1,5 +1,5 @@
-import { auth } from "@playbook-runner/auth"
 import z from "zod"
+import { configHandler } from "#handlers/config"
 import { protectedProcedure } from "#index"
 
 // `list` returns every field except the secret. `create` includes the secret
@@ -37,11 +37,9 @@ const apiKeysRouter = {
     })
     .output(z.array(apiKeyListItemSchema))
     .handler(async ({ context }) => {
-      const result = await auth.api.listApiKeys({
-        headers: context.headers,
-      })
-      const items = result?.apiKeys ?? []
-      return z.array(apiKeyListItemSchema).parse(items)
+      return z
+        .array(apiKeyListItemSchema)
+        .parse(await configHandler.listApiKeys({ context }))
     }),
 
   create: protectedProcedure
@@ -71,15 +69,9 @@ const apiKeysRouter = {
       },
     })
     .handler(async ({ context, input }) => {
-      const result = await auth.api.createApiKey({
-        headers: context.headers,
-        body: {
-          configId: "default",
-          name: input.name,
-          ...(input.expiresIn ? { expiresIn: input.expiresIn } : {}),
-        },
-      })
-      return apiKeySchema.parse(result)
+      return apiKeySchema.parse(
+        await configHandler.createApiKey({ context, input })
+      )
     }),
 
   delete: protectedProcedure
@@ -98,11 +90,7 @@ const apiKeysRouter = {
       },
     })
     .handler(async ({ context, input }) => {
-      const result = await auth.api.deleteApiKey({
-        headers: context.headers,
-        body: { keyId: input.id },
-      })
-      return { id: input.id, success: !!result?.success }
+      return configHandler.deleteApiKey({ context, input })
     }),
 }
 

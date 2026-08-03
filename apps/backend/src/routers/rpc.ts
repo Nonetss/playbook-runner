@@ -1,7 +1,7 @@
 import { onError } from "@orpc/server"
 import { RPCHandler } from "@orpc/server/fetch"
 import { createContext } from "@playbook-runner/api/context"
-import { appRouter } from "@playbook-runner/api/routers/index"
+import { appRouter } from "@playbook-runner/api/router"
 import { logger } from "@playbook-runner/logger"
 import { Hono } from "hono"
 

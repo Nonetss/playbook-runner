@@ -3,7 +3,7 @@ import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins"
 import { onError } from "@orpc/server"
 import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4"
 import { createContext } from "@playbook-runner/api/context"
-import { appRouter } from "@playbook-runner/api/routers/index"
+import { appRouter } from "@playbook-runner/api/router"
 import { logger } from "@playbook-runner/logger"
 import { Hono } from "hono"
 
@@ -18,7 +18,7 @@ const handler = new OpenAPIHandler(appRouter, {
         servers: [{ url: "/api" }],
         info: {
           title: "Playbook Runner API",
-          version: "v0.3.1",
+          version: "v1",
           contact: {
             name: "Nonete",
             email: "amorenolopezbarajas@pm.me",

@@ -1,5 +1,5 @@
-import { ORPCError } from "@orpc/server"
 import z from "zod"
+import { errors } from "#errors"
 import {
   ResolveRunCredentiallessError,
   ResolveRunNotFoundError,
@@ -78,13 +78,13 @@ export const runRouter = {
         return await runHandler.resolveRun(input.playbookId, input.inventory)
       } catch (err) {
         if (err instanceof ResolveRunNotFoundError) {
-          throw new ORPCError("NOT_FOUND", { message: err.message })
+          throw errors.NOT_FOUND({ message: err.message })
         }
         if (err instanceof ResolveRunCredentiallessError) {
-          throw new ORPCError("PRECONDITION_FAILED", { message: err.message })
+          throw errors.PRECONDITION_FAILED({ message: err.message })
         }
         if (err instanceof ResolveRunValidationError) {
-          throw new ORPCError("BAD_REQUEST", { message: err.message })
+          throw errors.BAD_REQUEST({ message: err.message })
         }
         throw err
       }
@@ -119,10 +119,10 @@ export const runRouter = {
         return { hosts: await runHandler.resolveHosts(input.inventory) }
       } catch (err) {
         if (err instanceof ResolveRunCredentiallessError) {
-          throw new ORPCError("PRECONDITION_FAILED", { message: err.message })
+          throw errors.PRECONDITION_FAILED({ message: err.message })
         }
         if (err instanceof ResolveRunValidationError) {
-          throw new ORPCError("BAD_REQUEST", { message: err.message })
+          throw errors.BAD_REQUEST({ message: err.message })
         }
         throw err
       }
@@ -162,13 +162,13 @@ export const runRouter = {
         return await runHandler.resolveScript(input.scriptId, input.inventory)
       } catch (err) {
         if (err instanceof ResolveRunNotFoundError) {
-          throw new ORPCError("NOT_FOUND", { message: err.message })
+          throw errors.NOT_FOUND({ message: err.message })
         }
         if (err instanceof ResolveRunCredentiallessError) {
-          throw new ORPCError("PRECONDITION_FAILED", { message: err.message })
+          throw errors.PRECONDITION_FAILED({ message: err.message })
         }
         if (err instanceof ResolveRunValidationError) {
-          throw new ORPCError("BAD_REQUEST", { message: err.message })
+          throw errors.BAD_REQUEST({ message: err.message })
         }
         throw err
       }
@@ -199,10 +199,10 @@ export const runRouter = {
         return await runHandler.resolveDevice(input.deviceId)
       } catch (err) {
         if (err instanceof ResolveRunNotFoundError) {
-          throw new ORPCError("NOT_FOUND", { message: err.message })
+          throw errors.NOT_FOUND({ message: err.message })
         }
         if (err instanceof ResolveRunCredentiallessError) {
-          throw new ORPCError("PRECONDITION_FAILED", { message: err.message })
+          throw errors.PRECONDITION_FAILED({ message: err.message })
         }
         throw err
       }

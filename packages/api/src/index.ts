@@ -1,10 +1,11 @@
-import { ORPCError, os } from "@orpc/server"
+import { os } from "@orpc/server"
 
 import type { Context } from "#context"
+import { errorMap, errors } from "#errors"
 
 // `o` is the typed procedure builder; `os` is the namespace carrying the
 // middleware helper.
-const o = os.$context<Context>()
+const o = os.$context<Context>().errors(errorMap)
 
 /**
  * Base procedures for the public API.
@@ -21,18 +22,11 @@ const o = os.$context<Context>()
  */
 
 // Errors common to every endpoint, regardless of auth.
-export const publicProcedure = o.errors({
-  INTERNAL_SERVER_ERROR: {
-    message: "Internal server error",
-    status: 500,
-  },
-})
+export const publicProcedure = o
 
 const requireAuth = o.middleware(async ({ context, next }) => {
   if (!context.user) {
-    // Declared on `protectedProcedure` below — this throw resolves to the
-    // declared `UNAUTHORIZED` error and produces a 401 response.
-    throw new ORPCError("UNAUTHORIZED")
+    throw errors.UNAUTHORIZED()
   }
   return next({
     context: {
@@ -45,15 +39,4 @@ const requireAuth = o.middleware(async ({ context, next }) => {
 
 // Errors common to every authenticated endpoint. Endpoints must NOT re-declare
 // these in their own `.errors(...)`.
-export const protectedProcedure = publicProcedure
-  .errors({
-    UNAUTHORIZED: {
-      message: "Authentication required",
-      status: 401,
-    },
-    FORBIDDEN: {
-      message: "Not allowed",
-      status: 403,
-    },
-  })
-  .use(requireAuth)
+export const protectedProcedure = publicProcedure.use(requireAuth)

@@ -1,5 +1,5 @@
-import { ORPCError } from "@orpc/server"
 import { z } from "zod"
+import { errors } from "#errors"
 import { playbookFoldersHandler } from "#handlers/playbook-folders"
 import {
   PlaybookFolderNotFoundError,
@@ -44,9 +44,7 @@ const folderInput = z.object({
 
 function handleFolderError(error: unknown): never {
   if (error instanceof PlaybookFolderNotFoundError) {
-    throw new ORPCError("BAD_REQUEST", {
-      message: "Playbook folder not found",
-    })
+    throw errors.BAD_REQUEST({ message: "Playbook folder not found" })
   }
   throw error
 }

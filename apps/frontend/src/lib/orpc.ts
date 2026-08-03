@@ -1,7 +1,7 @@
 import { createORPCClient } from "@orpc/client"
 import { RPCLink } from "@orpc/client/fetch"
 import { createTanstackQueryUtils } from "@orpc/tanstack-query"
-import type { AppRouterClient } from "@playbook-runner/api/routers/index"
+import type { AppRouterClient } from "@playbook-runner/api/router"
 
 export const link = new RPCLink({
   // Resolved lazily per request so it always targets the current browser
@@ -24,4 +24,4 @@ export const client: AppRouterClient = createORPCClient(link)
  * `useHydratedQuery(orpc.someProcedure.queryOptions())` /
  * `useMutation(orpc.someProcedure.mutationOptions())`.
  */
-export const orpc = createTanstackQueryUtils(client)
+export const orpc = createTanstackQueryUtils(client.v1)
