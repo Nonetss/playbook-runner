@@ -266,7 +266,7 @@ function JobDetailPageInner({ id }: { id: string }) {
               {selectedRun.error ? (
                 <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/5 px-3 py-2 text-sm text-red-600">
                   <XCircle className="mt-0.5 size-4 shrink-0" />
-                  <span className="break-words">{selectedRun.error}</span>
+                  <span className="wrap-break-word">{selectedRun.error}</span>
                 </div>
               ) : null}
               <JobRunOutput

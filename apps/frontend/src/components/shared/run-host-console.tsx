@@ -173,7 +173,7 @@ function HostCard({ result }: { result: HostResult }) {
         {result.msg ? (
           <p
             className={cn(
-              "whitespace-pre-wrap break-words font-mono text-xs",
+              "whitespace-pre-wrap wrap-break-word font-mono text-xs",
               meta.textClass
             )}
           >
@@ -183,7 +183,7 @@ function HostCard({ result }: { result: HostResult }) {
 
         {hasStdout ? (
           <pre
-            className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-zinc-100"
+            className="whitespace-pre-wrap wrap-break-word text-[13px] leading-relaxed text-zinc-100"
             style={{ fontFamily: TERMINAL_FONT_STACK }}
           >
             {result.stdout}
@@ -215,7 +215,7 @@ function HostCard({ result }: { result: HostResult }) {
             </p>
             <pre
               className={cn(
-                "whitespace-pre-wrap break-words text-[13px] leading-relaxed",
+                "whitespace-pre-wrap wrap-break-word text-[13px] leading-relaxed",
                 stderrIsError ? "text-red-400" : "text-zinc-500"
               )}
               style={{ fontFamily: TERMINAL_FONT_STACK }}

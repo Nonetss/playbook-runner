@@ -181,7 +181,7 @@ export function JobRunOutput({
               <p
                 key={i}
                 className={cn(
-                  "whitespace-pre-wrap break-words",
+                  "whitespace-pre-wrap wrap-break-word",
                   toneClass[line.tone]
                 )}
               >
