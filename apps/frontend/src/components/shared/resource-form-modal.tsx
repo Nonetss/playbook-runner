@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useOnOpen } from "@/hooks/useOnOpen"
 import { cn } from "@/lib/utils"
 
 /** Radix Select no admite `value=""`; usamos un valor centinela para "sin selección". */
@@ -79,16 +80,12 @@ export function ResourceFormModal<TValues extends Record<string, unknown>>({
   const [values, setValues] = React.useState<TValues>(definition.defaultValues)
   const [error, setError] = React.useState<string | null>(null)
 
-  React.useEffect(() => {
-    if (!open) {
-      setValues(definition.defaultValues)
-      setError(null)
-      return
-    }
+  useOnOpen(open, () => {
     setValues(
       entity ? definition.valuesFromEntity(entity) : definition.defaultValues
     )
-  }, [open, entity, definition])
+    setError(null)
+  })
 
   function updateField<K extends keyof TValues>(key: K, value: TValues[K]) {
     setValues((current) => ({ ...current, [key]: value }))

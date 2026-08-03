@@ -25,20 +25,25 @@ Package versions pinned via root `workspaces.catalog`. Bun 1.3.14 with `linker =
 
 ## Backend API layering (`packages/api`)
 
-Every procedure belongs to a **feature** (`api-key`, `health`, `private`, ...), split across four parallel folders under `packages/api/src/`, one file per feature per folder:
+The package root holds infrastructure shared by every API version:
 
-- `input/<feature>.ts` — zod request schemas, exported as `<feature>Input` keyed by method (e.g. `apiKeyInput.create`). Only present when the procedure takes input.
-- `output/<feature>.ts` — zod response schemas, exported as `<feature>Output` keyed by method (e.g. `apiKeyOutput.create`).
-- `handler/<feature>.ts` — business logic, exported as `<feature>Handler` keyed by method. Each method is `async ({ context, input }: { context: Context; input?: z.infer<typeof <feature>Input.<method>> }) => ...` — no other param shapes. Calls into `@playbook-runner/auth` / `@playbook-runner/db` etc. live here, never in the router.
-- `routers/<feature>.ts` — oRPC wiring only, exported as `<feature>Router`: `publicProcedure`/`protectedProcedure` → `.route({ summary, description, tags, method, successStatus? })` → `.input(...)` (if any) → `.output(...)` → `.handler(({ context, input }) => featureHandler.method({ context, input }))`.
-
-Wiring rules:
-
-- `input/index.ts`, `output/index.ts`, `handler/index.ts` are barrels (`export * from "#<layer>/<feature>"`) — add every new feature to all three. Internal imports in this package use `#` subpath imports (see "Path aliases"), e.g. `import { apiKeyOutput } from "#output"`.
-- `routers/index.ts` assembles the version-one router by nesting each feature's router under its own key. `router.ts` nests each version under its own key (`v1: v1Router`). Client calls and HTTP paths always include the version: `orpc.v1.<feature>.<method>()`, `/rpc/v1/<feature>/<method>`, `/api/v1/<feature>/<method>`.
 - `context.ts` builds the oRPC `Context` (`{ user, session, headers }`) from the Hono context set by the auth session middleware.
 - `errors.ts` defines one `errorMap` (every standard oRPC code, `BAD_REQUEST` … `GATEWAY_TIMEOUT`) wired once via `os.$context<Context>().errors(errorMap)` in `index.ts`, plus one `errors` constructor map (`createORPCErrorConstructorMap(errorMap)`). Throw with `errors.UNAUTHORIZED()` etc. — never `new ORPCError(...)` directly.
 - `index.ts` exports `publicProcedure` (no auth) and `protectedProcedure` (`publicProcedure.use(requireAuth)`), which throws `errors.UNAUTHORIZED()` when `context.user` is missing.
+- `router.ts` at the package root assembles the top-level `appRouter` by nesting each API version's router under its own key (`v1: v1Router`) — this is the only place a new version gets wired in.
+
+Everything version-specific lives under `src/<version>/` (currently only `src/v1/`). Every procedure belongs to a **feature** (`api-key`, `credentials`, `health`, `inventory`, `jobs`, `playbooks`, `private`, `run`, `scripts`), colocated under `packages/api/src/<version>/<feature>/`, one file per concern:
+
+- `<feature>/input.ts` — zod request schemas, exported as `<feature>Input` keyed by method (e.g. `apiKeyInput.create`). Only present when a procedure takes input.
+- `<feature>/output.ts` — zod response schemas, exported as `<feature>Output` keyed by method (e.g. `apiKeyOutput.create`). Only present when a procedure returns a typed body.
+- `<feature>/handler.ts` — business logic, exported as `<feature>Handler` keyed by method. Each method is `async ({ context, input }: { context: Context; input?: z.infer<typeof <feature>Input.<method>> }) => ...` — no other param shapes. Calls into `@playbook-runner/auth` / `@playbook-runner/db` etc. live here, never in the router.
+- `<feature>/router.ts` — oRPC wiring only, exported as `<feature>Router`: `publicProcedure`/`protectedProcedure` → `.route({ summary, description, tags, method, successStatus? })` → `.input(...)` (if any) → `.output(...)` → `.handler(({ context, input }) => featureHandler.method({ context, input }))`.
+- Extra feature-specific modules (e.g. `jobs/executor.ts`, `credentials/ssh-key.ts`, `playbooks/folders.ts`) live alongside the four files above when a feature needs helpers beyond the standard layers.
+
+Wiring rules:
+
+- `src/v1/router.ts` assembles that version's router by importing each feature's router and nesting it under its own key (`health: healthRouter`, `jobs: jobsRouter`, ...). Client calls and HTTP paths always include the version: `orpc.v1.<feature>.<method>()`, `/rpc/v1/<feature>/<method>`, `/api/v1/<feature>/<method>`.
+- Internal imports in this package use `#` subpath imports (see "Path aliases"), e.g. `import { apiKeyOutput } from "#v1/api-key/output"`.
 
 ## Path aliases
 

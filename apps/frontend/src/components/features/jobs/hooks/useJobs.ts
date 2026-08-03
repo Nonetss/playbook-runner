@@ -1,13 +1,9 @@
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query"
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query"
 import type { InventoryItem, Job } from "@/components/features/jobs/types"
 import { useHydratedQuery } from "@/hooks/useHydratedQuery"
+import { useOrpcMutation } from "@/hooks/useOrpcMutation"
 import { useResourceMutation } from "@/hooks/useResourceMutation"
 import { orpc } from "@/lib/orpc"
-import { notifyError, notifySuccess } from "@/lib/toast"
 
 // ── Queries ──────────────────────────────────────────────────────────────────
 
@@ -235,17 +231,15 @@ export const useJobToggleEnabled = () =>
  */
 export const useJobRun = () => {
   const queryClient = useQueryClient()
-  return useMutation({
+  return useOrpcMutation({
     mutationFn: (input: { id: string }) =>
       orpc.jobs.run.call(input) as Promise<{ runId: string | null }>,
+    success: "Ejecución iniciada",
+    error: "No se pudo ejecutar el job",
     onSuccess: (_data, input) => {
-      notifySuccess("Ejecución iniciada")
       queryClient.invalidateQueries({
         queryKey: orpc.jobs.runs.list.queryKey({ input: { jobId: input.id } }),
       })
-    },
-    onError: (error: Error) => {
-      notifyError("No se pudo ejecutar el job", error.message)
     },
   })
 }
