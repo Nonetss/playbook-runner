@@ -152,20 +152,20 @@ function DashboardPageInner() {
   const successPct = metrics ? Math.round(metrics.successRate * 100) : null
 
   return (
-    <main className="mx-auto w-full max-w-5xl space-y-8 px-4 py-8 md:px-6">
+    <main className="mx-auto w-full max-w-5xl space-y-10 px-4 py-10 md:px-6 md:py-12">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h1 className="text-3xl font-bold tracking-tight">
             {t("page.title", {
               name: user?.name ? `, ${user.name}` : "",
             })}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-muted-foreground">
             {t("page.subtitle")}
           </p>
         </div>
-        <Button asChild size="sm" className="shrink-0">
+        <Button asChild className="shrink-0">
           <a href="/jobs/new">
             <Plus className="size-4" />
             {t("page.new_job_cta")}
@@ -212,9 +212,9 @@ function DashboardPageInner() {
       </div>
 
       {/* Run metrics + window selector */}
-      <section className="space-y-3">
+      <section className="space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+          <h2 className="text-muted-foreground text-sm font-bold uppercase tracking-wider">
             {t("runs_metrics.title", { defaultValue: "Run metrics" })}
           </h2>
           <RunWindowPicker value={runWindow} onChange={setRunWindow} />

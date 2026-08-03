@@ -47,12 +47,12 @@ export function JobCard({
   const inventoryCount = job.inventoryJson?.length ?? 0
 
   return (
-    <Card className="h-full gap-4 py-4">
+    <Card className="group h-full gap-4 py-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
       <CardHeader className="px-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
-            <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-md">
-              <BriefcaseIcon className="size-4" />
+            <div className="bg-primary/12 text-primary flex size-10 shrink-0 items-center justify-center rounded-lg ring-1 ring-primary/10 transition-all duration-200 group-hover:bg-primary/15 group-hover:ring-primary/20">
+              <BriefcaseIcon className="size-4.5" />
             </div>
             <div className="min-w-0">
               <CardTitle className="truncate text-base">{job.name}</CardTitle>
