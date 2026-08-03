@@ -6,7 +6,7 @@ Monorepo `playbook-runner` (Astro + Hono + oRPC + Better Auth + Drizzle/PostgreS
 
 - `apps/frontend` — Astro 7 SSR (`@astrojs/node` standalone), React, Tailwind v4 via Vite plugin, shadcn/ui (new-york, neutral, lucide icons). Runs on `:4321` (Astro); Caddy fronts `:80` in Docker.
 - `apps/backend` — Hono 4 + oRPC. Runs on `:3000`. Built with `tsdown` (not tsc) → `dist/index.mjs`. `noExternal: [/.*/]` bundles workspace packages and npm deps so the production image only needs `dist/`.
-- `packages/api` — oRPC contract: `o`, `publicProcedure`, `protectedProcedure`, `createContext`, `appRouter` (`packages/api/src/index.ts`, `context.ts`, `routers/index.ts`). Subpath exports for `"./*"`. Per-feature layering documented under "Backend API layering" below.
+- `packages/api` — oRPC contract: `o`, `publicProcedure`, `protectedProcedure`, `createContext`, `appRouter` (`packages/api/src/index.ts`, `context.ts`, `router.ts`). The root router exposes versions (`v1` today); `routers/index.ts` is the version-one router. Subpath exports for `"./*"`. Per-feature layering documented under "Backend API layering" below.
 - `packages/auth` — Better Auth factory (`createAuth()`), exports `auth`. Plugins: `admin()`, `apiKey({ enableSessionForAPIKeys: true })`. Cookies: sameSite=none, secure, httpOnly.
 - `packages/db` — Drizzle (`createDb()`, schema in `src/schema/auth.ts`). Drizzle CLI scripts here only.
 - `packages/env` — `@t3-oss/env-core`. Two entrypoints:
@@ -35,7 +35,7 @@ Every procedure belongs to a **feature** (`api-key`, `health`, `private`, ...), 
 Wiring rules:
 
 - `input/index.ts`, `output/index.ts`, `handler/index.ts` are barrels (`export * from "#<layer>/<feature>"`) — add every new feature to all three. Internal imports in this package use `#` subpath imports (see "Path aliases"), e.g. `import { apiKeyOutput } from "#output"`.
-- `routers/index.ts` assembles `appRouter` by nesting each feature's router under its own key (`apiKey: apiKeyRouter`, `health: healthRouter`) — client calls are `orpc.<feature>.<method>()`, never a flat top-level procedure name.
+- `routers/index.ts` assembles the version-one router by nesting each feature's router under its own key. `router.ts` nests each version under its own key (`v1: v1Router`). Client calls and HTTP paths always include the version: `orpc.v1.<feature>.<method>()`, `/rpc/v1/<feature>/<method>`, `/api/v1/<feature>/<method>`.
 - `context.ts` builds the oRPC `Context` (`{ user, session, headers }`) from the Hono context set by the auth session middleware.
 - `errors.ts` defines one `errorMap` (every standard oRPC code, `BAD_REQUEST` … `GATEWAY_TIMEOUT`) wired once via `os.$context<Context>().errors(errorMap)` in `index.ts`, plus one `errors` constructor map (`createORPCErrorConstructorMap(errorMap)`). Throw with `errors.UNAUTHORIZED()` etc. — never `new ORPCError(...)` directly.
 - `index.ts` exports `publicProcedure` (no auth) and `protectedProcedure` (`publicProcedure.use(requireAuth)`), which throws `errors.UNAUTHORIZED()` when `context.user` is missing.
@@ -54,11 +54,11 @@ Two aliasing schemes, by package kind:
 
 All scripts go through Turbo:
 
-- `bun run dev` — turbo dev (persistent). Use `dev:frontend` / `dev:backend` to scope.
+- `bun run dev` — turbo watch dev (persistent). Use `dev:frontend` / `dev:backend` to scope. Shared raw-TypeScript packages have no-op build tasks so changes restart their consumers.
 - `bun run build` — `dependsOn: ["^build"]`, reads `.env*` as inputs, outputs `dist/**` and `.astro/**`.
-- `bun run check-types` — `tsc -b` per package; the frontend runs `astro check`.
+- `bun run check-types` — `tsc -b` per package; the frontend runs `astro check`, and the Ansible service runs BasedPyright.
 - `bun run check` — `biome check --write .` (format + lint).
-- `bun run format` — `biome check --write --linter-enabled=false .` (format only).
+- `bun run format` — formats TypeScript with Biome and Python with Ruff.
 - `bun run db:push | db:generate | db:migrate | db:studio` — filtered to `@playbook-runner/db`.
 - `bun run docker:build | docker:up | docker:down | docker:logs` — uses root `compose.yml`.
 
@@ -82,7 +82,7 @@ No ESLint, no Prettier, no Husky.
 
 ## Docker
 
-- `compose.yml`: services `frontend` (port 4321 → container 80) and `backend` (internal 3000). Both have healthchecks: backend hits `http://localhost:3000/`, frontend hits `http://localhost/login` through Caddy. Frontend `start.sh` runs Astro SSR (127.0.0.1:4321) and Caddy as background jobs under `wait -n`, so the container dies (and restarts) if either process exits; Caddy reverse-proxies `/rpc/*`, `/api/*`, `/scalar*`, `/openapi.json` to `${BACKEND_UPSTREAM:backend:3000}`.
+- `compose.yml`: services `frontend` (port 4321 → container 80), `backend` (internal 3000), and `ansible` (port 8000). Each has a healthcheck: backend hits `http://localhost:3000/`, frontend hits `http://localhost/login` through Caddy, and Ansible hits `http://localhost:8000/api/health`. Backend waits for the Ansible healthcheck, while Ansible starts independently because its health endpoint has no backend dependency. Frontend `start.sh` runs Astro SSR (127.0.0.1:4321) and Caddy as background jobs under `wait -n`, so the container dies (and restarts) if either process exits; Caddy reverse-proxies `/rpc/*`, `/api/*`, `/scalar*`, `/openapi.json` to `${BACKEND_UPSTREAM:backend:3000}`.
 - Both Dockerfiles use `node:24-slim` + `oven/bun:1`, copy the workspace manifests first, `bun install --frozen-lockfile` (with `/root/.bun/install/cache` cache mount), then `COPY . .` + `bun run build` — dependency changes are the only thing that busts the install layer. **When adding a workspace, add its `package.json` COPY line to both Dockerfiles.**
 - CI: `.github/workflows/docker-build.yml` triggers on `v*` and `main`, builds + pushes `…-backend` / `…-frontend` images to the Gitea container registry using `MY_PASSWORD` PAT and optional `DOCKER_USERNAME` secret. Image tags: `latest`, branch/ref, and `<ref>-<sha8>`.
 
