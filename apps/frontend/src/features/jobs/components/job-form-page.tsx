@@ -23,6 +23,7 @@ import {
 import { Switch } from "@/components/ui/switch"
 import { useDevicesList } from "@/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/features/inventory/hooks/useGroups"
+import { CronScheduleDialog } from "@/features/jobs/components/cron-schedule-dialog"
 import {
   useJobCreate,
   useJobGet,
@@ -435,14 +436,21 @@ function JobFormPageInner({ id }: JobFormPageProps) {
                 {t("form.cron_optional")}
               </span>
             </Label>
-            <Input
-              id="job-cron"
-              disabled={isSubmitting}
-              placeholder="0 2 * * *"
-              value={values.cronExpression}
-              onChange={(e) => set("cronExpression", e.target.value)}
-              className="font-mono"
-            />
+            <div className="flex gap-2">
+              <Input
+                id="job-cron"
+                disabled={isSubmitting}
+                placeholder="0 2 * * *"
+                value={values.cronExpression}
+                onChange={(e) => set("cronExpression", e.target.value)}
+                className="font-mono"
+              />
+              <CronScheduleDialog
+                expression={values.cronExpression}
+                onApply={(expression) => set("cronExpression", expression)}
+                disabled={isSubmitting}
+              />
+            </div>
             <p className="text-muted-foreground text-xs">
               <Trans
                 i18nKey="form.cron_hint"
