@@ -56,7 +56,7 @@ function InventoryCollapsible({
       <button
         type="button"
         onClick={onToggle}
-        className="hover:bg-accent flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left transition-colors"
+        className="hover:bg-accent flex min-h-11 w-full items-center gap-1.5 rounded-md px-2 py-2.5 text-left transition-colors lg:min-h-0 lg:py-1.5"
       >
         <ChevronDown
           className={cn(
@@ -105,7 +105,7 @@ function ToggleRow({
       <button
         type="button"
         onClick={onToggle}
-        className="hover:bg-accent flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors"
+        className="hover:bg-accent flex min-h-11 w-full items-center gap-2.5 rounded-md px-2 py-2.5 text-left text-sm transition-colors lg:min-h-0 lg:py-1.5"
       >
         <span
           className={cn(
@@ -208,13 +208,14 @@ function RunPlaybookPageInner({ id }: { id: string }) {
   }
 
   return (
-    <main className="flex h-[calc(100dvh-3.5rem)] w-full min-h-0 flex-col overflow-hidden">
+    <main className="flex h-[calc(100dvh-var(--navbar-height))] w-full min-h-0 flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex shrink-0 items-center gap-3 border-b px-6 py-3">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b px-3 py-3 sm:px-6">
         <Button
           asChild
           variant="ghost"
-          size="icon-sm"
+          size="icon"
+          className="size-10 shrink-0 sm:size-8"
           aria-label={t("run.back_aria")}
         >
           <a href="/playbooks">
@@ -232,9 +233,14 @@ function RunPlaybookPageInner({ id }: { id: string }) {
             <PlaybookSwitcher currentId={id} disabled={isRunning} />
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex w-full shrink-0 gap-2 sm:ml-auto sm:w-auto">
           {playbook ? (
-            <Button asChild variant="outline" size="sm">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="min-h-10 flex-1 sm:min-h-8 sm:flex-none"
+            >
               <a href={`/playbooks/${id}/edit`} aria-label={t("run.edit_aria")}>
                 <Pencil className="size-4" />
                 {t("run.edit")}
@@ -245,6 +251,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
             <Button
               variant="outline"
               size="sm"
+              className="min-h-10 flex-1 sm:min-h-8 sm:flex-none"
               onClick={reset}
               disabled={isRunning}
             >
@@ -255,11 +262,11 @@ function RunPlaybookPageInner({ id }: { id: string }) {
       </div>
 
       {/* Body */}
-      <div className="flex min-h-0 flex-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
         {/* ── Terminal ── */}
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-zinc-950">
           {/* Faux terminal title bar */}
-          <div className="flex shrink-0 items-center gap-2 border-b border-zinc-800/80 px-4 py-2">
+          <div className="flex shrink-0 items-center gap-2 border-b border-zinc-800/80 px-3 py-2 sm:px-4">
             <span className="flex gap-1.5">
               <span className="size-2.5 rounded-full bg-red-500/80" />
               <span className="size-2.5 rounded-full bg-amber-500/80" />
@@ -274,7 +281,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
 
           <div
             ref={terminalRef}
-            className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5"
+            className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain p-3 sm:p-5"
           >
             <PlaybookRunConsole
               events={events}
@@ -285,7 +292,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
 
           {/* Result / error banners */}
           {phase === "error" ? (
-            <div className="mx-5 mb-4 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400">
+            <div className="mx-3 mb-3 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400 sm:mx-5 sm:mb-4">
               <XCircle className="mt-0.5 size-3.5 shrink-0" />
               <span>{errorMessage}</span>
             </div>
@@ -294,7 +301,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
           {phase === "done" && result ? (
             <div
               className={cn(
-                "mx-5 mb-4 flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs",
+                "mx-3 mb-3 flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs sm:mx-5 sm:mb-4",
                 result.ok
                   ? "border-emerald-900/50 bg-emerald-950/40 text-emerald-400"
                   : "border-amber-900/50 bg-amber-950/40 text-amber-400"
@@ -316,7 +323,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
         </div>
 
         {/* ── Options panel ── */}
-        <div className="flex w-72 shrink-0 flex-col gap-5 overflow-y-auto border-l p-4">
+        <div className="flex h-[45%] min-h-56 max-h-80 shrink-0 flex-col gap-4 overflow-y-auto border-t p-3 sm:gap-5 sm:p-4 lg:h-auto lg:min-h-0 lg:max-h-none lg:w-72 lg:border-t-0 lg:border-l">
           {/* Inventory */}
           <div className="space-y-3">
             <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
@@ -331,7 +338,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                   placeholder={t("run.panel.search_placeholder")}
                   value={inventorySearch}
                   onChange={(e) => setInventorySearch(e.target.value)}
-                  className="h-8 pl-8 text-xs"
+                  className="h-10 pl-8 text-xs lg:h-8"
                 />
               </div>
             ) : null}
@@ -437,14 +444,14 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                     Math.max(1, Number.parseInt(e.target.value, 10) || 1)
                   )
                 }
-                className="h-7 w-20 text-xs"
+                className="h-10 w-24 text-xs lg:h-7 lg:w-20"
               />
             </div>
 
             <div className="space-y-2">
               <p className="text-xs font-medium">{t("run.panel.extravars")}</p>
               {extravars.map((entry, i) => (
-                <div key={i} className="flex items-center gap-1.5">
+                <div key={i} className="flex min-w-0 items-center gap-1.5">
                   <Input
                     placeholder={t("run.panel.extravars_key_placeholder")}
                     value={entry.key}
@@ -455,7 +462,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                         )
                       )
                     }
-                    className="h-7 font-mono text-xs"
+                    className="h-10 min-w-0 flex-1 font-mono text-xs lg:h-7"
                   />
                   <Input
                     placeholder={t("run.panel.extravars_value_placeholder")}
@@ -467,13 +474,13 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                         )
                       )
                     }
-                    className="h-7 font-mono text-xs"
+                    className="h-10 min-w-0 flex-1 font-mono text-xs lg:h-7"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="size-7 shrink-0"
+                    className="size-10 shrink-0 lg:size-7"
                     aria-label={t("run.panel.extravars_remove_aria")}
                     onClick={() =>
                       setExtravars((prev) => prev.filter((_, j) => j !== i))
@@ -487,7 +494,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-7 text-xs"
+                className="h-10 text-xs lg:h-7"
                 onClick={() =>
                   setExtravars((prev) => [...prev, { key: "", value: "" }])
                 }
@@ -501,7 +508,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
           {/* Run button */}
           <div className="mt-auto border-t pt-4">
             <Button
-              className="w-full"
+              className="min-h-11 w-full"
               onClick={handleRun}
               disabled={isRunning || selectionCount === 0 || !playbook}
             >
