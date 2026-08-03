@@ -64,6 +64,7 @@ RUN apt-get update \
 # Copy the venv with everything baked in + the app source (including the
 # regenerated app/grpc/gen stubs). No uv, no pyproject, no uv.lock, no .cache.
 COPY --from=deps /app/apps/ansible/.venv /app/apps/ansible/.venv
+COPY --from=deps /app/python/grpc-toolkit /app/python/grpc-toolkit
 COPY --from=deps /app/apps/ansible/app /app/app
 
 WORKDIR /app
