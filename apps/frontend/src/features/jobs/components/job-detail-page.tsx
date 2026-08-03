@@ -15,11 +15,11 @@ import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { JobRunOutput } from "@/features/jobs/components/job-run-output"
 import {
   RunHostSummary,
   RunStatusBadge,
 } from "@/features/jobs/components/run-widgets"
+import { PlaybookRunConsole } from "@/features/run/components/playbook-run-console"
 import {
   useJobGet,
   useJobRun,
@@ -251,28 +251,42 @@ function JobDetailPageInner({ id }: { id: string }) {
       {/* Body */}
       <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* ── Terminal ── */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-zinc-950 p-5">
-          {isWatchingSelected ? (
-            <JobRunOutput
-              events={watch.events}
-              running={watch.phase === "running"}
-            />
-          ) : selectedRun ? (
-            <JobRunOutput
-              events={selectedRun.eventsJson ?? []}
-              running={selectedRun.status === "running"}
-            />
-          ) : (
-            <div className="min-h-0 flex-1 overflow-y-auto">
-              <p className="select-none font-mono text-xs text-zinc-600">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-zinc-950">
+          {/* Faux terminal title bar */}
+          <div className="flex shrink-0 items-center gap-2 border-b border-zinc-800/80 px-4 py-2">
+            <span className="flex gap-1.5">
+              <span className="size-2.5 rounded-full bg-red-500/80" />
+              <span className="size-2.5 rounded-full bg-amber-500/80" />
+              <span className="size-2.5 rounded-full bg-emerald-500/80" />
+            </span>
+            <span className="ml-2 truncate font-mono text-[11px] text-zinc-500">
+              <span className="text-zinc-600">job</span>
+              <span className="mx-1.5 text-zinc-700">$</span>
+              <span className="text-zinc-400">{job.name}</span>
+            </span>
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5">
+            {isWatchingSelected ? (
+              <PlaybookRunConsole
+                events={watch.events}
+                running={watch.phase === "running"}
+              />
+            ) : selectedRun ? (
+              <PlaybookRunConsole
+                events={selectedRun.eventsJson ?? []}
+                running={selectedRun.status === "running"}
+              />
+            ) : (
+              <p className="select-none text-sm text-zinc-600">
                 {t("detail.select_run")}
               </p>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Error / result banners */}
           {isWatchingSelected && watch.errorMessage ? (
-            <div className="mt-3 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400">
+            <div className="mx-5 mb-4 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400">
               <XCircle className="mt-0.5 size-3.5 shrink-0" />
               <span className="wrap-break-word">{watch.errorMessage}</span>
             </div>
@@ -281,7 +295,7 @@ function JobDetailPageInner({ id }: { id: string }) {
           {isWatchingSelected && watch.phase === "done" && watch.result ? (
             <div
               className={cn(
-                "mt-3 flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs",
+                "mx-5 mb-4 flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs",
                 watch.result.ok
                   ? "border-emerald-900/50 bg-emerald-950/40 text-emerald-400"
                   : "border-amber-900/50 bg-amber-950/40 text-amber-400"
@@ -301,7 +315,7 @@ function JobDetailPageInner({ id }: { id: string }) {
           ) : null}
 
           {!isWatchingSelected && selectedRun?.error ? (
-            <div className="mt-3 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400">
+            <div className="mx-5 mb-4 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400">
               <XCircle className="mt-0.5 size-3.5 shrink-0" />
               <span className="wrap-break-word">{selectedRun.error}</span>
             </div>

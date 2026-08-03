@@ -26,206 +26,11 @@ import { useDevicesList } from "@/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/features/inventory/hooks/useGroups"
 import { PlaybookSwitcher } from "@/features/playbooks/components/playbook-switcher"
 import { usePlaybookGet } from "@/features/playbooks/hooks/usePlaybooks"
+import { PlaybookRunConsole } from "@/features/run/components/playbook-run-console"
 import { useRunInventorySelection } from "@/features/run/hooks/useRunInventorySelection"
 import { useRunPlaybook } from "@/features/run/hooks/useRunPlaybook"
-import type { RunEvent, RunSelection } from "@/features/run/types"
+import type { RunSelection } from "@/features/run/types"
 import { cn } from "@/lib/utils"
-
-// ── terminal ──────────────────────────────────────────────────────────────────
-
-type Tone = "ok" | "changed" | "fail" | "muted" | "info" | "header" | "dim"
-type TerminalLine = { text: string; tone: Tone }
-
-function sep(label: string, char = "*") {
-  const prefix = `${label} `
-  const fill = char.repeat(Math.max(0, 72 - prefix.length))
-  return `${prefix}${fill}`
-}
-
-function lines(...items: TerminalLine[]): TerminalLine[] {
-  return items
-}
-
-function describeEvent(
-  event: RunEvent,
-  t: (key: string) => string
-): TerminalLine[] {
-  switch (event.event) {
-    case "playbook_on_start":
-      return lines({
-        text: sep(t("console.headings.playbook")),
-        tone: "header",
-      })
-
-    case "playbook_on_play_start":
-      return lines(
-        { text: "", tone: "dim" },
-        {
-          text: sep(`${t("console.headings.play")} [${event.play ?? ""}]`),
-          tone: "header",
-        }
-      )
-
-    case "playbook_on_task_start": {
-      const label = `${t("console.headings.task")} [${event.task ?? ""}]`
-      return lines(
-        { text: "", tone: "dim" },
-        { text: sep(label, "-"), tone: "muted" }
-      )
-    }
-
-    case "runner_on_start":
-      return lines({
-        text: `  → [${event.host ?? ""}] ${t("console.runner.starting")}`,
-        tone: "dim",
-      })
-
-    case "runner_on_ok": {
-      const result: TerminalLine[] = event.changed
-        ? [
-            {
-              text: `${t("console.runner.changed")}: [${event.host ?? ""}]`,
-              tone: "changed",
-            },
-          ]
-        : [
-            {
-              text: `${t("console.runner.ok")}: [${event.host ?? ""}]`,
-              tone: "ok",
-            },
-          ]
-      if (event.stdout) {
-        for (const line of event.stdout.split("\n")) {
-          if (line) result.push({ text: `  ${line}`, tone: "dim" })
-        }
-      }
-      return result
-    }
-
-    case "runner_on_skipped":
-      return lines({
-        text: `${t("console.runner.skipping")}: [${event.host ?? ""}]`,
-        tone: "muted",
-      })
-
-    case "runner_on_failed": {
-      const result: TerminalLine[] = [
-        {
-          text: `${t("console.runner.fatal")}: [${event.host ?? ""}]: ${t("console.runner.failed_excl")}!`,
-          tone: "fail",
-        },
-      ]
-      if (event.msg) {
-        result.push({
-          text: `  ${t("console.runner.msg")}: ${event.msg}`,
-          tone: "fail",
-        })
-      }
-      if (event.rc != null) {
-        result.push({
-          text: `  ${t("console.runner.rc")}: ${event.rc}`,
-          tone: "fail",
-        })
-      }
-      if (event.stdout) {
-        result.push({ text: `  ${t("console.runner.stdout")}:`, tone: "muted" })
-        for (const line of event.stdout.split("\n")) {
-          if (line) result.push({ text: `    ${line}`, tone: "dim" })
-        }
-      }
-      if (event.stderr) {
-        result.push({ text: `  ${t("console.runner.stderr")}:`, tone: "fail" })
-        for (const line of event.stderr.split("\n")) {
-          if (line) result.push({ text: `    ${line}`, tone: "fail" })
-        }
-      }
-      return result
-    }
-
-    case "runner_on_unreachable": {
-      const result: TerminalLine[] = [
-        {
-          text: `${t("console.runner.fatal")}: [${event.host ?? ""}]: ${t("console.runner.unreachable")}!`,
-          tone: "fail",
-        },
-      ]
-      if (event.msg) {
-        result.push({
-          text: `  ${t("console.runner.msg")}: ${event.msg}`,
-          tone: "fail",
-        })
-      }
-      return result
-    }
-
-    case "runner_item_on_ok":
-      return lines({
-        text: event.changed
-          ? `  ${t("console.runner.changed")}: [${event.host ?? ""}] (${t("console.runner.item")})`
-          : `  ${t("console.runner.ok")}: [${event.host ?? ""}] (${t("console.runner.item")})`,
-        tone: event.changed ? "changed" : "ok",
-      })
-
-    case "runner_item_on_failed":
-      return lines({
-        text: `  ${t("console.runner.failed_lower")}: [${event.host ?? ""}] (${t("console.runner.item")}) — ${event.msg ?? ""}`,
-        tone: "fail",
-      })
-
-    case "playbook_on_stats": {
-      if (!event.stats)
-        return lines(
-          { text: "", tone: "dim" },
-          { text: sep(t("console.headings.recap")), tone: "header" }
-        )
-
-      const { ok, changed, failures, dark, skipped } = event.stats
-      const hosts = Array.from(
-        new Set([
-          ...Object.keys(ok),
-          ...Object.keys(changed),
-          ...Object.keys(failures),
-          ...Object.keys(dark),
-          ...Object.keys(skipped),
-        ])
-      ).sort()
-
-      const result: TerminalLine[] = [
-        { text: "", tone: "dim" },
-        { text: sep(t("console.headings.recap")), tone: "header" },
-      ]
-
-      for (const host of hosts) {
-        const o = ok[host] ?? 0
-        const c = changed[host] ?? 0
-        const f = failures[host] ?? 0
-        const d = dark[host] ?? 0
-        const s = skipped[host] ?? 0
-        const tone: Tone = f > 0 || d > 0 ? "fail" : c > 0 ? "changed" : "ok"
-        const stats = `${t("console.runner.ok")}=${o}  ${t("console.runner.changed")}=${c}  ${t("console.runner.unreachable_lower")}=${d}  ${t("console.runner.failed_lower")}=${f}  ${t("console.runner.skipped")}=${s}`
-        result.push({
-          text: `${host.padEnd(36)}: ${stats}`,
-          tone,
-        })
-      }
-
-      return result
-    }
-
-    default:
-      return []
-  }
-}
-
-const toneClass: Record<Tone, string> = {
-  header: "text-zinc-100 font-semibold",
-  ok: "text-emerald-400",
-  changed: "text-amber-400",
-  fail: "text-red-400",
-  info: "text-zinc-300",
-  muted: "text-zinc-400",
-  dim: "text-zinc-600",
-}
 
 // ── InventoryCollapsible ──────────────────────────────────────────────────────
 
@@ -402,12 +207,6 @@ function RunPlaybookPageInner({ id }: { id: string }) {
     start(playbook.id, inventory, { forks, extravars: extravarMap })
   }
 
-  // Flatten all events into a single ordered list of terminal lines.
-  const terminalLines = useMemo(
-    () => events.flatMap((event) => describeEvent(event, t)),
-    [events, t]
-  )
-
   return (
     <main className="flex h-[calc(100dvh-3.5rem)] w-full min-h-0 flex-col overflow-hidden">
       {/* Header */}
@@ -458,41 +257,35 @@ function RunPlaybookPageInner({ id }: { id: string }) {
       {/* Body */}
       <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* ── Terminal ── */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-zinc-950 p-5">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-zinc-950">
+          {/* Faux terminal title bar */}
+          <div className="flex shrink-0 items-center gap-2 border-b border-zinc-800/80 px-4 py-2">
+            <span className="flex gap-1.5">
+              <span className="size-2.5 rounded-full bg-red-500/80" />
+              <span className="size-2.5 rounded-full bg-amber-500/80" />
+              <span className="size-2.5 rounded-full bg-emerald-500/80" />
+            </span>
+            <span className="ml-2 truncate font-mono text-[11px] text-zinc-500">
+              <span className="text-zinc-600">playbook</span>
+              <span className="mx-1.5 text-zinc-700">$</span>
+              <span className="text-zinc-400">{playbook?.name ?? "—"}</span>
+            </span>
+          </div>
+
           <div
             ref={terminalRef}
-            className="min-h-0 flex-1 overflow-y-auto overscroll-contain font-mono text-xs leading-[1.6]"
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5"
           >
-            {phase === "idle" ? (
-              <p className="select-none text-zinc-600">
-                {t("run.idle_prompt")}
-              </p>
-            ) : terminalLines.length === 0 && isRunning ? (
-              <p className="flex items-center gap-2 text-zinc-500">
-                <Loader2 className="size-3 animate-spin" />
-                {t("run.starting")}
-              </p>
-            ) : (
-              terminalLines.map((line, i) => (
-                <p
-                  key={i}
-                  className={cn("whitespace-pre-wrap", toneClass[line.tone])}
-                >
-                  {line.text || " "}
-                </p>
-              ))
-            )}
-
-            {isRunning ? (
-              <span className="mt-1 inline-block animate-pulse text-zinc-400">
-                ▋
-              </span>
-            ) : null}
+            <PlaybookRunConsole
+              events={events}
+              running={isRunning}
+              idlePrompt={t("run.idle_prompt")}
+            />
           </div>
 
           {/* Result / error banners */}
           {phase === "error" ? (
-            <div className="mt-3 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400">
+            <div className="mx-5 mb-4 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400">
               <XCircle className="mt-0.5 size-3.5 shrink-0" />
               <span>{errorMessage}</span>
             </div>
@@ -501,7 +294,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
           {phase === "done" && result ? (
             <div
               className={cn(
-                "mt-3 flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs",
+                "mx-5 mb-4 flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs",
                 result.ok
                   ? "border-emerald-900/50 bg-emerald-950/40 text-emerald-400"
                   : "border-amber-900/50 bg-amber-950/40 text-amber-400"
