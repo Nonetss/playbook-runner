@@ -176,62 +176,72 @@ function PlaybooksPageInner() {
       createLabel={t("page.create")}
       createHref={createHref}
     >
-      <div className="mb-4 flex justify-between items-center gap-2">
-        <div className="flex items-center gap-2">
-          {folderId ? (
-            <Button asChild variant="outline" size="sm">
-              <a href="/playbooks">
-                <ArrowLeft className="size-4" />
-                {t("folder.back_to_root")}
-              </a>
-            </Button>
-          ) : (
-            <Button variant="outline" size="sm" onClick={openFolderCreate}>
-              <FolderPlus className="size-4" />
-              {t("folder.create")}
-            </Button>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 w-1/3">
-          <div className="flex w-full items-center gap-2">
-            <Search className="text-muted-foreground size-4 shrink-0" />
-            <Input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder={t("filters.search_placeholder")}
-              aria-label={t("filters.search_label")}
-            />
+      <div className="mb-4 space-y-3">
+        <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
+          <div className="flex items-center gap-2">
+            {folderId ? (
+              <Button asChild variant="outline" size="sm">
+                <a href="/playbooks">
+                  <ArrowLeft className="size-4" />
+                  {t("folder.back_to_root")}
+                </a>
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" onClick={openFolderCreate}>
+                <FolderPlus className="size-4" />
+                {t("folder.create")}
+              </Button>
+            )}
           </div>
 
-          <Select
-            value={resourceFilter}
-            onValueChange={(value) =>
-              setResourceFilter(value as ResourceFilter)
-            }
-          >
-            <SelectTrigger
-              className="w-40"
-              aria-label={t("filters.type_label")}
+          <div className="flex flex-col gap-2 w-full md:w-auto md:flex-row md:items-center">
+            <div className="flex w-full md:w-auto items-center gap-2">
+              <Search className="text-muted-foreground size-4 shrink-0" />
+              <Input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={t("filters.search_placeholder")}
+                aria-label={t("filters.search_label")}
+              />
+            </div>
+
+            <Select
+              value={resourceFilter}
+              onValueChange={(value) =>
+                setResourceFilter(value as ResourceFilter)
+              }
             >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="all">{t("filters.all")}</SelectItem>
-                {!folderId ? (
-                  <SelectItem value="folders">
-                    {t("filters.folders")}
+              <SelectTrigger
+                className="w-full md:w-40"
+                aria-label={t("filters.type_label")}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="all">{t("filters.all")}</SelectItem>
+                  {!folderId ? (
+                    <SelectItem value="folders">
+                      {t("filters.folders")}
+                    </SelectItem>
+                  ) : null}
+                  <SelectItem value="playbooks">
+                    {t("filters.playbooks")}
                   </SelectItem>
-                ) : null}
-                <SelectItem value="playbooks">
-                  {t("filters.playbooks")}
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+
+        {search && (
+          <p className="text-muted-foreground text-xs">
+            {folderId
+              ? t("filters.searching_in_folder")
+              : t("filters.searching_all")}
+          </p>
+        )}
       </div>
 
       {!folderId && folders.length > 0 && playbooks.length > 0 ? (

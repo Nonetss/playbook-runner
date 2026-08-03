@@ -64,6 +64,10 @@
     "updated": "Actualizado",
     "created": "Creado"
   },
+  "filters": {
+    "searching_all": "Buscando en todos los playbooks y carpetas",
+    "searching_in_folder": "Buscando en esta carpeta"
+  },
   "run_console": {
     "starting": "Iniciando ejecución…",
     "waiting": "Esperando resultado…",

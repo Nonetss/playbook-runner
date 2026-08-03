@@ -64,6 +64,10 @@
     "updated": "Updated",
     "created": "Created"
   },
+  "filters": {
+    "searching_all": "Searching across all playbooks and folders",
+    "searching_in_folder": "Searching within this folder"
+  },
   "run_console": {
     "starting": "Starting run…",
     "waiting": "Waiting for result…",
