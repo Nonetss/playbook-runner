@@ -1,42 +1,37 @@
-import { AppProviders } from "@/components/providers/app-providers"
-import { LanguageSwitcher } from "@/features/app-shell/components/language-switcher"
+import { AppLogo } from "@/features/app-shell/components/app-logo"
 import { ThemeToggle } from "@/features/app-shell/components/theme-toggle"
+import { AppLink } from "@/components/ui/app-link"
+import { useScrolled } from "@/hooks/useScrolled"
+import { cn } from "@/lib/utils"
 
 interface NavbarGuestProps {
   nameApp: string
-  locale: string
+  locale?: string
 }
 
-export function NavbarGuest(props: NavbarGuestProps) {
-  return (
-    <AppProviders initialLocale={props.locale}>
-      <NavbarGuestInner {...props} />
-    </AppProviders>
-  )
-}
+export function NavbarGuest({ nameApp }: NavbarGuestProps) {
+  const scrolled = useScrolled()
 
-function NavbarGuestInner({ nameApp }: NavbarGuestProps) {
   return (
-    <header className="border-border bg-background sticky top-0 z-50 border-b">
-      <nav className="flex h-14 w-full items-center justify-between gap-3 px-4 md:gap-4 md:px-6 lg:px-8">
-        <a
+    <header
+      className={cn(
+        "sticky top-0 z-40 border-b bg-background/80 backdrop-blur transition-shadow duration-300 supports-backdrop-filter:bg-background/60",
+        scrolled ? "border-border shadow-sm" : "border-border/40"
+      )}
+    >
+      <nav className="mx-auto flex h-navbar max-w-6xl items-center justify-between gap-3 px-4 md:gap-4 md:px-6">
+        <AppLink
           href="/"
-          className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground transition-opacity duration-200 hover:opacity-80"
+          className="group flex shrink-0 items-center gap-2 font-semibold text-foreground text-sm tracking-tight"
         >
-          <img
-            src="/logo.svg"
+          <AppLogo
             alt={nameApp}
-            width={32}
-            height={32}
-            className="shrink-0"
+            className="transition-transform duration-300 group-hover:scale-110"
           />
           {nameApp}
-        </a>
+        </AppLink>
 
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <LanguageSwitcher />
-          <ThemeToggle />
-        </div>
+        <ThemeToggle />
       </nav>
     </header>
   )

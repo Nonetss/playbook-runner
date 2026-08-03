@@ -1,213 +1,188 @@
-import { useQueryClient } from "@tanstack/react-query"
 import type { Session, User } from "better-auth"
-import { useTranslation } from "react-i18next"
+import { ChevronDown, ChevronRight, Settings } from "lucide-react"
 import { AppProviders } from "@/components/providers/app-providers"
+import { AppLink } from "@/components/ui/app-link"
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card"
 import { SlidingPillNav } from "@/components/ui/sliding-pill-nav"
-import { LanguageSwitcher } from "@/features/app-shell/components/language-switcher"
+import { AppLogo } from "@/features/app-shell/components/app-logo"
 import { NavbarMobileMenu } from "@/features/app-shell/components/navbar-mobile-menu"
-import { SettingsLink } from "@/features/app-shell/components/settings-link"
 import { ThemeToggle } from "@/features/app-shell/components/theme-toggle"
 import { UserNav } from "@/features/app-shell/components/user-nav"
+import { navTriggerClass } from "@/features/app-shell/nav-trigger"
+import {
+  getSiteNavItems,
+  isNavLinkActive,
+} from "@/features/app-shell/site-nav"
 import { useScrolled } from "@/hooks/useScrolled"
-import { orpc } from "@/lib/orpc"
+import { usePathname } from "@/hooks/usePathname"
 import { cn } from "@/lib/utils"
 
 export interface NavbarAuthenticatedProps {
   user: User
   session: Session
   nameApp: string
-  currentPath: string
-  locale: string
+  currentPath?: string
+  locale?: string
 }
 
-// Static nav structure; labels are resolved client-side via the `nav`
-// namespace so switching language updates them live (the navbar re-renders on
-// `languageChanged`), instead of relying on labels baked in at SSR time.
-const NAV_ITEMS: { href: string; key: string }[] = [
-  { href: "/", key: "links.home" },
-  { href: "/credentials", key: "links.credentials" },
-  { href: "/inventory", key: "links.inventory" },
-  { href: "/playbooks", key: "links.playbooks" },
-  { href: "/scripts", key: "links.scripts" },
-  { href: "/commands", key: "links.commands" },
-  { href: "/jobs", key: "links.jobs" },
-  { href: "/history", key: "links.history" },
-]
-
-function linkClassName(active: boolean) {
+function pillTextClassName(active: boolean) {
   return cn(
-    "relative z-10 inline-block rounded-lg px-3 py-1.5 text-xs font-medium transition-colors duration-300",
-    active
-      ? "text-secondary-foreground"
-      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+    "transition-colors duration-300",
+    active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
   )
-}
-
-function isNavLinkActive(href: string, currentPath: string) {
-  if (href === "/") return currentPath === "/"
-  return currentPath === href || currentPath.startsWith(`${href}/`)
-}
-
-/**
- * Nested routes (e.g. a future `/jobs/[id]` sub-page) can match more than one
- * nav item. Pick the longest matching href so the most specific tab lights
- * up instead of whichever sibling happens to come first in `NAV_ITEMS`.
- */
-function findActiveNavIndex(
-  links: { href: string }[],
-  currentPath: string
-): number {
-  let bestIndex = -1
-  let bestLength = -1
-  links.forEach(({ href }, index) => {
-    if (isNavLinkActive(href, currentPath) && href.length > bestLength) {
-      bestIndex = index
-      bestLength = href.length
-    }
-  })
-  return bestIndex
-}
-
-/**
- * Map a section's nav href to the oRPC list query options whose data should
- * be prefetched on hover. Each section owns one main list — keep this list
- * aligned with the top-level resources (inventory / credentials / playbooks).
- */
-function prefetchForHref(
-  queryClient: ReturnType<typeof useQueryClient>,
-  href: string
-) {
-  switch (href) {
-    case "/inventory":
-      queryClient.prefetchQuery(orpc.inventory.devices.list.queryOptions())
-      queryClient.prefetchQuery(orpc.inventory.groups.list.queryOptions())
-      return
-    case "/credentials":
-      queryClient.prefetchQuery(orpc.credentials.list.queryOptions())
-      return
-    case "/playbooks":
-      queryClient.prefetchQuery(orpc.playbooks.list.queryOptions())
-      return
-    case "/scripts":
-      queryClient.prefetchQuery(orpc.scripts.list.queryOptions())
-      return
-    case "/jobs":
-      queryClient.prefetchQuery(orpc.jobs.list.queryOptions())
-      return
-    case "/history":
-      queryClient.prefetchQuery(
-        orpc.jobs.runs.listAll.queryOptions({ input: { limit: 25 } })
-      )
-      return
-    case "/config":
-      queryClient.prefetchQuery(orpc.config.apiKeys.list.queryOptions())
-      return
-    default:
-      return
-  }
 }
 
 function NavbarAuthenticatedInner({
   user,
   session: _session,
   nameApp,
-  currentPath,
-  locale: _locale,
 }: NavbarAuthenticatedProps) {
-  const queryClient = useQueryClient()
-  const { t } = useTranslation("nav")
+  const navLinks = getSiteNavItems(false)
+  const currentPath = usePathname()
+  const activeIndex = navLinks.findIndex(({ href }) =>
+    isNavLinkActive(href, currentPath)
+  )
   const scrolled = useScrolled()
-
-  const navLinks = NAV_ITEMS.map(({ href, key }) => ({
-    href,
-    label: t(key),
-  }))
-
-  const activeNavIndex = findActiveNavIndex(navLinks, currentPath)
-
-  function handlePrefetch(href: string) {
-    return () => prefetchForHref(queryClient, href)
-  }
 
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full border-b transition-[border-color,background-color,backdrop-filter,box-shadow] duration-300",
-        scrolled
-          ? "border-border/60 bg-background/70 shadow-[0_1px_3px_0_rgb(0_0_0/0.05)] backdrop-blur-md backdrop-saturate-150 supports-backdrop-filter:bg-background/60"
-          : "border-transparent bg-background/95 supports-backdrop-filter:bg-background/80"
+        "sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur transition-shadow duration-300 supports-backdrop-filter:bg-background/60",
+        scrolled ? "border-border shadow-sm" : "border-border/40"
       )}
     >
-      <nav className="flex h-14 w-full items-center justify-between gap-3 px-4 md:gap-4 md:px-6 lg:px-8">
-        <a
+      <nav className="mx-auto flex h-navbar max-w-6xl items-center justify-between gap-3 px-4 md:gap-4 md:px-6">
+        <AppLink
           href="/"
-          className="flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground transition-opacity duration-200 hover:opacity-80"
+          className="group flex shrink-0 items-center gap-2 font-semibold text-foreground text-sm tracking-tight"
         >
-          <img
-            src="/logo.svg"
+          <AppLogo
             alt={nameApp}
-            width={32}
-            height={32}
-            className="shrink-0"
+            className="transition-transform duration-300 group-hover:scale-110"
           />
-          <span className="flex flex-col leading-none">
-            {nameApp.split(" ").map((word, index) => (
-              <span
-                key={`${word}-${index}`}
-                className={cn(
-                  index === 0
-                    ? "text-sm font-bold tracking-tight"
-                    : "text-[10px] font-medium text-muted-foreground uppercase tracking-widest"
-                )}
-              >
-                {word}
-              </span>
-            ))}
-          </span>
-        </a>
+          <span className="hidden sm:inline">{nameApp}</span>
+        </AppLink>
 
-        {/* Desktop: lg+ - show links normally */}
-        <SlidingPillNav
-          activeIndex={activeNavIndex}
-          className="hidden lg:flex flex-1 items-center justify-center gap-1"
-        >
-          {navLinks.map(({ href, label }) => {
-            const isActive = isNavLinkActive(href, currentPath)
-            return (
-              <li key={href}>
-                <a
-                  href={href}
+        {/* Desktop: lg+ - segmented nav (same radius as action buttons) */}
+        <div className="hidden flex-1 justify-center lg:flex">
+          <SlidingPillNav
+            activeIndex={activeIndex}
+            className="flex items-center gap-0.5 rounded-lg border bg-muted/40 p-1"
+            pillClassName="rounded-lg border border-border/60 bg-background shadow-sm"
+          >
+            {navLinks.map(({ href, label, subItems }) => {
+              const isActive = isNavLinkActive(href, currentPath)
+              const pill = (
+                <div
                   data-sliding-pill-item
-                  className={linkClassName(isActive)}
-                  onMouseEnter={handlePrefetch(href)}
-                  onFocus={handlePrefetch(href)}
+                  className={cn(
+                    "relative z-10 flex items-center gap-1 rounded-lg px-3.5 py-1.5 font-medium text-xs",
+                    pillTextClassName(isActive)
+                  )}
                 >
-                  {label}
-                </a>
-              </li>
-            )
-          })}
-        </SlidingPillNav>
+                  <AppLink href={href} className="block">
+                    {label}
+                  </AppLink>
+                  {subItems ? (
+                    <ChevronDown className="size-3 opacity-60" aria-hidden />
+                  ) : null}
+                </div>
+              )
+
+              return (
+                <li key={href}>
+                  {subItems ? (
+                    <HoverCard openDelay={100} closeDelay={100}>
+                      <HoverCardTrigger asChild>{pill}</HoverCardTrigger>
+                      <HoverCardContent
+                        align="start"
+                        sideOffset={8}
+                        className="w-auto min-w-52 rounded-xl border bg-popover/95 p-1 shadow-md"
+                      >
+                        <div className="flex flex-col gap-0.5">
+                          {subItems.map((sub) => {
+                            const subActive = isNavLinkActive(
+                              sub.href,
+                              currentPath
+                            )
+                            const SubIcon = sub.icon
+                            return (
+                              <AppLink
+                                key={sub.href}
+                                href={sub.href}
+                                className={cn(
+                                  "group/link relative flex min-h-10 items-center justify-between gap-5 rounded-lg px-2.5 font-medium text-xs outline-none transition-[background-color,color,transform,box-shadow] duration-150 hover:translate-x-0.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-popover",
+                                  subActive
+                                    ? "bg-primary text-primary-foreground shadow-xs"
+                                    : "text-foreground/80 hover:bg-muted/60 hover:text-foreground"
+                                )}
+                              >
+                                <span className="flex items-center gap-2.5">
+                                  <span
+                                    className={cn(
+                                      "flex size-6 shrink-0 items-center justify-center rounded-md transition-colors",
+                                      subActive
+                                        ? "bg-primary-foreground/15 text-primary-foreground"
+                                        : "bg-muted text-muted-foreground group-hover/link:bg-background group-hover/link:text-foreground"
+                                    )}
+                                  >
+                                    <SubIcon className="size-3.5" />
+                                  </span>
+                                  {sub.label}
+                                </span>
+                                <ChevronRight
+                                  className={cn(
+                                    "size-3.5 shrink-0 transition-[color,transform] duration-150 group-hover/link:translate-x-0.5",
+                                    subActive
+                                      ? "text-primary-foreground/90"
+                                      : "text-muted-foreground/60 group-hover/link:text-foreground"
+                                  )}
+                                  aria-hidden
+                                />
+                              </AppLink>
+                            )
+                          })}
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                  ) : (
+                    pill
+                  )}
+                </li>
+              )
+            })}
+          </SlidingPillNav>
+        </div>
 
         {/* Mobile/tablet: < lg - mobile menu */}
-        <div className="flex lg:hidden shrink-0 items-center gap-1.5 sm:gap-2">
-          <LanguageSwitcher />
-          <ThemeToggle className="relative right-0 top-0 translate-y-0" />
-          <SettingsLink />
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:hidden">
+          <ThemeToggle />
           <UserNav user={user} />
-          <NavbarMobileMenu
-            navLinks={navLinks}
-            currentPath={currentPath}
-            onPrefetch={handlePrefetch}
-          />
+          <AppLink
+            href="/config"
+            aria-label="Configuración"
+            className={navTriggerClass}
+          >
+            <Settings className="size-4 shrink-0" aria-hidden />
+          </AppLink>
+          <NavbarMobileMenu navLinks={navLinks} currentPath={currentPath} />
         </div>
 
         {/* Desktop: lg+ actions */}
-        <div className="hidden lg:flex shrink-0 items-center gap-2">
-          <LanguageSwitcher />
-          <ThemeToggle className="relative right-0 top-0 translate-y-0" />
-          <SettingsLink />
+        <div className="hidden shrink-0 items-center gap-2 lg:flex">
+          <ThemeToggle />
           <UserNav user={user} />
+          <AppLink
+            href="/config"
+            aria-label="Configuración"
+            className={navTriggerClass}
+          >
+            <Settings className="size-4 shrink-0" aria-hidden />
+          </AppLink>
         </div>
       </nav>
     </header>
@@ -216,7 +191,7 @@ function NavbarAuthenticatedInner({
 
 export function NavbarAuthenticated(props: NavbarAuthenticatedProps) {
   return (
-    <AppProviders initialLocale={props.locale}>
+    <AppProviders>
       <NavbarAuthenticatedInner {...props} />
     </AppProviders>
   )
