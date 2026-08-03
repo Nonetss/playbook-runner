@@ -38,8 +38,7 @@
     "dev": {
       "dependsOn": ["^build"],
       "cache": false,
-      "persistent": true,
-      "interruptible": true
+      "persistent": true
     },
     "generate-grpc": {
       "cache": false,
