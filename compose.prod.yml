@@ -26,7 +26,7 @@ name: playbook-runner
 
 services:
   postgres:
-    image: postgres:17-alpine
+    image: postgres:17
     container_name: postgres
     init: true
     restart: unless-stopped
@@ -60,15 +60,12 @@ services:
       BACKEND_URL: http://backend:3000
     expose:
       - "8000"
-    depends_on:
-      backend:
-        condition: service_healthy
     healthcheck:
       test:
         - CMD
         - python
         - -c
-        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/openapi.json').read()"
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health').read()"
       interval: 30s
       timeout: 5s
       retries: 3
@@ -90,6 +87,8 @@ services:
       - "3000"
     depends_on:
       postgres:
+        condition: service_healthy
+      ansible:
         condition: service_healthy
     healthcheck:
       # start_period has to cover the in-process bootstrap() (Drizzle migrate
