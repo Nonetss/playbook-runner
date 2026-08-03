@@ -114,7 +114,6 @@ export function PingDeviceModal({
             ) : (
               visibleEvents.map((line, i) => (
                 <p
-                  // biome-ignore lint/suspicious/noArrayIndexKey: append-only log
                   key={i}
                   className={cn("whitespace-pre-wrap", toneClass[line.tone])}
                 >

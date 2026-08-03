@@ -64,7 +64,7 @@ let serverInstance: I18nInstance | null = null
 let serverInstancePromise: Promise<I18nInstance> | null = null
 
 async function getServerInstance(): Promise<I18nInstance> {
-  if (serverInstance && serverInstance.isInitialized) {
+  if (serverInstance?.isInitialized) {
     return serverInstance
   }
   if (serverInstancePromise) return serverInstancePromise

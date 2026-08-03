@@ -474,7 +474,10 @@ function JobFormPageInner({ id }: JobFormPageProps) {
               max={500}
               value={values.forks}
               onChange={(e) =>
-                set("forks", Math.max(1, Number.parseInt(e.target.value) || 1))
+                set(
+                  "forks",
+                  Math.max(1, Number.parseInt(e.target.value, 10) || 1)
+                )
               }
               disabled={isSubmitting}
               className="w-24"
@@ -503,7 +506,6 @@ function JobFormPageInner({ id }: JobFormPageProps) {
             ) : (
               <ul className="space-y-2">
                 {extravars.map((row, i) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: append-only
                   <li key={i} className="flex items-center gap-2">
                     <Input
                       placeholder={t("form.extravars_key_placeholder")}

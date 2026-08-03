@@ -478,7 +478,6 @@ function RunPlaybookPageInner({ id }: { id: string }) {
             ) : (
               terminalLines.map((line, i) => (
                 <p
-                  // biome-ignore lint/suspicious/noArrayIndexKey: append-only log
                   key={i}
                   className={cn("whitespace-pre-wrap", toneClass[line.tone])}
                 >
@@ -644,7 +643,9 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                 max={500}
                 value={forks}
                 onChange={(e) =>
-                  setForks(Math.max(1, Number.parseInt(e.target.value) || 1))
+                  setForks(
+                    Math.max(1, Number.parseInt(e.target.value, 10) || 1)
+                  )
                 }
                 className="h-7 w-20 text-xs"
               />
@@ -653,7 +654,6 @@ function RunPlaybookPageInner({ id }: { id: string }) {
             <div className="space-y-2">
               <p className="text-xs font-medium">{t("run.panel.extravars")}</p>
               {extravars.map((entry, i) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: order-stable list
                 <div key={i} className="flex items-center gap-1.5">
                   <Input
                     placeholder={t("run.panel.extravars_key_placeholder")}

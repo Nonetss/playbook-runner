@@ -492,7 +492,9 @@ function CommandsPageInner() {
                 max={500}
                 value={forks}
                 onChange={(e) =>
-                  setForks(Math.max(1, Number.parseInt(e.target.value) || 1))
+                  setForks(
+                    Math.max(1, Number.parseInt(e.target.value, 10) || 1)
+                  )
                 }
                 disabled={isRunning}
                 className="h-7 w-20 text-xs"

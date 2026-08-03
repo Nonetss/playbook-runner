@@ -79,7 +79,7 @@ function detectInitialLocaleFromBrowser(): string {
       if (isSupportedLocale(v)) return v
     }
     const fromStorage = window.localStorage?.getItem(LOCALE_COOKIE)
-    if (isSupportedLocale(fromStorage ?? null)) return fromStorage!
+    if (fromStorage && isSupportedLocale(fromStorage)) return fromStorage
     const nav = window.navigator?.language?.slice(0, 2)
     if (isSupportedLocale(nav)) return nav
   } catch {

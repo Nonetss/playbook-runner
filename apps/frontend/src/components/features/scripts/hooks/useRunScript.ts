@@ -90,11 +90,12 @@ async function streamScript(
     if (done) break
     buffer += decoder.decode(value, { stream: true })
 
-    let sep: number
-    while ((sep = buffer.indexOf("\n\n")) !== -1) {
+    let sep = buffer.indexOf("\n\n")
+    while (sep !== -1) {
       const frame = buffer.slice(0, sep)
       buffer = buffer.slice(sep + 2)
       if (frame.trim()) parseFrame(frame, handlers)
+      sep = buffer.indexOf("\n\n")
     }
   }
 

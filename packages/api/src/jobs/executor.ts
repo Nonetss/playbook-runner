@@ -100,11 +100,12 @@ async function consumeSse(
     const { done, value } = await reader.read()
     if (done) break
     buffer += decoder.decode(value, { stream: true })
-    let sep: number
-    while ((sep = buffer.indexOf("\n\n")) !== -1) {
+    let sep = buffer.indexOf("\n\n")
+    while (sep !== -1) {
       const frame = buffer.slice(0, sep)
       buffer = buffer.slice(sep + 2)
       if (frame.trim()) handle(frame)
+      sep = buffer.indexOf("\n\n")
     }
   }
   if (buffer.trim()) handle(buffer)

@@ -285,7 +285,9 @@ export function RunPlaybookModal({
                   max={500}
                   value={forks}
                   onChange={(e) =>
-                    setForks(Math.max(1, Number.parseInt(e.target.value) || 1))
+                    setForks(
+                      Math.max(1, Number.parseInt(e.target.value, 10) || 1)
+                    )
                   }
                   className="w-24"
                 />
@@ -296,7 +298,6 @@ export function RunPlaybookModal({
                   {t("run_modal.extravars")}
                 </p>
                 {extravars.map((entry, i) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: order-stable list
                   <div key={i} className="flex items-center gap-2">
                     <Input
                       placeholder={t("run_modal.extravars_key_placeholder")}
@@ -363,7 +364,6 @@ export function RunPlaybookModal({
               ) : (
                 visibleEvents.map((line, i) => (
                   <p
-                    // biome-ignore lint/suspicious/noArrayIndexKey: append-only log
                     key={i}
                     className={cn("whitespace-pre-wrap", toneClass[line.tone])}
                   >
