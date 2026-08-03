@@ -50,7 +50,7 @@ FROM python:3.12-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PATH="/app/.venv/bin:${PATH}" \
+    PATH="/app/apps/ansible/.venv/bin:${PATH}" \
     ANSIBLE_PLAYBOOK_PATH=/app/playbook \
     ANSIBLE_HOST_KEY_CHECKING=False \
     RUN_SCRATCH_DIR=/tmp/ansible-runs
@@ -63,7 +63,7 @@ RUN apt-get update \
 
 # Copy the venv with everything baked in + the app source (including the
 # regenerated app/grpc/gen stubs). No uv, no pyproject, no uv.lock, no .cache.
-COPY --from=deps /app/apps/ansible/.venv /app/.venv
+COPY --from=deps /app/apps/ansible/.venv /app/apps/ansible/.venv
 COPY --from=deps /app/apps/ansible/app /app/app
 
 WORKDIR /app
