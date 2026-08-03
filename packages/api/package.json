@@ -12,7 +12,9 @@
   "imports": {
     "#*": "./src/*.ts"
   },
-  "scripts": {},
+  "scripts": {
+    "build": "true"
+  },
   "dependencies": {
     "@playbook-runner/auth": "workspace:*",
     "@playbook-runner/db": "workspace:*",

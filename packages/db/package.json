@@ -13,6 +13,7 @@
     "#*": "./src/*.ts"
   },
   "scripts": {
+    "build": "true",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:pull": "drizzle-kit pull",

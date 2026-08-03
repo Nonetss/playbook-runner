@@ -7,6 +7,9 @@
     "./server": "./src/server.ts",
     "./web": "./src/web.ts"
   },
+  "scripts": {
+    "build": "true"
+  },
   "dependencies": {
     "@t3-oss/env-core": "^0.13.1",
     "dotenv": "catalog:",

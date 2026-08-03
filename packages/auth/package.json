@@ -9,7 +9,9 @@
       "default": "./src/*.ts"
     }
   },
-  "scripts": {},
+  "scripts": {
+    "build": "true"
+  },
   "dependencies": {
     "@better-auth/api-key": "catalog:",
     "@playbook-runner/db": "workspace:*",

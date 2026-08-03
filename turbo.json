@@ -13,9 +13,26 @@
     "check-types": {
       "dependsOn": ["^check-types"]
     },
+    "@playbook-runner/api#build": {
+      "outputs": []
+    },
+    "@playbook-runner/auth#build": {
+      "outputs": []
+    },
+    "@playbook-runner/db#build": {
+      "outputs": []
+    },
+    "@playbook-runner/env#build": {
+      "outputs": []
+    },
+    "@playbook-runner/logger#build": {
+      "outputs": []
+    },
     "dev": {
+      "dependsOn": ["^build"],
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "interruptible": true
     },
     "db:push": {
       "cache": false
