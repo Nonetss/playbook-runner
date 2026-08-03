@@ -14,7 +14,12 @@
     "back": "Back",
     "next": "Next",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "provision_script": "Provision script",
+    "manage_devices": "Manage devices",
+    "manage_groups": "Manage groups",
+    "ping": "Ping",
+    "run_now": "Run now"
   },
   "labels": {
     "user_menu": "Account menu",

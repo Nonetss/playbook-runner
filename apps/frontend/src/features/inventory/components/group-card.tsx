@@ -6,6 +6,7 @@ import {
   Settings2,
   Trash2,
 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -43,6 +44,7 @@ export function GroupCard({
   onManageDevices,
   isDeleting = false,
 }: GroupCardProps) {
+  const { t } = useTranslation("common")
   return (
     <Card className="h-full gap-4 py-4">
       <CardHeader className="px-4">
@@ -75,18 +77,18 @@ export function GroupCard({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onEdit(group)}>
                 <Pencil className="size-4" />
-                Editar
+                {t("actions.edit")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onManageDevices(group)}>
                 <Link2 className="size-4" />
-                Gestionar dispositivos
+                {t("actions.manage_devices")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
                 onClick={() => onDelete(group.id)}
               >
                 <Trash2 className="size-4" />
-                Eliminar
+                {t("actions.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

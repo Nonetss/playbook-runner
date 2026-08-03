@@ -7,6 +7,7 @@ import {
   Server,
   Trash2,
 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -53,6 +54,7 @@ export function DeviceCard({
   onPing,
   isDeleting = false,
 }: DeviceCardProps) {
+  const { t } = useTranslation("common")
   return (
     <Card className="h-full gap-4 py-4">
       <CardHeader className="px-4">
@@ -87,22 +89,22 @@ export function DeviceCard({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onEdit(device)}>
                 <Pencil className="size-4" />
-                Editar
+                {t("actions.edit")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onManageGroups(device)}>
                 <Link2 className="size-4" />
-                Gestionar grupos
+                {t("actions.manage_groups")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onPing(device)}>
                 <Radio className="size-4" />
-                Ping
+                {t("actions.ping")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
                 onClick={() => onDelete(device.id)}
               >
                 <Trash2 className="size-4" />
-                Eliminar
+                {t("actions.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

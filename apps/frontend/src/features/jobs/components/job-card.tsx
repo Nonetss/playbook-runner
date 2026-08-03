@@ -7,6 +7,7 @@ import {
   Play,
   Trash2,
 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -44,6 +45,7 @@ export function JobCard({
   isDeleting = false,
   isTogglingEnabled = false,
 }: JobCardProps) {
+  const { t } = useTranslation("common")
   const inventoryCount = job.inventoryJson?.length ?? 0
 
   return (
@@ -94,12 +96,12 @@ export function JobCard({
                   disabled={!job.playbookId}
                 >
                   <Play className="size-4" />
-                  Ejecutar ahora
+                  {t("actions.run_now")}
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <a href={`/jobs/${job.id}/edit`}>
                     <Pencil className="size-4" />
-                    Editar
+                    {t("actions.edit")}
                   </a>
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -107,7 +109,7 @@ export function JobCard({
                   onClick={() => onDelete(job.id)}
                 >
                   <Trash2 className="size-4" />
-                  Eliminar
+                  {t("actions.delete")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

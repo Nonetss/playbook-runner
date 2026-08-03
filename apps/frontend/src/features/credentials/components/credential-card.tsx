@@ -6,6 +6,7 @@ import {
   Trash2,
 } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -37,6 +38,7 @@ export function CredentialCard({
   onDelete,
   isDeleting = false,
 }: CredentialCardProps) {
+  const { t } = useTranslation("common")
   const [scriptOpen, setScriptOpen] = useState(false)
   const createdAt = credential.createdAt
     ? new Date(credential.createdAt).toLocaleDateString("es-ES", {
@@ -78,18 +80,18 @@ export function CredentialCard({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onEdit(credential)}>
                 <Pencil className="size-4" />
-                Editar
+                {t("actions.edit")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setScriptOpen(true)}>
                 <Terminal className="size-4" />
-                Script de aprovisionamiento
+                {t("actions.provision_script")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
                 onClick={() => onDelete(credential.id)}
               >
                 <Trash2 className="size-4" />
-                Eliminar
+                {t("actions.delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

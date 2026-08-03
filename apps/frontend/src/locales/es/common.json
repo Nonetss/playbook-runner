@@ -14,7 +14,12 @@
     "back": "Atrás",
     "next": "Siguiente",
     "yes": "Sí",
-    "no": "No"
+    "no": "No",
+    "provision_script": "Script de aprovisionamiento",
+    "manage_devices": "Gestionar dispositivos",
+    "manage_groups": "Gestionar grupos",
+    "ping": "Ping",
+    "run_now": "Ejecutar ahora"
   },
   "labels": {
     "user_menu": "Menú de cuenta",
