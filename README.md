@@ -112,23 +112,33 @@ Three small services in one monorepo:
                   │  Hono + oRPC   │         └────────────────┘
                   │  + Better Auth │
                   │  + Drizzle ORM │
-                  │  + cron loop   │
-                  └───────┬────────┘
-                          │  /api/v0/{run,command} (HTTP, session cookie forwarded)
-                          ▼
-                  ┌────────────────┐
-                  │  ansible       │  Python FastAPI
-                  │  :8000         │  wraps ansible-runner
-                  │  (no DB)       │  streams events over SSE
+                  │  + cron loop   │◀────────────────────────┐
+                  └───────┬────────┘                         │
+                          │  gRPC :50051 — RunnerService     │  gRPC :50052
+                          │  (RunBundle/RunPing/RunCommand/  │  PingService
+                          │   RunScript, streamed RunEvent,  │  (health demo)
+                          │   SERVICE_TOKEN auth)            │
+                          ▼                                  │
+                  ┌────────────────┐                         │
+                  │  ansible       │  Python FastAPI + gRPC server
+                  │  :8000/:50051  │  wraps ansible-runner   │
+                  │  (no DB)       │  ───────────────────────┘
                   └────────────────┘
 ```
 
 The Python service is deliberately dumb: it has no database connection.
-It asks the backend to resolve a run (playbook content or an ad-hoc
-command + the deduped hosts and their private keys) over HTTP,
-materializes a temp inventory + key files, hands them to `ansible-runner`
-(playbook mode or ad-hoc module mode), and streams events back. All
-business rules and authorization live in the backend.
+The backend resolves a run (playbook content or an ad-hoc command + the
+deduped hosts and their private keys) against its own database, then calls
+the ansible service over gRPC (`RunnerService`, see `proto/run.proto`) with
+the already-resolved payload. Ansible materializes a temp inventory + key
+files, hands them to `ansible-runner` (playbook mode or ad-hoc module
+mode), and streams `RunEvent` frames straight back over that same
+server-streaming RPC — no HTTP round trip and no SSE between the two
+services (the browser still gets its live output over SSE from the
+backend). Both directions authenticate with a shared `SERVICE_TOKEN`
+checked by a gRPC interceptor; ansible also opens a channel back to the
+backend's small `PingService` (`:50052`) purely as a health/diagnostic
+round-trip. All business rules and authorization live in the backend.
 
 ## Stack
 
@@ -142,6 +152,7 @@ business rules and authorization live in the backend.
 - **Biome** for lint + format
 - **Turborepo** for the monorepo pipeline
 - **FastAPI** + **ansible-runner** for the executor
+- **gRPC** (`@grpc/grpc-js` + `grpc.aio`) between backend and ansible, contracts in `proto/`
 - **Caddy** as a reverse proxy in front of the SSR frontend
 
 ## Quick start (local dev)
