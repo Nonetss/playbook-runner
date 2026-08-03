@@ -9,22 +9,31 @@ dependencies = [
     "ansible-core>=2.18.0",
     "ansible-runner>=2.4.3",
     "fastapi[standard]>=0.138.2",
+    "grpc-toolkit",
+    "grpcio>=1.68.0",
     "loguru>=0.7.3",
+    "protobuf>=6",
     "scalar-fastapi>=1.8.2",
 ]
 
 [dependency-groups]
 dev = [
     "basedpyright>=1.39.9",
+    "grpcio-tools>=1.68.0",
     "ruff>=0.15.20",
 ]
 
 [tool.basedpyright]
 typeCheckingMode = "basic"
 reportUnknownVariableType = false
+exclude = ["app/grpc/gen"]
+extraPaths = ["../../python/grpc-toolkit"]
 
 [tool.ruff.lint]
 extend-select = ["I"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
+
+[tool.uv.sources]
+grpc-toolkit = { path = "../../python/grpc-toolkit", editable = true }

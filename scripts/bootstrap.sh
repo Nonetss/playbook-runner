@@ -196,7 +196,8 @@ POSTGRES_USER=playbook_runner
 POSTGRES_PASSWORD=$(gen_password)
 BETTER_AUTH_SECRET=$(gen_secret)
 INTERNAL_TOKEN=$(gen_secret)
-ok "Secrets generated (POSTGRES_PASSWORD, BETTER_AUTH_SECRET, INTERNAL_TOKEN)"
+SERVICE_TOKEN=$(gen_secret)
+ok "Secrets generated (POSTGRES_PASSWORD, BETTER_AUTH_SECRET, INTERNAL_TOKEN, SERVICE_TOKEN)"
 
 # ── Write .env ───────────────────────────────────────────────────────────────
 ENV_FILE="$TARGET_DIR/.env"
@@ -248,6 +249,8 @@ GENERIC_OAUTH_ISSUER=$OIDC_ISSUER
 
 # ── Service-to-service auth ──────────────────────────────────────────────────
 INTERNAL_TOKEN=$INTERNAL_TOKEN
+# Guards the gRPC link between backend and ansible (both directions).
+SERVICE_TOKEN=$SERVICE_TOKEN
 EOF
 
 chmod 600 "$ENV_FILE"

@@ -58,8 +58,13 @@ services:
     env_file: .env
     environment:
       BACKEND_URL: http://backend:3000
+      BACKEND_GRPC_TARGET: backend:50052
+      # Same secret again, this time guarding gRPC in both directions. Without
+      # it the ansible service boots but its gRPC server rejects every call.
+      SERVICE_TOKEN: ${SERVICE_TOKEN}
     expose:
       - "8000"
+      - "50051"
     healthcheck:
       test:
         - CMD
@@ -81,10 +86,15 @@ services:
     environment:
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:?BETTER_AUTH_URL is required (public URL, e.g. https://your-domain.com)}
       ANSIBLE_URL: http://ansible:8000
+      ANSIBLE_GRPC_TARGET: ansible:50051
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4321}
       NODE_ENV: production
+      # Same secret again, this time guarding gRPC in both directions. Without
+      # it the backend boots but its gRPC server stays down.
+      SERVICE_TOKEN: ${SERVICE_TOKEN}
     expose:
       - "3000"
+      - "50052"
     depends_on:
       postgres:
         condition: service_healthy

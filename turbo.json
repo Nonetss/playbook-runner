@@ -3,7 +3,7 @@
   "ui": "tui",
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "^generate-grpc"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".astro/**"]
     },
@@ -11,7 +11,7 @@
       "dependsOn": ["^lint"]
     },
     "check-types": {
-      "dependsOn": ["^check-types"]
+      "dependsOn": ["^check-types", "^generate-grpc"]
     },
     "@playbook-runner/api#build": {
       "outputs": []
@@ -25,6 +25,13 @@
     "@playbook-runner/env#build": {
       "outputs": []
     },
+    "@playbook-runner/grpc#build": {
+      "outputs": []
+    },
+    "@playbook-runner/grpc#check-types": {
+      "dependsOn": ["^check-types", "generate-grpc"],
+      "outputs": ["dist/**", "*.tsbuildinfo"]
+    },
     "@playbook-runner/logger#build": {
       "outputs": []
     },
@@ -33,6 +40,11 @@
       "cache": false,
       "persistent": true,
       "interruptible": true
+    },
+    "generate-grpc": {
+      "cache": false,
+      "inputs": ["$TURBO_DEFAULT$", "../../proto/**/*.proto"],
+      "outputs": ["app/grpc/gen/**"]
     },
     "db:push": {
       "cache": false

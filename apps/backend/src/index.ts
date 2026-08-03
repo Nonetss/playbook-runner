@@ -2,10 +2,16 @@ import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { db } from "@playbook-runner/db"
 import { env } from "@playbook-runner/env/server"
+import {
+  closeClients,
+  type GrpcServer,
+  stopGrpcServer,
+} from "@playbook-runner/grpc"
 import { logger } from "@playbook-runner/logger"
 import { migrate } from "drizzle-orm/node-postgres/migrator"
 import { Hono } from "hono"
 import { cors } from "hono/cors"
+import { startGrpcServer } from "#grpc/server"
 import {
   recoverOrphanedRuns,
   startJobScheduler,
@@ -76,11 +82,24 @@ if (!globalThis.__backendBootstrapped) {
     process.exit(1)
   })
 
+  let grpcServer: GrpcServer | null = null
+  startGrpcServer()
+    .then((server) => {
+      grpcServer = server
+    })
+    .catch((err) => {
+      logger.error({ err }, "grpc bootstrap failed")
+    })
+
   for (const signal of ["SIGINT", "SIGTERM"] as const) {
     process.on(signal, () => {
       logger.info({ signal }, "shutting down")
       stopJobScheduler()
-      process.exit(0)
+      void (async () => {
+        closeClients()
+        if (grpcServer) await stopGrpcServer(grpcServer)
+        process.exit(0)
+      })()
     })
   }
 }

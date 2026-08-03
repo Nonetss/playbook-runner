@@ -28,5 +28,13 @@ class Settings(BaseSettings):
     # INTERNAL_TOKEN. When empty the internal endpoint is disabled.
     internal_token: str = ""
 
+    # Shared secret guarding gRPC in both directions (backend <-> ansible).
+    # Must match the backend's SERVICE_TOKEN. When empty the gRPC server here
+    # still starts (grpc.aio has no "don't start" mode), but every call is
+    # rejected since no token will ever match "".
+    service_token: str = ""
+    # gRPC target for the backend's PingService, dialled from this service.
+    backend_grpc_target: str = "localhost:50052"
+
 
 settings = Settings()

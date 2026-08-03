@@ -221,3 +221,6 @@ __marimo__/
 
 # Ansible
 playbook/
+
+# Generated gRPC stubs (regenerate with `bun run generate-grpc`)
+app/grpc/gen/

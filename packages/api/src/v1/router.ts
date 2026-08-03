@@ -1,6 +1,7 @@
 import type { RouterClient } from "@orpc/server"
 import { apiKeyRouter } from "#v1/api-key/router"
 import { credentialsRouter } from "#v1/credentials/router"
+import { grpcDemoRouter } from "#v1/grpc-demo/router"
 import { healthRouter } from "#v1/health/router"
 import { inventoryRouter } from "#v1/inventory/router"
 import { jobsRouter } from "#v1/jobs/router"
@@ -14,6 +15,7 @@ export const appRouter = {
   private: privateRouter,
   config: apiKeyRouter,
   credentials: credentialsRouter,
+  grpcDemo: grpcDemoRouter,
   inventory: inventoryRouter,
   jobs: jobsRouter,
   playbooks: playbooksRouter,

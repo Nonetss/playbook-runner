@@ -6,11 +6,12 @@
     "**/.ruff_cache",
     "**/.pytest_cache",
     "**/build",
-    "**/dist"
+    "**/dist",
+    "apps/ansible/app/grpc/gen"
   ],
   "venvPath": "apps/ansible",
   "venv": ".venv",
-  "extraPaths": ["apps/ansible"],
+  "extraPaths": ["apps/ansible", "python/grpc-toolkit"],
   "pythonVersion": "3.12",
   "typeCheckingMode": "basic"
 }

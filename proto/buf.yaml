@@ -1,0 +1,11 @@
+# Flat `proto/*.proto` with one package per file is intentional (see
+# docs/grpc-nuevo-servicio.md). STANDARD wants directory==package and a
+# .vN suffix; except those so lint matches how this repo generates stubs.
+version: v2
+lint:
+  use:
+    - STANDARD
+  except:
+    - DIRECTORY_SAME_PACKAGE
+    - PACKAGE_DIRECTORY_MATCH
+    - PACKAGE_VERSION_SUFFIX

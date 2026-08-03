@@ -33,6 +33,7 @@
     "dev": "turbo watch dev",
     "build": "turbo build",
     "check-types": "turbo check-types",
+    "generate-grpc": "turbo generate-grpc",
     "format": "biome check --write --linter-enabled=false . && bun run --filter ansible format",
     "dev:frontend": "turbo watch -F frontend dev",
     "dev:backend": "turbo watch -F backend dev",

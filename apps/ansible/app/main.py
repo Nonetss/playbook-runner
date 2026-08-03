@@ -1,5 +1,8 @@
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from time import perf_counter
 
+import grpc
 from fastapi import FastAPI, Request
 from loguru import logger
 from scalar_fastapi import get_scalar_api_reference
@@ -7,6 +10,7 @@ from scalar_fastapi import get_scalar_api_reference
 from app.api.routes import routes
 from app.core.config import settings
 from app.core.logging import configure_logging
+from app.grpc.server import start_grpc_server
 
 configure_logging(
     "playbook-runner-ansible",
@@ -14,7 +18,17 @@ configure_logging(
     log_level=settings.log_level,
 )
 
-app = FastAPI(title="Playbook Runner Ansible API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
+    grpc_server = await start_grpc_server()
+    app.state.backend_channel = grpc.aio.insecure_channel(settings.backend_grpc_target)
+    yield
+    await app.state.backend_channel.close()
+    await grpc_server.stop(grace=1)
+
+
+app = FastAPI(title="Playbook Runner Ansible API", lifespan=lifespan)
 
 
 @app.middleware("http")

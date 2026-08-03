@@ -16,12 +16,17 @@ COPY packages/auth/package.json packages/auth/
 COPY packages/config/package.json packages/config/
 COPY packages/db/package.json packages/db/
 COPY packages/env/package.json packages/env/
+COPY packages/grpc/package.json packages/grpc/
 COPY packages/logger/package.json packages/logger/
 RUN --mount=type=cache,target=/root/.bun/install/cache bun install --frozen-lockfile
 
 COPY . .
 
 ENV NODE_ENV=production
+# packages/grpc/src/gen is gitignored, so the TS stubs must be regenerated from
+# proto/ before the bundle is built. This runs directly rather than through
+# turbo, mirroring the explicit codegen step in apps/ansible/Dockerfile.
+RUN cd packages/grpc && bun run generate-grpc
 # tsdown bundles the workspace packages AND every npm dependency into
 # dist/ (see tsdown.config.ts), so the runtime stage needs no node_modules.
 RUN cd apps/backend && bun run build

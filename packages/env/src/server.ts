@@ -37,6 +37,13 @@ export const env = createEnv({
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace"])
       .default("info"),
+
+    // gRPC with the ansible service. SERVICE_TOKEN is the same shared secret
+    // that service reads as SERVICE_TOKEN — it guards both directions. Without
+    // it the backend starts normally, but its gRPC server stays down and gRPC
+    // endpoints return 503.
+    SERVICE_TOKEN: z.string().min(32).optional(),
+    ANSIBLE_GRPC_TARGET: z.string().min(1).default("localhost:50051"),
   },
   runtimeEnv: process.env,
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

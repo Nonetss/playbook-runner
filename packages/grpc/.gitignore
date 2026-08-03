@@ -1,0 +1,2 @@
+# Generated gRPC stubs (regenerate with `bun run generate-grpc`)
+src/gen/

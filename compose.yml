@@ -13,10 +13,13 @@ services:
     environment:
       BACKEND_URL: http://backend:3000
       ANSIBLE_PLAYBOOK_PATH: /app/playbook
+      BACKEND_GRPC_TARGET: backend:50052
     volumes:
       - ./apps/ansible/playbook:/app/playbook
     ports:
       - "8000:8000"
+    expose:
+      - "50051"
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
       interval: 10s
@@ -51,12 +54,14 @@ services:
     init: true
     expose:
       - "3000"
+      - "50052"
     env_file:
       - path: apps/backend/.env
         required: false
     environment:
       CORS_ORIGIN: http://localhost:4321
       ANSIBLE_URL: http://ansible:8000
+      ANSIBLE_GRPC_TARGET: ansible:50051
     depends_on:
       ansible:
         condition: service_healthy
