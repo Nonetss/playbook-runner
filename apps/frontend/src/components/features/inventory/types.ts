@@ -1,4 +1,4 @@
-import type { AppRouterClient } from "@playbook-runner/api/routers/index"
+import type { AppRouterClient } from "@playbook-runner/api/v1/router"
 
 export type InventoryGroup = NonNullable<
   Awaited<ReturnType<AppRouterClient["inventory"]["groups"]["get"]>>

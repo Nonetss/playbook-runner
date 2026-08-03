@@ -1,5 +1,5 @@
-import { jobsHandler } from "@playbook-runner/api/handlers/jobs"
-import { executeJob } from "@playbook-runner/api/jobs/executor"
+import { executeJob } from "@playbook-runner/api/v1/jobs/executor"
+import { jobsHandler } from "@playbook-runner/api/v1/jobs/handler"
 import { env } from "@playbook-runner/env/server"
 import { logger } from "@playbook-runner/logger"
 
