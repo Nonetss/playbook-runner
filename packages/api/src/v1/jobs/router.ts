@@ -1,7 +1,9 @@
+import { eventIterator } from "@orpc/server"
 import { z } from "zod"
 import { protectedProcedure } from "#index"
-import { startJobRun } from "#v1/jobs/executor"
+import { startJobRun, streamJobRunLive } from "#v1/jobs/executor"
 import { jobRunsHandler, jobsHandler } from "#v1/jobs/handler"
+import { taskEventSchema } from "#v1/run/router"
 
 // ---------- Response schemas (colocated) -------------------------------------
 
@@ -46,6 +48,13 @@ const jobRunSchema = z.object({
 // failure and surfaces the corresponding error.
 const startRunResultSchema = z.object({
   runId: z.string().nullable(),
+})
+
+// Terminal value of `runs.stream`'s event iterator, once the run finishes.
+const jobRunStreamResultSchema = z.object({
+  runId: z.string(),
+  status: z.enum(["ok", "failed"]),
+  ok: z.boolean(),
 })
 
 // ---------- Run feed / metrics output schemas ---------------------------------
@@ -242,6 +251,18 @@ export const jobsRouter = {
     }),
 
   runs: {
+    stream: protectedProcedure
+      .route({
+        summary: "Run a job now with live streaming",
+        description:
+          "Like `run`, but streams each task event live to the caller as an event iterator instead of firing the run in the background. The run is still persisted exactly like a background run (survives a mid-stream disconnect), so it shows up in `runs.list` either way.",
+        tags: ["Jobs"],
+        method: "POST",
+      })
+      .input(z.object({ id: z.string() }))
+      .output(eventIterator(taskEventSchema, jobRunStreamResultSchema))
+      .handler(({ input }) => streamJobRunLive(input.id)),
+
     list: protectedProcedure
       .route({
         summary: "List runs for a job",

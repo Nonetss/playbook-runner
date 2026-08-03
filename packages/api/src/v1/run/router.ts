@@ -4,7 +4,7 @@ import { protectedProcedure } from "#index"
 import { streamHandler } from "#v1/run/stream-handler"
 import { streamInput } from "#v1/run/stream-input"
 
-const statsSchema = z.object({
+export const statsSchema = z.object({
   ok: z.record(z.string(), z.number()),
   changed: z.record(z.string(), z.number()),
   failures: z.record(z.string(), z.number()),
@@ -13,7 +13,8 @@ const statsSchema = z.object({
 })
 
 // A single ansible-runner event, reduced to the fields the frontend renders.
-const taskEventSchema = z.object({
+// Shared with `#v1/jobs/router`'s `runs.stream` — same event shape either way.
+export const taskEventSchema = z.object({
   event: z.string(),
   host: z.string().optional(),
   play: z.string().optional(),

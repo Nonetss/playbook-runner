@@ -1,9 +1,15 @@
+import { consumeEventIterator } from "@orpc/client"
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query"
-import type { InventoryItem, Job } from "@/components/features/jobs/types"
+import { useCallback, useRef, useState } from "react"
+import type {
+  InventoryItem,
+  Job,
+  JobRunEvent,
+} from "@/components/features/jobs/types"
 import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { useOrpcMutation } from "@/hooks/useOrpcMutation"
 import { useResourceMutation } from "@/hooks/useResourceMutation"
-import { orpc } from "@/lib/orpc"
+import { client, orpc } from "@/lib/orpc"
 
 // ── Queries ──────────────────────────────────────────────────────────────────
 
@@ -242,4 +248,63 @@ export const useJobRun = () => {
       })
     },
   })
+}
+
+export type JobRunStreamPhase = "idle" | "running" | "done" | "error"
+
+export type JobRunStreamResult = {
+  runId: string
+  status: "ok" | "failed"
+  ok: boolean
+}
+
+/**
+ * Run a job now with live streaming (`jobs.runs.stream`): opens the event
+ * iterator over `/rpc`, accumulates events, and exposes phase/result so the
+ * job detail page can render a live console instead of waiting on
+ * `useJobRunsList`'s 3s poll. The run is still persisted server-side exactly
+ * like a background run, so `runs.list` picks it up regardless — callers
+ * should invalidate that query once `phase` settles.
+ */
+export function useJobRunStream() {
+  const [phase, setPhase] = useState<JobRunStreamPhase>("idle")
+  const [events, setEvents] = useState<JobRunEvent[]>([])
+  const [result, setResult] = useState<JobRunStreamResult | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const unsubscribeRef = useRef<(() => void) | null>(null)
+
+  const start = useCallback((jobId: string) => {
+    unsubscribeRef.current?.()
+
+    setEvents([])
+    setResult(null)
+    setErrorMessage(null)
+    setPhase("running")
+
+    unsubscribeRef.current = consumeEventIterator(
+      client.v1.jobs.runs.stream({ id: jobId }),
+      {
+        onEvent: (event) => setEvents((prev) => [...prev, event as JobRunEvent]),
+        onSuccess: (value) => {
+          if (value) setResult(value)
+          setPhase("done")
+        },
+        onError: (err) => {
+          setErrorMessage(err instanceof Error ? err.message : "Error de red")
+          setPhase("error")
+        },
+      }
+    )
+  }, [])
+
+  const reset = useCallback(() => {
+    unsubscribeRef.current?.()
+    unsubscribeRef.current = null
+    setPhase("idle")
+    setEvents([])
+    setResult(null)
+    setErrorMessage(null)
+  }, [])
+
+  return { phase, events, result, errorMessage, start, reset }
 }

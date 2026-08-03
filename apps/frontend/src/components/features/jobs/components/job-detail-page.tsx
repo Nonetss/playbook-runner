@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query"
 import { ArrowLeft, Clock, Loader2, Pencil, Play, XCircle } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -8,13 +9,14 @@ import {
 } from "@/components/features/jobs/components/run-widgets"
 import {
   useJobGet,
-  useJobRun,
   useJobRunsList,
+  useJobRunStream,
 } from "@/components/features/jobs/hooks/useJobs"
 import type { JobRun } from "@/components/features/jobs/types"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { orpc } from "@/lib/orpc"
 import { cn } from "@/lib/utils"
 
 function formatDateTime(value: Date | string | null): string {
@@ -41,8 +43,9 @@ function formatDuration(run: JobRun): string {
 
 function JobDetailPageInner({ id }: { id: string }) {
   const { t } = useTranslation("jobs")
+  const queryClient = useQueryClient()
   const { data: job, isPending: jobLoading, isError } = useJobGet(id)
-  const runJob = useJobRun()
+  const jobStream = useJobRunStream()
 
   const { data: runs = [], isPending: runsLoading } = useJobRunsList(id, {
     // Poll while anything is running so the status flips without a refresh.
@@ -78,9 +81,27 @@ function JobDetailPageInner({ id }: { id: string }) {
     [runs, selectedId]
   )
 
-  async function handleRunNow() {
-    await runJob.mutateAsync({ id })
+  // Once the live stream settles, the run row is already persisted — jump
+  // the history selection to it and let the (already-polling) runs list pick
+  // it up, instead of waiting for the next 3s tick to reveal it.
+  useEffect(() => {
+    if (jobStream.phase !== "done" && jobStream.phase !== "error") return
+    if (jobStream.result?.runId) setSelectedId(jobStream.result.runId)
+    queryClient.invalidateQueries({
+      queryKey: orpc.jobs.runs.list.queryKey({ input: { jobId: id } }),
+    })
+  }, [jobStream.phase, jobStream.result, queryClient, id])
+
+  function handleRunNow() {
+    jobStream.start(id)
   }
+
+  function handleSelectRun(runId: string) {
+    jobStream.reset()
+    setSelectedId(runId)
+  }
+
+  const isStreaming = jobStream.phase !== "idle"
 
   if (jobLoading) {
     return (
@@ -158,10 +179,10 @@ function JobDetailPageInner({ id }: { id: string }) {
           </Button>
           <Button
             onClick={handleRunNow}
-            disabled={runJob.isPending || !job.playbookId}
+            disabled={jobStream.phase === "running" || !job.playbookId}
             className="flex-1 sm:flex-none"
           >
-            {runJob.isPending ? (
+            {jobStream.phase === "running" ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
               <Play className="size-4" />
@@ -200,7 +221,7 @@ function JobDetailPageInner({ id }: { id: string }) {
                   <li key={run.id}>
                     <button
                       type="button"
-                      onClick={() => setSelectedId(run.id)}
+                      onClick={() => handleSelectRun(run.id)}
                       className={cn(
                         "w-full rounded-lg border px-3 py-2.5 text-left transition-colors",
                         active
@@ -240,13 +261,21 @@ function JobDetailPageInner({ id }: { id: string }) {
           )}
         </section>
 
-        {/* Selected run output */}
+        {/* Selected run output (or the live-streaming run just triggered) */}
         <section className="space-y-3 md:min-w-0">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
               {t("detail.output")}
             </h2>
-            {selectedRun ? (
+            {isStreaming ? (
+              <RunStatusBadge
+                status={
+                  jobStream.phase === "running"
+                    ? "running"
+                    : (jobStream.result?.status ?? "failed")
+                }
+              />
+            ) : selectedRun ? (
               <div className="flex items-center gap-2">
                 <RunHostSummary
                   hostsOk={selectedRun.hostsOk}
@@ -261,7 +290,22 @@ function JobDetailPageInner({ id }: { id: string }) {
             ) : null}
           </div>
 
-          {selectedRun ? (
+          {isStreaming ? (
+            <>
+              {jobStream.errorMessage ? (
+                <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/5 px-3 py-2 text-sm text-red-600">
+                  <XCircle className="mt-0.5 size-4 shrink-0" />
+                  <span className="wrap-break-word">
+                    {jobStream.errorMessage}
+                  </span>
+                </div>
+              ) : null}
+              <JobRunOutput
+                events={jobStream.events}
+                running={jobStream.phase === "running"}
+              />
+            </>
+          ) : selectedRun ? (
             <>
               {selectedRun.error ? (
                 <div className="flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/5 px-3 py-2 text-sm text-red-600">
