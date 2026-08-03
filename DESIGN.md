@@ -321,8 +321,9 @@ divide-y lists on the same page.
 
 - Split operational surface: streaming output + inventory / host scope.
 - Output is mono-forward; host rows stay scannable with status tokens.
-- Alive/running uses Brand Terracotta; failure uses destructive; completed
-  stays neutral/foreground — never invent a green success palette.
+- Alive/running uses Brand Terracotta. Execution outcomes use domain colors:
+  ok (success) = emerald (green), changed (partial) = amber (yellow),
+  failed (failure) = red. These colors are Ansible-domain semantics, not invented.
 - Shared by playbooks, scripts, and commands — do not fork execution UI into
   those features.
 
@@ -349,7 +350,7 @@ divide-y lists on the same page.
 
 ### Buttons / Inputs
 
-- **Primary:** Brand Terracotta fill, white foreground, `--radius` corners.
+- **Primary:** Brand Terracotta fill, dark ink foreground (WCAG AAA 11:1 contrast), `--radius` corners.
 - **Outline / Ghost:** hairline or flat; hover `bg-muted/40` or `bg-accent`.
 - **Destructive:** editorial ink (light) / red (dark).
 - **Inputs:** border `var(--input)`; focus ring Brand Terracotta.
