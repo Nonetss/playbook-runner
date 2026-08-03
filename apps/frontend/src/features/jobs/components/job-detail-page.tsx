@@ -19,7 +19,6 @@ import {
   RunHostSummary,
   RunStatusBadge,
 } from "@/features/jobs/components/run-widgets"
-import { PlaybookRunConsole } from "@/features/run/components/playbook-run-console"
 import {
   useJobGet,
   useJobRun,
@@ -27,6 +26,7 @@ import {
   useJobRunWatch,
 } from "@/features/jobs/hooks/useJobs"
 import type { JobRun } from "@/features/jobs/types"
+import { PlaybookRunConsole } from "@/features/run/components/playbook-run-console"
 import { orpc } from "@/lib/orpc"
 import { cn } from "@/lib/utils"
 
