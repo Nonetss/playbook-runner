@@ -3,7 +3,7 @@ import { jobRuns, jobs } from "@playbook-runner/db/schema/jobs"
 import { env } from "@playbook-runner/env/server"
 import { logger } from "@playbook-runner/logger"
 import { eq } from "drizzle-orm"
-import { type RunInventorySelection, runHandler } from "#handlers/run"
+import { type RunInventorySelection, runHandler } from "#v1/run/handler"
 
 /** A single SSE event parsed from the ansible stream. */
 type RunEvent = Record<string, unknown> & { event?: string }

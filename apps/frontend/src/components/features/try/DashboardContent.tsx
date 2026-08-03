@@ -9,7 +9,7 @@ function DashboardContentInner() {
   const user = session?.user
 
   const { data, isPending, isError } = useHydratedQuery(
-    orpc.privateData.queryOptions()
+    orpc.private.data.queryOptions()
   )
 
   const apiMessage = isPending

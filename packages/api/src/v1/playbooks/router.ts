@@ -1,11 +1,11 @@
 import { z } from "zod"
 import { errors } from "#errors"
-import { playbookFoldersHandler } from "#handlers/playbook-folders"
+import { protectedProcedure } from "#index"
+import { playbookFoldersHandler } from "#v1/playbooks/folders"
 import {
   PlaybookFolderNotFoundError,
   playbooksHandler,
-} from "#handlers/playbooks"
-import { protectedProcedure } from "#index"
+} from "#v1/playbooks/handler"
 
 const uuidSchema = z.string().uuid()
 

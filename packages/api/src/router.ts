@@ -1,6 +1,6 @@
 import type { RouterClient } from "@orpc/server"
 
-import { appRouter as v1Router } from "#routers/index"
+import { appRouter as v1Router } from "#v1/router"
 
 /** The public, versioned API contract. */
 export const appRouter = {

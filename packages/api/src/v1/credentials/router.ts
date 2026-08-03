@@ -1,7 +1,8 @@
 import z from "zod"
-import { credentialsHandler } from "#handlers/credentials"
 import { protectedProcedure } from "#index"
-import { generateEd25519KeyPair } from "#lib/ssh-key"
+import { credentialsHandler } from "#v1/credentials/handler"
+import { credentialsInput } from "#v1/credentials/input"
+import { generateEd25519KeyPair } from "#v1/credentials/ssh-key"
 
 const credentialSchema = z.object({
   id: z.string(),
@@ -31,7 +32,7 @@ export const credentialsRouter = {
       tags: ["Credentials"],
       method: "POST",
     })
-    .input(z.object({ comment: z.string().optional() }))
+    .input(credentialsInput.generate)
     .output(sshKeyPairSchema)
     .handler(({ input }) => generateEd25519KeyPair(input.comment ?? "")),
 
@@ -43,14 +44,7 @@ export const credentialsRouter = {
       tags: ["Credentials"],
       method: "POST",
     })
-    .input(
-      z.object({
-        name: z.string(),
-        username: z.string(),
-        privateKey: z.string(),
-        publicKey: z.string(),
-      })
-    )
+    .input(credentialsInput.create)
     .output(credentialSchema.nullable())
     .handler(async ({ input }) => {
       const credential = await credentialsHandler.create(input)
@@ -79,7 +73,7 @@ export const credentialsRouter = {
       tags: ["Credentials"],
       method: "GET",
     })
-    .input(z.object({ id: z.string() }))
+    .input(credentialsInput.get)
     .output(credentialSchema.nullable())
     .handler(async ({ input }) => {
       const credential = await credentialsHandler.get(input.id)
@@ -93,15 +87,7 @@ export const credentialsRouter = {
       tags: ["Credentials"],
       method: "PUT",
     })
-    .input(
-      z.object({
-        id: z.string(),
-        name: z.string(),
-        username: z.string(),
-        privateKey: z.string(),
-        publicKey: z.string(),
-      })
-    )
+    .input(credentialsInput.update)
     .output(credentialSchema.nullable())
     .handler(async ({ input }) => {
       const credential = await credentialsHandler.update(input.id, input)
@@ -116,7 +102,7 @@ export const credentialsRouter = {
       tags: ["Credentials"],
       method: "DELETE",
     })
-    .input(z.object({ id: z.string() }))
+    .input(credentialsInput.remove)
     .output(credentialSchema.nullable())
     .handler(async ({ input }) => {
       const credential = await credentialsHandler.delete(input.id)

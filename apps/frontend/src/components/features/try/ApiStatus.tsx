@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 
 function ApiStatusInner({ className }: { className?: string }) {
   const { isPending, isError } = useHydratedQuery(
-    orpc.healthCheck.queryOptions({
+    orpc.health.check.queryOptions({
       retry: false,
     })
   )

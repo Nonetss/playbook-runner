@@ -1,10 +1,10 @@
 import z from "zod"
+import { protectedProcedure } from "#index"
 import {
   inventoryDeviceGroupHandler,
   inventoryDeviceHandler,
   inventoryGroupHandler,
-} from "#handlers/inventory"
-import { protectedProcedure } from "#index"
+} from "#v1/inventory/handler"
 
 // Inputs
 const uuidSchema = z.string().uuid()

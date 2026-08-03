@@ -1,6 +1,7 @@
 import { z } from "zod"
-import { scriptsHandler } from "#handlers/scripts"
 import { protectedProcedure } from "#index"
+import { scriptsHandler } from "#v1/scripts/handler"
+import { scriptsInput } from "#v1/scripts/input"
 
 const scriptSchema = z.object({
   id: z.string(),
@@ -23,14 +24,7 @@ export const scriptsRouter = {
       tags: ["Scripts"],
       method: "POST",
     })
-    .input(
-      z.object({
-        name: z.string(),
-        description: z.string(),
-        content: z.string(),
-        language: z.enum(["bash", "python"]).default("bash"),
-      })
-    )
+    .input(scriptsInput.create)
     .output(scriptSchema.nullable())
     .handler(async ({ input }) => {
       const script = await scriptsHandler.create(input)
@@ -58,7 +52,7 @@ export const scriptsRouter = {
       tags: ["Scripts"],
       method: "GET",
     })
-    .input(z.object({ id: z.string() }))
+    .input(scriptsInput.get)
     .output(scriptSchema.nullable())
     .handler(async ({ input }) => {
       const script = await scriptsHandler.get(input.id)
@@ -73,15 +67,7 @@ export const scriptsRouter = {
       tags: ["Scripts"],
       method: "PUT",
     })
-    .input(
-      z.object({
-        id: z.string(),
-        name: z.string(),
-        description: z.string(),
-        content: z.string(),
-        language: z.enum(["bash", "python"]).default("bash"),
-      })
-    )
+    .input(scriptsInput.update)
     .output(scriptSchema.nullable())
     .handler(async ({ input }) => {
       const script = await scriptsHandler.update(input.id, input)
@@ -96,7 +82,7 @@ export const scriptsRouter = {
       tags: ["Scripts"],
       method: "DELETE",
     })
-    .input(z.object({ id: z.string() }))
+    .input(scriptsInput.remove)
     .output(scriptSchema.nullable())
     .handler(async ({ input }) => {
       const script = await scriptsHandler.delete(input.id)

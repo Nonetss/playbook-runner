@@ -1,30 +1,8 @@
 import z from "zod"
-import { configHandler } from "#handlers/config"
 import { protectedProcedure } from "#index"
-
-// `list` returns every field except the secret. `create` includes the secret
-// exactly once so the caller can store it.
-const apiKeyListItemSchema = z.object({
-  id: z.string(),
-  name: z.string().nullable(),
-  start: z.string().nullable(),
-  prefix: z.string().nullable(),
-  enabled: z.boolean(),
-  expiresAt: z.coerce.date().nullable(),
-  createdAt: z.coerce.date(),
-})
-
-const apiKeySchema = apiKeyListItemSchema.extend({
-  key: z.string(),
-})
-
-const apiKeyDeleteResultSchema = z.object({
-  id: z.string(),
-  success: z.boolean(),
-})
-
-export type ApiKeyListItem = z.infer<typeof apiKeyListItemSchema>
-export type ApiKey = z.infer<typeof apiKeySchema>
+import { configHandler } from "#v1/api-key/handler"
+import { apiKeyInput } from "#v1/api-key/input"
+import { apiKeyOutput } from "#v1/api-key/output"
 
 const apiKeysRouter = {
   list: protectedProcedure
@@ -35,10 +13,10 @@ const apiKeysRouter = {
       tags: ["Config"],
       method: "GET",
     })
-    .output(z.array(apiKeyListItemSchema))
+    .output(apiKeyOutput.list)
     .handler(async ({ context }) => {
       return z
-        .array(apiKeyListItemSchema)
+        .array(apiKeyOutput.list.element)
         .parse(await configHandler.listApiKeys({ context }))
     }),
 
@@ -50,18 +28,8 @@ const apiKeysRouter = {
       tags: ["Config"],
       method: "POST",
     })
-    .input(
-      z.object({
-        name: z.string().min(1).max(64).optional(),
-        expiresIn: z
-          .number()
-          .int()
-          .min(60 * 60)
-          .max(60 * 60 * 24 * 365)
-          .optional(),
-      })
-    )
-    .output(apiKeySchema)
+    .input(apiKeyInput.create)
+    .output(apiKeyOutput.create)
     .errors({
       BAD_REQUEST: {
         message: "Invalid input — name/expiresIn out of range",
@@ -69,7 +37,7 @@ const apiKeysRouter = {
       },
     })
     .handler(async ({ context, input }) => {
-      return apiKeySchema.parse(
+      return apiKeyOutput.create.parse(
         await configHandler.createApiKey({ context, input })
       )
     }),
@@ -81,8 +49,8 @@ const apiKeysRouter = {
       tags: ["Config"],
       method: "DELETE",
     })
-    .input(z.object({ id: z.string() }))
-    .output(apiKeyDeleteResultSchema)
+    .input(apiKeyInput.remove)
+    .output(apiKeyOutput.remove)
     .errors({
       NOT_FOUND: {
         message: "API key not found",
@@ -94,6 +62,6 @@ const apiKeysRouter = {
     }),
 }
 
-export const configRouter = {
+export const apiKeyRouter = {
   apiKeys: apiKeysRouter,
 }

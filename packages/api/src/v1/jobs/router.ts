@@ -1,7 +1,7 @@
 import { z } from "zod"
-import { jobRunsHandler, jobsHandler } from "#handlers/jobs"
 import { protectedProcedure } from "#index"
-import { startJobRun } from "#jobs/executor"
+import { startJobRun } from "#v1/jobs/executor"
+import { jobRunsHandler, jobsHandler } from "#v1/jobs/handler"
 
 // ---------- Response schemas (colocated) -------------------------------------
 

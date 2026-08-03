@@ -1,12 +1,12 @@
 import z from "zod"
 import { errors } from "#errors"
+import { protectedProcedure } from "#index"
 import {
   ResolveRunCredentiallessError,
   ResolveRunNotFoundError,
   ResolveRunValidationError,
   runHandler,
-} from "#handlers/run"
-import { protectedProcedure } from "#index"
+} from "#v1/run/handler"
 
 const inventorySelectionSchema = z.object({
   id: z.string().uuid(),
