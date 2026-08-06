@@ -69,6 +69,11 @@ temp
 # Agents
 .agents/
 .agents.lock
+.codex/
+.github/agents/
+.github/hooks/
+.github/skills/
+.opencode/skills/impeccable/
 
 # Astro
 .astro/
