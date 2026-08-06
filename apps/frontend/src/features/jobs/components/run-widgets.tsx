@@ -50,11 +50,13 @@ export const RUN_STATUS_META: Record<
     icon: Loader2,
   },
   ok: {
-    className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    className:
+      "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
     icon: CheckCircle2,
   },
   partial: {
-    className: "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    className:
+      "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400",
     icon: AlertTriangle,
   },
   failed: {
