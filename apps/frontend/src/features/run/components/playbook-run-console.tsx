@@ -212,10 +212,19 @@ const STATUS_META: Record<
   { icon: typeof Server; textClass: string }
 > = {
   running: { icon: Loader2, textClass: "text-primary" },
-  ok: { icon: CheckCircle2, textClass: "text-emerald-600 dark:text-emerald-400" },
-  changed: { icon: CheckCircle2, textClass: "text-amber-600 dark:text-amber-400" },
+  ok: {
+    icon: CheckCircle2,
+    textClass: "text-emerald-600 dark:text-emerald-400",
+  },
+  changed: {
+    icon: CheckCircle2,
+    textClass: "text-amber-600 dark:text-amber-400",
+  },
   failed: { icon: XCircle, textClass: "text-red-600 dark:text-red-400" },
-  unreachable: { icon: AlertTriangle, textClass: "text-red-600 dark:text-red-400" },
+  unreachable: {
+    icon: AlertTriangle,
+    textClass: "text-red-600 dark:text-red-400",
+  },
   skipped: { icon: MinusCircle, textClass: "text-muted-foreground" },
 }
 
@@ -335,12 +344,15 @@ function RecapCard({ rows }: { rows: RecapRow[] }) {
       </div>
       <div className="divide-y divide-zinc-800/60">
         {rows.map((row) => {
-          const tone =
+          const status =
             row.failed > 0 || row.unreachable > 0
-              ? "text-destructive"
+              ? "failed"
               : row.changed > 0
-                ? "text-destructive"
-                : "text-foreground"
+                ? "changed"
+                : row.ok > 0
+                  ? "ok"
+                  : "skipped"
+          const tone = STATUS_META[status].textClass
           return (
             <div
               key={row.host}
