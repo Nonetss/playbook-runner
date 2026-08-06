@@ -73,6 +73,7 @@
     "waiting": "Esperando resultado…",
     "no_output": "Sin salida.",
     "stderr": "stderr",
+    "jump_to_latest": "Ir al final",
     "status": {
       "running": "Ejecutando",
       "ok": "OK",

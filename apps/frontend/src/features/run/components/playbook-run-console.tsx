@@ -5,6 +5,7 @@
 // action per host.
 import {
   AlertTriangle,
+  ArrowDown,
   CheckCircle2,
   ClipboardList,
   Loader2,
@@ -15,6 +16,8 @@ import {
 } from "lucide-react"
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
+import { Button } from "@/components/ui/button"
+import { useFollowOutput } from "@/features/run/hooks/useFollowOutput"
 import { cn } from "@/lib/utils"
 
 // See RunHostConsole for why raw stdout/stderr get the native terminal font
@@ -389,6 +392,8 @@ export function PlaybookRunConsole({
 }) {
   const { t } = useTranslation("common")
   const { plays, recap } = useMemo(() => parseEvents(events), [events])
+  const { containerRef, following, jumpToLatest, handleScroll } =
+    useFollowOutput()
 
   if (plays.length === 0 && !recap) {
     if (running) {
@@ -407,26 +412,45 @@ export function PlaybookRunConsole({
   }
 
   return (
-    <div className="space-y-4">
-      {plays.map((play) => (
-        <div key={play.key} className="space-y-2">
-          {play.name ? (
-            <p className="px-0.5 font-mono text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
-              PLAY{" "}
-              <span className="text-zinc-300 normal-case">{play.name}</span>
-            </p>
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain"
+      >
+        <div className="space-y-4 p-3 sm:p-5">
+          {plays.map((play) => (
+            <div key={play.key} className="space-y-2">
+              {play.name ? (
+                <p className="px-0.5 font-mono text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
+                  PLAY{" "}
+                  <span className="text-zinc-300 normal-case">{play.name}</span>
+                </p>
+              ) : null}
+              <div className="space-y-2">
+                {play.tasks.map((task) => (
+                  <TaskCard key={task.key} task={task} />
+                ))}
+              </div>
+            </div>
+          ))}
+          {recap ? <RecapCard rows={recap} /> : null}
+          {running ? (
+            <span className="inline-block animate-pulse text-zinc-400">▋</span>
           ) : null}
-          <div className="space-y-2">
-            {play.tasks.map((task) => (
-              <TaskCard key={task.key} task={task} />
-            ))}
-          </div>
         </div>
-      ))}
-      {recap ? <RecapCard rows={recap} /> : null}
-      {running ? (
-        <span className="inline-block animate-pulse text-zinc-400">▋</span>
-      ) : null}
+      </div>
+      {following ? null : (
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={jumpToLatest}
+          className="absolute right-3 bottom-3 shadow-md sm:right-5 sm:bottom-5"
+        >
+          <ArrowDown className="size-3.5" />
+          {t("run_console.jump_to_latest")}
+        </Button>
+      )}
     </div>
   )
 }

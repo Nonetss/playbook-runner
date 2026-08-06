@@ -273,7 +273,7 @@ function JobDetailPageInner({ id }: { id: string }) {
             </span>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain p-3 sm:p-5">
+          <div className="flex min-h-0 flex-1 flex-col">
             {isWatchingSelected ? (
               <PlaybookRunConsole
                 events={watch.events}

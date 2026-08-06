@@ -15,7 +15,7 @@ import {
   Trash2,
   XCircle,
 } from "lucide-react"
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
+import { type ReactNode, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Badge } from "@/components/ui/badge"
@@ -179,13 +179,6 @@ function RunPlaybookPageInner({ id }: { id: string }) {
     [devices, searchQuery]
   )
 
-  const terminalRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const el = terminalRef.current
-    if (el) el.scrollTop = el.scrollHeight
-  }, [events.length])
-
   const selectionCount = selectedGroups.size + selectedDevices.size
   const isRunning = phase === "running"
 
@@ -279,10 +272,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
             </span>
           </div>
 
-          <div
-            ref={terminalRef}
-            className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain p-3 sm:p-5"
-          >
+          <div className="flex min-h-0 flex-1 flex-col">
             <PlaybookRunConsole
               events={events}
               running={isRunning}

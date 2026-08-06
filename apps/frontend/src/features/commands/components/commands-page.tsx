@@ -12,7 +12,7 @@ import {
   TerminalSquare,
   XCircle,
 } from "lucide-react"
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react"
+import { type ReactNode, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Badge } from "@/components/ui/badge"
@@ -168,13 +168,6 @@ function CommandsPageInner() {
     [devices, searchQuery]
   )
 
-  const terminalRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const el = terminalRef.current
-    if (el) el.scrollTop = el.scrollHeight
-  }, [events.length])
-
   const selectionCount = selectedGroups.size + selectedDevices.size
   const trimmedCommand = command.trim()
   const canRun =
@@ -259,10 +252,7 @@ function CommandsPageInner() {
             </span>
           </div>
 
-          <div
-            ref={terminalRef}
-            className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5"
-          >
+          <div className="flex min-h-0 flex-1 flex-col">
             <RunHostConsole
               phase={phase}
               events={events}

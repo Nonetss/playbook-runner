@@ -6,6 +6,7 @@
 // center instead of buried in dim ansible ceremony lines.
 import {
   AlertTriangle,
+  ArrowDown,
   CheckCircle2,
   Loader2,
   MinusCircle,
@@ -14,6 +15,8 @@ import {
 } from "lucide-react"
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
+import { Button } from "@/components/ui/button"
+import { useFollowOutput } from "@/features/run/hooks/useFollowOutput"
 import type { RunEvent, RunPhase } from "@/features/run/types"
 import { cn } from "@/lib/utils"
 
@@ -239,6 +242,8 @@ export function RunHostConsole({
 }) {
   const { t } = useTranslation("common")
   const results = useMemo(() => buildHostResults(events), [events])
+  const { containerRef, following, jumpToLatest, handleScroll } =
+    useFollowOutput()
 
   if (phase === "idle") {
     return <p className="text-sm text-zinc-600 select-none">{idlePrompt}</p>
@@ -263,13 +268,32 @@ export function RunHostConsole({
   }
 
   return (
-    <div className="space-y-3">
-      {results.map((result) => (
-        <HostCard key={result.host} result={result} />
-      ))}
-      {phase === "running" ? (
-        <span className="inline-block animate-pulse text-zinc-400">▋</span>
-      ) : null}
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain"
+      >
+        <div className="space-y-3 p-3 sm:p-5">
+          {results.map((result) => (
+            <HostCard key={result.host} result={result} />
+          ))}
+          {phase === "running" ? (
+            <span className="inline-block animate-pulse text-zinc-400">▋</span>
+          ) : null}
+        </div>
+      </div>
+      {following ? null : (
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={jumpToLatest}
+          className="absolute right-3 bottom-3 shadow-md sm:right-5 sm:bottom-5"
+        >
+          <ArrowDown className="size-3.5" />
+          {t("run_console.jump_to_latest")}
+        </Button>
+      )}
     </div>
   )
 }
