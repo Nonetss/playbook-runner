@@ -4,15 +4,16 @@
 // it has many tasks — an ad-hoc run only ever produces one result per host,
 // so it renders better as a card per host with the raw output front and
 // center instead of buried in dim ansible ceremony lines.
-import {
-  AlertTriangle,
-  ArrowDown,
-  CheckCircle2,
-  Loader2,
-  MinusCircle,
-  Server,
-  XCircle,
-} from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const AlertTriangle = getIcon("status", "alert")
+const ArrowDown = getIcon("views", "scrollDown")
+const CheckCircle2 = getIcon("status", "success")
+const Loader2 = getIcon("status", "loading")
+const MinusCircle = getIcon("status", "minus")
+const Server = getIcon("resources", "server")
+const XCircle = getIcon("status", "error")
+
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"

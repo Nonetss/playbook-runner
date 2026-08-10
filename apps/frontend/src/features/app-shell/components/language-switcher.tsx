@@ -1,6 +1,10 @@
 "use client"
 
-import { Check, Languages } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Check = getIcon("controls", "check")
+const Languages = getIcon("communication", "language")
+
 import { useTranslation } from "react-i18next"
 import {
   DropdownMenu,

@@ -1,4 +1,7 @@
-import { Search } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Search = getIcon("views", "search")
+
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 

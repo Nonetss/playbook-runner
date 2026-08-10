@@ -1,4 +1,9 @@
-import { ArrowLeft, Loader2, TerminalSquare } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const ArrowLeft = getIcon("navigation", "back")
+const Loader2 = getIcon("status", "loading")
+const TerminalSquare = getIcon("resources", "terminalSquare")
+
 import * as React from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"

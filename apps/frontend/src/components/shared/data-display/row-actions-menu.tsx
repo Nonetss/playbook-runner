@@ -1,4 +1,7 @@
-import { MoreHorizontal } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const MoreHorizontal = getIcon("controls", "more")
+
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"

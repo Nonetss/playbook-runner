@@ -1,4 +1,10 @@
-import { Folder, FolderOpen, Pencil, Trash2 } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Folder = getIcon("resources", "folder")
+const FolderOpen = getIcon("resources", "folderOpen")
+const Pencil = getIcon("actions", "edit")
+const Trash2 = getIcon("actions", "delete")
+
 import * as React from "react"
 import { useTranslation } from "react-i18next"
 import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"

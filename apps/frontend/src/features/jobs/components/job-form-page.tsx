@@ -1,12 +1,13 @@
-import {
-  ArrowLeft,
-  Check,
-  Folder,
-  Loader2,
-  Plus,
-  Server,
-  Trash2,
-} from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const ArrowLeft = getIcon("navigation", "back")
+const Check = getIcon("controls", "check")
+const Folder = getIcon("resources", "folder")
+const Loader2 = getIcon("status", "loading")
+const Plus = getIcon("actions", "add")
+const Server = getIcon("resources", "server")
+const Trash2 = getIcon("actions", "delete")
+
 import * as React from "react"
 import { Trans, useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"

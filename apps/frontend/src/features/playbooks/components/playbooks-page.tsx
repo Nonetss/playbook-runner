@@ -1,4 +1,10 @@
-import { ArrowLeft, BookText, FolderPlus, Search } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const ArrowLeft = getIcon("navigation", "back")
+const BookText = getIcon("resources", "book")
+const FolderPlus = getIcon("resources", "folderAdd")
+const Search = getIcon("views", "search")
+
 import * as React from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"

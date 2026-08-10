@@ -1,20 +1,21 @@
-import {
-  AlertTriangle,
-  ArrowLeft,
-  BookText,
-  Check,
-  CheckCircle2,
-  ChevronDown,
-  Folder,
-  Loader2,
-  Pencil,
-  Play,
-  Plus,
-  Search,
-  Server,
-  Trash2,
-  XCircle,
-} from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const AlertTriangle = getIcon("status", "alert")
+const ArrowLeft = getIcon("navigation", "back")
+const BookText = getIcon("resources", "book")
+const Check = getIcon("controls", "check")
+const CheckCircle2 = getIcon("status", "success")
+const ChevronDown = getIcon("controls", "expand")
+const Folder = getIcon("resources", "folder")
+const Loader2 = getIcon("status", "loading")
+const Pencil = getIcon("actions", "edit")
+const Play = getIcon("actions", "play")
+const Plus = getIcon("actions", "add")
+const Search = getIcon("views", "search")
+const Server = getIcon("resources", "server")
+const Trash2 = getIcon("actions", "delete")
+const XCircle = getIcon("status", "error")
+
 import { type ReactNode, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"

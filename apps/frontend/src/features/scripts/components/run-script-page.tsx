@@ -4,19 +4,20 @@
 // `run-playbook-page.tsx` and `commands-page.tsx`. Tracked to be refactored
 // into a shared picker plus a single useRun* SSE helper in a follow-up.
 
-import {
-  AlertTriangle,
-  ArrowLeft,
-  Check,
-  CheckCircle2,
-  ChevronDown,
-  Folder,
-  Loader2,
-  Play,
-  Search,
-  Server,
-  XCircle,
-} from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const AlertTriangle = getIcon("status", "alert")
+const ArrowLeft = getIcon("navigation", "back")
+const Check = getIcon("controls", "check")
+const CheckCircle2 = getIcon("status", "success")
+const ChevronDown = getIcon("controls", "expand")
+const Folder = getIcon("resources", "folder")
+const Loader2 = getIcon("status", "loading")
+const Play = getIcon("actions", "play")
+const Search = getIcon("views", "search")
+const Server = getIcon("resources", "server")
+const XCircle = getIcon("status", "error")
+
 import { type ReactNode, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"

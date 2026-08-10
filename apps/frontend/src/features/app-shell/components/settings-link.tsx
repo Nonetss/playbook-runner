@@ -1,4 +1,7 @@
-import { Settings } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Settings = getIcon("actions", "settings")
+
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 

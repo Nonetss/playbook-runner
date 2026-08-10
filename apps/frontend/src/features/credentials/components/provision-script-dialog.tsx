@@ -1,4 +1,8 @@
-import { Check, Copy } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Check = getIcon("controls", "check")
+const Copy = getIcon("actions", "copy")
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {

@@ -1,4 +1,8 @@
-import { Folder, Server } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Folder = getIcon("resources", "folder")
+const Server = getIcon("resources", "server")
+
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"

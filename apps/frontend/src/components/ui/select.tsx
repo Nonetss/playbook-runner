@@ -1,4 +1,9 @@
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const CheckIcon = getIcon("controls", "checkIcon")
+const ChevronDownIcon = getIcon("controls", "downIcon")
+const ChevronUpIcon = getIcon("controls", "upIcon")
+
 import { Select as SelectPrimitive } from "radix-ui"
 import type * as React from "react"
 

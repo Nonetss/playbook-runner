@@ -1,10 +1,11 @@
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Loader2,
-  RefreshCw,
-  XCircle,
-} from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const AlertTriangle = getIcon("status", "alert")
+const CheckCircle2 = getIcon("status", "success")
+const Loader2 = getIcon("status", "loading")
+const RefreshCw = getIcon("actions", "refresh")
+const XCircle = getIcon("status", "error")
+
 import { useEffect, useMemo, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import {

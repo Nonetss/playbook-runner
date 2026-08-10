@@ -1,15 +1,16 @@
-import {
-  AlertTriangle,
-  Check,
-  CheckCircle2,
-  Folder,
-  Loader2,
-  Play,
-  Plus,
-  Server,
-  Trash2,
-  XCircle,
-} from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const AlertTriangle = getIcon("status", "alert")
+const Check = getIcon("controls", "check")
+const CheckCircle2 = getIcon("status", "success")
+const Folder = getIcon("resources", "folder")
+const Loader2 = getIcon("status", "loading")
+const Play = getIcon("actions", "play")
+const Plus = getIcon("actions", "add")
+const Server = getIcon("resources", "server")
+const Trash2 = getIcon("actions", "delete")
+const XCircle = getIcon("status", "error")
+
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"

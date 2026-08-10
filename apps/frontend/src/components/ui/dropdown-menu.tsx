@@ -1,4 +1,9 @@
-import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const CheckIcon = getIcon("controls", "checkIcon")
+const ChevronRightIcon = getIcon("controls", "rightIcon")
+const CircleIcon = getIcon("controls", "circle")
+
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui"
 import type * as React from "react"
 

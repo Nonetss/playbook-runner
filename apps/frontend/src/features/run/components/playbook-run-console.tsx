@@ -3,17 +3,18 @@
 // grouped by PLAY → TASK → per-host result plus a PLAY RECAP summary card,
 // since a playbook naturally produces many tasks instead of one implicit
 // action per host.
-import {
-  AlertTriangle,
-  ArrowDown,
-  CheckCircle2,
-  ClipboardList,
-  Loader2,
-  MinusCircle,
-  Server,
-  Terminal,
-  XCircle,
-} from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const AlertTriangle = getIcon("status", "alert")
+const ArrowDown = getIcon("views", "scrollDown")
+const CheckCircle2 = getIcon("status", "success")
+const ClipboardList = getIcon("resources", "clipboard")
+const Loader2 = getIcon("status", "loading")
+const MinusCircle = getIcon("status", "minus")
+const Server = getIcon("resources", "server")
+const Terminal = getIcon("resources", "terminal")
+const XCircle = getIcon("status", "error")
+
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"

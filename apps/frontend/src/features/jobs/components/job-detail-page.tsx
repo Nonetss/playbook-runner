@@ -1,15 +1,16 @@
 import { useQueryClient } from "@tanstack/react-query"
-import {
-  AlertTriangle,
-  ArrowLeft,
-  BriefcaseIcon,
-  CheckCircle2,
-  Clock,
-  Loader2,
-  Pencil,
-  Play,
-  XCircle,
-} from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const AlertTriangle = getIcon("status", "alert")
+const ArrowLeft = getIcon("navigation", "back")
+const BriefcaseIcon = getIcon("resources", "briefcase")
+const CheckCircle2 = getIcon("status", "success")
+const Clock = getIcon("scheduling", "time")
+const Loader2 = getIcon("status", "loading")
+const Pencil = getIcon("actions", "edit")
+const Play = getIcon("actions", "play")
+const XCircle = getIcon("status", "error")
+
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"

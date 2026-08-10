@@ -1,4 +1,8 @@
-import { KeyRound, Trash2 } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const KeyRound = getIcon("resources", "apiKey")
+const Trash2 = getIcon("actions", "delete")
+
 import { useTranslation } from "react-i18next"
 import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
 import { Badge } from "@/components/ui/badge"

@@ -1,11 +1,12 @@
-import {
-  BriefcaseIcon,
-  Clock,
-  History,
-  Pencil,
-  Play,
-  Trash2,
-} from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const BriefcaseIcon = getIcon("resources", "briefcase")
+const Clock = getIcon("scheduling", "time")
+const History = getIcon("resources", "history")
+const Pencil = getIcon("actions", "edit")
+const Play = getIcon("actions", "play")
+const Trash2 = getIcon("actions", "delete")
+
 import { useTranslation } from "react-i18next"
 import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
 import { Badge } from "@/components/ui/badge"

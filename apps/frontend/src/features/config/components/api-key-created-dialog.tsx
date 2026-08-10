@@ -1,4 +1,10 @@
-import { Check, Copy, KeyRound, ShieldAlert } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Check = getIcon("controls", "check")
+const Copy = getIcon("actions", "copy")
+const KeyRound = getIcon("resources", "apiKey")
+const ShieldAlert = getIcon("status", "warning")
+
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"

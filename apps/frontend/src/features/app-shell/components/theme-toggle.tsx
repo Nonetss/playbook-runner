@@ -1,4 +1,8 @@
-import { Moon, Sun } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Moon = getIcon("theme", "dark")
+const Sun = getIcon("theme", "light")
+
 import { flushSync } from "react-dom"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"

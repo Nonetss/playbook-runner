@@ -1,6 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query"
 import type { Session, User } from "better-auth"
-import { ChevronDown } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const ChevronDown = getIcon("controls", "expand")
+
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"

@@ -1,4 +1,10 @@
-import { Check, Folder, Loader2, Server } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Check = getIcon("controls", "check")
+const Folder = getIcon("resources", "folder")
+const Loader2 = getIcon("status", "loading")
+const Server = getIcon("resources", "server")
+
 import { useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import {

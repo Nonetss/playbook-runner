@@ -1,4 +1,7 @@
-import { KeyRound } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const KeyRound = getIcon("resources", "apiKey")
+
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"

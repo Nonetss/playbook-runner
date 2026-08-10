@@ -1,5 +1,11 @@
 import type { User } from "better-auth"
-import { LogIn, LogOut, UserCircle2, User as UserIcon } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const LogIn = getIcon("auth", "login")
+const LogOut = getIcon("actions", "logout")
+const UserCircle2 = getIcon("identity", "userCircle")
+const UserIcon = getIcon("identity", "user")
+
 import { useTranslation } from "react-i18next"
 import {
   DropdownMenu,

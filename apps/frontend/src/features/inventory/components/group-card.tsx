@@ -1,4 +1,11 @@
-import { Folder, Link2, Pencil, Settings2, Trash2 } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Folder = getIcon("resources", "folder")
+const Link2 = getIcon("resources", "link")
+const Pencil = getIcon("actions", "edit")
+const Settings2 = getIcon("actions", "settings2")
+const Trash2 = getIcon("actions", "delete")
+
 import { useTranslation } from "react-i18next"
 import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
 import { Badge } from "@/components/ui/badge"

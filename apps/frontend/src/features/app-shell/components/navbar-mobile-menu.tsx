@@ -1,4 +1,7 @@
-import { Menu } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Menu = getIcon("controls", "menu")
+
 import { useEffect, useState } from "react"
 import { flushSync } from "react-dom"
 import { useTranslation } from "react-i18next"

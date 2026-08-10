@@ -1,16 +1,17 @@
-import {
-  ActivityIcon,
-  BriefcaseIcon,
-  ChevronRight,
-  Clock,
-  FileCode2,
-  KeyRound,
-  Plus,
-  Server,
-  Timer,
-  Users,
-  XCircle,
-} from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const ActivityIcon = getIcon("views", "activity")
+const BriefcaseIcon = getIcon("resources", "briefcase")
+const ChevronRight = getIcon("controls", "right")
+const Clock = getIcon("scheduling", "time")
+const FileCode2 = getIcon("resources", "fileCode")
+const KeyRound = getIcon("resources", "apiKey")
+const Plus = getIcon("actions", "add")
+const Server = getIcon("resources", "server")
+const Timer = getIcon("scheduling", "timer")
+const Users = getIcon("resources", "users")
+const XCircle = getIcon("status", "error")
+
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"

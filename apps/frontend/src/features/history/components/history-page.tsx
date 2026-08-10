@@ -1,10 +1,11 @@
-import {
-  ActivityIcon,
-  HistoryIcon,
-  Loader2,
-  Timer,
-  XCircle,
-} from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const ActivityIcon = getIcon("views", "activity")
+const HistoryIcon = getIcon("resources", "history")
+const Loader2 = getIcon("status", "loading")
+const Timer = getIcon("scheduling", "timer")
+const XCircle = getIcon("status", "error")
+
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"

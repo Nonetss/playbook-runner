@@ -1,4 +1,8 @@
-import { Plus, Server } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Plus = getIcon("actions", "add")
+const Server = getIcon("resources", "server")
+
 import { Button } from "@/components/ui/button"
 import { DeviceCard } from "@/features/inventory/components/device-card"
 import type {

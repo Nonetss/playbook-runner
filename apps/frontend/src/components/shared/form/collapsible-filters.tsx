@@ -1,4 +1,8 @@
-import { FilterX, SlidersHorizontal } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const FilterX = getIcon("views", "clearFilters")
+const SlidersHorizontal = getIcon("views", "filters")
+
 import { Children, type ReactNode, useState } from "react"
 import {
   Accordion,

@@ -1,4 +1,7 @@
-import { ChevronRight } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const ChevronRight = getIcon("controls", "right")
+
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { PageHero } from "@/components/shared/layout/page-hero"

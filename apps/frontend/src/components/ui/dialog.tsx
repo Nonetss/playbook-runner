@@ -1,4 +1,7 @@
-import { XIcon } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const XIcon = getIcon("controls", "close")
+
 import { Dialog as DialogPrimitive } from "radix-ui"
 import type * as React from "react"
 

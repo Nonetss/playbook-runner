@@ -1,5 +1,12 @@
 import type { Session, User } from "better-auth"
-import { Calendar, Hash, Mail, ShieldCheck, UserCircle2 } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Calendar = getIcon("scheduling", "calendar")
+const Hash = getIcon("identity", "hash")
+const Mail = getIcon("identity", "email")
+const ShieldCheck = getIcon("status", "verified")
+const UserCircle2 = getIcon("identity", "userCircle")
+
 import type React from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"

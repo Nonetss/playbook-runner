@@ -1,4 +1,8 @@
-import { Folder, Plus } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Folder = getIcon("resources", "folder")
+const Plus = getIcon("actions", "add")
+
 import { Button } from "@/components/ui/button"
 import { GroupCard } from "@/features/inventory/components/group-card"
 import type {

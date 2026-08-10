@@ -1,4 +1,8 @@
-import { Plus, RotateCw } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Plus = getIcon("actions", "add")
+const RotateCw = getIcon("actions", "refresh")
+
 import type * as React from "react"
 import { useTranslation } from "react-i18next"
 import { StateCard } from "@/components/shared/data-display/state-card"

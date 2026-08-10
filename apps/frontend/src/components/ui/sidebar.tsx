@@ -1,7 +1,10 @@
 // biome-ignore-all lint/suspicious/noDocumentCookie: shadcn upstream persists sidebar_state via document.cookie directly; swapping to another API would diverge from the vendored component.
 
 import { cva, type VariantProps } from "class-variance-authority"
-import { PanelLeft } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const PanelLeft = getIcon("controls", "sidebar")
+
 import { Slot } from "radix-ui"
 import * as React from "react"
 import { Button } from "@/components/ui/button"

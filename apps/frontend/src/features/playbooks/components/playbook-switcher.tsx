@@ -1,4 +1,10 @@
-import { Check, ChevronDown, Folder, Search } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Check = getIcon("controls", "check")
+const ChevronDown = getIcon("controls", "expand")
+const Folder = getIcon("resources", "folder")
+const Search = getIcon("views", "search")
+
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"

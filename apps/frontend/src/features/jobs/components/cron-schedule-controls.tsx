@@ -1,4 +1,8 @@
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const ChevronLeft = getIcon("controls", "left")
+const ChevronRight = getIcon("controls", "right")
+
 import { type KeyboardEvent, useState } from "react"
 import { cn } from "@/lib/utils"
 

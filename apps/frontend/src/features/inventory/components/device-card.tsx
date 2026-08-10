@@ -1,4 +1,12 @@
-import { KeyRound, Link2, Pencil, Radio, Server, Trash2 } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const KeyRound = getIcon("resources", "apiKey")
+const Link2 = getIcon("resources", "link")
+const Pencil = getIcon("actions", "edit")
+const Radio = getIcon("resources", "radio")
+const Server = getIcon("resources", "server")
+const Trash2 = getIcon("actions", "delete")
+
 import { useTranslation } from "react-i18next"
 import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
 import { Badge } from "@/components/ui/badge"

@@ -1,4 +1,7 @@
-import { Loader2 } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Loader2 = getIcon("status", "loading")
+
 import type { ReactNode } from "react"
 import { cn } from "@/lib/utils"
 

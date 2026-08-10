@@ -1,15 +1,15 @@
-import {
-  BookText,
-  BriefcaseBusiness,
-  CalendarClock,
-  FileCode2,
-  Folder,
-  History,
-  KeyRound,
-  type LucideIcon,
-  Server,
-  Terminal,
-} from "lucide-react"
+import type { LucideIcon } from "@/lib/icon-registry"
+import { getIcon } from "@/lib/icon-registry"
+
+const BookText = getIcon("resources", "book")
+const BriefcaseBusiness = getIcon("resources", "briefcase")
+const CalendarClock = getIcon("scheduling", "schedule")
+const FileCode2 = getIcon("resources", "fileCode")
+const Folder = getIcon("resources", "folder")
+const History = getIcon("resources", "history")
+const KeyRound = getIcon("resources", "apiKey")
+const Server = getIcon("resources", "server")
+const Terminal = getIcon("resources", "terminal")
 
 export interface SiteNavSubItem {
   href: string

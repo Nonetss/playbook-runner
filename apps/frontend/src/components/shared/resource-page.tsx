@@ -1,4 +1,7 @@
-import { Plus } from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const Plus = getIcon("actions", "add")
+
 import type * as React from "react"
 import { PageHero } from "@/components/shared/layout/page-hero"
 import { PageShell } from "@/components/shared/layout/page-shell"

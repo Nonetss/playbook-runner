@@ -1,10 +1,11 @@
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Clock,
-  Loader2,
-  XCircle,
-} from "lucide-react"
+import { getIcon } from "@/lib/icon-registry"
+
+const AlertTriangle = getIcon("status", "alert")
+const CheckCircle2 = getIcon("status", "success")
+const Clock = getIcon("scheduling", "time")
+const Loader2 = getIcon("status", "loading")
+const XCircle = getIcon("status", "error")
+
 import type { ElementType } from "react"
 import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
