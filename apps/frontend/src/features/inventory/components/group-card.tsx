@@ -7,16 +7,10 @@ const Settings2 = getIcon("actions", "settings2")
 const Trash2 = getIcon("actions", "delete")
 
 import { useTranslation } from "react-i18next"
+import { ResourceCard } from "@/components/shared/data-display/resource-card"
 import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import type {
   InventoryDevice,
@@ -42,82 +36,68 @@ export function GroupCard({
 }: GroupCardProps) {
   const { t } = useTranslation("common")
   return (
-    <Card className="h-full gap-4 py-4">
-      <CardHeader className="px-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-start gap-3">
-            <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-md">
-              <Folder className="size-4" />
-            </div>
-            <div className="min-w-0">
-              <CardTitle className="truncate text-base">{group.name}</CardTitle>
-              {group.description && (
-                <CardDescription className="truncate">
-                  {group.description}
-                </CardDescription>
-              )}
-            </div>
-          </div>
-
-          <RowActionsMenu
-            label={`Acciones para ${group.name}`}
-            disabled={isDeleting}
-          >
-            <DropdownMenuItem onClick={() => onEdit(group)}>
-              <Pencil className="size-4" />
-              {t("actions.edit")}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onManageDevices(group)}>
-              <Link2 className="size-4" />
-              {t("actions.manage_devices")}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => onDelete(group.id)}
-            >
-              <Trash2 className="size-4" />
-              {t("actions.delete")}
-            </DropdownMenuItem>
-          </RowActionsMenu>
-        </div>
-      </CardHeader>
-
-      <CardContent className="flex flex-1 flex-col gap-3 px-4">
-        {devices.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-muted-foreground text-xs">
-              {devices.length} dispositivo{devices.length === 1 ? "" : "s"}:
-            </span>
-            {devices.slice(0, 4).map((device) => (
-              <Badge key={device.id} variant="outline" className="text-xs">
-                {device.name}
-              </Badge>
-            ))}
-            {devices.length > 4 ? (
-              <span className="text-muted-foreground text-xs">
-                +{devices.length - 4}
-              </span>
-            ) : null}
-          </div>
-        ) : (
-          <p className="text-muted-foreground text-xs">
-            Sin dispositivos asignados.
-          </p>
-        )}
-
-        <Button
-          asChild
-          variant="outline"
-          size="sm"
-          className="mt-auto w-full"
+    <ResourceCard
+      icon={<Folder className="size-4" />}
+      title={group.name}
+      description={group.description}
+      contentClassName="flex flex-1 flex-col gap-3"
+      actions={
+        <RowActionsMenu
+          label={`Acciones para ${group.name}`}
           disabled={isDeleting}
         >
-          <a href={`/inventory/${group.id}/group`}>
-            <Settings2 className="size-4" />
-            Gestionar
-          </a>
-        </Button>
-      </CardContent>
-    </Card>
+          <DropdownMenuItem onClick={() => onEdit(group)}>
+            <Pencil className="size-4" />
+            {t("actions.edit")}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onManageDevices(group)}>
+            <Link2 className="size-4" />
+            {t("actions.manage_devices")}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => onDelete(group.id)}
+          >
+            <Trash2 className="size-4" />
+            {t("actions.delete")}
+          </DropdownMenuItem>
+        </RowActionsMenu>
+      }
+    >
+      {devices.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-muted-foreground text-xs">
+            {devices.length} dispositivo{devices.length === 1 ? "" : "s"}:
+          </span>
+          {devices.slice(0, 4).map((device) => (
+            <Badge key={device.id} variant="outline" className="text-xs">
+              {device.name}
+            </Badge>
+          ))}
+          {devices.length > 4 ? (
+            <span className="text-muted-foreground text-xs">
+              +{devices.length - 4}
+            </span>
+          ) : null}
+        </div>
+      ) : (
+        <p className="text-muted-foreground text-xs">
+          Sin dispositivos asignados.
+        </p>
+      )}
+
+      <Button
+        asChild
+        variant="outline"
+        size="sm"
+        className="mt-auto w-full"
+        disabled={isDeleting}
+      >
+        <a href={`/inventory/${group.id}/group`}>
+          <Settings2 className="size-4" />
+          Gestionar
+        </a>
+      </Button>
+    </ResourceCard>
   )
 }

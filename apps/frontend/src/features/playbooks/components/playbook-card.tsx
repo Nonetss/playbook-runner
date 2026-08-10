@@ -9,17 +9,10 @@ const Trash2 = getIcon("actions", "delete")
 
 import type * as React from "react"
 import { useTranslation } from "react-i18next"
+import { ResourceCard } from "@/components/shared/data-display/resource-card"
 import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import type { Playbook } from "@/features/playbooks/types"
 import { cn } from "@/lib/utils"
@@ -53,7 +46,42 @@ export function PlaybookCard({
     : null
 
   return (
-    <Card
+    <ResourceCard
+      icon={<BookText className="size-4" />}
+      title={playbook.name}
+      description={playbook.description}
+      descriptionClassName="line-clamp-2 wrap-break-word"
+      contentClassName="flex flex-1 flex-col gap-3"
+      actions={
+        <RowActionsMenu
+          label={t("card.actions_aria", { name: playbook.name })}
+          disabled={isDeleting}
+        >
+          <DropdownMenuItem asChild>
+            <a href={`/playbooks/${playbook.id}/run`}>
+              <Play className="size-4" />
+              {t("card.run")}
+            </a>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <a href={`/playbooks/${playbook.id}/edit`}>
+              <Pencil className="size-4" />
+              {t("card.edit")}
+            </a>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onMove(playbook)}>
+            <FolderInput className="size-4" />
+            {t("card.move")}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => onDelete(playbook.id)}
+          >
+            <Trash2 className="size-4" />
+            {t("card.delete")}
+          </DropdownMenuItem>
+        </RowActionsMenu>
+      }
       className={cn(
         "h-full gap-4 py-4",
         !isDeleting && "cursor-grab active:cursor-grabbing"
@@ -65,92 +93,41 @@ export function PlaybookCard({
         event.dataTransfer.setData("text/plain", playbook.id)
       }}
     >
-      <CardHeader className="px-4">
-        <div className="flex min-w-0 items-start gap-3 overflow-hidden pr-2">
-          <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-md">
-            <BookText className="size-4" />
-          </div>
-          <div className="min-w-0 flex-1 overflow-hidden">
-            <CardTitle className="truncate text-base">
-              {playbook.name}
-            </CardTitle>
-            {playbook.description && (
-              <CardDescription className="line-clamp-2 wrap-break-word">
-                {playbook.description}
-              </CardDescription>
-            )}
-          </div>
-        </div>
-
-        <CardAction>
-          <RowActionsMenu
-            label={t("card.actions_aria", { name: playbook.name })}
-            disabled={isDeleting}
-          >
-            <DropdownMenuItem asChild>
-              <a href={`/playbooks/${playbook.id}/run`}>
-                <Play className="size-4" />
-                {t("card.run")}
-              </a>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <a href={`/playbooks/${playbook.id}/edit`}>
-                <Pencil className="size-4" />
-                {t("card.edit")}
-              </a>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onMove(playbook)}>
-              <FolderInput className="size-4" />
-              {t("card.move")}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => onDelete(playbook.id)}
-            >
-              <Trash2 className="size-4" />
-              {t("card.delete")}
-            </DropdownMenuItem>
-          </RowActionsMenu>
-        </CardAction>
-      </CardHeader>
-
-      <CardContent className="flex flex-1 flex-col gap-3 px-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary" className="font-mono text-xs">
-            {t("card.yaml")}
-          </Badge>
-          {folderName ? (
-            <Badge variant="outline" className="max-w-full text-xs">
-              <Folder className="size-3" />
-              <span className="truncate">
-                {t("card.in_folder", { name: folderName })}
-              </span>
-            </Badge>
-          ) : null}
-          {updatedAt && (
-            <span className="text-muted-foreground text-xs">
-              {t("card.updated_on", { date: updatedAt })}
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="secondary" className="font-mono text-xs">
+          {t("card.yaml")}
+        </Badge>
+        {folderName ? (
+          <Badge variant="outline" className="max-w-full text-xs">
+            <Folder className="size-3" />
+            <span className="truncate">
+              {t("card.in_folder", { name: folderName })}
             </span>
-          )}
-        </div>
+          </Badge>
+        ) : null}
+        {updatedAt && (
+          <span className="text-muted-foreground text-xs">
+            {t("card.updated_on", { date: updatedAt })}
+          </span>
+        )}
+      </div>
 
-        <pre className="text-muted-foreground max-h-[4.5rem] overflow-hidden rounded-md border border-border/40 bg-muted/20 px-2.5 py-2 font-mono text-xs leading-relaxed wrap-break-word whitespace-pre-wrap">
-          {playbook.content}
-        </pre>
+      <pre className="text-muted-foreground max-h-[4.5rem] overflow-hidden rounded-md border border-border/40 bg-muted/20 px-2.5 py-2 font-mono text-xs leading-relaxed wrap-break-word whitespace-pre-wrap">
+        {playbook.content}
+      </pre>
 
-        <Button
-          asChild
-          variant="outline"
-          size="sm"
-          className="mt-auto w-full"
-          disabled={isDeleting}
-        >
-          <a href={`/playbooks/${playbook.id}/run`}>
-            <Play className="size-4" />
-            {t("card.run")}
-          </a>
-        </Button>
-      </CardContent>
-    </Card>
+      <Button
+        asChild
+        variant="outline"
+        size="sm"
+        className="mt-auto w-full"
+        disabled={isDeleting}
+      >
+        <a href={`/playbooks/${playbook.id}/run`}>
+          <Play className="size-4" />
+          {t("card.run")}
+        </a>
+      </Button>
+    </ResourceCard>
   )
 }

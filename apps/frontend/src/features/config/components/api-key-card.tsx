@@ -4,15 +4,9 @@ const KeyRound = getIcon("resources", "apiKey")
 const Trash2 = getIcon("actions", "delete")
 
 import { useTranslation } from "react-i18next"
+import { ResourceCard } from "@/components/shared/data-display/resource-card"
 import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
 import { Badge } from "@/components/ui/badge"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import type { ApiKeyListItem } from "@/features/config/types"
 
@@ -47,60 +41,50 @@ export function ApiKeyCard({
     apiKey.start ?? apiKey.prefix ?? `${apiKey.id.slice(0, 8)}…`
 
   return (
-    <Card className="h-full min-w-0 gap-4 overflow-hidden py-4">
-      <CardHeader className="px-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-start gap-3">
-            <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-md">
-              <KeyRound className="size-4" />
-            </div>
-            <div className="min-w-0">
-              <CardTitle className="truncate text-base">{label}</CardTitle>
-              <CardDescription className="truncate font-mono text-xs">
-                {identifier}
-              </CardDescription>
-            </div>
-          </div>
-
-          <RowActionsMenu
-            label={
-              t("api_keys.card.menu_aria", { defaultValue: "" }) ||
-              `${t("api_keys.actions_aria")} ${label}`
-            }
-            disabled={isDeleting}
+    <ResourceCard
+      className="min-w-0 overflow-hidden"
+      icon={<KeyRound className="size-4" />}
+      title={label}
+      description={identifier}
+      descriptionClassName="font-mono text-xs"
+      contentClassName="min-w-0 space-y-3 overflow-hidden"
+      actions={
+        <RowActionsMenu
+          label={
+            t("api_keys.card.menu_aria", { defaultValue: "" }) ||
+            `${t("api_keys.actions_aria")} ${label}`
+          }
+          disabled={isDeleting}
+        >
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => onDelete(apiKey.id)}
           >
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => onDelete(apiKey.id)}
-            >
-              <Trash2 className="size-4" />
-              {tCommon("actions.delete")}
-            </DropdownMenuItem>
-          </RowActionsMenu>
-        </div>
-      </CardHeader>
+            <Trash2 className="size-4" />
+            {tCommon("actions.delete")}
+          </DropdownMenuItem>
+        </RowActionsMenu>
+      }
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="secondary" className="font-mono text-xs">
+          {t("api_keys.default_label")}
+        </Badge>
+        <Badge variant="outline" className="text-xs">
+          {apiKey.enabled
+            ? tCommon("status.enabled")
+            : tCommon("status.disabled")}
+        </Badge>
+      </div>
 
-      <CardContent className="min-w-0 space-y-3 overflow-hidden px-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary" className="font-mono text-xs">
-            {t("api_keys.default_label")}
-          </Badge>
-          <Badge variant="outline" className="text-xs">
-            {apiKey.enabled
-              ? tCommon("status.enabled")
-              : tCommon("status.disabled")}
-          </Badge>
-        </div>
-
-        <div className="text-muted-foreground space-y-0.5 text-xs">
-          <p>{t("api_keys.created_at", { date: createdAt })}</p>
-          {expiresAt ? (
-            <p>{t("api_keys.card.expires_on", { date: expiresAt })}</p>
-          ) : (
-            <p>{t("api_keys.card.no_expiry")}</p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+      <div className="text-muted-foreground space-y-0.5 text-xs">
+        <p>{t("api_keys.created_at", { date: createdAt })}</p>
+        {expiresAt ? (
+          <p>{t("api_keys.card.expires_on", { date: expiresAt })}</p>
+        ) : (
+          <p>{t("api_keys.card.no_expiry")}</p>
+        )}
+      </div>
+    </ResourceCard>
   )
 }

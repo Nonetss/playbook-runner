@@ -7,15 +7,9 @@ const Trash2 = getIcon("actions", "delete")
 
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { ResourceCard } from "@/components/shared/data-display/resource-card"
 import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
 import { Badge } from "@/components/ui/badge"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { ProvisionScriptDialog } from "@/features/credentials/components/provision-script-dialog"
 import type { Credential } from "@/features/credentials/types"
@@ -44,71 +38,58 @@ export function CredentialCard({
     : null
 
   return (
-    <Card className="h-full min-w-0 gap-4 overflow-hidden py-4">
-      <CardHeader className="px-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-start gap-3">
-            <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-md">
-              <KeyRound className="size-4" />
-            </div>
-            <div className="min-w-0">
-              <CardTitle className="truncate text-base">
-                {credential.name}
-              </CardTitle>
-              <CardDescription className="truncate">
-                {credential.username}
-              </CardDescription>
-            </div>
-          </div>
-
-          <RowActionsMenu
-            label={`Acciones para ${credential.name}`}
-            disabled={isDeleting}
-          >
-            <DropdownMenuItem onClick={() => onEdit(credential)}>
-              <Pencil className="size-4" />
-              {t("actions.edit")}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setScriptOpen(true)}>
-              <Terminal className="size-4" />
-              {t("actions.provision_script")}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => onDelete(credential.id)}
-            >
-              <Trash2 className="size-4" />
-              {t("actions.delete")}
-            </DropdownMenuItem>
-          </RowActionsMenu>
-        </div>
-      </CardHeader>
-
-      <CardContent className="min-w-0 space-y-3 overflow-hidden px-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary" className="font-mono text-xs">
-            SSH
-          </Badge>
-          {createdAt && (
-            <span className="text-muted-foreground text-xs">
-              Creada el {createdAt}
-            </span>
-          )}
-        </div>
-
-        <p
-          className="text-muted-foreground line-clamp-3 min-w-0 break-all font-mono text-xs sm:line-clamp-1 sm:truncate"
-          title={credential.publicKey}
+    <ResourceCard
+      className="min-w-0 overflow-hidden"
+      icon={<KeyRound className="size-4" />}
+      title={credential.name}
+      description={credential.username}
+      contentClassName="min-w-0 space-y-3 overflow-hidden"
+      actions={
+        <RowActionsMenu
+          label={`Acciones para ${credential.name}`}
+          disabled={isDeleting}
         >
-          {credential.publicKey}
-        </p>
-      </CardContent>
+          <DropdownMenuItem onClick={() => onEdit(credential)}>
+            <Pencil className="size-4" />
+            {t("actions.edit")}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setScriptOpen(true)}>
+            <Terminal className="size-4" />
+            {t("actions.provision_script")}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => onDelete(credential.id)}
+          >
+            <Trash2 className="size-4" />
+            {t("actions.delete")}
+          </DropdownMenuItem>
+        </RowActionsMenu>
+      }
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="secondary" className="font-mono text-xs">
+          SSH
+        </Badge>
+        {createdAt && (
+          <span className="text-muted-foreground text-xs">
+            Creada el {createdAt}
+          </span>
+        )}
+      </div>
+
+      <p
+        className="text-muted-foreground line-clamp-3 min-w-0 break-all font-mono text-xs sm:line-clamp-1 sm:truncate"
+        title={credential.publicKey}
+      >
+        {credential.publicKey}
+      </p>
 
       <ProvisionScriptDialog
         open={scriptOpen}
         onOpenChange={setScriptOpen}
         credential={credential}
       />
-    </Card>
+    </ResourceCard>
   )
 }

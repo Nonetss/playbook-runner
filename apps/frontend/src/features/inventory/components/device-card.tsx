@@ -8,15 +8,9 @@ const Server = getIcon("resources", "server")
 const Trash2 = getIcon("actions", "delete")
 
 import { useTranslation } from "react-i18next"
+import { ResourceCard } from "@/components/shared/data-display/resource-card"
 import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
 import { Badge } from "@/components/ui/badge"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import type {
   InventoryDevice,
@@ -51,87 +45,69 @@ export function DeviceCard({
 }: DeviceCardProps) {
   const { t } = useTranslation("common")
   return (
-    <Card className="h-full gap-4 py-4">
-      <CardHeader className="px-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-start gap-3">
-            <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-md">
-              <Server className="size-4" />
-            </div>
-            <div className="min-w-0">
-              <CardTitle className="truncate text-base">
-                {device.name}
-              </CardTitle>
-              {device.description && (
-                <CardDescription className="truncate">
-                  {device.description}
-                </CardDescription>
-              )}
-            </div>
-          </div>
-
-          <RowActionsMenu
-            label={`Acciones para ${device.name}`}
-            disabled={isDeleting}
+    <ResourceCard
+      icon={<Server className="size-4" />}
+      title={device.name}
+      description={device.description}
+      contentClassName="space-y-3"
+      actions={
+        <RowActionsMenu
+          label={`Acciones para ${device.name}`}
+          disabled={isDeleting}
+        >
+          <DropdownMenuItem onClick={() => onEdit(device)}>
+            <Pencil className="size-4" />
+            {t("actions.edit")}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onManageGroups(device)}>
+            <Link2 className="size-4" />
+            {t("actions.manage_groups")}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onPing(device)}>
+            <Radio className="size-4" />
+            {t("actions.ping")}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => onDelete(device.id)}
           >
-            <DropdownMenuItem onClick={() => onEdit(device)}>
-              <Pencil className="size-4" />
-              {t("actions.edit")}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onManageGroups(device)}>
-              <Link2 className="size-4" />
-              {t("actions.manage_groups")}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onPing(device)}>
-              <Radio className="size-4" />
-              {t("actions.ping")}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => onDelete(device.id)}
-            >
-              <Trash2 className="size-4" />
-              {t("actions.delete")}
-            </DropdownMenuItem>
-          </RowActionsMenu>
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-3 px-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary" className="font-mono text-xs">
-            {device.ipAddress}
-            {device.portSSH && device.portSSH !== 22
-              ? `:${device.portSSH}`
-              : ""}
+            <Trash2 className="size-4" />
+            {t("actions.delete")}
+          </DropdownMenuItem>
+        </RowActionsMenu>
+      }
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="secondary" className="font-mono text-xs">
+          {device.ipAddress}
+          {device.portSSH && device.portSSH !== 22 ? `:${device.portSSH}` : ""}
+        </Badge>
+        {credential ? (
+          <Badge variant="outline" className="gap-1 text-xs">
+            <KeyRound className="size-3" />
+            {credential.name}
           </Badge>
-          {credential ? (
-            <Badge variant="outline" className="gap-1 text-xs">
-              <KeyRound className="size-3" />
-              {credential.name}
-            </Badge>
-          ) : null}
-        </div>
+        ) : null}
+      </div>
 
-        {groups.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-muted-foreground text-xs">Grupos:</span>
-            {groups.map((group) => (
-              <Badge key={group.id} variant="outline" className="text-xs">
-                {group.name}
-              </Badge>
-            ))}
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => onManageGroups(device)}
-            className="text-muted-foreground hover:text-foreground text-xs underline-offset-4 hover:underline"
-          >
-            Asignar a un grupo
-          </button>
-        )}
-      </CardContent>
-    </Card>
+      {groups.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-muted-foreground text-xs">Grupos:</span>
+          {groups.map((group) => (
+            <Badge key={group.id} variant="outline" className="text-xs">
+              {group.name}
+            </Badge>
+          ))}
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => onManageGroups(device)}
+          className="text-muted-foreground hover:text-foreground text-xs underline-offset-4 hover:underline"
+        >
+          Asignar a un grupo
+        </button>
+      )}
+    </ResourceCard>
   )
 }
