@@ -8,28 +8,28 @@ import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { ResourceListState } from "@/components/shared/resource-list-state"
 import { ResourcePage } from "@/components/shared/resource-page"
-import { useCredentialsList } from "@/features/credentials/hooks/useCredentials"
+import { useCredentialsList } from "@/features/credentials/hooks/use-credentials"
 import { DeviceFormModal } from "@/features/inventory/components/device-form-modal"
 import { DeviceList } from "@/features/inventory/components/device-list"
 import { GroupFormModal } from "@/features/inventory/components/group-form-modal"
 import { GroupList } from "@/features/inventory/components/group-list"
 import { PingDeviceModal } from "@/features/inventory/components/ping-device-modal"
 import { RelationsDialog } from "@/features/inventory/components/relations-dialog"
-import { useDeviceGroupsList } from "@/features/inventory/hooks/useDeviceGroups"
+import { useDeviceGroupsList } from "@/features/inventory/hooks/use-device-groups"
 import {
   useDeviceDelete,
   useDevicesList,
-} from "@/features/inventory/hooks/useDevices"
+} from "@/features/inventory/hooks/use-devices"
 import {
   useGroupDelete,
   useGroupsList,
-} from "@/features/inventory/hooks/useGroups"
+} from "@/features/inventory/hooks/use-groups"
 import type {
   InventoryDevice,
   InventoryDeviceGroup,
   InventoryGroup,
 } from "@/features/inventory/types"
-import { useConfirm } from "@/hooks/useConfirm"
+import { useConfirm } from "@/hooks/use-confirm"
 import { notifyError } from "@/lib/toast"
 
 type InventorySection = "groups" | "devices"

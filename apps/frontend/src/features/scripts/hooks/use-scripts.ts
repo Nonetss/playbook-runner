@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import type { Script } from "@/features/scripts/types"
-import { useHydratedQuery } from "@/hooks/useHydratedQuery"
-import { useResourceMutation } from "@/hooks/useResourceMutation"
+import { useHydratedQuery } from "@/hooks/use-hydrated-query"
+import { useResourceMutation } from "@/hooks/use-resource-mutation"
 import { orpc } from "@/lib/orpc"
 
 export const useScriptsList = () => {

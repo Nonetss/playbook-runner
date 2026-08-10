@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useOnOpen } from "@/hooks/useOnOpen"
+import { useOnOpen } from "@/hooks/use-on-open"
 import { cn } from "@/lib/utils"
 
 /** Radix Select no admite `value=""`; usamos un valor centinela para "sin selección". */

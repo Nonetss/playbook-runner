@@ -4,7 +4,7 @@ import type { ResourceFormDefinition } from "@/components/shared/resource-form-t
 import {
   useGroupCreate,
   useGroupUpdate,
-} from "@/features/inventory/hooks/useGroups"
+} from "@/features/inventory/hooks/use-groups"
 import type { InventoryGroup } from "@/features/inventory/types"
 
 export type GroupFormValues = {

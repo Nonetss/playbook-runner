@@ -1,7 +1,7 @@
 import { QueryClientProvider } from "@tanstack/react-query"
 import { type ReactNode, useEffect, useState } from "react"
 import { I18nProvider } from "@/components/providers/i18n-provider"
-import { ConfirmProvider } from "@/hooks/useConfirm"
+import { ConfirmProvider } from "@/hooks/use-confirm"
 import {
   DEFAULT_LOCALE,
   isSupportedLocale,

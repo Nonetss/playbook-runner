@@ -1,8 +1,8 @@
 import { useMutation } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import type { Credential } from "@/features/credentials/types"
-import { useHydratedQuery } from "@/hooks/useHydratedQuery"
-import { useResourceMutation } from "@/hooks/useResourceMutation"
+import { useHydratedQuery } from "@/hooks/use-hydrated-query"
+import { useResourceMutation } from "@/hooks/use-resource-mutation"
 import { orpc } from "@/lib/orpc"
 
 export const useCredentialsList = () => {

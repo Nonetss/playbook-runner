@@ -15,7 +15,7 @@ import {
   useScriptCreate,
   useScriptGet,
   useScriptUpdate,
-} from "@/features/scripts/hooks/useScripts"
+} from "@/features/scripts/hooks/use-scripts"
 import { navigate } from "@/lib/navigate"
 import { cn } from "@/lib/utils"
 

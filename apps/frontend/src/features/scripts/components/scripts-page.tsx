@@ -10,8 +10,8 @@ import { ScriptList } from "@/features/scripts/components/script-list"
 import {
   useScriptDelete,
   useScriptsList,
-} from "@/features/scripts/hooks/useScripts"
-import { useConfirm } from "@/hooks/useConfirm"
+} from "@/features/scripts/hooks/use-scripts"
+import { useConfirm } from "@/hooks/use-confirm"
 import { notifyError } from "@/lib/toast"
 
 function ScriptsPageInner() {

@@ -17,7 +17,7 @@ const XCircle = getIcon("status", "error")
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
-import { useFollowOutput } from "@/features/run/hooks/useFollowOutput"
+import { useFollowOutput } from "@/features/run/hooks/use-follow-output"
 import type { RunEvent, RunPhase } from "@/features/run/types"
 import { cn } from "@/lib/utils"
 

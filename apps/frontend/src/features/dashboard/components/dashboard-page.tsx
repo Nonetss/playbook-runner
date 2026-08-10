@@ -21,9 +21,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatCard } from "@/components/ui/stat-card"
-import { useCredentialsList } from "@/features/credentials/hooks/useCredentials"
-import { useDevicesList } from "@/features/inventory/hooks/useDevices"
-import { useGroupsList } from "@/features/inventory/hooks/useGroups"
+import { useCredentialsList } from "@/features/credentials/hooks/use-credentials"
+import { useDevicesList } from "@/features/inventory/hooks/use-devices"
+import { useGroupsList } from "@/features/inventory/hooks/use-groups"
 import {
   formatRunDurationMs,
   formatRunTimestamp,
@@ -34,13 +34,13 @@ import {
   useJobRunMetrics,
   useJobRunsAll,
   useJobsList,
-} from "@/features/jobs/hooks/useJobs"
+} from "@/features/jobs/hooks/use-jobs"
 import type {
   Job,
   JobRunFeedRow,
   JobRunMetricsWindow,
 } from "@/features/jobs/types"
-import { usePlaybooksList } from "@/features/playbooks/hooks/usePlaybooks"
+import { usePlaybooksList } from "@/features/playbooks/hooks/use-playbooks"
 import { authClient } from "@/lib/auth-client"
 
 function JobRow({ job, playbookName }: { job: Job; playbookName?: string }) {

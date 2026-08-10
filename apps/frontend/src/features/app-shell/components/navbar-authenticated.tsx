@@ -27,7 +27,7 @@ import {
   type SiteNavItem,
   siteNavItems,
 } from "@/features/app-shell/site-nav"
-import { useScrolled } from "@/hooks/useScrolled"
+import { useScrolled } from "@/hooks/use-scrolled"
 import { orpc } from "@/lib/orpc"
 import { cn } from "@/lib/utils"
 

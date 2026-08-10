@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { useHydratedQuery } from "@/hooks/useHydratedQuery"
+import { useHydratedQuery } from "@/hooks/use-hydrated-query"
 import { orpc } from "@/lib/orpc"
 
 const useInvalidateDeviceGroups = () => {

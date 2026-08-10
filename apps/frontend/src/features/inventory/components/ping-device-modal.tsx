@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog"
 import type { InventoryDevice } from "@/features/inventory/types"
 import { RunStreamStatus } from "@/features/run/components/run-stream-status"
-import { usePingDevice } from "@/features/run/hooks/usePingDevice"
+import { usePingDevice } from "@/features/run/hooks/use-ping-device"
 import type { RunEvent } from "@/features/run/types"
 import { cn } from "@/lib/utils"
 

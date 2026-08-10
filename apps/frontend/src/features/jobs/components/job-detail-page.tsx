@@ -25,11 +25,11 @@ import {
   useJobRun,
   useJobRunsList,
   useJobRunWatch,
-} from "@/features/jobs/hooks/useJobs"
+} from "@/features/jobs/hooks/use-jobs"
 import type { JobRun } from "@/features/jobs/types"
 import { PlaybookRunConsole } from "@/features/run/components/playbook-run-console"
 import { RunStreamStatus } from "@/features/run/components/run-stream-status"
-import { useConfirm } from "@/hooks/useConfirm"
+import { useConfirm } from "@/hooks/use-confirm"
 import { orpc } from "@/lib/orpc"
 import { cn } from "@/lib/utils"
 

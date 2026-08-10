@@ -19,12 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { usePlaybookFoldersList } from "@/features/playbooks/hooks/usePlaybookFolders"
+import { usePlaybookFoldersList } from "@/features/playbooks/hooks/use-playbook-folders"
 import {
   usePlaybookCreate,
   usePlaybookGet,
   usePlaybookUpdate,
-} from "@/features/playbooks/hooks/usePlaybooks"
+} from "@/features/playbooks/hooks/use-playbooks"
 import { navigate } from "@/lib/navigate"
 
 type FormValues = {

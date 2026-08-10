@@ -4,7 +4,7 @@ import {
   type UseQueryResult,
   useQuery,
 } from "@tanstack/react-query"
-import { useHydrated } from "@/hooks/useHydrated"
+import { useHydrated } from "@/hooks/use-hydrated"
 
 /**
  * SSR-safe wrapper around `useQuery` for Astro `client:only` islands.

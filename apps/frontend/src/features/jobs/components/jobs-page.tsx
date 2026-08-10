@@ -12,10 +12,10 @@ import {
   useJobRun,
   useJobsList,
   useJobToggleEnabled,
-} from "@/features/jobs/hooks/useJobs"
+} from "@/features/jobs/hooks/use-jobs"
 import type { Job } from "@/features/jobs/types"
-import { usePlaybooksList } from "@/features/playbooks/hooks/usePlaybooks"
-import { useConfirm } from "@/hooks/useConfirm"
+import { usePlaybooksList } from "@/features/playbooks/hooks/use-playbooks"
+import { useConfirm } from "@/hooks/use-confirm"
 import { navigate } from "@/lib/navigate"
 import { notifyError } from "@/lib/toast"
 

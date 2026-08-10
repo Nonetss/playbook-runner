@@ -14,8 +14,8 @@ import { ApiKeyList } from "@/features/config/components/api-key-list"
 import {
   useApiKeyDelete,
   useApiKeysList,
-} from "@/features/config/hooks/useApiKeys"
-import { useConfirm } from "@/hooks/useConfirm"
+} from "@/features/config/hooks/use-api-keys"
+import { useConfirm } from "@/hooks/use-confirm"
 
 function ConfigPageInner() {
   const { t, i18n } = useTranslation("config")

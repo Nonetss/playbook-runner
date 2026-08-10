@@ -3,9 +3,9 @@ import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { InventoryItem, Job, JobRunEvent } from "@/features/jobs/types"
-import { useHydratedQuery } from "@/hooks/useHydratedQuery"
-import { useOrpcMutation } from "@/hooks/useOrpcMutation"
-import { useResourceMutation } from "@/hooks/useResourceMutation"
+import { useHydratedQuery } from "@/hooks/use-hydrated-query"
+import { useOrpcMutation } from "@/hooks/use-orpc-mutation"
+import { useResourceMutation } from "@/hooks/use-resource-mutation"
 import { client, orpc } from "@/lib/orpc"
 
 // ── Queries ──────────────────────────────────────────────────────────────────

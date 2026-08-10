@@ -21,14 +21,14 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useDevicesList } from "@/features/inventory/hooks/useDevices"
-import { useGroupsList } from "@/features/inventory/hooks/useGroups"
+import { useDevicesList } from "@/features/inventory/hooks/use-devices"
+import { useGroupsList } from "@/features/inventory/hooks/use-groups"
 import type { Playbook } from "@/features/playbooks/types"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { RunStreamStatus } from "@/features/run/components/run-stream-status"
-import { useRunPlaybook } from "@/features/run/hooks/useRunPlaybook"
+import { useRunPlaybook } from "@/features/run/hooks/use-run-playbook"
 import type { RunEvent, RunSelection } from "@/features/run/types"
-import { useConfirm } from "@/hooks/useConfirm"
+import { useConfirm } from "@/hooks/use-confirm"
 import { cn } from "@/lib/utils"
 
 type RunPlaybookModalProps = {

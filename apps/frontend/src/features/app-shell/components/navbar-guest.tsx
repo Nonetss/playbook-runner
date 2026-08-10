@@ -3,7 +3,7 @@ import { AppLink } from "@/components/ui/app-link"
 import { AppLogo } from "@/features/app-shell/components/app-logo"
 import { LanguageSwitcher } from "@/features/app-shell/components/language-switcher"
 import { ThemeToggle } from "@/features/app-shell/components/theme-toggle"
-import { useScrolled } from "@/hooks/useScrolled"
+import { useScrolled } from "@/hooks/use-scrolled"
 import { cn } from "@/lib/utils"
 
 interface NavbarGuestProps {

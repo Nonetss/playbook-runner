@@ -18,7 +18,7 @@ const XCircle = getIcon("status", "error")
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
-import { useFollowOutput } from "@/features/run/hooks/useFollowOutput"
+import { useFollowOutput } from "@/features/run/hooks/use-follow-output"
 import { cn } from "@/lib/utils"
 
 // See RunHostConsole for why raw stdout/stderr get the native terminal font

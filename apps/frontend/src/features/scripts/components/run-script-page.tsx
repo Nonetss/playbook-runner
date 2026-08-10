@@ -20,18 +20,18 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { useDevicesList } from "@/features/inventory/hooks/useDevices"
-import { useGroupsList } from "@/features/inventory/hooks/useGroups"
+import { useDevicesList } from "@/features/inventory/hooks/use-devices"
+import { useGroupsList } from "@/features/inventory/hooks/use-groups"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { RunHostConsole } from "@/features/run/components/run-host-console"
 import { RunStreamStatus } from "@/features/run/components/run-stream-status"
 import {
   type ScriptRequest,
   useRunScript,
-} from "@/features/run/hooks/useRunScript"
+} from "@/features/run/hooks/use-run-script"
 import type { RunSelection } from "@/features/run/types"
-import { useScriptGet } from "@/features/scripts/hooks/useScripts"
-import { useConfirm } from "@/hooks/useConfirm"
+import { useScriptGet } from "@/features/scripts/hooks/use-scripts"
+import { useConfirm } from "@/hooks/use-confirm"
 import { cn } from "@/lib/utils"
 
 // ── RunScriptPageInner ────────────────────────────────────────────────────────

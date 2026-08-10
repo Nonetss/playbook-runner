@@ -16,14 +16,14 @@ import {
   useDeviceGroupAssign,
   useDeviceGroupsByGroup,
   useDeviceGroupUnassign,
-} from "@/features/inventory/hooks/useDeviceGroups"
-import { useDevicesList } from "@/features/inventory/hooks/useDevices"
+} from "@/features/inventory/hooks/use-device-groups"
+import { useDevicesList } from "@/features/inventory/hooks/use-devices"
 import {
   useGroupDelete,
   useGroupGet,
   useGroupUpdate,
-} from "@/features/inventory/hooks/useGroups"
-import { useConfirm } from "@/hooks/useConfirm"
+} from "@/features/inventory/hooks/use-groups"
+import { useConfirm } from "@/hooks/use-confirm"
 import { navigate } from "@/lib/navigate"
 import { cn } from "@/lib/utils"
 

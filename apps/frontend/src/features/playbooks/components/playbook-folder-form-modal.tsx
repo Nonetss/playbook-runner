@@ -4,7 +4,7 @@ import type { ResourceFormDefinition } from "@/components/shared/resource-form-t
 import {
   usePlaybookFolderCreate,
   usePlaybookFolderUpdate,
-} from "@/features/playbooks/hooks/usePlaybookFolders"
+} from "@/features/playbooks/hooks/use-playbook-folders"
 import type { PlaybookFolder } from "@/features/playbooks/types"
 
 type FolderFormValues = {

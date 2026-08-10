@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { usePlaybookMove } from "@/features/playbooks/hooks/usePlaybooks"
+import { usePlaybookMove } from "@/features/playbooks/hooks/use-playbooks"
 import type { Playbook, PlaybookFolder } from "@/features/playbooks/types"
 
 const ROOT_VALUE = "__root__"

@@ -15,8 +15,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { usePlaybookFoldersList } from "@/features/playbooks/hooks/usePlaybookFolders"
-import { usePlaybooksList } from "@/features/playbooks/hooks/usePlaybooks"
+import { usePlaybookFoldersList } from "@/features/playbooks/hooks/use-playbook-folders"
+import { usePlaybooksList } from "@/features/playbooks/hooks/use-playbooks"
 import { navigate } from "@/lib/navigate"
 import { cn } from "@/lib/utils"
 

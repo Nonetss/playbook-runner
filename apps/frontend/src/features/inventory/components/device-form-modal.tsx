@@ -2,11 +2,11 @@ import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { ResourceFormModal } from "@/components/shared/resource-form-modal"
 import type { ResourceFormDefinition } from "@/components/shared/resource-form-types"
-import { useCredentialsList } from "@/features/credentials/hooks/useCredentials"
+import { useCredentialsList } from "@/features/credentials/hooks/use-credentials"
 import {
   useDeviceCreate,
   useDeviceUpdate,
-} from "@/features/inventory/hooks/useDevices"
+} from "@/features/inventory/hooks/use-devices"
 import type { InventoryDevice } from "@/features/inventory/types"
 
 export type DeviceFormValues = {

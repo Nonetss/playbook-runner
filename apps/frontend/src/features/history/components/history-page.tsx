@@ -23,7 +23,7 @@ import {
   RunStatusBadge,
   RunWindowPicker,
 } from "@/features/jobs"
-import { useJobRunMetrics, useJobRunsAll } from "@/features/jobs/hooks/useJobs"
+import { useJobRunMetrics, useJobRunsAll } from "@/features/jobs/hooks/use-jobs"
 import type { JobRunFeedRow, JobRunMetricsWindow } from "@/features/jobs/types"
 
 /**

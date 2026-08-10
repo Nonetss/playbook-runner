@@ -21,7 +21,7 @@ import {
   useDeviceGroupsByDevice,
   useDeviceGroupsByGroup,
   useDeviceGroupUnassign,
-} from "@/features/inventory/hooks/useDeviceGroups"
+} from "@/features/inventory/hooks/use-device-groups"
 import { notifyError, notifySuccess } from "@/lib/toast"
 
 type Kind = "deviceGroups" | "groupDevices"

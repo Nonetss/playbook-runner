@@ -16,7 +16,7 @@ import {
   useCredentialCreate,
   useCredentialGenerate,
   useCredentialUpdate,
-} from "@/features/credentials/hooks/useCredentials"
+} from "@/features/credentials/hooks/use-credentials"
 import type { Credential } from "@/features/credentials/types"
 import { cn } from "@/lib/utils"
 

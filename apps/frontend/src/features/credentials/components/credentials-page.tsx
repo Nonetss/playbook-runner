@@ -12,9 +12,9 @@ import { CredentialList } from "@/features/credentials/components/credential-lis
 import {
   useCredentialDelete,
   useCredentialsList,
-} from "@/features/credentials/hooks/useCredentials"
+} from "@/features/credentials/hooks/use-credentials"
 import type { Credential } from "@/features/credentials/types"
-import { useConfirm } from "@/hooks/useConfirm"
+import { useConfirm } from "@/hooks/use-confirm"
 import { notifyError } from "@/lib/toast"
 
 function CredentialsPageInner() {

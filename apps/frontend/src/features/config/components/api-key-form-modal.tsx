@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { ResourceFormModal } from "@/components/shared/resource-form-modal"
 import type { ResourceFormDefinition } from "@/components/shared/resource-form-types"
-import { useApiKeyCreate } from "@/features/config/hooks/useApiKeys"
+import { useApiKeyCreate } from "@/features/config/hooks/use-api-keys"
 
 export type ApiKeyFormValues = {
   name: string

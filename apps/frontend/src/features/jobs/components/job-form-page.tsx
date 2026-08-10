@@ -12,16 +12,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { useDevicesList } from "@/features/inventory/hooks/useDevices"
-import { useGroupsList } from "@/features/inventory/hooks/useGroups"
+import { useDevicesList } from "@/features/inventory/hooks/use-devices"
+import { useGroupsList } from "@/features/inventory/hooks/use-groups"
 import { CronScheduleDialog } from "@/features/jobs/components/cron-schedule-dialog"
 import {
   useJobCreate,
   useJobGet,
   useJobUpdate,
-} from "@/features/jobs/hooks/useJobs"
+} from "@/features/jobs/hooks/use-jobs"
 import type { InventoryItem, Job } from "@/features/jobs/types"
-import { usePlaybooksList } from "@/features/playbooks/hooks/usePlaybooks"
+import { usePlaybooksList } from "@/features/playbooks/hooks/use-playbooks"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { navigate } from "@/lib/navigate"
 import { cn } from "@/lib/utils"

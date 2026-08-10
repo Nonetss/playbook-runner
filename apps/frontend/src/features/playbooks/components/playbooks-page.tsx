@@ -26,14 +26,14 @@ import { PlaybookList } from "@/features/playbooks/components/playbook-list"
 import {
   usePlaybookFolderDelete,
   usePlaybookFoldersList,
-} from "@/features/playbooks/hooks/usePlaybookFolders"
+} from "@/features/playbooks/hooks/use-playbook-folders"
 import {
   usePlaybookDelete,
   usePlaybookMove,
   usePlaybooksList,
-} from "@/features/playbooks/hooks/usePlaybooks"
+} from "@/features/playbooks/hooks/use-playbooks"
 import type { Playbook, PlaybookFolder } from "@/features/playbooks/types"
-import { useConfirm } from "@/hooks/useConfirm"
+import { useConfirm } from "@/hooks/use-confirm"
 import { notifyError } from "@/lib/toast"
 
 type ResourceFilter = "all" | "folders" | "playbooks"
