@@ -15,6 +15,8 @@ const XCircle = getIcon("status", "error")
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
+import { PageHero } from "@/components/shared/layout/page-hero"
+import { PageShell } from "@/components/shared/layout/page-shell"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -153,26 +155,21 @@ function DashboardPageInner() {
   const successPct = metrics ? Math.round(metrics.successRate * 100) : null
 
   return (
-    <main className="mx-auto w-full max-w-5xl space-y-10 px-4 py-10 md:px-6 md:py-12">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            {t("page.title", {
-              name: user?.name ? `, ${user.name}` : "",
-            })}
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {t("page.subtitle")}
-          </p>
-        </div>
-        <Button asChild className="shrink-0">
-          <a href="/jobs/new">
-            <Plus className="size-4" />
-            {t("page.new_job_cta")}
-          </a>
-        </Button>
-      </div>
+    <PageShell maxWidth="6xl" className="space-y-8">
+      <PageHero
+        title={t("page.title", {
+          name: user?.name ? `, ${user.name}` : "",
+        })}
+        description={t("page.subtitle")}
+        action={
+          <Button asChild className="shrink-0">
+            <a href="/jobs/new">
+              <Plus className="size-4" />
+              {t("page.new_job_cta")}
+            </a>
+          </Button>
+        }
+      />
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -385,7 +382,7 @@ function DashboardPageInner() {
           },
         ].map(({ href, icon: Icon, label, desc }) => (
           <a key={href} href={href} className="group block">
-            <Card className="h-full transition-all group-hover:shadow-md">
+            <Card className="h-full transition-colors group-hover:bg-accent/30">
               <CardContent className="flex items-center gap-3 pt-5">
                 <div className="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-md">
                   <Icon className="size-4" />
@@ -400,7 +397,7 @@ function DashboardPageInner() {
           </a>
         ))}
       </div>
-    </main>
+    </PageShell>
   )
 }
 

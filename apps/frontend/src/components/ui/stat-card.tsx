@@ -16,18 +16,17 @@ export function StatCard({
 }) {
   return (
     <a href={href} className="group block">
-      <Card className="relative overflow-hidden transition-all duration-200 group-hover:shadow-lg group-hover:-translate-y-0.5">
-        <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+      <Card className="h-full transition-colors group-hover:bg-accent/30">
         <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3">
           <CardTitle className="type-label text-muted-foreground">
             {title}
           </CardTitle>
-          <div className="bg-primary/12 text-primary flex size-9 shrink-0 items-center justify-center rounded-lg ring-1 ring-primary/10">
-            <Icon className="size-4.5" />
+          <div className="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-md">
+            <Icon className="size-4" />
           </div>
         </CardHeader>
-        <CardContent className="relative space-y-2">
-          <p className="text-4xl font-bold tracking-tight text-foreground">
+        <CardContent className="space-y-2">
+          <p className="text-3xl font-semibold tracking-tight text-foreground">
             {value}
           </p>
           {sub && (

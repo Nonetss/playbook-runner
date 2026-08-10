@@ -10,6 +10,8 @@ const UserCircle2 = getIcon("identity", "userCircle")
 import type React from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
+import { PageHero } from "@/components/shared/layout/page-hero"
+import { PageShell } from "@/components/shared/layout/page-shell"
 import { Badge } from "@/components/ui/badge"
 
 type ProfilePageProps = {
@@ -18,16 +20,6 @@ type ProfilePageProps = {
   locale?: string
 }
 
-const AVATAR_COLORS = [
-  "bg-blue-500/15 text-blue-700 dark:text-blue-400",
-  "bg-green-500/15 text-green-700 dark:text-green-400",
-  "bg-purple-500/15 text-purple-700 dark:text-purple-400",
-  "bg-amber-500/15 text-amber-700 dark:text-amber-400",
-  "bg-rose-500/15 text-rose-700 dark:text-rose-400",
-  "bg-cyan-500/15 text-cyan-700 dark:text-cyan-400",
-  "bg-indigo-500/15 text-indigo-700 dark:text-indigo-400",
-]
-
 function useProfileT() {
   return useTranslation("account")
 }
@@ -35,14 +27,11 @@ function useProfileT() {
 function ProfileHeader() {
   const { t } = useProfileT()
   return (
-    <div className="mb-6">
-      <h1 className="text-2xl font-bold tracking-tight">
-        {t("profile.title")}
-      </h1>
-      <p className="text-muted-foreground mt-1 text-sm">
-        {t("profile.subtitle")}
-      </p>
-    </div>
+    <PageHero
+      title={t("profile.title")}
+      description={t("profile.subtitle")}
+      className="mb-6"
+    />
   )
 }
 
@@ -60,18 +49,15 @@ function ProfileCard({ user }: { user: User }) {
     .join("")
     .toUpperCase()
 
-  const color = AVATAR_COLORS[displayName.charCodeAt(0) % AVATAR_COLORS.length]
   const role = (user as { role?: string }).role ?? "user"
   const createdAt = (user as { createdAt?: string | Date }).createdAt
 
   const locale = i18n.language?.startsWith("en") ? "en-US" : "es-ES"
 
   return (
-    <div className="rounded-md border bg-card overflow-hidden">
-      <div className="bg-primary/5 p-6 border-b flex items-center gap-4">
-        <div
-          className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-md text-xl font-bold ${color}`}
-        >
+    <div className="overflow-hidden rounded-xl border border-border/60 bg-card">
+      <div className="flex items-center gap-4 border-b bg-primary/5 p-6">
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md bg-primary/10 text-xl font-semibold text-primary">
           {initials}
         </div>
         <div className="min-w-0">
@@ -79,14 +65,8 @@ function ProfileCard({ user }: { user: User }) {
           <p className="text-sm text-muted-foreground truncate">{user.email}</p>
           <div className="mt-1.5 flex items-center gap-2">
             <Badge
-              variant="secondary"
-              className={
-                role === "admin"
-                  ? "bg-destructive/10 text-destructive border-0 text-xs"
-                  : role === "pending"
-                    ? "bg-destructive/10 text-destructive border-0 text-xs"
-                    : "text-xs"
-              }
+              variant={role === "admin" ? "default" : "secondary"}
+              className="text-xs"
             >
               {role === "admin"
                 ? t("profile.roles.admin")
@@ -95,10 +75,7 @@ function ProfileCard({ user }: { user: User }) {
                   : t("profile.roles.user")}
             </Badge>
             {(user as { emailVerified?: boolean }).emailVerified && (
-              <Badge
-                variant="secondary"
-                className="bg-green-500/10 text-green-700 dark:text-green-400 border-0 text-xs gap-1"
-              >
+              <Badge variant="secondary" className="gap-1 text-xs text-primary">
                 <ShieldCheck className="h-3 w-3" />
                 {t("profile.verified")}
               </Badge>
@@ -107,7 +84,7 @@ function ProfileCard({ user }: { user: User }) {
         </div>
       </div>
 
-      <div className="divide-y divide-muted/40 p-2">
+      <div className="divide-y divide-border/60 p-2">
         <DetailRow
           icon={<UserCircle2 className="h-4 w-4" />}
           label={t("profile.fields.name")}
@@ -151,8 +128,10 @@ function DetailRow({
   value: React.ReactNode
 }) {
   return (
-    <div className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors rounded-md mx-2">
-      <div className="bg-primary/10 p-2 rounded-md shrink-0">{icon}</div>
+    <div className="mx-2 flex items-center gap-3 rounded-md px-4 py-3 transition-colors hover:bg-muted/30">
+      <div className="flex shrink-0 rounded-md bg-primary/10 p-2 text-primary">
+        {icon}
+      </div>
       <span className="text-xs text-muted-foreground w-28 shrink-0">
         {label}
       </span>
@@ -174,11 +153,9 @@ export function ProfilePage({ user, session, locale }: ProfilePageProps) {
 
 function ProfilePageInner({ user, session: _session }: ProfilePageProps) {
   return (
-    <main className="flex-1 p-6">
-      <div className="max-w-2xl mx-auto space-y-4">
-        <ProfileHeader />
-        {user ? <ProfileCard user={user} /> : null}
-      </div>
-    </main>
+    <PageShell maxWidth="3xl">
+      <ProfileHeader />
+      {user ? <ProfileCard user={user} /> : null}
+    </PageShell>
   )
 }
