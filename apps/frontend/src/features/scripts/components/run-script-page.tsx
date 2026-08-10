@@ -11,7 +11,6 @@ const ArrowLeft = getIcon("navigation", "back")
 const CheckCircle2 = getIcon("status", "success")
 const Loader2 = getIcon("status", "loading")
 const Play = getIcon("actions", "play")
-const XCircle = getIcon("status", "error")
 
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -42,15 +41,8 @@ function RunScriptPageInner({ id }: { id: string }) {
   const { data: script, isPending: scriptLoading } = useScriptGet(id)
   const { data: groups = [] } = useGroupsList()
   const { data: devices = [] } = useDevicesList()
-  const {
-    phase,
-    events,
-    result,
-    errorMessage,
-    start,
-    stopWatching,
-    reset,
-  } = useRunScript()
+  const { phase, events, result, errorMessage, start, stopWatching, reset } =
+    useRunScript()
   const confirm = useConfirm()
 
   const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set())
@@ -76,7 +68,9 @@ function RunScriptPageInner({ id }: { id: string }) {
     }
 
     const targetNames = [
-      ...groups.filter((group) => selectedGroups.has(group.id)).map((g) => g.name),
+      ...groups
+        .filter((group) => selectedGroups.has(group.id))
+        .map((g) => g.name),
       ...devices
         .filter((device) => selectedDevices.has(device.id))
         .map((d) => d.name),

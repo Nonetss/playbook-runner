@@ -61,6 +61,21 @@
     "starting": "Starting run...",
     "running": "Running…",
     "run_button": "Run",
+    "run_status": {
+      "connecting": "Live output is connected.",
+      "stop_watching": "Stop watching",
+      "stopped_watching": "Live watching stopped",
+      "server_may_still_be_running": "The server-side run may still be active. Review it before starting another run.",
+      "connection_error": "The live run connection ended"
+    },
+    "confirm": {
+      "title": "Run \"{{name}}\"?",
+      "description": "This will run against {{count}} selected target(s): {{targets}}. {{become}} Forks: {{forks}}.",
+      "with_sudo": "Root privileges are enabled.",
+      "without_sudo": "Root privileges are off.",
+      "run": "Start run",
+      "cancel": "Cancel"
+    },
     "panel": {
       "inventory": "INVENTORY",
       "groups": "Groups",

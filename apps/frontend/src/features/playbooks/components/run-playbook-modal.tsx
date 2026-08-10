@@ -6,7 +6,6 @@ const Loader2 = getIcon("status", "loading")
 const Play = getIcon("actions", "play")
 const Plus = getIcon("actions", "add")
 const Trash2 = getIcon("actions", "delete")
-const XCircle = getIcon("status", "error")
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -26,8 +25,10 @@ import { useDevicesList } from "@/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/features/inventory/hooks/useGroups"
 import type { Playbook } from "@/features/playbooks/types"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
+import { RunStreamStatus } from "@/features/run/components/run-stream-status"
 import { useRunPlaybook } from "@/features/run/hooks/useRunPlaybook"
 import type { RunEvent, RunSelection } from "@/features/run/types"
+import { useConfirm } from "@/hooks/useConfirm"
 import { cn } from "@/lib/utils"
 
 type RunPlaybookModalProps = {
@@ -93,7 +94,9 @@ export function RunPlaybookModal({
   const { t } = useTranslation("playbooks")
   const { data: groups = [] } = useGroupsList()
   const { data: devices = [] } = useDevicesList()
-  const { phase, events, result, errorMessage, start, reset } = useRunPlaybook()
+  const { phase, events, result, errorMessage, start, stopWatching, reset } =
+    useRunPlaybook()
+  const confirm = useConfirm()
 
   const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set())
   const [selectedDevices, setSelectedDevices] = useState<Set<string>>(new Set())
@@ -123,7 +126,7 @@ export function RunPlaybookModal({
 
   const selectionCount = selectedGroups.size + selectedDevices.size
 
-  function handleRun() {
+  async function handleRun() {
     if (!playbook || selectionCount === 0) return
     const inventory: RunSelection[] = [
       ...[...selectedGroups].map((id) => ({ id, type: "group" as const })),
@@ -132,6 +135,31 @@ export function RunPlaybookModal({
     const extravarMap = Object.fromEntries(
       extravars.filter((e) => e.key.trim()).map((e) => [e.key.trim(), e.value])
     )
+    const targetNames = [
+      ...groups
+        .filter((group) => selectedGroups.has(group.id))
+        .map((g) => g.name),
+      ...devices
+        .filter((device) => selectedDevices.has(device.id))
+        .map((d) => d.name),
+    ]
+    const targetSummary =
+      targetNames.length > 4
+        ? `${targetNames.slice(0, 4).join(", ")} +${targetNames.length - 4}`
+        : targetNames.join(", ")
+    const confirmed = await confirm({
+      title: t("run_modal.confirm_title", { name: playbook.name }),
+      description: t("run_modal.confirm_description", {
+        targets: targetSummary,
+        count: selectionCount,
+        forks,
+        variables: Object.keys(extravarMap).length,
+      }),
+      confirmLabel: t("run_modal.confirm_run"),
+      cancelLabel: t("run_modal.cancel"),
+    })
+    if (!confirmed) return
+
     start(playbook.id, inventory, {
       forks,
       extravars: extravarMap,
@@ -139,13 +167,29 @@ export function RunPlaybookModal({
   }
 
   const isRunning = phase === "running"
+  async function handleOpenChange(next: boolean) {
+    if (next || !isRunning) {
+      onOpenChange(next)
+      return
+    }
+
+    const confirmed = await confirm({
+      title: t("run_modal.close_while_running_title"),
+      description: t("run_modal.close_while_running_description"),
+      confirmLabel: t("run_modal.stop_watching"),
+      cancelLabel: t("run_modal.keep_watching"),
+    })
+    if (!confirmed) return
+    stopWatching()
+    onOpenChange(false)
+  }
   const visibleEvents = useMemo(
     () => events.map((e) => describeEvent(e, t)).filter((e) => e !== null),
     [events, t]
   )
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
@@ -294,12 +338,20 @@ export function RunPlaybookModal({
               )}
             </div>
 
-            {phase === "error" ? (
-              <div className="border-destructive/30 bg-destructive/5 text-destructive flex items-start gap-2 rounded-lg border px-3 py-2 text-sm">
-                <XCircle className="mt-0.5 size-4 shrink-0" />
-                <span>{errorMessage}</span>
-              </div>
-            ) : null}
+            <RunStreamStatus
+              phase={phase}
+              errorMessage={errorMessage}
+              onStopWatching={stopWatching}
+              labels={{
+                connecting: t("run_modal.connecting"),
+                stopWatching: t("run_modal.stop_watching"),
+                stoppedWatching: t("run_modal.stopped_watching"),
+                serverMayStillBeRunning: t(
+                  "run_modal.server_may_still_be_running"
+                ),
+                connectionError: t("run_modal.connection_error"),
+              }}
+            />
 
             {phase === "done" && result ? (
               <div

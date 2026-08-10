@@ -6,7 +6,6 @@ const Loader2 = getIcon("status", "loading")
 const Play = getIcon("actions", "play")
 const ShieldAlert = getIcon("status", "warning")
 const TerminalSquare = getIcon("resources", "terminalSquare")
-const XCircle = getIcon("status", "error")
 
 import { useState } from "react"
 import { useTranslation } from "react-i18next"

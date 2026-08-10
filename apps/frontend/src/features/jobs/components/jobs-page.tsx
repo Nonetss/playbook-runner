@@ -33,6 +33,17 @@ function JobsPageInner() {
 
   async function handleRunNow(job: Job) {
     if (!job.playbookId) return
+    const confirmed = await confirm({
+      title: t("run_now.confirm_title", { name: job.name }),
+      description: t("run_now.confirm_description", {
+        targets: job.inventoryJson?.length ?? 0,
+        forks: job.forks,
+      }),
+      confirmLabel: t("run_now.confirm"),
+      cancelLabel: tCommon("actions.cancel"),
+    })
+    if (!confirmed) return
+
     const { runId } = await runJob.mutateAsync({ id: job.id })
     navigate(runId ? `/jobs/${job.id}?run=${runId}` : `/jobs/${job.id}`)
   }

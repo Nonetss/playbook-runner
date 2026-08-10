@@ -9,7 +9,6 @@ const Pencil = getIcon("actions", "edit")
 const Play = getIcon("actions", "play")
 const Plus = getIcon("actions", "add")
 const Trash2 = getIcon("actions", "delete")
-const XCircle = getIcon("status", "error")
 
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -38,15 +37,8 @@ function RunPlaybookPageInner({ id }: { id: string }) {
   const { data: playbook } = usePlaybookGet(id)
   const { data: groups = [], isPending: groupsLoading } = useGroupsList()
   const { data: devices = [], isPending: devicesLoading } = useDevicesList()
-  const {
-    phase,
-    events,
-    result,
-    errorMessage,
-    start,
-    stopWatching,
-    reset,
-  } = useRunPlaybook()
+  const { phase, events, result, errorMessage, start, stopWatching, reset } =
+    useRunPlaybook()
   const confirm = useConfirm()
 
   const inventoryReady = !groupsLoading && !devicesLoading
@@ -79,7 +71,9 @@ function RunPlaybookPageInner({ id }: { id: string }) {
     )
 
     const targetNames = [
-      ...groups.filter((group) => selectedGroups.has(group.id)).map((g) => g.name),
+      ...groups
+        .filter((group) => selectedGroups.has(group.id))
+        .map((g) => g.name),
       ...devices
         .filter((device) => selectedDevices.has(device.id))
         .map((d) => d.name),

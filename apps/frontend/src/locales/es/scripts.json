@@ -61,6 +61,21 @@
     "starting": "Iniciando ejecución…",
     "running": "Ejecutando…",
     "run_button": "Ejecutar",
+    "run_status": {
+      "connecting": "Salida en tiempo real conectada.",
+      "stop_watching": "Dejar de ver",
+      "stopped_watching": "Se detuvo la visualización en tiempo real",
+      "server_may_still_be_running": "La ejecución del servidor podría seguir activa. Revísala antes de iniciar otra.",
+      "connection_error": "La conexión de la ejecución terminó"
+    },
+    "confirm": {
+      "title": "¿Ejecutar \"{{name}}\"?",
+      "description": "Se ejecutará contra {{count}} destino(s): {{targets}}. {{become}} Forks: {{forks}}.",
+      "with_sudo": "Los privilegios de root están activados.",
+      "without_sudo": "Los privilegios de root están desactivados.",
+      "run": "Iniciar ejecución",
+      "cancel": "Cancelar"
+    },
     "panel": {
       "inventory": "INVENTARIO",
       "groups": "Grupos",

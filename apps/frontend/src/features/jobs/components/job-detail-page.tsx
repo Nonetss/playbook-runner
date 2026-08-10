@@ -28,6 +28,8 @@ import {
 } from "@/features/jobs/hooks/useJobs"
 import type { JobRun } from "@/features/jobs/types"
 import { PlaybookRunConsole } from "@/features/run/components/playbook-run-console"
+import { RunStreamStatus } from "@/features/run/components/run-stream-status"
+import { useConfirm } from "@/hooks/useConfirm"
 import { orpc } from "@/lib/orpc"
 import { cn } from "@/lib/utils"
 
@@ -59,6 +61,7 @@ function JobDetailPageInner({ id }: { id: string }) {
   const { data: job, isPending: jobLoading, isError } = useJobGet(id)
   const runJob = useJobRun()
   const watch = useJobRunWatch()
+  const confirm = useConfirm()
 
   const { data: runs = [], isPending: runsLoading } = useJobRunsList(id, {
     // Poll while anything is running so the status flips without a refresh.
@@ -138,6 +141,18 @@ function JobDetailPageInner({ id }: { id: string }) {
   }
 
   async function handleRunNow() {
+    if (!job) return
+    const confirmed = await confirm({
+      title: t("run_now.confirm_title", { name: job.name }),
+      description: t("run_now.confirm_description", {
+        targets: job.inventoryJson?.length ?? 0,
+        forks: job.forks,
+      }),
+      confirmLabel: t("run_now.confirm"),
+      cancelLabel: t("run_now.cancel"),
+    })
+    if (!confirmed) return
+
     const { runId } = await runJob.mutateAsync({ id })
     if (runId) {
       focusRun(runId)
@@ -293,12 +308,18 @@ function JobDetailPageInner({ id }: { id: string }) {
           </div>
 
           {/* Error / result banners */}
-          {isWatchingSelected && watch.errorMessage ? (
-            <div className="mx-3 mb-3 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400 sm:mx-5 sm:mb-4">
-              <XCircle className="mt-0.5 size-3.5 shrink-0" />
-              <span className="wrap-break-word">{watch.errorMessage}</span>
-            </div>
-          ) : null}
+          <RunStreamStatus
+            phase={watch.phase}
+            errorMessage={watch.errorMessage}
+            onStopWatching={watch.stopWatching}
+            labels={{
+              connecting: t("detail.connecting"),
+              stopWatching: t("detail.stop_watching"),
+              stoppedWatching: t("detail.stopped_watching"),
+              serverMayStillBeRunning: t("detail.server_may_still_be_running"),
+              connectionError: t("detail.connection_error"),
+            }}
+          />
 
           {isWatchingSelected && watch.phase === "done" && watch.result ? (
             <div
