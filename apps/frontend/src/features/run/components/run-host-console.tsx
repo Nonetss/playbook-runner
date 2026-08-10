@@ -247,13 +247,17 @@ export function RunHostConsole({
     useFollowOutput()
 
   if (phase === "idle") {
-    return <p className="text-sm text-zinc-600 select-none">{idlePrompt}</p>
+    return (
+      <p className="px-3 text-sm text-zinc-600 select-none sm:px-5">
+        {idlePrompt}
+      </p>
+    )
   }
 
   if (results.length === 0) {
     if (phase === "running") {
       return (
-        <p className="flex items-center gap-2 text-sm text-zinc-500">
+        <p className="flex items-center gap-2 px-3 text-sm text-zinc-500 sm:px-5">
           <Loader2 className="size-3.5 animate-spin" />
           {t("run_console.starting")}
         </p>
@@ -262,7 +266,7 @@ export function RunHostConsole({
     // A separate banner already reports the error; avoid a redundant line.
     if (phase === "error") return null
     return (
-      <p className="text-sm text-zinc-600 select-none">
+      <p className="px-3 text-sm text-zinc-600 select-none sm:px-5">
         {emptyHint ?? t("run_console.no_output")}
       </p>
     )

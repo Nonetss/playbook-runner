@@ -399,14 +399,14 @@ export function PlaybookRunConsole({
   if (plays.length === 0 && !recap) {
     if (running) {
       return (
-        <p className="flex items-center gap-2 text-sm text-zinc-500">
+        <p className="flex items-center gap-2 px-3 text-sm text-zinc-500 sm:px-5">
           <Loader2 className="size-3.5 animate-spin" />
           {t("run_console.starting")}
         </p>
       )
     }
     return (
-      <p className="select-none text-sm text-zinc-600">
+      <p className="px-3 text-sm text-zinc-600 select-none sm:px-5">
         {emptyHint ?? idlePrompt ?? t("run_console.no_output")}
       </p>
     )

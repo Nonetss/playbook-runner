@@ -40,35 +40,54 @@ function runHref(run: JobRunFeedRow): string {
 
 function FeedRow({ run }: { run: JobRunFeedRow }) {
   const { t } = useTranslation("jobs")
+  const jobName = run.jobName ?? t("history.deleted_job")
+  const trigger =
+    run.trigger === "schedule"
+      ? t("history.trigger_schedule")
+      : t("history.trigger_manual")
+  const timestamp = formatRunTimestamp(run.startedAt ?? run.createdAt)
+
   return (
     <a
       href={runHref(run)}
-      className="grid grid-cols-[1.4fr_0.9fr_0.9fr_0.7fr_0.6fr_1fr] items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 transition-colors hover:border-border hover:bg-accent/50"
+      className="block rounded-lg border border-transparent p-3 transition-colors hover:border-border hover:bg-accent/50 md:grid md:grid-cols-[minmax(0,1.4fr)_minmax(5.5rem,0.9fr)_minmax(0,0.9fr)_minmax(0,0.7fr)_minmax(0,0.6fr)_minmax(0,1fr)] md:items-center md:gap-3 md:px-3 md:py-2.5"
     >
-      <span className="truncate text-sm font-medium">
-        {run.jobName ?? t("history.deleted_job")}
-      </span>
-      <RunStatusBadge
-        status={run.status}
-        hostsOk={run.hostsOk}
-        hostsFailed={run.hostsFailed}
-      />
-      {/* Wrapper keeps the grid cell occupied even when the run carries no
-          recap and the summary renders nothing. */}
-      <span className="truncate">
-        <RunHostSummary hostsOk={run.hostsOk} hostsFailed={run.hostsFailed} />
-      </span>
-      <span className="text-muted-foreground text-xs">
-        {run.trigger === "schedule"
-          ? t("history.trigger_schedule")
-          : t("history.trigger_manual")}
-      </span>
-      <span className="font-mono text-xs">
-        {formatRunDurationMs(run.durationMs)}
-      </span>
-      <span className="text-muted-foreground font-mono text-xs">
-        {formatRunTimestamp(run.startedAt ?? run.createdAt)}
-      </span>
+      <div className="flex items-start justify-between gap-3 md:contents">
+        <span className="min-w-0 truncate text-sm font-medium">{jobName}</span>
+        <RunStatusBadge
+          status={run.status}
+          hostsOk={run.hostsOk}
+          hostsFailed={run.hostsFailed}
+        />
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 border-t pt-3 md:contents">
+        {/* Wrapper keeps the grid cell occupied when no recap is available. */}
+        <span className="col-span-2 min-w-0 truncate md:col-span-1">
+          <span className="mr-1.5 text-muted-foreground md:hidden">
+            {t("history.headers.hosts")}:
+          </span>
+          <RunHostSummary hostsOk={run.hostsOk} hostsFailed={run.hostsFailed} />
+        </span>
+        <span className="text-muted-foreground text-xs">
+          <span className="mr-1.5 md:hidden">
+            {t("history.headers.trigger")}:
+          </span>
+          {trigger}
+        </span>
+        <span className="font-mono text-xs">
+          <span className="mr-1.5 font-sans text-muted-foreground md:hidden">
+            {t("history.headers.duration")}:
+          </span>
+          {formatRunDurationMs(run.durationMs)}
+        </span>
+        <span className="col-span-2 text-muted-foreground font-mono text-xs md:col-span-1">
+          <span className="mr-1.5 font-sans md:hidden">
+            {t("history.headers.timestamp")}:
+          </span>
+          {timestamp}
+        </span>
+      </div>
     </a>
   )
 }
@@ -165,7 +184,7 @@ function HistoryPageInner() {
       ) : (
         <>
           <SoftCardList className="bg-card">
-            <div className="grid grid-cols-[1.4fr_0.9fr_0.9fr_0.7fr_0.6fr_1fr] gap-3 border-b px-3 py-2 type-label text-muted-foreground">
+            <div className="hidden grid-cols-[minmax(0,1.4fr)_minmax(5.5rem,0.9fr)_minmax(0,0.9fr)_minmax(0,0.7fr)_minmax(0,0.6fr)_minmax(0,1fr)] gap-3 border-b px-3 py-2 type-label text-muted-foreground md:grid">
               <span>{t("history.headers.job")}</span>
               <span>{t("history.headers.status")}</span>
               <span>{t("history.headers.hosts")}</span>

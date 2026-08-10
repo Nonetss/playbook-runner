@@ -80,15 +80,17 @@ function RunScriptPageInner({ id }: { id: string }) {
         ? `${targetNames.slice(0, 4).join(", ")} +${targetNames.length - 4}`
         : targetNames.join(", ")
     const confirmed = await confirm({
-      title: t("confirm.title", { name: script.name }),
-      description: t("confirm.description", {
+      title: t("run.confirm.title", { name: script.name }),
+      description: t("run.confirm.description", {
         targets: targetSummary,
         count: selectionCount,
         forks,
-        become: become ? t("confirm.with_sudo") : t("confirm.without_sudo"),
+        become: become
+          ? t("run.confirm.with_sudo")
+          : t("run.confirm.without_sudo"),
       }),
-      confirmLabel: t("confirm.run"),
-      cancelLabel: t("confirm.cancel"),
+      confirmLabel: t("run.confirm.run"),
+      cancelLabel: t("run.confirm.cancel"),
     })
     if (!confirmed) return
 
@@ -96,13 +98,14 @@ function RunScriptPageInner({ id }: { id: string }) {
   }
 
   return (
-    <main className="flex h-[calc(100dvh-3.5rem)] w-full min-h-0 flex-col overflow-hidden">
+    <main className="flex h-[calc(100dvh-var(--navbar-height))] w-full min-h-0 flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex shrink-0 items-center gap-3 border-b px-6 py-3">
+      <div className="flex shrink-0 items-center gap-3 border-b px-3 py-3 sm:px-6">
         <Button
           asChild
           variant="ghost"
           size="icon-sm"
+          className="size-10 shrink-0 sm:size-8"
           aria-label={t("run.back_aria")}
         >
           <a href="/scripts">
@@ -130,6 +133,7 @@ function RunScriptPageInner({ id }: { id: string }) {
           <Button
             variant="outline"
             size="sm"
+            className="min-h-10 sm:min-h-8"
             onClick={reset}
             disabled={isRunning}
           >
@@ -139,7 +143,7 @@ function RunScriptPageInner({ id }: { id: string }) {
       </div>
 
       {/* Body */}
-      <div className="flex min-h-0 flex-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
         {/* ── Terminal ── */}
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-zinc-950">
           {/* Faux terminal title bar */}
@@ -207,7 +211,7 @@ function RunScriptPageInner({ id }: { id: string }) {
         </div>
 
         {/* ── Options panel ── */}
-        <div className="flex w-72 shrink-0 flex-col gap-5 overflow-y-auto border-l p-4">
+        <div className="flex max-h-[46dvh] min-h-0 shrink-0 flex-col gap-5 overflow-y-auto border-t p-3 pb-0 sm:p-4 sm:pb-0 lg:max-h-none lg:w-72 lg:border-t-0 lg:border-l lg:pb-4">
           {/* Inventory */}
           <div className="space-y-3">
             <p className="text-muted-foreground type-label">
@@ -283,13 +287,13 @@ function RunScriptPageInner({ id }: { id: string }) {
                   )
                 }
                 disabled={isRunning}
-                className="h-7 w-20 text-xs"
+                className="h-10 w-20 text-xs lg:h-7"
               />
             </div>
           </div>
 
           {/* Run button */}
-          <div className="mt-auto border-t pt-4">
+          <div className="sticky bottom-0 mt-auto border-t bg-background/95 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <Button className="w-full" onClick={handleRun} disabled={!canRun}>
               {isRunning ? (
                 <>

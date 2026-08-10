@@ -217,7 +217,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
         </div>
 
         {/* ── Options panel ── */}
-        <div className="flex h-[45%] min-h-56 max-h-80 shrink-0 flex-col gap-4 overflow-y-auto border-t p-3 sm:gap-5 sm:p-4 lg:h-auto lg:min-h-0 lg:max-h-none lg:w-72 lg:border-t-0 lg:border-l">
+        <div className="flex max-h-[46dvh] min-h-0 shrink-0 flex-col gap-4 overflow-y-auto border-t p-3 pb-0 sm:gap-5 sm:p-4 sm:pb-0 lg:max-h-none lg:w-72 lg:border-t-0 lg:border-l lg:pb-4">
           {/* Inventory */}
           <div className="space-y-3">
             <p className="text-muted-foreground type-label">
@@ -341,7 +341,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
           </div>
 
           {/* Run button */}
-          <div className="mt-auto border-t pt-4">
+          <div className="sticky bottom-0 mt-auto border-t bg-background/95 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <Button
               className="min-h-11 w-full"
               onClick={handleRun}

@@ -108,9 +108,9 @@ function CommandsPageInner() {
   ]
 
   return (
-    <main className="flex h-[calc(100dvh-3.5rem)] w-full min-h-0 flex-col overflow-hidden">
+    <main className="flex h-[calc(100dvh-var(--navbar-height))] w-full min-h-0 flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex shrink-0 items-center gap-3 border-b px-6 py-3">
+      <div className="flex shrink-0 items-center gap-3 border-b px-3 py-3 sm:px-6">
         <div className="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-md">
           <TerminalSquare className="size-4.5" />
         </div>
@@ -124,6 +124,7 @@ function CommandsPageInner() {
           <Button
             variant="outline"
             size="sm"
+            className="min-h-10 sm:min-h-8"
             onClick={reset}
             disabled={isRunning}
           >
@@ -133,7 +134,7 @@ function CommandsPageInner() {
       </div>
 
       {/* Body */}
-      <div className="flex min-h-0 flex-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
         {/* ── Terminal ── */}
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-zinc-950">
           {/* Faux terminal title bar */}
@@ -199,7 +200,7 @@ function CommandsPageInner() {
         </div>
 
         {/* ── Options panel ── */}
-        <div className="flex w-80 shrink-0 flex-col gap-5 overflow-y-auto border-l p-4">
+        <div className="flex max-h-[46dvh] min-h-0 shrink-0 flex-col gap-5 overflow-y-auto border-t p-3 pb-0 sm:p-4 sm:pb-0 lg:max-h-none lg:w-80 lg:border-t-0 lg:border-l lg:pb-4">
           {/* Inventory */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -330,13 +331,13 @@ function CommandsPageInner() {
                   )
                 }
                 disabled={isRunning}
-                className="h-7 w-20 text-xs"
+                className="h-10 w-20 text-xs lg:h-7"
               />
             </div>
           </div>
 
           {/* Run button */}
-          <div className="mt-auto border-t pt-4">
+          <div className="sticky bottom-0 mt-auto border-t bg-background/95 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
             <Button className="w-full" onClick={handleRun} disabled={!canRun}>
               {isRunning ? (
                 <>
