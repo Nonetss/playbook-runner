@@ -1,0 +1,24 @@
+---
+import { WithSidebarShell } from "@/features/app-shell/components/with-sidebar-shell"
+import Layout from "@/layouts/Layout.astro"
+
+interface Props {
+  title: string
+  /** Section href in `siteNavItems`; it must declare navigation sub-items. */
+  section: string
+}
+
+const { title, section } = Astro.props
+const sidebarOpen = Astro.cookies.get("sidebar_state")?.value !== "false"
+---
+
+<Layout title={title}>
+  <WithSidebarShell
+    client:only="react"
+    section={section}
+    currentPath={Astro.url.pathname}
+    defaultOpen={sidebarOpen}
+  >
+    <slot />
+  </WithSidebarShell>
+</Layout>

@@ -1,12 +1,12 @@
 ---
-import { JobsPage } from "@/features/jobs/components/jobs-page"
-import Layout from "@/layouts/Layout.astro"
+import { SectionNavOverview } from "@/features/app-shell/components/section-nav-overview"
+import WithSidebar from "@/layouts/WithSidebar.astro"
 import { getServerT } from "@/lib/i18n/server"
 
 const { locale } = Astro.locals
-const t = await getServerT(locale, "jobs")
+const t = await getServerT(locale, "nav")
 ---
 
-<Layout title={t("page.title")}>
-  <JobsPage client:only="react" />
-</Layout>
+<WithSidebar title={t("links.jobs")} section="/jobs">
+  <SectionNavOverview client:only="react" section="/jobs" />
+</WithSidebar>

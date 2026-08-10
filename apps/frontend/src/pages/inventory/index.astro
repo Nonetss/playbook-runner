@@ -1,8 +1,12 @@
 ---
-import { InventoryPage } from "@/features/inventory"
-import Layout from "@/layouts/Layout.astro"
+import { SectionNavOverview } from "@/features/app-shell/components/section-nav-overview"
+import WithSidebar from "@/layouts/WithSidebar.astro"
+import { getServerT } from "@/lib/i18n/server"
+
+const { locale } = Astro.locals
+const t = await getServerT(locale, "nav")
 ---
 
-<Layout title="Inventario">
-  <InventoryPage client:only="react" />
-</Layout>
+<WithSidebar title={t("links.inventory")} section="/inventory">
+  <SectionNavOverview client:only="react" section="/inventory" />
+</WithSidebar>
