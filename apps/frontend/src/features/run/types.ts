@@ -32,7 +32,7 @@ export type RunResult = {
   ok: boolean
 }
 
-export type RunPhase = "idle" | "running" | "done" | "error"
+export type RunPhase = "idle" | "running" | "done" | "error" | "cancelled"
 
 export type RunOptions = {
   forks?: number
