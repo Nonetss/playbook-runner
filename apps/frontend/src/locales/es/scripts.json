@@ -79,7 +79,7 @@
     },
     "confirm": {
       "title": "¿Ejecutar \"{{name}}\"?",
-      "description": "Se ejecutará contra {{count}} destino(s): {{targets}}. {{become}} Forks: {{forks}}.",
+      "description": "Se ejecutará contra {{count}} destino(s): {{targets}}. {{become}} Paralelismo: {{forks}}.",
       "with_sudo": "Los privilegios de root están activados.",
       "without_sudo": "Los privilegios de root están desactivados.",
       "run": "Iniciar ejecución",
@@ -94,8 +94,8 @@
       "no_match": "Ningún grupo ni dispositivo coincide con la búsqueda.",
       "empty_inventory": "No hay inventario. Crea grupos o dispositivos primero.",
       "options": "OPCIONES",
-      "become": "Become (sudo)",
-      "forks": "Forks"
+      "become": "Elevar privilegios (sudo)",
+      "forks": "Paralelismo"
     },
     "result_finished_with_status": "Ejecución finalizada — estado {{status}} (rc={{rc}})"
   },
@@ -109,18 +109,18 @@
     "runner": {
       "starting": "iniciando",
       "ok": "ok",
-      "changed": "changed",
-      "skipping": "skipping",
+      "changed": "cambiado",
+      "skipping": "omitido",
       "fatal": "fatal",
       "msg": "msg",
       "rc": "rc",
       "stdout": "stdout",
       "stderr": "stderr",
-      "failed_excl": "FAILED",
-      "unreachable": "UNREACHABLE",
-      "unreachable_lower": "unreachable",
-      "failed_lower": "failed",
-      "skipped": "skipped",
+      "failed_excl": "FALLIDO",
+      "unreachable": "INACCESIBLE",
+      "unreachable_lower": "inaccesible",
+      "failed_lower": "fallido",
+      "skipped": "omitido",
       "item": "item"
     }
   }

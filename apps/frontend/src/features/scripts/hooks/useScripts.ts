@@ -73,30 +73,27 @@ function applyDeleteOptimistic(
 
 export const useScriptCreate = () => {
   const { t } = useTranslation("scripts")
-  return (
-    useResourceMutation <
-    useResourceMutation<
-      {
-        name: string
-        description?: string
-        content: string
-        language: "bash" | "python"
-      },
-      Script,
-      Script[]
-    >({
-      mutationFn: (input) =>
-        orpc.scripts.create.call({
-          name: input.name,
-          description: input.description ?? "",
-          content: input.content,
-          language: input.language,
-        }) as Promise<Script>,
-      listKey,
-      applyOptimistic: applyCreateOptimistic,
-      messages: { success: t("toast.created"), error: t("toast.create_error") },
-    })
-  )
+  return useResourceMutation<
+    {
+      name: string
+      description?: string
+      content: string
+      language: "bash" | "python"
+    },
+    Script,
+    Script[]
+  >({
+    mutationFn: (input) =>
+      orpc.scripts.create.call({
+        name: input.name,
+        description: input.description ?? "",
+        content: input.content,
+        language: input.language,
+      }) as Promise<Script>,
+    listKey,
+    applyOptimistic: applyCreateOptimistic,
+    messages: { success: t("toast.created"), error: t("toast.create_error") },
+  })
 }
 
 export const useScriptUpdate = () => {
@@ -134,5 +131,4 @@ export const useScriptDelete = () => {
     applyOptimistic: applyDeleteOptimistic,
     messages: { success: t("toast.deleted"), error: t("toast.delete_error") },
   })
-}
 }

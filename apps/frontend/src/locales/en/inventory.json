@@ -9,6 +9,20 @@
       "device": "New device"
     }
   },
+  "toast": {
+    "group_created": "Group created",
+    "group_create_error": "Could not create the group",
+    "group_updated": "Group updated",
+    "group_update_error": "Could not update the group",
+    "group_deleted": "Group deleted",
+    "group_delete_error": "Could not delete the group",
+    "device_created": "Device created",
+    "device_create_error": "Could not create the device",
+    "device_updated": "Device updated",
+    "device_update_error": "Could not update the device",
+    "device_deleted": "Device deleted",
+    "device_delete_error": "Could not delete the device"
+  },
   "group": {
     "document_title": "Group",
     "empty_title": "No groups",

@@ -159,9 +159,7 @@ function GroupDetailPageInner({ id }: { id: string }) {
           <form onSubmit={handleSave} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="group-name">
-                  {t("group_form.name_label")}
-                </Label>
+                <Label htmlFor="group-name">{t("group_form.name_label")}</Label>
                 <Input
                   id="group-name"
                   required
@@ -192,7 +190,7 @@ function GroupDetailPageInner({ id }: { id: string }) {
                     {t("group.common_saving")}
                   </>
                 ) : (
-                  {t("group.save_changes")}
+                  t("group.save_changes")
                 )}
               </Button>
             </div>
@@ -302,6 +300,7 @@ function GroupDetailPageInner({ id }: { id: string }) {
 }
 
 export function GroupDetailPage({ id }: { id?: string }) {
+  const { t } = useTranslation("inventory")
   if (!id) {
     return (
       <AppProviders>

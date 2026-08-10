@@ -74,7 +74,7 @@ export function useRunStream<TRequest>(
         },
       })
     },
-    [detach, subscribe]
+    [detach, subscribe, t]
   )
 
   const stopWatching = useCallback(() => {

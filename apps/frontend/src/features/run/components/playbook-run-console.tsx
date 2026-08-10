@@ -338,6 +338,7 @@ function TaskCard({ task }: { task: TaskBlock }) {
 }
 
 function RecapCard({ rows }: { rows: RecapRow[] }) {
+  const { t } = useTranslation("common")
   return (
     <div className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/40">
       <div className="flex items-center gap-2 border-b border-zinc-800/80 bg-zinc-900/70 px-3 py-1.5">
@@ -365,13 +366,21 @@ function RecapCard({ rows }: { rows: RecapRow[] }) {
               <span className={cn("min-w-0 flex-1 truncate", tone)}>
                 {row.host}
               </span>
-              <span className="text-zinc-500">ok={row.ok}</span>
-              <span className="text-zinc-500">changed={row.changed}</span>
               <span className="text-zinc-500">
-                unreachable={row.unreachable}
+                {t("run_console.status.ok")}={row.ok}
               </span>
-              <span className="text-zinc-500">failed={row.failed}</span>
-              <span className="text-zinc-500">skipped={row.skipped}</span>
+              <span className="text-zinc-500">
+                {t("run_console.status.changed")}={row.changed}
+              </span>
+              <span className="text-zinc-500">
+                {t("run_console.status.unreachable")}={row.unreachable}
+              </span>
+              <span className="text-zinc-500">
+                {t("run_console.status.failed")}={row.failed}
+              </span>
+              <span className="text-zinc-500">
+                {t("run_console.status.skipped")}={row.skipped}
+              </span>
             </div>
           )
         })}

@@ -126,4 +126,3 @@ export const useCredentialDelete = () => {
     messages: { success: t("toast.deleted"), error: t("toast.delete_error") },
   })
 }
-}

@@ -5,6 +5,22 @@
     "subtitle": "Summary of your automation environment",
     "new_job_cta": "New job"
   },
+  "runs_metrics": {
+    "title": "Run metrics"
+  },
+  "diagnostics": {
+    "api_status": "API status",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "checking": "Checking…",
+    "loading": "Loading…",
+    "load_error": "Failed to load server data",
+    "connected_server": "Connected to server",
+    "welcome_back": "Welcome back,",
+    "user": "User",
+    "email": "Email",
+    "server_message": "Server message"
+  },
 
   "stats": {
     "jobs": "Jobs",

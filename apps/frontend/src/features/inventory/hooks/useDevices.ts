@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query"
+import { useTranslation } from "react-i18next"
 import type {
   InventoryDevice,
   InventoryDeviceList,
@@ -76,8 +77,9 @@ function applyDeleteOptimistic(
   return current.filter((device) => device.id !== input.id)
 }
 
-export const useDeviceCreate = () =>
-  useResourceMutation<
+export const useDeviceCreate = () => {
+  const { t } = useTranslation("inventory")
+  return useResourceMutation<
     DeviceMutationInput,
     InventoryDevice,
     InventoryDeviceList
@@ -87,13 +89,15 @@ export const useDeviceCreate = () =>
     listKey,
     applyOptimistic: applyCreateOptimistic,
     messages: {
-      success: "Dispositivo creado",
-      error: "No se pudo crear el dispositivo",
+      success: t("toast.device_created"),
+      error: t("toast.device_create_error"),
     },
   })
+}
 
-export const useDeviceUpdate = () =>
-  useResourceMutation<
+export const useDeviceUpdate = () => {
+  const { t } = useTranslation("inventory")
+  return useResourceMutation<
     { id: string } & DeviceMutationInput,
     InventoryDevice,
     InventoryDeviceList
@@ -103,22 +107,29 @@ export const useDeviceUpdate = () =>
     listKey,
     applyOptimistic: applyUpdateOptimistic,
     messages: {
-      success: "Dispositivo actualizado",
-      error: "No se pudo actualizar el dispositivo",
+      success: t("toast.device_updated"),
+      error: t("toast.device_update_error"),
     },
   })
+}
 
-export const useDeviceDelete = () =>
-  useResourceMutation<{ id: string }, InventoryDevice, InventoryDeviceList>({
+export const useDeviceDelete = () => {
+  const { t } = useTranslation("inventory")
+  return useResourceMutation<
+    { id: string },
+    InventoryDevice,
+    InventoryDeviceList
+  >({
     mutationFn: (input) =>
       orpc.inventory.devices.delete.call(input) as Promise<InventoryDevice>,
     listKey,
     applyOptimistic: applyDeleteOptimistic,
     messages: {
-      success: "Dispositivo eliminado",
-      error: "No se pudo eliminar el dispositivo",
+      success: t("toast.device_deleted"),
+      error: t("toast.device_delete_error"),
     },
   })
+}
 
 /**
  * Plain mutation hook kept for relations and other actions that don't touch

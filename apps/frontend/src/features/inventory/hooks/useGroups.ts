@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query"
+import { useTranslation } from "react-i18next"
 import type {
   InventoryGroup,
   InventoryGroupList,
@@ -59,8 +60,9 @@ function applyDeleteOptimistic(
   return current.filter((group) => group.id !== input.id)
 }
 
-export const useGroupCreate = () =>
-  useResourceMutation<
+export const useGroupCreate = () => {
+  const { t } = useTranslation("inventory")
+  return useResourceMutation<
     { name: string; description?: string },
     InventoryGroup,
     InventoryGroupList
@@ -70,13 +72,15 @@ export const useGroupCreate = () =>
     listKey,
     applyOptimistic: applyCreateOptimistic,
     messages: {
-      success: "Grupo creado",
-      error: "No se pudo crear el grupo",
+      success: t("toast.group_created"),
+      error: t("toast.group_create_error"),
     },
   })
+}
 
-export const useGroupUpdate = () =>
-  useResourceMutation<
+export const useGroupUpdate = () => {
+  const { t } = useTranslation("inventory")
+  return useResourceMutation<
     { id: string; name: string; description?: string },
     InventoryGroup,
     InventoryGroupList
@@ -86,22 +90,29 @@ export const useGroupUpdate = () =>
     listKey,
     applyOptimistic: applyUpdateOptimistic,
     messages: {
-      success: "Grupo actualizado",
-      error: "No se pudo actualizar el grupo",
+      success: t("toast.group_updated"),
+      error: t("toast.group_update_error"),
     },
   })
+}
 
-export const useGroupDelete = () =>
-  useResourceMutation<{ id: string }, InventoryGroup, InventoryGroupList>({
+export const useGroupDelete = () => {
+  const { t } = useTranslation("inventory")
+  return useResourceMutation<
+    { id: string },
+    InventoryGroup,
+    InventoryGroupList
+  >({
     mutationFn: (input) =>
       orpc.inventory.groups.delete.call(input) as Promise<InventoryGroup>,
     listKey,
     applyOptimistic: applyDeleteOptimistic,
     messages: {
-      success: "Grupo eliminado",
-      error: "No se pudo eliminar el grupo",
+      success: t("toast.group_deleted"),
+      error: t("toast.group_delete_error"),
     },
   })
+}
 
 /** Plain mutations for relations; toasts handled in the relations dialog. */
 export function useGroupRelations() {

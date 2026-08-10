@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useHydratedQuery } from "@/hooks/useHydratedQuery"
@@ -5,6 +6,7 @@ import { orpc } from "@/lib/orpc"
 import { cn } from "@/lib/utils"
 
 function ApiStatusInner({ className }: { className?: string }) {
+  const { t } = useTranslation("dashboard")
   const { isPending, isError } = useHydratedQuery(
     orpc.health.check.queryOptions({
       retry: false,
@@ -22,15 +24,17 @@ function ApiStatusInner({ className }: { className?: string }) {
 
   const label =
     status === "connected"
-      ? "Connected"
+      ? t("diagnostics.connected")
       : status === "disconnected"
-        ? "Disconnected"
-        : "Checking..."
+        ? t("diagnostics.disconnected")
+        : t("diagnostics.checking")
 
   return (
     <Card className={cn("w-full max-w-md", className)}>
       <CardHeader>
-        <CardTitle className="text-base font-medium">API Status</CardTitle>
+        <CardTitle className="text-base font-medium">
+          {t("diagnostics.api_status")}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-2">

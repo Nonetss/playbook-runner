@@ -26,7 +26,7 @@
     "inventory_empty": "Sin selección de inventario",
     "inventory_count": "{{count}} elemento en inventario",
     "inventory_count_other": "{{count}} elementos en inventario",
-    "forks": "Forks: {{count}}"
+    "forks": "Paralelismo: {{count}}"
   },
   "toast": {
     "created": "Job creado",
@@ -121,7 +121,7 @@
       "custom_label": "Expresión cron (UTC)"
     },
     "options_section": "OPCIONES DE EJECUCIÓN",
-    "forks_label": "Forks",
+    "forks_label": "Paralelismo",
     "extravars_label": "Variables extra",
     "extravars_add": "Añadir",
     "extravars_key_placeholder": "VARIABLE",

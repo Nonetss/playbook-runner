@@ -5,6 +5,22 @@
     "subtitle": "Resumen de tu entorno de automatización",
     "new_job_cta": "Nuevo job"
   },
+  "runs_metrics": {
+    "title": "Métricas de ejecuciones"
+  },
+  "diagnostics": {
+    "api_status": "Estado de la API",
+    "connected": "Conectada",
+    "disconnected": "Desconectada",
+    "checking": "Comprobando…",
+    "loading": "Cargando…",
+    "load_error": "No se pudieron cargar los datos del servidor",
+    "connected_server": "Conectado al servidor",
+    "welcome_back": "Bienvenido de nuevo,",
+    "user": "Usuario",
+    "email": "Correo electrónico",
+    "server_message": "Mensaje del servidor"
+  },
   "stats": {
     "jobs": "Jobs",
     "playbooks": "Playbooks",

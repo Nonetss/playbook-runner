@@ -20,7 +20,7 @@
   },
   "confirm": {
     "title": "¿Ejecutar este comando?",
-    "description": "Se ejecutará {{module}} contra {{count}} destino(s): {{targets}}. {{become}} Forks: {{forks}}.",
+    "description": "Se ejecutará {{module}} contra {{count}} destino(s): {{targets}}. {{become}} Paralelismo: {{forks}}.",
     "with_sudo": "Los privilegios de root están activados.",
     "without_sudo": "Los privilegios de root están desactivados.",
     "run": "Iniciar ejecución",
@@ -39,9 +39,9 @@
     "command": "Comando",
     "command_placeholder": "uptime",
     "module": "Módulo",
-    "become": "Become (sudo)",
+    "become": "Elevar privilegios (sudo)",
     "become_hint": "Ejecuta el comando con privilegios de root.",
-    "forks": "Forks"
+    "forks": "Paralelismo"
   },
   "module": {
     "command": "command",
@@ -61,18 +61,18 @@
     "runner": {
       "starting": "iniciando",
       "ok": "ok",
-      "changed": "changed",
-      "skipping": "skipping",
+      "changed": "cambiado",
+      "skipping": "omitido",
       "fatal": "fatal",
       "msg": "msg",
       "rc": "rc",
       "stdout": "stdout",
       "stderr": "stderr",
-      "failed_excl": "FAILED",
-      "unreachable": "UNREACHABLE",
-      "unreachable_lower": "unreachable",
-      "failed_lower": "failed",
-      "skipped": "skipped",
+      "failed_excl": "FALLIDO",
+      "unreachable": "INACCESIBLE",
+      "unreachable_lower": "inaccesible",
+      "failed_lower": "fallido",
+      "skipped": "omitido",
       "item": "item"
     }
   }

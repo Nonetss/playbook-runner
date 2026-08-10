@@ -216,7 +216,7 @@ function DashboardPageInner() {
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-muted-foreground type-label">
-            {t("runs_metrics.title", { defaultValue: "Run metrics" })}
+            {t("runs_metrics.title")}
           </h2>
           <RunWindowPicker value={runWindow} onChange={setRunWindow} />
         </div>

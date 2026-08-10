@@ -9,6 +9,20 @@
       "device": "Nuevo dispositivo"
     }
   },
+  "toast": {
+    "group_created": "Grupo creado",
+    "group_create_error": "No se pudo crear el grupo",
+    "group_updated": "Grupo actualizado",
+    "group_update_error": "No se pudo actualizar el grupo",
+    "group_deleted": "Grupo eliminado",
+    "group_delete_error": "No se pudo eliminar el grupo",
+    "device_created": "Dispositivo creado",
+    "device_create_error": "No se pudo crear el dispositivo",
+    "device_updated": "Dispositivo actualizado",
+    "device_update_error": "No se pudo actualizar el dispositivo",
+    "device_deleted": "Dispositivo eliminado",
+    "device_delete_error": "No se pudo eliminar el dispositivo"
+  },
   "group": {
     "document_title": "Grupo",
     "empty_title": "Sin grupos",

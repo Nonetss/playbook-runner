@@ -252,7 +252,6 @@ export const useJobToggleEnabled = () => {
     messages: { success: t("toast.toggled"), error: t("toast.toggle_error") },
   })
 }
-}
 
 /**
  * Trigger an immediate run of a job. The backend records the run and streams
@@ -360,7 +359,7 @@ export function useJobRunWatch() {
         }
       )
     },
-    [detach]
+    [detach, t]
   )
 
   const stopWatching = useCallback(() => {
