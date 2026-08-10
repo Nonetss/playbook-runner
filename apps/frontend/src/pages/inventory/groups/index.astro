@@ -1,0 +1,12 @@
+---
+import { InventoryGroupsPage } from "@/features/inventory"
+import WithSidebar from "@/layouts/WithSidebar.astro"
+import { getServerT } from "@/lib/i18n/server"
+
+const { locale } = Astro.locals
+const t = await getServerT(locale, "inventory")
+---
+
+<WithSidebar title={t("page.groups_title")} section="/inventory">
+  <InventoryGroupsPage client:only="react" />
+</WithSidebar>

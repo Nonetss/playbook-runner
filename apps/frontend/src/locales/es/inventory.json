@@ -1,12 +1,9 @@
 {
   "page": {
-    "title": "Inventario",
-    "subtitle": "Gestiona los grupos y dispositivos de tu inventario Ansible.",
-    "tabs": {
-      "groups": "Grupos",
-      "devices": "Dispositivos"
-    },
-    "tabs_aria": "Sección del inventario",
+    "devices_title": "Dispositivos",
+    "devices_subtitle": "Gestiona los hosts de tu inventario Ansible.",
+    "groups_title": "Grupos",
+    "groups_subtitle": "Organiza los dispositivos por función o entorno.",
     "create": {
       "group": "Nuevo grupo",
       "device": "Nuevo dispositivo"

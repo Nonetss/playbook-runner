@@ -4,5 +4,9 @@ export { DeviceList } from "@/features/inventory/components/device-list"
 export { GroupCard } from "@/features/inventory/components/group-card"
 export { GroupFormModal } from "@/features/inventory/components/group-form-modal"
 export { GroupList } from "@/features/inventory/components/group-list"
-export { InventoryPage } from "@/features/inventory/components/inventory-page"
+export {
+  InventoryDevicesPage,
+  InventoryGroupsPage,
+  InventoryPage,
+} from "@/features/inventory/components/inventory-page"
 export { RelationsDialog } from "@/features/inventory/components/relations-dialog"

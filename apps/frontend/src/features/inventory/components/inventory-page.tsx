@@ -27,19 +27,17 @@ import type {
 } from "@/features/inventory/types"
 import { useConfirm } from "@/hooks/useConfirm"
 import { notifyError } from "@/lib/toast"
-import { cn } from "@/lib/utils"
 
-type Tab = "groups" | "devices"
+type InventorySection = "groups" | "devices"
 
 type RelationsTarget =
   | { kind: "deviceGroups"; entityId: string; entityName: string }
   | { kind: "groupDevices"; entityId: string; entityName: string }
   | null
 
-function InventoryPageInner() {
+function InventoryPageInner({ section }: { section: InventorySection }) {
   const { t } = useTranslation("inventory")
   const { t: tCommon } = useTranslation("common")
-  const [tab, setTab] = useState<Tab>("groups")
 
   const {
     data: groups = [],
@@ -206,148 +204,95 @@ function InventoryPageInner() {
 
   return (
     <ResourcePage
-      title={t("page.title")}
-      description={t("page.subtitle")}
+      title={t(`page.${section}_title`)}
+      description={t(`page.${section}_subtitle`)}
       createLabel={
-        tab === "groups" ? t("page.create.group") : t("page.create.device")
+        section === "groups" ? t("page.create.group") : t("page.create.device")
       }
-      onCreate={tab === "groups" ? openCreateGroup : openCreateDevice}
+      onCreate={section === "groups" ? openCreateGroup : openCreateDevice}
     >
-      <div className="mb-6 flex justify-center">
-        <div
-          className="relative inline-grid grid-cols-2 rounded-md border bg-card p-1"
-          role="tablist"
-          aria-label={t("page.tabs_aria")}
-        >
-          <span
-            aria-hidden
-            className={cn(
-              "pointer-events-none absolute top-1 bottom-1 left-1 rounded-sm bg-primary shadow-sm",
-              "motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-[cubic-bezier(0.16,1,0.3,1)]",
-              tab === "devices" && "motion-safe:translate-x-full"
-            )}
-            style={{ width: "calc((100% - 0.5rem) / 2)" }}
+      {section === "groups" ? (
+        <>
+          <GroupFormModal
+            open={groupModalOpen}
+            onOpenChange={handleGroupModalOpenChange}
+            group={editingGroup}
           />
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === "groups"}
-            onClick={() => setTab("groups")}
-            className={cn(
-              "relative z-10 inline-flex items-center justify-center gap-2 rounded-sm px-16 py-1.5 text-sm font-medium transition-colors duration-300",
-              tab === "groups"
-                ? "text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            )}
+          <ResourceListState
+            isPending={groupsPending}
+            isError={groupsError}
+            onRetry={() => refetchGroups()}
+            items={groups}
+            empty={{
+              title: t("group.empty_title"),
+              description: t("group.empty_description"),
+              ctaLabel: t("page.create.group"),
+              onCta: openCreateGroup,
+              icon: <Folder className="size-5" />,
+            }}
           >
-            <Folder className="size-4" />
-            {t("page.tabs.groups")}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === "devices"}
-            onClick={() => setTab("devices")}
-            className={cn(
-              "relative z-10 inline-flex items-center justify-center gap-2 rounded-sm px-16 py-1.5 text-sm font-medium transition-colors duration-300",
-              tab === "devices"
-                ? "text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
+            {(items) => (
+              <GroupList
+                groups={items}
+                devicesByGroup={devicesByGroup}
+                onEdit={openEditGroup}
+                onDelete={handleDeleteGroup}
+                onManageDevices={openManageGroupDevices}
+                deletingId={
+                  deleteGroup.isPending
+                    ? (deleteGroup.variables?.id ?? null)
+                    : null
+                }
+              />
             )}
+          </ResourceListState>
+        </>
+      ) : (
+        <>
+          <DeviceFormModal
+            open={deviceModalOpen}
+            onOpenChange={handleDeviceModalOpenChange}
+            device={editingDevice}
+          />
+          <PingDeviceModal
+            open={!!pingDevice}
+            onOpenChange={(open) => {
+              if (!open) setPingDevice(null)
+            }}
+            device={pingDevice}
+          />
+          <ResourceListState
+            isPending={devicesPending}
+            isError={devicesError}
+            onRetry={() => refetchDevices()}
+            items={devices}
+            empty={{
+              title: t("device.empty_title"),
+              description: t("device.empty_description"),
+              ctaLabel: t("page.create.device"),
+              onCta: openCreateDevice,
+              icon: <Server className="size-5" />,
+            }}
           >
-            <Server className="size-4" />
-            {t("page.tabs.devices")}
-          </button>
-        </div>
-      </div>
-
-      <div
-        key={tab}
-        className="motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-2 motion-safe:duration-300"
-      >
-        {tab === "groups" ? (
-          <>
-            <GroupFormModal
-              open={groupModalOpen}
-              onOpenChange={handleGroupModalOpenChange}
-              group={editingGroup}
-            />
-            <ResourceListState
-              isPending={groupsPending}
-              isError={groupsError}
-              onRetry={() => refetchGroups()}
-              items={groups}
-              empty={{
-                title: t("group.empty_title"),
-                description: t("group.empty_description"),
-                ctaLabel: t("page.create.group"),
-                onCta: openCreateGroup,
-                icon: <Folder className="size-5" />,
-              }}
-            >
-              {(items) => (
-                <GroupList
-                  groups={items}
-                  devicesByGroup={devicesByGroup}
-                  onEdit={openEditGroup}
-                  onDelete={handleDeleteGroup}
-                  onManageDevices={openManageGroupDevices}
-                  deletingId={
-                    deleteGroup.isPending
-                      ? (deleteGroup.variables?.id ?? null)
-                      : null
-                  }
-                />
-              )}
-            </ResourceListState>
-          </>
-        ) : (
-          <>
-            <DeviceFormModal
-              open={deviceModalOpen}
-              onOpenChange={handleDeviceModalOpenChange}
-              device={editingDevice}
-            />
-            <PingDeviceModal
-              open={!!pingDevice}
-              onOpenChange={(open) => {
-                if (!open) setPingDevice(null)
-              }}
-              device={pingDevice}
-            />
-            <ResourceListState
-              isPending={devicesPending}
-              isError={devicesError}
-              onRetry={() => refetchDevices()}
-              items={devices}
-              empty={{
-                title: t("device.empty_title"),
-                description: t("device.empty_description"),
-                ctaLabel: t("page.create.device"),
-                onCta: openCreateDevice,
-                icon: <Server className="size-5" />,
-              }}
-            >
-              {(items) => (
-                <DeviceList
-                  devices={items}
-                  groupsByDevice={groupsByDevice}
-                  credentialsById={credentialsById}
-                  onEdit={openEditDevice}
-                  onDelete={handleDeleteDevice}
-                  onManageGroups={openManageDeviceGroups}
-                  onPing={openPingDevice}
-                  deletingId={
-                    deleteDevice.isPending
-                      ? (deleteDevice.variables?.id ?? null)
-                      : null
-                  }
-                />
-              )}
-            </ResourceListState>
-          </>
-        )}
-      </div>
+            {(items) => (
+              <DeviceList
+                devices={items}
+                groupsByDevice={groupsByDevice}
+                credentialsById={credentialsById}
+                onEdit={openEditDevice}
+                onDelete={handleDeleteDevice}
+                onManageGroups={openManageDeviceGroups}
+                onPing={openPingDevice}
+                deletingId={
+                  deleteDevice.isPending
+                    ? (deleteDevice.variables?.id ?? null)
+                    : null
+                }
+              />
+            )}
+          </ResourceListState>
+        </>
+      )}
 
       {relationsTarget ? (
         <RelationsDialog
@@ -375,10 +320,23 @@ function InventoryPageInner() {
   )
 }
 
-export function InventoryPage() {
+function InventorySectionPage({ section }: { section: InventorySection }) {
   return (
     <AppProviders>
-      <InventoryPageInner />
+      <InventoryPageInner section={section} />
     </AppProviders>
   )
+}
+
+export function InventoryDevicesPage() {
+  return <InventorySectionPage section="devices" />
+}
+
+export function InventoryGroupsPage() {
+  return <InventorySectionPage section="groups" />
+}
+
+/** @deprecated Use InventoryDevicesPage or InventoryGroupsPage instead. */
+export function InventoryPage() {
+  return <InventoryDevicesPage />
 }

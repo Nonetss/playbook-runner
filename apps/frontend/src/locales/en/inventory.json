@@ -1,12 +1,9 @@
 {
   "page": {
-    "title": "Inventory",
-    "subtitle": "Manage your Ansible inventory groups and devices.",
-    "tabs": {
-      "groups": "Groups",
-      "devices": "Devices"
-    },
-    "tabs_aria": "Inventory section",
+    "devices_title": "Devices",
+    "devices_subtitle": "Manage the hosts in your Ansible inventory.",
+    "groups_title": "Groups",
+    "groups_subtitle": "Organize devices by role or environment.",
     "create": {
       "group": "New group",
       "device": "New device"
