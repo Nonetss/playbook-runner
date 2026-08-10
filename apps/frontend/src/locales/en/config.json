@@ -42,7 +42,7 @@
     "card": {
       "expires_on": "Expires on {{date}}",
       "no_expiry": "No expiry",
-      "menu_aria": "Actions",
+      "menu_aria": "Actions for {{name}}",
       "delete_aria": "Delete API key",
       "no_expiration": "No expiration"
     },

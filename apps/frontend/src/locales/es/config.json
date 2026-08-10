@@ -42,7 +42,7 @@
     "card": {
       "expires_on": "Expira el {{date}}",
       "no_expiry": "Sin caducidad",
-      "menu_aria": "Acciones",
+      "menu_aria": "Acciones para {{name}}",
       "delete_aria": "Eliminar API key",
       "no_expiration": "Sin caducidad"
     },

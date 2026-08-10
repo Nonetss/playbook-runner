@@ -209,6 +209,7 @@ function OverflowMenu({
 }) {
   const { t } = useTranslation("nav")
   const [open, setOpen] = useState(false)
+  const active = items.some((item) => isNavItemActive(item, currentPath))
   if (!items.length) return null
 
   return (
@@ -218,9 +219,11 @@ function OverflowMenu({
           <button
             type="button"
             aria-label={t("actions.more")}
-            className={cn(pillBase, pillInactive)}
+            aria-current={active ? "page" : undefined}
+            className={cn(pillBase, active ? pillActive : pillInactive)}
           >
             {t("actions.more")}
+            {active ? <StatusDot tone="primary" /> : null}
             <ChevronDown
               aria-hidden
               className={cn(

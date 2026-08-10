@@ -50,10 +50,7 @@ export function ApiKeyCard({
       contentClassName="min-w-0 space-y-3 overflow-hidden"
       actions={
         <RowActionsMenu
-          label={
-            t("api_keys.card.menu_aria", { defaultValue: "" }) ||
-            `${t("api_keys.actions_aria")} ${label}`
-          }
+          label={t("api_keys.card.menu_aria", { name: label })}
           disabled={isDeleting}
         >
           <DropdownMenuItem
