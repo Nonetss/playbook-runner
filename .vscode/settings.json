@@ -47,7 +47,8 @@
     "**/node_modules": true,
     "**/.astro": true,
     "**/dist": true,
-    "**/.turbo": true
+    "**/.turbo": true,
+    "**/.codex": true
   },
   "search.exclude": {
     "apps/ansible/.venv/**": true,
@@ -59,7 +60,8 @@
     "**/.agents": true,
     "**/node_modules": true,
     "**/dist": true,
-    "**/.turbo": true
+    "**/.turbo": true,
+    "**/.codex": true
   },
   "cursorpyright.analysis.extraPaths": ["apps/ansible"],
   "cursorpyright.analysis.typeCheckingMode": "basic",
@@ -69,5 +71,8 @@
   "python-envs.pythonProjects": [],
   "[proto3]": {
     "editor.defaultFormatter": "zxh404.vscode-proto3"
+  },
+  "[proto]": {
+    "editor.defaultFormatter": "bufbuild.vscode-buf"
   }
 }
