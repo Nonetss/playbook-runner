@@ -8,10 +8,10 @@ package run;
 // scheduler uses) and streams the run over one of these RPCs. Ansible itself
 // never touches the database or a user session — it only executes.
 service RunnerService {
-  rpc RunBundle (RunBundleRequest) returns (stream RunEvent);
-  rpc RunPing (RunPingRequest) returns (stream RunEvent);
-  rpc RunCommand (RunCommandRequest) returns (stream RunEvent);
-  rpc RunScript (RunScriptRequest) returns (stream RunEvent);
+  rpc RunBundle(RunBundleRequest) returns (stream RunBundleResponse);
+  rpc RunPing(RunPingRequest) returns (stream RunPingResponse);
+  rpc RunCommand(RunCommandRequest) returns (stream RunCommandResponse);
+  rpc RunScript(RunScriptRequest) returns (stream RunScriptResponse);
 }
 
 message Host {
@@ -60,10 +60,35 @@ message RunScriptRequest {
   int32 forks = 4;
 }
 
-// One frame of a run stream. Exactly one of these is set per event,
-// mirroring the `event`/`done`/`error` SSE frames `app/services/ansible/sse.py`
-// used to emit.
-message RunEvent {
+// Each RPC has its own response type because Buf requires request and response
+// messages to be used by only one RPC. Exactly one payload is set per frame,
+// mirroring the `event`/`done`/`error` SSE frames
+// `app/services/ansible/sse.py` used to emit.
+message RunBundleResponse {
+  oneof payload {
+    TaskEvent task = 1;
+    Done done = 2;
+    string error = 3;
+  }
+}
+
+message RunPingResponse {
+  oneof payload {
+    TaskEvent task = 1;
+    Done done = 2;
+    string error = 3;
+  }
+}
+
+message RunCommandResponse {
+  oneof payload {
+    TaskEvent task = 1;
+    Done done = 2;
+    string error = 3;
+  }
+}
+
+message RunScriptResponse {
   oneof payload {
     TaskEvent task = 1;
     Done done = 2;

@@ -1,7 +1,10 @@
 import type {
   Done,
   Host,
-  RunEvent as ProtoRunEvent,
+  RunBundleResponse,
+  RunCommandResponse,
+  RunPingResponse,
+  RunScriptResponse,
   TaskEvent,
 } from "@playbook-runner/grpc/stubs"
 import type { ResolvedRunHost } from "#v1/run/handler"
@@ -14,6 +17,12 @@ export const RUN_TIMEOUT_MS = 60 * 60 * 1000
 
 /** A single ansible-runner event, reshaped from a `TaskEvent` gRPC frame. */
 export type RunEventRecord = Record<string, unknown> & { event: string }
+
+type ProtoRunResponse =
+  | RunBundleResponse
+  | RunPingResponse
+  | RunCommandResponse
+  | RunScriptResponse
 
 export function toProtoHost(host: ResolvedRunHost): Host {
   return {
@@ -51,7 +60,7 @@ export function taskEventToRecord(task: TaskEvent): RunEventRecord {
  * framing directly.
  */
 export async function* toEventIterator(
-  stream: AsyncIterable<ProtoRunEvent>
+  stream: AsyncIterable<ProtoRunResponse>
 ): AsyncGenerator<RunEventRecord, Done, void> {
   for await (const evt of stream) {
     if (evt.task) {

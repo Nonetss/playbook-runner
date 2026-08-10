@@ -18,7 +18,16 @@ from __future__ import annotations
 from loguru import logger
 
 from app.core.config import settings
-from app.grpc.stubs import Done, RunEvent, RunnerServiceServicer, Stats, TaskEvent
+from app.grpc.stubs import (
+    Done,
+    RunBundleResponse,
+    RunCommandResponse,
+    RunnerServiceServicer,
+    RunPingResponse,
+    RunScriptResponse,
+    Stats,
+    TaskEvent,
+)
 from app.services.ansible.events import AnsibleEvent, log_event_handler
 from app.services.ansible.materialize import (
     cleanup,
@@ -44,8 +53,8 @@ _PING_PLAYBOOK = """\
 """
 
 
-def _to_run_event(event: AnsibleEvent):
-    """Traduce un evento de ansible-runner a un frame `RunEvent.task`.
+def _to_run_event(response_type, event: AnsibleEvent):
+    """Traduce un evento de ansible-runner a un frame de respuesta `.task`.
 
     Reutiliza `event_payload()` (compartido con el streaming SSE que usaban
     los antiguos endpoints HTTP) para no duplicar la lógica de recorte.
@@ -61,19 +70,19 @@ def _to_run_event(event: AnsibleEvent):
             dark=stats_payload.get("dark", {}),
             skipped=stats_payload.get("skipped", {}),
         )
-    return RunEvent(task=TaskEvent(stats=stats, **payload))
+    return response_type(task=TaskEvent(stats=stats, **payload))
 
 
-async def _stream_runner(runner: AnsibleRunner):
-    """Stream de un `AnsibleRunner` ya configurado: eventos + `done`/`error` terminal."""
+async def _stream_runner(runner: AnsibleRunner, response_type):
+    """Stream de un `AnsibleRunner`: eventos + `done`/`error` terminal."""
     try:
         async for event in runner.stream():
-            yield _to_run_event(event)
+            yield _to_run_event(response_type, event)
     except Exception as exc:  # noqa: BLE001 - se reporta al cliente
-        yield RunEvent(error=str(exc))
+        yield response_type(error=str(exc))
         return
 
-    yield RunEvent(
+    yield response_type(
         done=Done(status=runner.status, rc=runner.rc or 0, ok=runner.rc == 0)
     )
 
@@ -105,7 +114,7 @@ class RunnerServicer(RunnerServiceServicer):
                 extravars=extravars,
                 event_handler=log_event_handler,
             )
-            async for event in _stream_runner(AnsibleRunner(config)):
+            async for event in _stream_runner(AnsibleRunner(config), RunBundleResponse):
                 yield event
         finally:
             cleanup(materialized)
@@ -129,7 +138,7 @@ class RunnerServicer(RunnerServiceServicer):
                 extravars={},
                 event_handler=log_event_handler,
             )
-            async for event in _stream_runner(AnsibleRunner(config)):
+            async for event in _stream_runner(AnsibleRunner(config), RunPingResponse):
                 yield event
         finally:
             cleanup(materialized)
@@ -157,7 +166,9 @@ class RunnerServicer(RunnerServiceServicer):
                 extravars=extravars,
                 event_handler=log_event_handler,
             )
-            async for event in _stream_runner(AnsibleRunner(config)):
+            async for event in _stream_runner(
+                AnsibleRunner(config), RunCommandResponse
+            ):
                 yield event
         finally:
             cleanup(materialized)
@@ -191,7 +202,7 @@ class RunnerServicer(RunnerServiceServicer):
                 extravars=extravars,
                 event_handler=log_event_handler,
             )
-            async for event in _stream_runner(AnsibleRunner(config)):
+            async for event in _stream_runner(AnsibleRunner(config), RunScriptResponse):
                 yield event
         finally:
             cleanup(materialized)

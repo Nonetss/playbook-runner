@@ -17,10 +17,13 @@ Playbook = run_pb2.Playbook
 Script = run_pb2.Script
 
 RunBundleRequest = run_pb2.RunBundleRequest
+RunBundleResponse = run_pb2.RunBundleResponse
 RunPingRequest = run_pb2.RunPingRequest
+RunPingResponse = run_pb2.RunPingResponse
 RunCommandRequest = run_pb2.RunCommandRequest
+RunCommandResponse = run_pb2.RunCommandResponse
 RunScriptRequest = run_pb2.RunScriptRequest
-RunEvent = run_pb2.RunEvent
+RunScriptResponse = run_pb2.RunScriptResponse
 TaskEvent = run_pb2.TaskEvent
 Stats = run_pb2.Stats
 Done = run_pb2.Done
