@@ -1,12 +1,7 @@
-import {
-  Folder,
-  FolderOpen,
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-} from "lucide-react"
+import { Folder, FolderOpen, Pencil, Trash2 } from "lucide-react"
 import * as React from "react"
 import { useTranslation } from "react-i18next"
+import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,12 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import type { Playbook, PlaybookFolder } from "@/features/playbooks/types"
 import { navigate } from "@/lib/navigate"
 import { cn } from "@/lib/utils"
@@ -120,37 +110,28 @@ export function PlaybookFolderCard({
         </div>
 
         <CardAction>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={t("folder.actions_aria", { name: folder.name })}
-                disabled={isDeleting}
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <a href={openHref}>
-                  <FolderOpen className="size-4" />
-                  {t("folder.open")}
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onEdit(folder)}>
-                <Pencil className="size-4" />
-                {t("folder.edit")}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => onDelete(folder)}
-              >
-                <Trash2 className="size-4" />
-                {t("folder.delete")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <RowActionsMenu
+            label={t("folder.actions_aria", { name: folder.name })}
+            disabled={isDeleting}
+          >
+            <DropdownMenuItem asChild>
+              <a href={openHref}>
+                <FolderOpen className="size-4" />
+                {t("folder.open")}
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onEdit(folder)}>
+              <Pencil className="size-4" />
+              {t("folder.edit")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => onDelete(folder)}
+            >
+              <Trash2 className="size-4" />
+              {t("folder.delete")}
+            </DropdownMenuItem>
+          </RowActionsMenu>
         </CardAction>
       </CardHeader>
 

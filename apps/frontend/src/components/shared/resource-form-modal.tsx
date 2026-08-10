@@ -1,18 +1,10 @@
 import * as React from "react"
 import { useTranslation } from "react-i18next"
+import { FormDialog } from "@/components/shared/form/form-dialog"
 import type {
   FieldDefinition,
   ResourceFormDefinition,
 } from "@/components/shared/resource-form-types"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -111,53 +103,39 @@ export function ResourceFormModal<TValues extends Record<string, unknown>>({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          {description ? (
-            <DialogDescription>{description}</DialogDescription>
-          ) : null}
-        </DialogHeader>
-
-        <form id={formId} onSubmit={handleSubmit} className="space-y-4">
-          {definition.fields.map((field) => (
-            <FieldRow
-              key={field.name}
-              field={field}
-              value={values[field.name]}
-              disabled={isSubmitting}
-              onChange={(value) =>
-                updateField(
-                  field.name as keyof TValues,
-                  value as TValues[keyof TValues]
-                )
-              }
-            />
-          ))}
-
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isSubmitting}
-              onClick={() => handleOpenChange(false)}
-            >
-              {t("actions.cancel")}
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting
-                ? t("actions.saving")
-                : isEditing
-                  ? editingSubmitLabel
-                  : submitLabel}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <FormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      title={title}
+      description={description}
+      onSubmit={handleSubmit}
+      isPending={isSubmitting}
+      submitLabel={
+        isSubmitting
+          ? t("actions.saving")
+          : isEditing
+            ? editingSubmitLabel
+            : submitLabel
+      }
+      cancelLabel={t("actions.cancel")}
+      formId={formId}
+    >
+      {definition.fields.map((field) => (
+        <FieldRow
+          key={field.name}
+          field={field}
+          value={values[field.name]}
+          disabled={isSubmitting}
+          onChange={(value) =>
+            updateField(
+              field.name as keyof TValues,
+              value as TValues[keyof TValues]
+            )
+          }
+        />
+      ))}
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+    </FormDialog>
   )
 }
 

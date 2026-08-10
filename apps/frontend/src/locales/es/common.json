@@ -39,6 +39,7 @@
     "error_loading_data": "No se pudieron cargar los datos.",
     "error_saving": "No se pudo guardar.",
     "navigation_title": "Navegación",
+    "row_actions": "Acciones",
     "no_selection": "Sin selección",
     "this_playbook": "este playbook",
     "this_script": "este script",

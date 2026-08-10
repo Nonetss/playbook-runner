@@ -1,7 +1,8 @@
 import { Plus } from "lucide-react"
 import type * as React from "react"
+import { PageHero } from "@/components/shared/layout/page-hero"
+import { PageShell } from "@/components/shared/layout/page-shell"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
 
 export interface ResourcePageProps {
   title: string
@@ -31,37 +32,30 @@ export function ResourcePage({
   children,
 }: ResourcePageProps) {
   return (
-    <main
-      className={cn(
-        "w-full min-w-0 flex-1 overflow-x-hidden p-6 lg:px-8",
-        className
-      )}
-    >
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-          {description ? (
-            <p className="text-muted-foreground mt-1 text-sm">{description}</p>
-          ) : null}
-        </div>
-
-        {!hideCreate &&
-          (createHref ? (
-            <Button asChild>
-              <a href={createHref}>
+    <PageShell className={className}>
+      <PageHero
+        title={title}
+        description={description}
+        className="mb-6"
+        action={
+          !hideCreate ? (
+            createHref ? (
+              <Button asChild>
+                <a href={createHref}>
+                  <Plus className="size-4" />
+                  {createLabel}
+                </a>
+              </Button>
+            ) : (
+              <Button onClick={onCreate}>
                 <Plus className="size-4" />
                 {createLabel}
-              </a>
-            </Button>
-          ) : (
-            <Button onClick={onCreate}>
-              <Plus className="size-4" />
-              {createLabel}
-            </Button>
-          ))}
-      </div>
-
+              </Button>
+            )
+          ) : undefined
+        }
+      />
       {children}
-    </main>
+    </PageShell>
   )
 }

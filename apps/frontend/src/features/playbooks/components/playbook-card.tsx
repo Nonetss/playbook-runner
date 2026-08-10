@@ -2,13 +2,13 @@ import {
   BookText,
   Folder,
   FolderInput,
-  MoreHorizontal,
   Pencil,
   Play,
   Trash2,
 } from "lucide-react"
 import type * as React from "react"
 import { useTranslation } from "react-i18next"
+import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,12 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import type { Playbook } from "@/features/playbooks/types"
 import { cn } from "@/lib/utils"
 
@@ -87,43 +82,34 @@ export function PlaybookCard({
         </div>
 
         <CardAction>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={t("card.actions_aria", { name: playbook.name })}
-                disabled={isDeleting}
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <a href={`/playbooks/${playbook.id}/run`}>
-                  <Play className="size-4" />
-                  {t("card.run")}
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <a href={`/playbooks/${playbook.id}/edit`}>
-                  <Pencil className="size-4" />
-                  {t("card.edit")}
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onMove(playbook)}>
-                <FolderInput className="size-4" />
-                {t("card.move")}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => onDelete(playbook.id)}
-              >
-                <Trash2 className="size-4" />
-                {t("card.delete")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <RowActionsMenu
+            label={t("card.actions_aria", { name: playbook.name })}
+            disabled={isDeleting}
+          >
+            <DropdownMenuItem asChild>
+              <a href={`/playbooks/${playbook.id}/run`}>
+                <Play className="size-4" />
+                {t("card.run")}
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <a href={`/playbooks/${playbook.id}/edit`}>
+                <Pencil className="size-4" />
+                {t("card.edit")}
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onMove(playbook)}>
+              <FolderInput className="size-4" />
+              {t("card.move")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => onDelete(playbook.id)}
+            >
+              <Trash2 className="size-4" />
+              {t("card.delete")}
+            </DropdownMenuItem>
+          </RowActionsMenu>
         </CardAction>
       </CardHeader>
 

@@ -3,17 +3,39 @@
     "home": "Inicio",
     "credentials": "Credenciales",
     "inventory": "Inventario",
+    "devices": "Dispositivos",
+    "groups": "Grupos",
     "playbooks": "Playbooks",
     "scripts": "Scripts",
     "commands": "Comandos",
     "jobs": "Jobs",
+    "scheduler": "Scheduler",
     "history": "Historial",
     "config": "Configuración",
     "me": "Mi perfil"
   },
+  "descriptions": {
+    "credentials": "Gestiona las claves y usuarios de acceso.",
+    "inventory": "Organiza dispositivos, grupos y su alcance.",
+    "devices": "Gestiona los hosts de tu inventario.",
+    "groups": "Organiza los dispositivos por función o entorno.",
+    "playbooks": "Edita y ejecuta automatizaciones Ansible.",
+    "scripts": "Mantén scripts reutilizables listos para ejecutar.",
+    "commands": "Ejecuta comandos remotos puntuales.",
+    "jobs": "Programa y supervisa tareas recurrentes.",
+    "scheduler": "Crea y gestiona automatizaciones recurrentes.",
+    "history": "Revisa ejecuciones y resultados anteriores."
+  },
   "actions": {
     "sign_out": "Cerrar sesión",
     "language": "Cambiar idioma",
-    "theme": "Cambiar tema"
+    "theme": "Cambiar tema",
+    "more": "Más secciones",
+    "open": "Abrir",
+    "collapse_sidebar": "Contraer navegación de sección",
+    "expand_sidebar": "Expandir navegación de sección"
+  },
+  "labels": {
+    "section_navigation": "Navegación de sección"
   }
 }

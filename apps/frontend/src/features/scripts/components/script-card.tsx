@@ -1,5 +1,6 @@
-import { FileCode, MoreHorizontal, Pencil, Play, Trash2 } from "lucide-react"
+import { FileCode, Pencil, Play, Trash2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -9,12 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import type { Script } from "@/features/scripts/types"
 
 type ScriptCardProps = {
@@ -59,39 +55,30 @@ export function ScriptCard({
             </div>
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={t("card.actions_aria", { name: script.name })}
-                disabled={isDeleting}
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <a href={`/scripts/${script.id}/run`}>
-                  <Play className="size-4" />
-                  {t("card.run")}
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <a href={`/scripts/${script.id}/edit`}>
-                  <Pencil className="size-4" />
-                  {t("card.edit")}
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => onDelete(script.id)}
-              >
-                <Trash2 className="size-4" />
-                {t("card.delete")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <RowActionsMenu
+            label={t("card.actions_aria", { name: script.name })}
+            disabled={isDeleting}
+          >
+            <DropdownMenuItem asChild>
+              <a href={`/scripts/${script.id}/run`}>
+                <Play className="size-4" />
+                {t("card.run")}
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <a href={`/scripts/${script.id}/edit`}>
+                <Pencil className="size-4" />
+                {t("card.edit")}
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => onDelete(script.id)}
+            >
+              <Trash2 className="size-4" />
+              {t("card.delete")}
+            </DropdownMenuItem>
+          </RowActionsMenu>
         </div>
       </CardHeader>
 

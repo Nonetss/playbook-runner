@@ -18,7 +18,11 @@ export const ThemeToggle = ({ className }: ThemeToggleProps) => {
       localStorage.setItem("theme", next ? "dark" : "light")
     }
 
-    if (!document.startViewTransition) {
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches
+
+    if (!document.startViewTransition || prefersReducedMotion) {
       flushSync(apply)
       return
     }
@@ -30,6 +34,7 @@ export const ThemeToggle = ({ className }: ThemeToggleProps) => {
       Math.max(y, window.innerHeight - y)
     )
 
+    document.documentElement.dataset.themeTransition = "true"
     const transition = document.startViewTransition(() => flushSync(apply))
 
     transition.ready.then(() => {
@@ -46,6 +51,9 @@ export const ThemeToggle = ({ className }: ThemeToggleProps) => {
           pseudoElement: "::view-transition-new(root)",
         }
       )
+    })
+    transition.finished.finally(() => {
+      delete document.documentElement.dataset.themeTransition
     })
   }
 

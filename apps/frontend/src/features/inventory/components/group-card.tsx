@@ -1,12 +1,6 @@
-import {
-  Folder,
-  Link2,
-  MoreHorizontal,
-  Pencil,
-  Settings2,
-  Trash2,
-} from "lucide-react"
+import { Folder, Link2, Pencil, Settings2, Trash2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,12 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import type {
   InventoryDevice,
   InventoryGroup,
@@ -63,35 +52,26 @@ export function GroupCard({
             </div>
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={`Acciones para ${group.name}`}
-                disabled={isDeleting}
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(group)}>
-                <Pencil className="size-4" />
-                {t("actions.edit")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onManageDevices(group)}>
-                <Link2 className="size-4" />
-                {t("actions.manage_devices")}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => onDelete(group.id)}
-              >
-                <Trash2 className="size-4" />
-                {t("actions.delete")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <RowActionsMenu
+            label={`Acciones para ${group.name}`}
+            disabled={isDeleting}
+          >
+            <DropdownMenuItem onClick={() => onEdit(group)}>
+              <Pencil className="size-4" />
+              {t("actions.edit")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onManageDevices(group)}>
+              <Link2 className="size-4" />
+              {t("actions.manage_devices")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => onDelete(group.id)}
+            >
+              <Trash2 className="size-4" />
+              {t("actions.delete")}
+            </DropdownMenuItem>
+          </RowActionsMenu>
         </div>
       </CardHeader>
 

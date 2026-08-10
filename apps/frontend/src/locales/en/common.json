@@ -39,6 +39,7 @@
     "error_loading_data": "Could not load data.",
     "error_saving": "Could not save.",
     "navigation_title": "Navigation",
+    "row_actions": "Actions",
     "no_selection": "No selection",
     "this_playbook": "this playbook",
     "this_script": "this script",

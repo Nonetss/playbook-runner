@@ -2,12 +2,12 @@ import {
   BriefcaseIcon,
   Clock,
   History,
-  MoreHorizontal,
   Pencil,
   Play,
   Trash2,
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,12 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { Switch } from "@/components/ui/switch"
 import type { Job } from "@/features/jobs/types"
 
@@ -73,46 +68,37 @@ export function JobCard({
               onCheckedChange={(checked) => onToggleEnabled(job.id, checked)}
               aria-label={job.enabled ? "Desactivar job" : "Activar job"}
             />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={`Acciones para ${job.name}`}
-                  disabled={isDeleting}
-                >
-                  <MoreHorizontal className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <a href={`/jobs/${job.id}`}>
-                    <History className="size-4" />
-                    Ver ejecuciones
-                  </a>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onRun(job)}
-                  disabled={!job.playbookId}
-                >
-                  <Play className="size-4" />
-                  {t("actions.run_now")}
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <a href={`/jobs/${job.id}/edit`}>
-                    <Pencil className="size-4" />
-                    {t("actions.edit")}
-                  </a>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  variant="destructive"
-                  onClick={() => onDelete(job.id)}
-                >
-                  <Trash2 className="size-4" />
-                  {t("actions.delete")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <RowActionsMenu
+              label={`Acciones para ${job.name}`}
+              disabled={isDeleting}
+            >
+              <DropdownMenuItem asChild>
+                <a href={`/jobs/${job.id}`}>
+                  <History className="size-4" />
+                  Ver ejecuciones
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onRun(job)}
+                disabled={!job.playbookId}
+              >
+                <Play className="size-4" />
+                {t("actions.run_now")}
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href={`/jobs/${job.id}/edit`}>
+                  <Pencil className="size-4" />
+                  {t("actions.edit")}
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => onDelete(job.id)}
+              >
+                <Trash2 className="size-4" />
+                {t("actions.delete")}
+              </DropdownMenuItem>
+            </RowActionsMenu>
           </div>
         </div>
       </CardHeader>

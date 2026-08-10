@@ -1,7 +1,7 @@
-import { KeyRound, MoreHorizontal, Trash2 } from "lucide-react"
+import { KeyRound, Trash2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -9,12 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import type { ApiKeyListItem } from "@/features/config/types"
 
 type ApiKeyCardProps = {
@@ -63,30 +58,21 @@ export function ApiKeyCard({
             </div>
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={
-                  t("api_keys.card.menu_aria", { defaultValue: "" }) ||
-                  `${t("api_keys.actions_aria")} ${label}`
-                }
-                disabled={isDeleting}
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => onDelete(apiKey.id)}
-              >
-                <Trash2 className="size-4" />
-                {tCommon("actions.delete")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <RowActionsMenu
+            label={
+              t("api_keys.card.menu_aria", { defaultValue: "" }) ||
+              `${t("api_keys.actions_aria")} ${label}`
+            }
+            disabled={isDeleting}
+          >
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => onDelete(apiKey.id)}
+            >
+              <Trash2 className="size-4" />
+              {tCommon("actions.delete")}
+            </DropdownMenuItem>
+          </RowActionsMenu>
         </div>
       </CardHeader>
 

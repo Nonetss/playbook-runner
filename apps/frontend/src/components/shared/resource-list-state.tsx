@@ -1,8 +1,8 @@
-import { Loader2, Plus, RotateCw } from "lucide-react"
+import { Plus, RotateCw } from "lucide-react"
 import type * as React from "react"
 import { useTranslation } from "react-i18next"
+import { StateCard } from "@/components/shared/data-display/state-card"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
 
 export interface ResourceListStateProps<TItem> {
   isPending?: boolean
@@ -38,75 +38,54 @@ export function ResourceListState<TItem>({
   const { t } = useTranslation("common")
   if (isPending) {
     return (
-      <div
-        className={cn(
-          "text-muted-foreground flex items-center gap-2 py-6 text-sm",
-          className
-        )}
-      >
-        <Loader2 className="size-4 animate-spin" />
-        {t("actions.loading")}
-      </div>
+      <StateCard spinner title={t("actions.loading")} className={className} />
     )
   }
 
   if (isError) {
     return (
-      <div
-        className={cn(
-          "rounded-lg border border-destructive/20 bg-destructive/8 px-5 py-4 text-sm text-destructive shadow-sm",
-          className
-        )}
-      >
-        <div className="flex items-center justify-between gap-3">
-          <span className="font-medium">{t("labels.error_loading_data")}</span>
-          {onRetry ? (
-            <Button type="button" size="xs" variant="outline" onClick={onRetry}>
+      <StateCard
+        title={t("labels.error_loading_data")}
+        tone="destructive"
+        className={className}
+        action={
+          onRetry ? (
+            <Button type="button" size="sm" variant="outline" onClick={onRetry}>
               <RotateCw className="size-3" />
               {t("actions.retry")}
             </Button>
-          ) : null}
-        </div>
-      </div>
+          ) : undefined
+        }
+      />
     )
   }
 
   const list = items ?? []
   if (list.length === 0) {
     return (
-      <div
-        className={cn(
-          "rounded-lg border border-dashed border-border/60 bg-card/50 px-6 py-12 text-center backdrop-blur-sm transition-all",
-          className
-        )}
-      >
-        {empty.icon ? (
-          <div className="bg-primary/12 text-primary ring-primary/10 mx-auto mb-4 flex size-12 items-center justify-center rounded-lg ring-1">
-            {empty.icon}
-          </div>
-        ) : null}
-        <h2 className="text-lg font-semibold">{empty.title}</h2>
-        {empty.description ? (
-          <p className="text-muted-foreground mx-auto mt-2 max-w-sm text-sm">
-            {empty.description}
-          </p>
-        ) : null}
-        {empty.ctaLabel && (empty.onCta || empty.ctaHref) ? (
-          empty.ctaHref ? (
-            <Button asChild className="mt-6">
-              <a href={empty.ctaHref}>
+      <StateCard
+        icon={empty.icon}
+        title={empty.title}
+        description={empty.description}
+        className={className}
+        action={
+          empty.ctaLabel && (empty.onCta || empty.ctaHref) ? (
+            empty.ctaHref ? (
+              <Button asChild className="mt-6">
+                <a href={empty.ctaHref}>
+                  <Plus className="size-4" />
+                  {empty.ctaLabel}
+                </a>
+              </Button>
+            ) : (
+              <Button className="mt-6" onClick={empty.onCta}>
                 <Plus className="size-4" />
                 {empty.ctaLabel}
-              </a>
-            </Button>
-          ) : (
-            <Button className="mt-6" onClick={empty.onCta}>
-              <Plus className="size-4" />
-              {empty.ctaLabel}
-            </Button>
-          )
-        ) : null}
-      </div>
+              </Button>
+            )
+          ) : undefined
+        }
+      />
     )
   }
 

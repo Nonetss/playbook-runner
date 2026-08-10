@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Input } from "@/components/ui/input"
 import {
@@ -8,6 +8,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  NumberStepper,
+  SegmentedPicker,
+} from "@/features/jobs/components/cron-schedule-controls"
 
 type ScheduleMode =
   | "minutes"
@@ -17,9 +21,6 @@ type ScheduleMode =
   | "monthly"
   | "custom"
 
-const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, value) => value)
-const HOUR_OPTIONS = Array.from({ length: 24 }, (_, value) => value)
-const WEEKDAY_VALUES = ["0", "1", "2", "3", "4", "5", "6"] as const
 const MINUTE_INTERVALS = [1, 5, 10, 15, 30]
 const HOUR_INTERVALS = [1, 2, 3, 4, 6, 12]
 
@@ -58,7 +59,7 @@ function defaultExpression(mode: ScheduleMode) {
 
 function FieldLabel({ children }: { children: string }) {
   return (
-    <span className="text-muted-foreground/80 text-[0.625rem] font-medium tracking-[0.12em] uppercase">
+    <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
       {children}
     </span>
   )
@@ -78,14 +79,27 @@ export function CronScheduleBuilder({
   onChange: (expression: string) => void
 }) {
   const { t } = useTranslation("jobs")
+  // The initial expression decides the mode when opening the assistant. From
+  // there, the user's frequency choice remains stable while they edit time
+  // fields. Re-parsing on every edit can incorrectly reset weekly to daily.
   const [mode, setMode] = useState<ScheduleMode>(() => scheduleMode(expression))
-
-  useEffect(() => {
-    setMode(scheduleMode(expression))
-  }, [expression])
 
   const [minute = "0", hour = "9", dayOfMonth = "1", dayOfWeek = "1"] =
     expression.split(" ")
+  const weekdays = ["1", "2", "3", "4", "5", "6", "0"].map((value) => ({
+    value,
+    label: t(`form.schedule_builder.weekday_short.${value}`),
+    title: t(`form.schedule_builder.weekday.${value}`),
+  }))
+  const daysOfMonth = Array.from({ length: 31 }, (_, index) => {
+    const day = String(index + 1)
+
+    return {
+      value: day,
+      label: day,
+      title: t("form.schedule_builder.monthday_option", { day }),
+    }
+  })
   const every =
     mode === "minutes"
       ? (expression.match(/^\*\/(\d+)/)?.[1] ?? "15")
@@ -109,7 +123,7 @@ export function CronScheduleBuilder({
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
         <div>
-          <p className="text-muted-foreground/80 text-[0.625rem] font-medium tracking-[0.12em] uppercase">
+          <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
             {t("form.schedule_builder.heading")}
           </p>
           <p className="text-muted-foreground mt-1 text-xs">
@@ -202,45 +216,27 @@ export function CronScheduleBuilder({
           <>
             <div className="grid gap-1.5">
               <FieldLabel>{t("form.schedule_builder.hour_label")}</FieldLabel>
-              <Select
-                value={String(toNumber(hour, 9))}
-                onValueChange={(value) => updateTime(minute, value)}
-              >
-                <SelectTrigger
-                  aria-label={t("form.schedule_builder.hour_label")}
-                  className="w-full"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {HOUR_OPTIONS.map((value) => (
-                    <SelectItem key={value} value={String(value)}>
-                      {String(value).padStart(2, "0")}:00
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <NumberStepper
+                label={t("form.schedule_builder.hour_label")}
+                min={0}
+                max={23}
+                value={toNumber(hour, 9)}
+                onChange={(value) => updateTime(minute, String(value))}
+                decreaseLabel={t("form.schedule_builder.stepper.decrease")}
+                increaseLabel={t("form.schedule_builder.stepper.increase")}
+              />
             </div>
             <div className="grid gap-1.5">
               <FieldLabel>{t("form.schedule_builder.minute_label")}</FieldLabel>
-              <Select
-                value={String(toNumber(minute, 0))}
-                onValueChange={(value) => updateTime(value, hour)}
-              >
-                <SelectTrigger
-                  aria-label={t("form.schedule_builder.minute_label")}
-                  className="w-full"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {MINUTE_OPTIONS.map((value) => (
-                    <SelectItem key={value} value={String(value)}>
-                      {String(value).padStart(2, "0")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <NumberStepper
+                label={t("form.schedule_builder.minute_label")}
+                min={0}
+                max={59}
+                value={toNumber(minute, 0)}
+                onChange={(value) => updateTime(String(value), hour)}
+                decreaseLabel={t("form.schedule_builder.stepper.decrease")}
+                increaseLabel={t("form.schedule_builder.stepper.increase")}
+              />
             </div>
           </>
         ) : null}
@@ -248,56 +244,27 @@ export function CronScheduleBuilder({
         {mode === "weekly" ? (
           <div className="grid gap-1.5 sm:col-span-2">
             <FieldLabel>{t("form.schedule_builder.weekday_label")}</FieldLabel>
-            <Select
+            <SegmentedPicker
+              label={t("form.schedule_builder.weekday_label")}
+              columns={7}
+              options={weekdays}
               value={dayOfWeek}
-              onValueChange={(value) =>
-                onChange(`${minute} ${hour} * * ${value}`)
-              }
-            >
-              <SelectTrigger
-                aria-label={t("form.schedule_builder.weekday_label")}
-                className="w-full"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {WEEKDAY_VALUES.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {t(`form.schedule_builder.weekday.${value}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(value) => onChange(`${minute} ${hour} * * ${value}`)}
+            />
           </div>
         ) : null}
 
         {mode === "monthly" ? (
           <div className="grid gap-1.5 sm:col-span-2">
             <FieldLabel>{t("form.schedule_builder.monthday_label")}</FieldLabel>
-            <Select
+            <SegmentedPicker
+              label={t("form.schedule_builder.monthday_label")}
+              columns={7}
+              mono
+              options={daysOfMonth}
               value={dayOfMonth}
-              onValueChange={(value) =>
-                onChange(`${minute} ${hour} ${value} * *`)
-              }
-            >
-              <SelectTrigger
-                aria-label={t("form.schedule_builder.monthday_label")}
-                className="w-full"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 31 }, (_, index) => index + 1).map(
-                  (value) => (
-                    <SelectItem key={value} value={String(value)}>
-                      {t("form.schedule_builder.monthday_option", {
-                        day: value,
-                      })}
-                    </SelectItem>
-                  )
-                )}
-              </SelectContent>
-            </Select>
+              onChange={(value) => onChange(`${minute} ${hour} ${value} * *`)}
+            />
           </div>
         ) : null}
 

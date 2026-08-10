@@ -23,16 +23,18 @@ const hasSession = !!user && !!session
     <title>{title}</title>
     <ClientRouter />
     <script is:inline>
-    function applyTheme() {
+    function applyTheme(doc) {
       const stored = localStorage.getItem("theme")
       const prefersDark = window.matchMedia(
         "(prefers-color-scheme: dark)"
       ).matches
       const theme = stored ?? (prefersDark ? "dark" : "light")
-      document.documentElement.classList.toggle("dark", theme === "dark")
+      doc.documentElement.classList.toggle("dark", theme === "dark")
     }
-    applyTheme()
-    document.addEventListener("astro:after-swap", applyTheme)
+    applyTheme(document)
+    document.addEventListener("astro:before-swap", (event) =>
+      applyTheme(event.newDocument)
+    )
     </script>
     <link rel="icon" href="/logo.svg" type="image/svg+xml">
   </head>

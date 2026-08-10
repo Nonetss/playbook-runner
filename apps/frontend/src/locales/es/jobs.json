@@ -66,6 +66,10 @@
       "interval_hours_other": "Cada {{count}} horas",
       "hour_label": "Hora",
       "minute_label": "Minuto",
+      "stepper": {
+        "decrease": "disminuir",
+        "increase": "aumentar"
+      },
       "weekday_label": "Día de la semana",
       "weekday": {
         "0": "Domingo",
@@ -75,6 +79,15 @@
         "4": "Jueves",
         "5": "Viernes",
         "6": "Sábado"
+      },
+      "weekday_short": {
+        "0": "D",
+        "1": "L",
+        "2": "M",
+        "3": "X",
+        "4": "J",
+        "5": "V",
+        "6": "S"
       },
       "monthday_label": "Día del mes",
       "monthday_option": "Día {{day}}",

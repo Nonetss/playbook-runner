@@ -223,20 +223,30 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    background: transparent;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    border-radius: var(--radius);
+    background-color: var(--border);
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
+  }
+  html {
+    scrollbar-gutter: stable;
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
     letter-spacing: var(--tracking-normal);
-  }
-
-  /* Smooth transitions for interactive elements */
-  button,
-  [role="button"],
-  input,
-  select,
-  textarea,
-  a {
-    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
@@ -373,6 +383,22 @@
   }
 }
 
+/* The radial theme reveal opts out of the ordinary root crossfade only while
+   it is active. Astro page transitions keep their normal root animation. */
+html[data-theme-transition]::view-transition-old(root),
+html[data-theme-transition]::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+html[data-theme-transition]::view-transition-old(root) {
+  z-index: 1;
+}
+
+html[data-theme-transition]::view-transition-new(root) {
+  z-index: 9999;
+}
+
 /* ============================================================
    Global motion — fluidity without touching components. All of
    it gated behind prefers-reduced-motion. These rules sit
@@ -411,24 +437,65 @@
   [role="button"]:active {
     transform: scale(0.97);
   }
+}
 
-  /* Scroll-driven reveal: sections rise in as they enter the
-     viewport. Pure CSS (animation-timeline), no JS. Sections
-     already in view on load render settled — no double animation
-     on top of the page transition above. Progressive enhancement:
-     without scroll-timeline support the keyframes resolve
-     instantly and content is simply visible. */
-  @supports (animation-timeline: view()) {
-    @keyframes section-rise {
-      from {
-        opacity: 0;
-        transform: translateY(14px);
-      }
-    }
-    main > section {
-      animation: section-rise ease both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 35%;
-    }
+@keyframes dash-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dash-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@utility dash-enter {
+  animation: dash-enter 0.3s ease-out both;
+  animation-delay: var(--dash-delay, 0ms);
+}
+
+@utility dash-pop {
+  animation: dash-pop 0.25s ease-out both;
+  animation-delay: var(--dash-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-enter,
+  .dash-pop {
+    animation: none;
+  }
+}
+
+/* Dense desktop controls retain their visual rhythm; touch input receives a
+   centered 44px hit area without changing the visible button dimensions. */
+@media (pointer: coarse) {
+  [data-size="icon-xs"],
+  [data-size="icon-sm"],
+  [data-size="icon"],
+  [data-size="icon-lg"] {
+    position: relative;
+  }
+  [data-size="icon-xs"]::after,
+  [data-size="icon-sm"]::after,
+  [data-size="icon"]::after,
+  [data-size="icon-lg"]::after {
+    position: absolute;
+    width: max(44px, 100%);
+    height: max(44px, 100%);
+    content: "";
+    inset: 50%;
+    transform: translate(-50%, -50%);
   }
 }

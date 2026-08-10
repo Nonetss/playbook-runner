@@ -1,14 +1,8 @@
-import {
-  KeyRound,
-  MoreHorizontal,
-  Pencil,
-  Terminal,
-  Trash2,
-} from "lucide-react"
+import { KeyRound, Pencil, Terminal, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -16,12 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { ProvisionScriptDialog } from "@/features/credentials/components/provision-script-dialog"
 import type { Credential } from "@/features/credentials/types"
 
@@ -66,35 +55,26 @@ export function CredentialCard({
             </div>
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-label={`Acciones para ${credential.name}`}
-                disabled={isDeleting}
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(credential)}>
-                <Pencil className="size-4" />
-                {t("actions.edit")}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setScriptOpen(true)}>
-                <Terminal className="size-4" />
-                {t("actions.provision_script")}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => onDelete(credential.id)}
-              >
-                <Trash2 className="size-4" />
-                {t("actions.delete")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <RowActionsMenu
+            label={`Acciones para ${credential.name}`}
+            disabled={isDeleting}
+          >
+            <DropdownMenuItem onClick={() => onEdit(credential)}>
+              <Pencil className="size-4" />
+              {t("actions.edit")}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setScriptOpen(true)}>
+              <Terminal className="size-4" />
+              {t("actions.provision_script")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => onDelete(credential.id)}
+            >
+              <Trash2 className="size-4" />
+              {t("actions.delete")}
+            </DropdownMenuItem>
+          </RowActionsMenu>
         </div>
       </CardHeader>
 

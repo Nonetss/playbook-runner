@@ -32,7 +32,7 @@ export function PlaybookList({
   locale,
 }: PlaybookListProps) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {folders.map((folder) => {
         const folderPlaybooks = allPlaybooks.filter(
           (playbook) => playbook.folderId === folder.id
