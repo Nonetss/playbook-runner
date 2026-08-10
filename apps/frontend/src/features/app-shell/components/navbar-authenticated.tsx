@@ -54,7 +54,7 @@ function prefetchForHref(
       queryClient.prefetchQuery(orpc.inventory.devices.list.queryOptions())
       queryClient.prefetchQuery(orpc.inventory.groups.list.queryOptions())
       return
-    case "/credentials":
+    case "/inventory/credentials":
       queryClient.prefetchQuery(orpc.credentials.list.queryOptions())
       return
     case "/playbooks":

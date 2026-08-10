@@ -32,17 +32,15 @@ test.describe("NavbarMobileMenu", () => {
     })
     await expect(menuNav).toBeVisible()
 
-    for (const label of [
-      "Inicio",
-      "Credenciales",
-      "Inventario",
-      "Playbooks",
-      "Jobs",
-    ]) {
+    for (const label of ["Inicio", "Inventario", "Playbooks", "Jobs"]) {
       await expect(
         menuNav.getByRole("link", { name: label, exact: true })
       ).toBeVisible()
     }
+
+    await expect(
+      menuNav.getByRole("link", { name: "Credenciales", exact: true })
+    ).toBeVisible()
   })
 
   test("marca con estilo activo el link del path actual", async ({ page }) => {
@@ -73,7 +71,7 @@ test.describe("NavbarMobileMenu", () => {
       .getByRole("link", { name: "Credenciales", exact: true })
       .click()
 
-    await page.waitForURL(/\/credentials$/)
+    await page.waitForURL(/\/inventory\/credentials$/)
     await expect(menuNav).toBeHidden()
   })
 

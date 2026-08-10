@@ -208,7 +208,7 @@ function DashboardPageInner() {
           icon={KeyRound}
           title={t("stats.credentials")}
           value={isPending ? "—" : credentials.length}
-          href="/credentials"
+          href="/inventory/credentials"
         />
       </div>
 
@@ -378,7 +378,7 @@ function DashboardPageInner() {
             desc: t("quick_links.manage_inventory_desc"),
           },
           {
-            href: "/credentials",
+            href: "/inventory/credentials",
             icon: KeyRound,
             label: t("quick_links.ssh_credentials_title"),
             desc: t("quick_links.ssh_credentials_desc"),

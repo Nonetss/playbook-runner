@@ -52,13 +52,6 @@ export function isNavItemActive(item: SiteNavItem, pathname: string) {
  */
 export const siteNavItems: SiteNavItem[] = [
   {
-    href: "/credentials",
-    labelKey: "links.credentials",
-    descriptionKey: "descriptions.credentials",
-    icon: KeyRound,
-    primary: true,
-  },
-  {
     href: "/inventory",
     labelKey: "links.inventory",
     descriptionKey: "descriptions.inventory",
