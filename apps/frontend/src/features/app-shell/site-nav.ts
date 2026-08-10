@@ -66,6 +66,12 @@ export const siteNavItems: SiteNavItem[] = [
     primary: true,
     subItems: [
       {
+        href: "/inventory/credentials",
+        labelKey: "links.credentials",
+        descriptionKey: "descriptions.credentials",
+        icon: KeyRound,
+      },
+      {
         href: "/inventory/devices",
         labelKey: "links.devices",
         descriptionKey: "descriptions.devices",
