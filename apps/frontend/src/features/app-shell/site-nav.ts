@@ -9,6 +9,7 @@ const Folder = getIcon("resources", "folder")
 const History = getIcon("resources", "history")
 const KeyRound = getIcon("resources", "apiKey")
 const Server = getIcon("resources", "server")
+const Computer = getIcon("resources", "device")
 const Terminal = getIcon("resources", "terminal")
 
 export interface SiteNavSubItem {
@@ -68,7 +69,7 @@ export const siteNavItems: SiteNavItem[] = [
         href: "/inventory/devices",
         labelKey: "links.devices",
         descriptionKey: "descriptions.devices",
-        icon: Server,
+        icon: Computer,
       },
       {
         href: "/inventory/groups",
