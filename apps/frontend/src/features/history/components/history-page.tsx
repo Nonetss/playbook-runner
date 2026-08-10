@@ -22,7 +22,7 @@ import {
   RunHostSummary,
   RunStatusBadge,
   RunWindowPicker,
-} from "@/features/jobs/components/run-widgets"
+} from "@/features/jobs"
 import { useJobRunMetrics, useJobRunsAll } from "@/features/jobs/hooks/useJobs"
 import type { JobRunFeedRow, JobRunMetricsWindow } from "@/features/jobs/types"
 

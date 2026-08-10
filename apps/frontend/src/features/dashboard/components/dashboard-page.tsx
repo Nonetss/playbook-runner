@@ -27,7 +27,7 @@ import {
   formatRunTimestamp,
   RunStatusBadge,
   RunWindowPicker,
-} from "@/features/jobs/components/run-widgets"
+} from "@/features/jobs"
 import {
   useJobRunMetrics,
   useJobRunsAll,
