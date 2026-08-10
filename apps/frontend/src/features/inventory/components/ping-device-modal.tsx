@@ -4,9 +4,9 @@ const AlertTriangle = getIcon("status", "alert")
 const CheckCircle2 = getIcon("status", "success")
 const Loader2 = getIcon("status", "loading")
 const RefreshCw = getIcon("actions", "refresh")
-const XCircle = getIcon("status", "error")
 
 import { useEffect, useMemo, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import type { InventoryDevice } from "@/features/inventory/types"
+import { RunStreamStatus } from "@/features/run/components/run-stream-status"
 import { usePingDevice } from "@/features/run/hooks/usePingDevice"
 import type { RunEvent } from "@/features/run/types"
 import { cn } from "@/lib/utils"
@@ -69,7 +70,9 @@ export function PingDeviceModal({
   onOpenChange,
   device,
 }: PingDeviceModalProps) {
-  const { phase, events, result, errorMessage, start, reset } = usePingDevice()
+  const { t } = useTranslation("inventory")
+  const { phase, events, result, errorMessage, start, stopWatching, reset } =
+    usePingDevice()
   const consoleRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -122,12 +125,18 @@ export function PingDeviceModal({
             )}
           </div>
 
-          {phase === "error" ? (
-            <div className="border-destructive/30 bg-destructive/5 text-destructive flex items-start gap-2 rounded-lg border px-3 py-2 text-sm">
-              <XCircle className="mt-0.5 size-4 shrink-0" />
-              <span>{errorMessage}</span>
-            </div>
-          ) : null}
+          <RunStreamStatus
+            phase={phase}
+            errorMessage={errorMessage}
+            onStopWatching={stopWatching}
+            labels={{
+              connecting: t("ping.connecting"),
+              stopWatching: t("ping.stop_watching"),
+              stoppedWatching: t("ping.stopped_watching"),
+              serverMayStillBeRunning: t("ping.server_may_still_be_running"),
+              connectionError: t("ping.connection_error"),
+            }}
+          />
 
           {phase === "done" && result ? (
             <div

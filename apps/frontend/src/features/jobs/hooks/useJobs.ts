@@ -1,6 +1,6 @@
 import { consumeEventIterator } from "@orpc/client"
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query"
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import type { InventoryItem, Job, JobRunEvent } from "@/features/jobs/types"
 import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { useOrpcMutation } from "@/hooks/useOrpcMutation"
@@ -146,9 +146,7 @@ function applyUpdate(current: Job[] | undefined, input: UpdateInput) {
           ...j,
           name: input.name ?? j.name,
           description:
-            input.description !== undefined
-              ? input.description
-              : j.description,
+            input.description !== undefined ? input.description : j.description,
           playbookId:
             input.playbookId !== undefined ? input.playbookId : j.playbookId,
           inventoryJson: input.inventoryJson ?? j.inventoryJson,
@@ -273,7 +271,12 @@ export const useJobRun = () => {
   })
 }
 
-export type JobRunWatchPhase = "idle" | "running" | "done" | "error"
+export type JobRunWatchPhase =
+  | "idle"
+  | "running"
+  | "done"
+  | "error"
+  | "cancelled"
 
 export type JobRunWatchResult = {
   runId: string
@@ -300,46 +303,84 @@ export function useJobRunWatch() {
   const [result, setResult] = useState<JobRunWatchResult | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const unsubscribeRef = useRef<(() => void) | null>(null)
+  const generationRef = useRef(0)
 
-  const start = useCallback((runId: string) => {
-    unsubscribeRef.current?.()
-
-    setWatchingRunId(runId)
-    setEvents([])
-    setResult(null)
-    setErrorMessage(null)
-    setPhase("running")
-
-    unsubscribeRef.current = consumeEventIterator(
-      client.v1.jobs.runs.watch({ runId }),
-      {
-        onEvent: (event) =>
-          setEvents((prev) => [...prev, event as JobRunEvent]),
-        onSuccess: (value) => {
-          if (value) {
-            setResult(value)
-            setPhase("done")
-          } else {
-            setPhase("idle")
-          }
-        },
-        onError: (err) => {
-          setErrorMessage(err instanceof Error ? err.message : "Error de red")
-          setPhase("error")
-        },
-      }
-    )
+  const detach = useCallback(() => {
+    generationRef.current += 1
+    try {
+      unsubscribeRef.current?.()
+    } catch {
+      // The stream is already unusable; local state must still recover.
+    } finally {
+      unsubscribeRef.current = null
+    }
   }, [])
 
+  const start = useCallback(
+    (runId: string) => {
+      detach()
+
+      setWatchingRunId(runId)
+      setEvents([])
+      setResult(null)
+      setErrorMessage(null)
+      setPhase("running")
+
+      const generation = generationRef.current
+      unsubscribeRef.current = consumeEventIterator(
+        client.v1.jobs.runs.watch({ runId }),
+        {
+          onEvent: (event) => {
+            if (generation !== generationRef.current) return
+            setEvents((prev) => [...prev, event as JobRunEvent])
+          },
+          onSuccess: (value) => {
+            if (generation !== generationRef.current) return
+            unsubscribeRef.current = null
+            if (value) {
+              setResult(value)
+              setPhase("done")
+            } else {
+              setPhase("idle")
+            }
+          },
+          onError: (err) => {
+            if (generation !== generationRef.current) return
+            unsubscribeRef.current = null
+            setErrorMessage(err instanceof Error ? err.message : "Error de red")
+            setPhase("error")
+          },
+        }
+      )
+    },
+    [detach]
+  )
+
+  const stopWatching = useCallback(() => {
+    if (phase !== "running") return
+    detach()
+    setPhase("cancelled")
+  }, [detach, phase])
+
   const reset = useCallback(() => {
-    unsubscribeRef.current?.()
-    unsubscribeRef.current = null
+    detach()
     setWatchingRunId(null)
     setPhase("idle")
     setEvents([])
     setResult(null)
     setErrorMessage(null)
-  }, [])
+  }, [detach])
 
-  return { watchingRunId, phase, events, result, errorMessage, start, reset }
+  useEffect(() => detach, [detach])
+
+  return {
+    watchingRunId,
+    phase,
+    events,
+    result,
+    errorMessage,
+    start,
+    stopWatching,
+    reset,
+  }
 }

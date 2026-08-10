@@ -4,7 +4,7 @@ const Check = getIcon("controls", "check")
 const ChevronDown = getIcon("controls", "expand")
 const Folder = getIcon("resources", "folder")
 const Search = getIcon("views", "search")
-const Server = getIcon("resources", "server")
+const Computer = getIcon("resources", "device")
 
 import { type ElementType, useMemo, useState } from "react"
 import { Input } from "@/components/ui/input"
@@ -265,7 +265,7 @@ export function InventorySelectionList({
           title={labels.devices}
           items={filteredDevices}
           selected={selectedDevices}
-          icon={Server}
+          icon={Computer}
           description={(device) => device.ipAddress}
           collapsible={collapsible}
           expanded={query ? true : devicesExpanded}

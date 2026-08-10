@@ -11,7 +11,7 @@ const CheckCircle2 = getIcon("status", "success")
 const ClipboardList = getIcon("resources", "clipboard")
 const Loader2 = getIcon("status", "loading")
 const MinusCircle = getIcon("status", "minus")
-const Server = getIcon("resources", "server")
+const Computer = getIcon("resources", "device")
 const Terminal = getIcon("resources", "terminal")
 const XCircle = getIcon("status", "error")
 
@@ -213,7 +213,7 @@ function parseEvents(raw: unknown[]): Parsed {
 
 const STATUS_META: Record<
   HostOutcome,
-  { icon: typeof Server; textClass: string }
+  { icon: typeof Computer; textClass: string }
 > = {
   running: { icon: Loader2, textClass: "text-primary" },
   ok: {
@@ -242,7 +242,7 @@ function HostResultRow({ result }: { result: TaskHostResult }) {
   return (
     <div className="px-3 py-2">
       <div className="flex items-center gap-2">
-        <Server className="size-3 shrink-0 text-zinc-600" />
+        <Computer className="size-3 shrink-0 text-zinc-600" />
         <span className="min-w-0 flex-1 truncate font-mono text-xs text-zinc-300">
           {result.host}
         </span>

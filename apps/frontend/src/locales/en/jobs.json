@@ -107,6 +107,12 @@
     "saving": "Saving...",
     "save_error": "Could not save the job."
   },
+  "run_now": {
+    "confirm_title": "Run \"{{name}}\" now?",
+    "confirm_description": "This will start the job against {{targets}} configured target(s) with {{forks}} fork(s).",
+    "confirm": "Start job",
+    "cancel": "Cancel"
+  },
   "status": {
     "pending": "Pending",
     "running": "Running",
@@ -161,6 +167,11 @@
     "trigger_manual": "Manual",
     "output": "Output",
     "select_run": "Select a run to see its output.",
+    "connecting": "Live output is connected.",
+    "stop_watching": "Stop watching",
+    "stopped_watching": "Live watching stopped",
+    "server_may_still_be_running": "The server-side run may still be active. Review it before starting another run.",
+    "connection_error": "The live run connection ended",
     "result_finished_with_status": "Run finished — status {{status}}",
     "not_found": "Job not found."
   },

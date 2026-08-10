@@ -11,7 +11,7 @@ const ArrowDown = getIcon("views", "scrollDown")
 const CheckCircle2 = getIcon("status", "success")
 const Loader2 = getIcon("status", "loading")
 const MinusCircle = getIcon("status", "minus")
-const Server = getIcon("resources", "server")
+const Computer = getIcon("resources", "device")
 const XCircle = getIcon("status", "error")
 
 import { useMemo } from "react"
@@ -116,7 +116,7 @@ function buildHostResults(events: RunEvent[]): HostResult[] {
 
 const STATUS_META: Record<
   HostStatus,
-  { icon: typeof Server; textClass: string }
+  { icon: typeof Computer; textClass: string }
 > = {
   running: { icon: Loader2, textClass: "text-sky-400" },
   ok: { icon: CheckCircle2, textClass: "text-emerald-400" },
@@ -141,7 +141,7 @@ function HostCard({ result }: { result: HostResult }) {
   return (
     <div className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/40">
       <div className="flex items-center gap-2 border-b border-zinc-800/80 bg-zinc-900/70 px-3 py-1.5">
-        <Server className="size-3.5 shrink-0 text-zinc-500" />
+        <Computer className="size-3.5 shrink-0 text-zinc-500" />
         <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium text-zinc-200">
           {result.host}
         </span>

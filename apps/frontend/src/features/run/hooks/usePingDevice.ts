@@ -3,7 +3,6 @@ import {
   type RunStreamCallbacks,
   useRunStream,
 } from "@/features/run/hooks/useRunStream"
-import type { RunEvent, RunResult } from "@/features/run/types"
 import { client } from "@/lib/orpc"
 
 export type { RunEvent, RunResult } from "@/features/run/types"

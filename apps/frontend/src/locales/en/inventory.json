@@ -51,5 +51,12 @@
     "credential_placeholder": "No credential assigned",
     "create": "Create device",
     "save_changes": "Save changes"
+  },
+  "ping": {
+    "connecting": "Live output is connected.",
+    "stop_watching": "Stop watching",
+    "stopped_watching": "Live watching stopped",
+    "server_may_still_be_running": "The server-side ping may still be active.",
+    "connection_error": "The live ping connection ended"
   }
 }

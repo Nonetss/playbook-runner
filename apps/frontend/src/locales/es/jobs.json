@@ -107,6 +107,12 @@
     "saving": "Guardando…",
     "save_error": "No se pudo guardar el job."
   },
+  "run_now": {
+    "confirm_title": "¿Ejecutar \"{{name}}\" ahora?",
+    "confirm_description": "Se iniciará el job contra {{targets}} destino(s) configurado(s) con {{forks}} fork(s).",
+    "confirm": "Iniciar job",
+    "cancel": "Cancelar"
+  },
   "status": {
     "pending": "Pendiente",
     "running": "En curso",
@@ -161,6 +167,11 @@
     "trigger_manual": "Manual",
     "output": "Salida",
     "select_run": "Selecciona una ejecución para ver su salida.",
+    "connecting": "Salida en tiempo real conectada.",
+    "stop_watching": "Dejar de ver",
+    "stopped_watching": "Se detuvo la visualización en tiempo real",
+    "server_may_still_be_running": "La ejecución del servidor podría seguir activa. Revísala antes de iniciar otra.",
+    "connection_error": "La conexión de la ejecución terminó",
     "result_finished_with_status": "Ejecución finalizada — estado {{status}}",
     "not_found": "Job no encontrado."
   },

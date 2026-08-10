@@ -1,9 +1,9 @@
 import { consumeEventIterator } from "@orpc/client"
-import type { RunSelection } from "@/features/run/types"
 import {
   type RunStreamCallbacks,
   useRunStream,
 } from "@/features/run/hooks/useRunStream"
+import type { RunSelection } from "@/features/run/types"
 import { client } from "@/lib/orpc"
 
 export type CommandModule = "shell" | "command"

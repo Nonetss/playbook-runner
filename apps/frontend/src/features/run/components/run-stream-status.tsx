@@ -5,7 +5,8 @@ const Loader2 = getIcon("status", "loading")
 const XCircle = getIcon("status", "error")
 
 import { Button } from "@/components/ui/button"
-import type { RunPhase } from "@/features/run/types"
+
+type StreamPhase = "idle" | "running" | "done" | "error" | "cancelled"
 
 export type RunStreamStatusLabels = {
   connecting: string
@@ -26,7 +27,7 @@ export function RunStreamStatus({
   labels,
   onStopWatching,
 }: {
-  phase: RunPhase
+  phase: StreamPhase
   errorMessage?: string | null
   labels: RunStreamStatusLabels
   onStopWatching?: () => void

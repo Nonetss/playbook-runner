@@ -51,5 +51,12 @@
     "credential_placeholder": "Sin credencial asignada",
     "create": "Crear dispositivo",
     "save_changes": "Guardar cambios"
+  },
+  "ping": {
+    "connecting": "Salida en tiempo real conectada.",
+    "stop_watching": "Dejar de ver",
+    "stopped_watching": "Se detuvo la visualización en tiempo real",
+    "server_may_still_be_running": "El ping del servidor podría seguir activo.",
+    "connection_error": "La conexión del ping terminó"
   }
 }

@@ -38,6 +38,8 @@ export function useRunStream<TRequest>(
     generationRef.current += 1
     try {
       unsubscribeRef.current?.()
+    } catch {
+      // The stream is already unusable; local state must still recover.
     } finally {
       unsubscribeRef.current = null
     }
