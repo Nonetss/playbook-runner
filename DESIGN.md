@@ -317,6 +317,12 @@ Playbook, device, group, credential, script, and job cards compose shadcn
 Prefer one consistent card rhythm over mixing free-floating shadow cards and
 divide-y lists on the same page.
 
+The shared `ResourceCard` shell in
+`apps/frontend/src/components/shared/data-display/resource-card.tsx` owns the
+repeated icon-well, title/meta, action slot, and card spacing. Feature cards
+keep their domain-specific body content and action menu items as children and
+slots; do not recreate the header shell locally.
+
 ### Run Console (`features/run`)
 
 - Split operational surface: streaming output + inventory / host scope.
@@ -326,6 +332,11 @@ divide-y lists on the same page.
   failed (failure) = red. These colors are Ansible-domain semantics, not invented.
 - Shared by playbooks, scripts, and commands — do not fork execution UI into
   those features.
+
+`InventorySelectionList` is the shared group/device selector for run consoles,
+commands, run modals, and job scheduling. It owns search filtering, collapsible
+sections, selection rows, keyboard interaction, and empty/no-match states;
+callers provide translated labels and controlled selection sets.
 
 ### Dashboard
 
