@@ -1,6 +1,7 @@
 import { getIcon } from "@/lib/icon-registry"
 
 const ArrowLeft = getIcon("navigation", "back")
+const BriefcaseIcon = getIcon("resources", "briefcase")
 const Loader2 = getIcon("status", "loading")
 const Plus = getIcon("actions", "add")
 const Trash2 = getIcon("actions", "delete")
@@ -25,6 +26,14 @@ import { usePlaybooksList } from "@/features/playbooks/hooks/use-playbooks"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { navigate } from "@/lib/navigate"
 import { cn } from "@/lib/utils"
+
+const NATIVE_SELECT_CLASS = cn(
+  "border-input bg-transparent shadow-xs dark:bg-input/30",
+  "focus-visible:border-ring focus-visible:ring-ring/50",
+  "flex h-9 w-full min-w-0 appearance-none rounded-md border px-3 py-2 text-sm",
+  "outline-none focus-visible:ring-[3px]",
+  "disabled:cursor-not-allowed disabled:opacity-50"
+)
 
 type ExtravarRow = { key: string; value: string }
 
@@ -210,6 +219,7 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
   }
 
   const selectionCount = selectedGroups.size + selectedDevices.size
+  const hasInventory = groups.length > 0 || devices.length > 0
 
   return (
     <main className="w-full flex-1 p-6 lg:px-8">
@@ -224,69 +234,82 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
             <ArrowLeft className="size-4" />
           </a>
         </Button>
-        <div>
+        <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-md">
+          <BriefcaseIcon className="size-4.5" />
+        </div>
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold tracking-tight">
             {isEditing ? t("form.edit_title") : t("form.create_title")}
           </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <p className="text-muted-foreground mt-0.5 text-sm">
             {isEditing ? t("form.edit_subtitle") : t("form.create_subtitle")}
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="mx-auto max-w-3xl space-y-8">
+      <form
+        onSubmit={handleSubmit}
+        className="mx-auto flex max-w-3xl flex-col gap-10"
+      >
         {/* ── Info ── */}
-        <section className="space-y-4">
-          <h2 className="text-muted-foreground type-label">
+        <section>
+          <h2 className="type-label text-muted-foreground mb-4">
             {t("form.info_section")}
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="job-name">
-                {t("form.name_label")}
-                <span aria-hidden> *</span>
-              </Label>
-              <Input
-                id="job-name"
-                required
-                disabled={isSubmitting}
-                placeholder={t("form.name_placeholder")}
-                value={values.name}
-                onChange={(e) => set("name", e.target.value)}
-              />
+          <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="job-name">
+                  {t("form.name_label")}
+                  <span aria-hidden> *</span>
+                </Label>
+                <Input
+                  id="job-name"
+                  required
+                  disabled={isSubmitting}
+                  placeholder={t("form.name_placeholder")}
+                  value={values.name}
+                  onChange={(e) => set("name", e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="job-description">
+                  {t("form.description_label")}
+                </Label>
+                <Input
+                  id="job-description"
+                  name="job-description"
+                  autoComplete="off"
+                  disabled={isSubmitting}
+                  placeholder={t("form.description_placeholder")}
+                  value={values.description}
+                  onChange={(e) => set("description", e.target.value)}
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="job-description">
-                {t("form.description_label")}
-              </Label>
-              <Input
-                id="job-description"
-                name="job-description"
-                autoComplete="off"
-                disabled={isSubmitting}
-                placeholder={t("form.description_placeholder")}
-                value={values.description}
-                onChange={(e) => set("description", e.target.value)}
-              />
-            </div>
-          </div>
 
-          <div className="flex items-center gap-3">
-            <Switch
-              id="job-enabled"
-              checked={values.enabled}
-              onCheckedChange={(v) => set("enabled", v)}
-              disabled={isSubmitting}
-            />
-            <Label htmlFor="job-enabled" className="cursor-pointer">
-              {values.enabled ? t("form.active") : t("form.inactive")}
-            </Label>
+            <div className="flex items-start justify-between gap-3 rounded-xl border bg-card/40 p-3">
+              <div className="min-w-0">
+                <Label htmlFor="job-enabled" className="cursor-pointer text-sm">
+                  {values.enabled ? t("form.active") : t("form.inactive")}
+                </Label>
+                <p className="type-meta text-muted-foreground mt-0.5">
+                  {t("form.enabled_hint")}
+                </p>
+              </div>
+              <Switch
+                id="job-enabled"
+                checked={values.enabled}
+                onCheckedChange={(v) => set("enabled", v)}
+                disabled={isSubmitting}
+              />
+            </div>
           </div>
         </section>
 
         {/* ── Playbook ── */}
-        <section className="space-y-4">
-          <h2 className="text-muted-foreground type-label">
+        <section>
+          <h2 className="type-label text-muted-foreground mb-4">
             {t("form.playbook_section")}
           </h2>
           <div className="space-y-2">
@@ -302,13 +325,7 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
               disabled={isSubmitting}
               value={values.playbookId}
               onChange={(e) => set("playbookId", e.target.value)}
-              className={cn(
-                "border-input bg-transparent shadow-xs dark:bg-input/30",
-                "focus-visible:border-ring focus-visible:ring-ring/50",
-                "flex h-9 w-full min-w-0 rounded-md border px-3 py-2 text-sm",
-                "outline-none focus-visible:ring-[3px]",
-                "disabled:cursor-not-allowed disabled:opacity-50"
-              )}
+              className={NATIVE_SELECT_CLASS}
             >
               <option value="">{t("form.playbook_placeholder")}</option>
               {playbooks.map((p) => (
@@ -321,26 +338,37 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
         </section>
 
         {/* ── Inventario ── */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-muted-foreground type-label">
+        <section>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="type-label text-muted-foreground">
               {t("form.inventory_section")}
             </h2>
-            <span className="text-muted-foreground text-xs">
-              <Trans
-                i18nKey="form.inventory_selected"
-                ns="jobs"
-                count={selectionCount}
-              />
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="type-meta text-muted-foreground tabular-nums">
+                <Trans
+                  i18nKey="form.inventory_selected"
+                  ns="jobs"
+                  count={selectionCount}
+                />
+              </span>
+              {selectionCount > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedGroups(new Set())
+                    setSelectedDevices(new Set())
+                  }}
+                  disabled={isSubmitting}
+                  className="type-meta text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+                >
+                  {t("form.inventory_clear")}
+                </button>
+              ) : null}
+            </div>
           </div>
 
-          {groups.length === 0 && devices.length === 0 ? (
-            <p className="text-muted-foreground text-sm">
-              {t("form.no_inventory")}
-            </p>
-          ) : (
-            <div className="rounded-xl border p-3">
+          {hasInventory ? (
+            <div className="rounded-xl border bg-card/40 p-3">
               <InventorySelectionList
                 groups={groups}
                 devices={devices}
@@ -365,43 +393,55 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
                 labels={{
                   groups: t("form.groups_label"),
                   devices: t("form.devices_label"),
-                  noResults: t("form.no_inventory"),
+                  searchPlaceholder: t("form.inventory_search_placeholder"),
+                  noResults: t("form.inventory_no_results"),
                   emptyInventory: t("form.no_inventory"),
-                  noMatch: t("form.no_inventory"),
+                  noMatch: t("form.inventory_no_match"),
                 }}
+                searchable
+                collapsible
+                disabled={isSubmitting}
               />
+            </div>
+          ) : (
+            <div className="rounded-xl border border-dashed bg-card px-4 py-8 text-center">
+              <p className="text-muted-foreground text-sm">
+                {t("form.no_inventory")}
+              </p>
             </div>
           )}
         </section>
 
         {/* ── Schedule ── */}
-        <section className="space-y-4">
-          <h2 className="text-muted-foreground type-label">
+        <section>
+          <h2 className="type-label text-muted-foreground mb-4">
             {t("form.schedule_section")}
           </h2>
-          <div className="space-y-2">
-            <Label htmlFor="job-cron">
-              {t("form.cron_label")}{" "}
-              <span className="text-muted-foreground font-normal">
-                {t("form.cron_optional")}
-              </span>
-            </Label>
-            <div className="flex gap-2">
-              <Input
-                id="job-cron"
-                disabled={isSubmitting}
-                placeholder="0 2 * * *"
-                value={values.cronExpression}
-                onChange={(e) => set("cronExpression", e.target.value)}
-                className="font-mono"
-              />
-              <CronScheduleDialog
-                expression={values.cronExpression}
-                onApply={(expression) => set("cronExpression", expression)}
-                disabled={isSubmitting}
-              />
+          <div className="space-y-3 rounded-xl border bg-card/40 p-4">
+            <div className="space-y-2">
+              <Label htmlFor="job-cron">
+                {t("form.cron_label")}{" "}
+                <span className="text-muted-foreground font-normal">
+                  {t("form.cron_optional")}
+                </span>
+              </Label>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  id="job-cron"
+                  disabled={isSubmitting}
+                  placeholder="0 2 * * *"
+                  value={values.cronExpression}
+                  onChange={(e) => set("cronExpression", e.target.value)}
+                  className="font-mono tabular-nums sm:flex-1"
+                />
+                <CronScheduleDialog
+                  expression={values.cronExpression}
+                  onApply={(expression) => set("cronExpression", expression)}
+                  disabled={isSubmitting}
+                />
+              </div>
             </div>
-            <p className="text-muted-foreground text-xs">
+            <p className="type-meta text-muted-foreground">
               <Trans
                 i18nKey="form.cron_hint"
                 ns="jobs"
@@ -416,115 +456,122 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
         </section>
 
         {/* ── Options ── */}
-        <section className="space-y-4">
-          <h2 className="text-muted-foreground type-label">
+        <section>
+          <h2 className="type-label text-muted-foreground mb-4">
             {t("form.options_section")}
           </h2>
-
-          <div className="flex items-center gap-3">
-            <Label htmlFor="job-forks" className="w-16 shrink-0 text-sm">
-              {t("form.forks_label")}
-            </Label>
-            <Input
-              id="job-forks"
-              type="number"
-              min={1}
-              max={500}
-              value={values.forks}
-              onChange={(e) =>
-                set(
-                  "forks",
-                  Math.max(1, Number.parseInt(e.target.value, 10) || 1)
-                )
-              }
-              disabled={isSubmitting}
-              className="w-24"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm">{t("form.extravars_label")}</Label>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={addExtravar}
+          <div className="space-y-4 rounded-xl border bg-card/40 p-4">
+            <div className="flex items-center gap-3">
+              <Label htmlFor="job-forks" className="w-24 shrink-0 text-xs">
+                {t("form.forks_label")}
+              </Label>
+              <Input
+                id="job-forks"
+                type="number"
+                min={1}
+                max={500}
+                value={values.forks}
+                onChange={(e) =>
+                  set(
+                    "forks",
+                    Math.max(1, Number.parseInt(e.target.value, 10) || 1)
+                  )
+                }
                 disabled={isSubmitting}
-                className="h-7 text-xs"
-              >
-                <Plus className="size-3" />
-                {t("form.extravars_add")}
-              </Button>
+                className="h-9 w-24 tabular-nums"
+              />
             </div>
-            {extravars.length === 0 ? (
-              <p className="text-muted-foreground text-xs">
-                {t("form.no_extravars")}
-              </p>
-            ) : (
-              <ul className="space-y-2">
-                {extravars.map((row, i) => (
-                  <li key={i} className="flex items-center gap-2">
-                    <Input
-                      placeholder={t("form.extravars_key_placeholder")}
-                      value={row.key}
-                      onChange={(e) => updateExtravar(i, "key", e.target.value)}
-                      disabled={isSubmitting}
-                      className="font-mono text-xs"
-                    />
-                    <Input
-                      placeholder={t("form.extravars_value_placeholder")}
-                      value={row.value}
-                      onChange={(e) =>
-                        updateExtravar(i, "value", e.target.value)
-                      }
-                      disabled={isSubmitting}
-                      className="text-xs"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => removeExtravar(i)}
-                      disabled={isSubmitting}
-                      aria-label={t("form.extravars_remove_aria")}
-                    >
-                      <Trash2 className="size-3.5" />
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            )}
+
+            <div className="space-y-2 border-t pt-4">
+              <div className="flex items-center justify-between gap-2">
+                <Label className="text-xs">{t("form.extravars_label")}</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addExtravar}
+                  disabled={isSubmitting}
+                  className="h-7 text-xs"
+                >
+                  <Plus className="size-3" />
+                  {t("form.extravars_add")}
+                </Button>
+              </div>
+              {extravars.length === 0 ? (
+                <div className="rounded-xl border border-dashed px-3 py-4 text-center">
+                  <p className="type-meta text-muted-foreground">
+                    {t("form.no_extravars")}
+                  </p>
+                </div>
+              ) : (
+                <ul className="space-y-2">
+                  {extravars.map((row, i) => (
+                    <li key={i} className="flex min-w-0 items-center gap-2">
+                      <Input
+                        placeholder={t("form.extravars_key_placeholder")}
+                        value={row.key}
+                        onChange={(e) =>
+                          updateExtravar(i, "key", e.target.value)
+                        }
+                        disabled={isSubmitting}
+                        className="min-w-0 flex-1 font-mono text-xs"
+                      />
+                      <Input
+                        placeholder={t("form.extravars_value_placeholder")}
+                        value={row.value}
+                        onChange={(e) =>
+                          updateExtravar(i, "value", e.target.value)
+                        }
+                        disabled={isSubmitting}
+                        className="min-w-0 flex-1 font-mono text-xs"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => removeExtravar(i)}
+                        disabled={isSubmitting}
+                        aria-label={t("form.extravars_remove_aria")}
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </section>
 
         {error ? (
-          <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
             {error}
           </p>
         ) : null}
 
-        <div className="flex justify-end gap-2 pb-4">
-          <Button
-            asChild
-            type="button"
-            variant="outline"
-            disabled={isSubmitting}
-          >
-            <a href="/jobs/scheduler">{tCommon("actions.cancel")}</a>
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                {t("form.saving")}
-              </>
-            ) : isEditing ? (
-              t("form.save_changes")
-            ) : (
-              t("form.create")
-            )}
-          </Button>
+        <div className="sticky bottom-0 z-10 mt-2 border-t bg-background/95 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="flex justify-end gap-2">
+            <Button
+              asChild
+              type="button"
+              variant="outline"
+              disabled={isSubmitting}
+            >
+              <a href="/jobs/scheduler">{tCommon("actions.cancel")}</a>
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  {t("form.saving")}
+                </>
+              ) : isEditing ? (
+                t("form.save_changes")
+              ) : (
+                t("form.create")
+              )}
+            </Button>
+          </div>
         </div>
       </form>
     </main>
