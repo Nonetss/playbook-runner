@@ -1,8 +1,12 @@
 ---
 import { PlaybookFormPage } from "@/features/playbooks/components/playbook-form-page"
 import Layout from "@/layouts/Layout.astro"
+import { getServerT } from "@/lib/i18n/server"
+
+const { locale } = Astro.locals
+const t = await getServerT(locale, "playbooks")
 ---
 
-<Layout title="Nuevo playbook">
+<Layout title={t("form.create_title")}>
   <PlaybookFormPage client:only="react" />
 </Layout>

@@ -1,10 +1,13 @@
 ---
 import { RunPlaybookPage } from "@/features/playbooks/components/run-playbook-page"
 import Layout from "@/layouts/Layout.astro"
+import { getServerT } from "@/lib/i18n/server"
 
 const { id } = Astro.params
+const { locale } = Astro.locals
+const t = await getServerT(locale, "playbooks")
 ---
 
-<Layout title="Ejecutar playbook">
+<Layout title={t("run.document_title")}>
   <RunPlaybookPage client:only="react" id={id} />
 </Layout>

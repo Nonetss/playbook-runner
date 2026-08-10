@@ -44,6 +44,7 @@ export function DeviceCard({
   isDeleting = false,
 }: DeviceCardProps) {
   const { t } = useTranslation("common")
+  const { t: tInventory } = useTranslation("inventory")
   return (
     <ResourceCard
       icon={<Computer className="size-4" />}
@@ -52,7 +53,7 @@ export function DeviceCard({
       contentClassName="space-y-3"
       actions={
         <RowActionsMenu
-          label={`Acciones para ${device.name}`}
+          label={tInventory("device.actions_for", { name: device.name })}
           disabled={isDeleting}
         >
           <DropdownMenuItem onClick={() => onEdit(device)}>
@@ -92,7 +93,9 @@ export function DeviceCard({
 
       {groups.length > 0 ? (
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-muted-foreground text-xs">Grupos:</span>
+          <span className="text-muted-foreground text-xs">
+            {tInventory("device.groups")}:
+          </span>
           {groups.map((group) => (
             <Badge key={group.id} variant="outline" className="text-xs">
               {group.name}
@@ -105,7 +108,7 @@ export function DeviceCard({
           onClick={() => onManageGroups(device)}
           className="text-muted-foreground hover:text-foreground text-xs underline-offset-4 hover:underline"
         >
-          Asignar a un grupo
+          {tInventory("device.assign_group")}
         </button>
       )}
     </ResourceCard>

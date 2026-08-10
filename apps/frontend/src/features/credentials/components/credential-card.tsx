@@ -28,6 +28,7 @@ export function CredentialCard({
   isDeleting = false,
 }: CredentialCardProps) {
   const { t } = useTranslation("common")
+  const { t: tCredentials } = useTranslation("credentials")
   const [scriptOpen, setScriptOpen] = useState(false)
   const createdAt = credential.createdAt
     ? new Date(credential.createdAt).toLocaleDateString("es-ES", {
@@ -46,7 +47,7 @@ export function CredentialCard({
       contentClassName="min-w-0 space-y-3 overflow-hidden"
       actions={
         <RowActionsMenu
-          label={`Acciones para ${credential.name}`}
+          label={tCredentials("card.actions_for", { name: credential.name })}
           disabled={isDeleting}
         >
           <DropdownMenuItem onClick={() => onEdit(credential)}>
@@ -73,7 +74,7 @@ export function CredentialCard({
         </Badge>
         {createdAt && (
           <span className="text-muted-foreground text-xs">
-            Creada el {createdAt}
+            {tCredentials("card.created_on", { date: createdAt })}
           </span>
         )}
       </div>

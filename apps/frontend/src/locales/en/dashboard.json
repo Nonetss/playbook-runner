@@ -1,5 +1,6 @@
 {
   "page": {
+    "document_title": "Dashboard",
     "title": "Welcome{{name}}",
     "subtitle": "Summary of your automation environment",
     "new_job_cta": "New job"

@@ -1,8 +1,12 @@
 ---
 import { DashboardPage } from "@/features/dashboard"
 import Layout from "@/layouts/Layout.astro"
+import { getServerT } from "@/lib/i18n/server"
+
+const { locale } = Astro.locals
+const t = await getServerT(locale, "dashboard")
 ---
 
-<Layout title="Inicio">
+<Layout title={t("page.document_title")}>
   <DashboardPage client:only="react" />
 </Layout>

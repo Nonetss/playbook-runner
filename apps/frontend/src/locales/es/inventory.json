@@ -10,18 +10,44 @@
     }
   },
   "group": {
+    "document_title": "Grupo",
     "empty_title": "Sin grupos",
     "empty_description": "Crea tu primer grupo para empezar a organizar dispositivos.",
     "delete_confirm_title": "Eliminar \"{{label}}\"",
     "delete_confirm_description": "Esta acción no se puede deshacer.",
-    "delete_error": "No se pudo eliminar el grupo"
+    "delete_error": "No se pudo eliminar el grupo",
+    "detail_loading": "Cargando grupo…",
+    "detail_load_error": "No se pudo cargar el grupo.",
+    "back_to_inventory": "Volver al inventario",
+    "back_aria": "Volver",
+    "information": "INFORMACIÓN",
+    "devices": "Dispositivos",
+    "delete_title": "Eliminar grupo",
+    "delete_description": "Se eliminará el grupo y todas sus asignaciones de dispositivos. No se puede deshacer.",
+    "delete_hint": "Elimina el grupo y desvincula todos sus dispositivos. Esta acción no se puede deshacer.",
+    "delete": "Eliminar",
+    "save_changes": "Guardar cambios",
+    "deleting": "Eliminando…",
+    "manage": "Gestionar",
+    "device_count": "{{count}} dispositivo",
+    "device_count_other": "{{count}} dispositivos",
+    "no_devices": "Sin dispositivos asignados.",
+    "no_devices_in_inventory": "Aún no hay dispositivos. Crea uno en el inventario primero.",
+    "assigned_count": "{{assigned}} de {{total}} asignados",
+    "danger_zone": "ZONA DE PELIGRO",
+    "common_saving": "Guardando…",
+    "not_found": "Grupo no encontrado.",
+    "actions_for": "Acciones para {{name}}"
   },
   "device": {
     "empty_title": "Sin dispositivos",
     "empty_description": "Añade tu primer dispositivo para empezar a gestionar el inventario.",
     "delete_confirm_title": "Eliminar \"{{label}}\"",
     "delete_confirm_description": "Esta acción no se puede deshacer.",
-    "delete_error": "No se pudo eliminar el dispositivo"
+    "delete_error": "No se pudo eliminar el dispositivo",
+    "groups": "Grupos",
+    "assign_group": "Asignar a un grupo",
+    "actions_for": "Acciones para {{name}}"
   },
   "group_form": {
     "create_title": "Nuevo grupo",
@@ -53,10 +79,40 @@
     "save_changes": "Guardar cambios"
   },
   "ping": {
+    "title": "Ping — {{name}}",
+    "connecting_local": "Conectando…",
+    "retry": "Reintentar",
+    "close": "Cerrar",
+    "running_close": "Ejecutando…",
+    "result_ok": "Host alcanzable",
+    "result_failed": "Host no alcanzable",
+    "result_status": "estado",
     "connecting": "Salida en tiempo real conectada.",
     "stop_watching": "Dejar de ver",
     "stopped_watching": "Se detuvo la visualización en tiempo real",
     "server_may_still_be_running": "El ping del servidor podría seguir activo.",
-    "connection_error": "La conexión del ping terminó"
+    "connection_error": "La conexión del ping terminó",
+    "event_play_started": "▶ Play iniciado",
+    "event_task_default": "Tarea",
+    "event_changed": "cambiado",
+    "event_ok": "correcto",
+    "event_skipped": "omitido",
+    "event_failed": "fallido",
+    "event_unreachable": "inaccesible",
+    "event_summary": "■ Resumen"
+  },
+  "relations": {
+    "created": "Asignación creada",
+    "removed": "Asignación eliminada",
+    "create_error": "No se pudo crear la asignación",
+    "remove_error": "No se pudo quitar la asignación",
+    "device_groups_title": "Grupos del dispositivo",
+    "group_devices_title": "Dispositivos del grupo",
+    "device_groups_description": "Selecciona los grupos que incluyen a «{{name}}».",
+    "group_devices_description": "Selecciona los dispositivos incluidos en «{{name}}».",
+    "no_groups": "No hay grupos disponibles.",
+    "no_devices": "No hay dispositivos disponibles.",
+    "loading": "Cargando relaciones…",
+    "load_error": "No se pudieron cargar las relaciones."
   }
 }

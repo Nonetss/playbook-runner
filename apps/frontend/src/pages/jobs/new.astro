@@ -1,8 +1,12 @@
 ---
 import { JobFormPage } from "@/features/jobs/components/job-form-page"
 import Layout from "@/layouts/Layout.astro"
+import { getServerT } from "@/lib/i18n/server"
+
+const { locale } = Astro.locals
+const t = await getServerT(locale, "jobs")
 ---
 
-<Layout title="Nuevo job">
+<Layout title={t("form.create_title")}>
   <JobFormPage client:only="react" />
 </Layout>

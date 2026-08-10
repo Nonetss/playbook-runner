@@ -1,10 +1,13 @@
 ---
 import { JobFormPage } from "@/features/jobs/components/job-form-page"
 import Layout from "@/layouts/Layout.astro"
+import { getServerT } from "@/lib/i18n/server"
 
 const { id } = Astro.params
+const { locale } = Astro.locals
+const t = await getServerT(locale, "jobs")
 ---
 
-<Layout title="Editar job">
+<Layout title={t("form.edit_title")}>
   <JobFormPage client:only="react" id={id} />
 </Layout>

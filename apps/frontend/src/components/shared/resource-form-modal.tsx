@@ -63,8 +63,8 @@ export function ResourceFormModal<TValues extends Record<string, unknown>>({
   entity,
   onSubmit,
   isSubmitting = false,
-  submitLabel = "Crear",
-  editingSubmitLabel = "Guardar cambios",
+  submitLabel,
+  editingSubmitLabel,
   submitErrorMessage,
   formId = "resource-form",
 }: ResourceFormModalProps<TValues>) {
@@ -114,8 +114,8 @@ export function ResourceFormModal<TValues extends Record<string, unknown>>({
         isSubmitting
           ? t("actions.saving")
           : isEditing
-            ? editingSubmitLabel
-            : submitLabel
+            ? (editingSubmitLabel ?? t("actions.save_changes"))
+            : (submitLabel ?? t("actions.create"))
       }
       cancelLabel={t("actions.cancel")}
       formId={formId}

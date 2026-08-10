@@ -3,6 +3,7 @@ import { getIcon } from "@/lib/icon-registry"
 const Plus = getIcon("actions", "add")
 const Computer = getIcon("resources", "device")
 
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { DeviceCard } from "@/features/inventory/components/device-card"
 import type {
@@ -38,19 +39,20 @@ export function DeviceList({
   onPing,
   deletingId = null,
 }: DeviceListProps) {
+  const { t } = useTranslation("inventory")
   if (devices.length === 0 && onCreate) {
     return (
       <div className="rounded-xl border border-dashed bg-card px-6 py-12 text-center">
         <div className="bg-primary/10 text-primary mx-auto mb-4 flex size-12 items-center justify-center rounded-full">
           <Computer className="size-5" />
         </div>
-        <h2 className="text-lg font-semibold">Sin dispositivos</h2>
+        <h2 className="text-lg font-semibold">{t("device.empty_title")}</h2>
         <p className="text-muted-foreground mx-auto mt-2 max-w-sm text-sm">
-          Añade tu primer dispositivo para empezar a gestionar el inventario.
+          {t("device.empty_description")}
         </p>
         <Button className="mt-6" onClick={onCreate}>
           <Plus className="size-4" />
-          Nuevo dispositivo
+          {t("page.create.device")}
         </Button>
       </div>
     )

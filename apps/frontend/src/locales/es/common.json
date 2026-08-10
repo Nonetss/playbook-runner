@@ -1,6 +1,7 @@
 {
   "actions": {
     "save": "Guardar",
+    "save_changes": "Guardar cambios",
     "create": "Crear",
     "edit": "Editar",
     "delete": "Eliminar",
@@ -38,7 +39,10 @@
     "default_display_name": "Usuario",
     "error_loading_data": "No se pudieron cargar los datos.",
     "error_saving": "No se pudo guardar.",
+    "action_failed": "No se pudo completar la acción.",
     "navigation_title": "Navegación",
+    "mobile_navigation": "Muestra la navegación móvil.",
+    "toggle_sidebar": "Mostrar u ocultar la barra lateral",
     "row_actions": "Acciones",
     "no_selection": "Sin selección",
     "this_playbook": "este playbook",
@@ -74,6 +78,7 @@
     "waiting": "Esperando resultado…",
     "no_output": "Sin salida.",
     "stderr": "stderr",
+    "connection_error": "La conexión de la ejecución terminó inesperadamente.",
     "jump_to_latest": "Ir al final",
     "status": {
       "running": "Ejecutando",

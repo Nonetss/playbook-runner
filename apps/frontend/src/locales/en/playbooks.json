@@ -111,6 +111,7 @@
     "error": "Could not delete the playbook"
   },
   "run": {
+    "document_title": "Run playbook",
     "header_subtitle": "Run the playbook",
     "playbook_not_found": "Playbook not found.",
     "loading": "Loading...",

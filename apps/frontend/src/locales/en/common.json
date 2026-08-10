@@ -1,6 +1,7 @@
 {
   "actions": {
     "save": "Save",
+    "save_changes": "Save changes",
     "create": "Create",
     "edit": "Edit",
     "delete": "Delete",
@@ -38,7 +39,10 @@
     "default_display_name": "User",
     "error_loading_data": "Could not load data.",
     "error_saving": "Could not save.",
+    "action_failed": "The action could not be completed.",
     "navigation_title": "Navigation",
+    "mobile_navigation": "Displays the mobile navigation.",
+    "toggle_sidebar": "Toggle sidebar",
     "row_actions": "Actions",
     "no_selection": "No selection",
     "this_playbook": "this playbook",
@@ -74,6 +78,7 @@
     "waiting": "Waiting for result…",
     "no_output": "No output.",
     "stderr": "stderr",
+    "connection_error": "The run connection ended unexpectedly.",
     "jump_to_latest": "Jump to latest",
     "status": {
       "running": "Running",

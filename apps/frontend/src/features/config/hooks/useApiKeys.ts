@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import type { ApiKey, ApiKeyListItem } from "@/features/config/types"
 import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { useResourceMutation } from "@/hooks/useResourceMutation"
@@ -44,25 +45,34 @@ function applyDeleteOptimistic(
   return current.filter((apiKey) => apiKey.id !== input.id)
 }
 
-export const useApiKeyCreate = () =>
-  useResourceMutation<ApiKeyCreateInput, ApiKey, ApiKeyListItem[]>({
+export const useApiKeyCreate = () => {
+  const { t } = useTranslation("config")
+  return useResourceMutation<ApiKeyCreateInput, ApiKey, ApiKeyListItem[]>({
     mutationFn: (input) => orpc.config.apiKeys.create.call(input),
     listKey,
     applyOptimistic: applyCreateOptimistic,
     messages: {
-      success: "API key creada",
-      error: "No se pudo crear la API key",
+      success: t("api_keys.toast_created"),
+      error: t("api_keys.toast_create_error"),
     },
   })
+}
 
-export const useApiKeyDelete = () =>
-  useResourceMutation<{ id: string }, ApiKeyDeleteOutput, ApiKeyListItem[]>({
+export const useApiKeyDelete = () => {
+  const { t } = useTranslation("config")
+  return useResourceMutation<
+    { id: string },
+    ApiKeyDeleteOutput,
+    ApiKeyListItem[]
+  >({
     mutationFn: (input) =>
       orpc.config.apiKeys.delete.call(input) as Promise<ApiKeyDeleteOutput>,
     listKey,
     applyOptimistic: applyDeleteOptimistic,
     messages: {
-      success: "API key eliminada",
-      error: "No se pudo eliminar la API key",
+      success: t("api_keys.toast_deleted"),
+      error: t("api_keys.toast_delete_error"),
     },
   })
+}
+}

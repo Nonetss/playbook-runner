@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { notifyError } from "@/lib/toast"
 
@@ -35,6 +36,7 @@ export function useConfirm(): ConfirmContextValue["confirm"] {
  * `AppProviders`).
  */
 export function ConfirmProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation("common")
   const [request, setRequest] = React.useState<ConfirmRequest | null>(null)
   const open = request !== null
 
@@ -58,7 +60,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
     try {
       request.resolve(true)
     } catch (err) {
-      notifyError("No se pudo completar la acción")
+      notifyError(t("labels.action_failed"))
       console.error(err)
     } finally {
       setRequest(null)
@@ -75,8 +77,8 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
         onOpenChange={handleOpenChange}
         title={request?.title ?? ""}
         description={request?.description}
-        confirmLabel={request?.confirmLabel ?? "Confirmar"}
-        cancelLabel={request?.cancelLabel ?? "Cancelar"}
+        confirmLabel={request?.confirmLabel ?? t("actions.confirm")}
+        cancelLabel={request?.cancelLabel ?? t("actions.cancel")}
         variant={request?.variant ?? "default"}
         onConfirm={async () => {
           handleConfirm()

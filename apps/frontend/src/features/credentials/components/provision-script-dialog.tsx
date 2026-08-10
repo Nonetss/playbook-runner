@@ -4,6 +4,7 @@ const Check = getIcon("controls", "check")
 const Copy = getIcon("actions", "copy")
 
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -44,6 +45,7 @@ export function ProvisionScriptDialog({
   onOpenChange,
   credential,
 }: ProvisionScriptDialogProps) {
+  const { t } = useTranslation("credentials")
   const [copied, setCopied] = useState(false)
   const script = credential ? buildProvisionScript(credential) : ""
 
@@ -52,10 +54,10 @@ export function ProvisionScriptDialog({
     try {
       await navigator.clipboard.writeText(script)
       setCopied(true)
-      notifySuccess("Script copiado al portapapeles")
+      notifySuccess(t("provision.copy_success"))
       window.setTimeout(() => setCopied(false), 2000)
     } catch {
-      notifyError("No se pudo copiar al portapapeles")
+      notifyError(t("provision.copy_error"))
     }
   }
 
@@ -69,11 +71,9 @@ export function ProvisionScriptDialog({
     >
       <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Script de aprovisionamiento</DialogTitle>
+          <DialogTitle>{t("provision.title")}</DialogTitle>
           <DialogDescription>
-            Ejecuta este script como root en el servidor de destino para crear
-            el usuario <span className="font-mono">{credential?.username}</span>{" "}
-            y autorizar la clave pública de esta credencial.
+            {t("provision.description", { username: credential?.username })}
           </DialogDescription>
         </DialogHeader>
 
@@ -86,17 +86,17 @@ export function ProvisionScriptDialog({
             {copied ? (
               <>
                 <Check className="size-4" />
-                Copiado
+                {t("provision.copied")}
               </>
             ) : (
               <>
                 <Copy className="size-4" />
-                Copiar script
+                {t("provision.copy")}
               </>
             )}
           </Button>
           <Button type="button" onClick={() => onOpenChange(false)}>
-            Cerrar
+            {t("provision.close")}
           </Button>
         </DialogFooter>
       </DialogContent>

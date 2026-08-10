@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import type { Script } from "@/features/scripts/types"
 import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { useResourceMutation } from "@/hooks/useResourceMutation"
@@ -70,34 +71,37 @@ function applyDeleteOptimistic(
   return current.filter((script) => script.id !== input.id)
 }
 
-export const useScriptCreate = () =>
-  useResourceMutation<
-    {
-      name: string
-      description?: string
-      content: string
-      language: "bash" | "python"
-    },
-    Script,
-    Script[]
-  >({
-    mutationFn: (input) =>
-      orpc.scripts.create.call({
-        name: input.name,
-        description: input.description ?? "",
-        content: input.content,
-        language: input.language,
-      }) as Promise<Script>,
-    listKey,
-    applyOptimistic: applyCreateOptimistic,
-    messages: {
-      success: "Script creado",
-      error: "No se pudo crear el script",
-    },
-  })
+export const useScriptCreate = () => {
+  const { t } = useTranslation("scripts")
+  return (
+    useResourceMutation <
+    useResourceMutation<
+      {
+        name: string
+        description?: string
+        content: string
+        language: "bash" | "python"
+      },
+      Script,
+      Script[]
+    >({
+      mutationFn: (input) =>
+        orpc.scripts.create.call({
+          name: input.name,
+          description: input.description ?? "",
+          content: input.content,
+          language: input.language,
+        }) as Promise<Script>,
+      listKey,
+      applyOptimistic: applyCreateOptimistic,
+      messages: { success: t("toast.created"), error: t("toast.create_error") },
+    })
+  )
+}
 
-export const useScriptUpdate = () =>
-  useResourceMutation<
+export const useScriptUpdate = () => {
+  const { t } = useTranslation("scripts")
+  return useResourceMutation<
     {
       id: string
       name: string
@@ -118,19 +122,17 @@ export const useScriptUpdate = () =>
       }) as Promise<Script>,
     listKey,
     applyOptimistic: applyUpdateOptimistic,
-    messages: {
-      success: "Script actualizado",
-      error: "No se pudo actualizar el script",
-    },
+    messages: { success: t("toast.updated"), error: t("toast.update_error") },
   })
+}
 
-export const useScriptDelete = () =>
-  useResourceMutation<{ id: string }, Script, Script[]>({
+export const useScriptDelete = () => {
+  const { t } = useTranslation("scripts")
+  return useResourceMutation<{ id: string }, Script, Script[]>({
     mutationFn: (input) => orpc.scripts.delete.call(input) as Promise<Script>,
     listKey,
     applyOptimistic: applyDeleteOptimistic,
-    messages: {
-      success: "Script eliminado",
-      error: "No se pudo eliminar el script",
-    },
+    messages: { success: t("toast.deleted"), error: t("toast.delete_error") },
   })
+}
+}

@@ -54,6 +54,10 @@
     },
     "created_at": "Created {{date}}",
     "last_used_at": "Last used {{date}}",
-    "actions_aria": "Open menu"
+    "actions_aria": "Open menu",
+    "toast_created": "API key created",
+    "toast_create_error": "Could not create the API key",
+    "toast_deleted": "API key deleted",
+    "toast_delete_error": "Could not delete the API key"
   }
 }

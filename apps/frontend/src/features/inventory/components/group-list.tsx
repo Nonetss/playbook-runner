@@ -3,6 +3,7 @@ import { getIcon } from "@/lib/icon-registry"
 const Folder = getIcon("resources", "folder")
 const Plus = getIcon("actions", "add")
 
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { GroupCard } from "@/features/inventory/components/group-card"
 import type {
@@ -29,19 +30,20 @@ export function GroupList({
   onManageDevices,
   deletingId = null,
 }: GroupListProps) {
+  const { t } = useTranslation("inventory")
   if (groups.length === 0 && onCreate) {
     return (
       <div className="rounded-xl border border-dashed bg-card px-6 py-12 text-center">
         <div className="bg-primary/10 text-primary mx-auto mb-4 flex size-12 items-center justify-center rounded-full">
           <Folder className="size-5" />
         </div>
-        <h2 className="text-lg font-semibold">Sin grupos</h2>
+        <h2 className="text-lg font-semibold">{t("group.empty_title")}</h2>
         <p className="text-muted-foreground mx-auto mt-2 max-w-sm text-sm">
-          Crea tu primer grupo para empezar a organizar dispositivos.
+          {t("group.empty_description")}
         </p>
         <Button className="mt-6" onClick={onCreate}>
           <Plus className="size-4" />
-          Nuevo grupo
+          {t("page.create.group")}
         </Button>
       </div>
     )

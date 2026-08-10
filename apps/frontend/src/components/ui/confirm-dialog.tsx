@@ -3,6 +3,7 @@ import { getIcon } from "@/lib/icon-registry"
 const Loader2 = getIcon("status", "loading")
 
 import * as React from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -30,11 +31,12 @@ export function ConfirmDialog({
   onOpenChange,
   title,
   description,
-  confirmLabel = "Confirmar",
-  cancelLabel = "Cancelar",
+  confirmLabel,
+  cancelLabel,
   variant = "default",
   onConfirm,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation("common")
   const [isExecuting, setIsExecuting] = React.useState(false)
 
   const handleOpenChange = (next: boolean) => {
@@ -72,7 +74,7 @@ export function ConfirmDialog({
             disabled={isExecuting}
             onClick={() => handleOpenChange(false)}
           >
-            {cancelLabel}
+            {cancelLabel ?? t("actions.cancel")}
           </Button>
           <Button
             type="button"
@@ -81,7 +83,7 @@ export function ConfirmDialog({
             onClick={handleConfirm}
           >
             {isExecuting && <Loader2 className="size-4 animate-spin" />}
-            {confirmLabel}
+            {confirmLabel ?? t("actions.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -30,28 +30,45 @@ type PingDeviceModalProps = {
 
 type Tone = "ok" | "changed" | "fail" | "muted" | "info"
 
-function describeEvent(event: RunEvent): { text: string; tone: Tone } | null {
+type EventLabels = {
+  playStarted: string
+  task: string
+  changed: string
+  ok: string
+  skipped: string
+  failed: string
+  unreachable: string
+  summary: string
+}
+
+function describeEvent(
+  event: RunEvent,
+  labels: EventLabels
+): { text: string; tone: Tone } | null {
   const host = event.host ? `${event.host}: ` : ""
   switch (event.event) {
     case "playbook_on_play_start":
-      return { text: "▶ Play iniciado", tone: "info" }
+      return { text: labels.playStarted, tone: "info" }
     case "playbook_on_task_start":
-      return { text: `· ${event.task ?? "Tarea"}`, tone: "muted" }
+      return { text: `· ${event.task ?? labels.task}`, tone: "muted" }
     case "runner_on_ok":
       return event.changed
-        ? { text: `${host}changed`, tone: "changed" }
-        : { text: `${host}ok`, tone: "ok" }
+        ? { text: `${host}${labels.changed}`, tone: "changed" }
+        : { text: `${host}${labels.ok}`, tone: "ok" }
     case "runner_on_skipped":
-      return { text: `${host}skipped`, tone: "muted" }
+      return { text: `${host}${labels.skipped}`, tone: "muted" }
     case "runner_on_failed":
-      return { text: `${host}failed — ${event.msg ?? ""}`.trim(), tone: "fail" }
+      return {
+        text: `${host}${labels.failed} — ${event.msg ?? ""}`.trim(),
+        tone: "fail",
+      }
     case "runner_on_unreachable":
       return {
-        text: `${host}unreachable — ${event.msg ?? ""}`.trim(),
+        text: `${host}${labels.unreachable} — ${event.msg ?? ""}`.trim(),
         tone: "fail",
       }
     case "playbook_on_stats":
-      return { text: "■ Resumen", tone: "info" }
+      return { text: labels.summary, tone: "info" }
     default:
       return null
   }
@@ -87,17 +104,30 @@ export function PingDeviceModal({
   }, [events.length])
 
   const isRunning = phase === "running"
+  const eventLabels: EventLabels = {
+    playStarted: t("ping.event_play_started"),
+    task: t("ping.event_task_default"),
+    changed: t("ping.event_changed"),
+    ok: t("ping.event_ok"),
+    skipped: t("ping.event_skipped"),
+    failed: t("ping.event_failed"),
+    unreachable: t("ping.event_unreachable"),
+    summary: t("ping.event_summary"),
+  }
 
   const visibleEvents = useMemo(
-    () => events.map(describeEvent).filter((e) => e !== null),
-    [events]
+    () =>
+      events
+        .map((event) => describeEvent(event, eventLabels))
+        .filter((e) => e !== null),
+    [events, eventLabels]
   )
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Ping — {device?.name}</DialogTitle>
+          <DialogTitle>{t("ping.title", { name: device?.name })}</DialogTitle>
           <DialogDescription className="font-mono text-xs">
             {device?.ipAddress}
           </DialogDescription>
@@ -111,7 +141,7 @@ export function PingDeviceModal({
             {visibleEvents.length === 0 && isRunning ? (
               <p className="text-muted-foreground flex items-center gap-2">
                 <Loader2 className="size-3 animate-spin" />
-                Conectando…
+                {t("ping.connecting_local")}
               </p>
             ) : (
               visibleEvents.map((line, i) => (
@@ -153,7 +183,8 @@ export function PingDeviceModal({
                 <AlertTriangle className="size-4 shrink-0" />
               )}
               <span>
-                {result.ok ? "Host alcanzable" : "Host no alcanzable"} — estado{" "}
+                {result.ok ? t("ping.result_ok") : t("ping.result_failed")} —{" "}
+                {t("ping.result_status")}{" "}
                 <span className="font-medium">{result.status}</span> (rc=
                 {result.rc ?? "?"})
               </span>
@@ -172,7 +203,7 @@ export function PingDeviceModal({
               }}
             >
               <RefreshCw className="size-4" />
-              Reintentar
+              {t("ping.retry")}
             </Button>
           ) : null}
           <Button
@@ -184,10 +215,10 @@ export function PingDeviceModal({
             {isRunning ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
-                Ejecutando…
+                {t("ping.running_close")}
               </>
             ) : (
-              "Cerrar"
+              t("ping.close")
             )}
           </Button>
         </DialogFooter>

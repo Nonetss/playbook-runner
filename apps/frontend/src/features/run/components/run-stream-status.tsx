@@ -8,10 +8,8 @@ import { Button } from "@/components/ui/button"
 
 type StreamPhase = "idle" | "running" | "done" | "error" | "cancelled"
 
-const TERMINAL_STATUS =
-  "border-zinc-800/80 bg-zinc-900/60 text-zinc-300"
-const TERMINAL_ERROR =
-  "border-red-900/50 bg-red-950/40 text-red-400"
+const TERMINAL_STATUS = "border-zinc-800/80 bg-zinc-900/60 text-zinc-300"
+const TERMINAL_ERROR = "border-red-900/50 bg-red-950/40 text-red-400"
 
 export type RunStreamStatusLabels = {
   connecting: string
@@ -40,9 +38,7 @@ export function RunStreamStatus({
   variant?: "default" | "terminal"
 }) {
   const statusClass =
-    variant === "terminal"
-      ? TERMINAL_STATUS
-      : "border-border bg-muted/20"
+    variant === "terminal" ? TERMINAL_STATUS : "border-border bg-muted/20"
   const statusTextClass =
     variant === "terminal" ? "text-zinc-400" : "text-muted-foreground"
   const cancelledIconClass =
@@ -83,7 +79,9 @@ export function RunStreamStatus({
         className={`mx-3 mb-3 flex shrink-0 items-start gap-2 rounded-lg border px-3 py-2 text-xs sm:mx-5 sm:mb-4 ${statusClass}`}
         role="status"
       >
-        <AlertTriangle className={`mt-0.5 size-3.5 shrink-0 ${cancelledIconClass}`} />
+        <AlertTriangle
+          className={`mt-0.5 size-3.5 shrink-0 ${cancelledIconClass}`}
+        />
         <span className="min-w-0">
           <span className="block font-medium">{labels.stoppedWatching}</span>
           <span className={`block ${statusTextClass}`}>

@@ -13,6 +13,14 @@
     "confirm_description": "Esta acción no se puede deshacer.",
     "error": "No se pudo eliminar el script"
   },
+  "toast": {
+    "created": "Script creado",
+    "create_error": "No se pudo crear el script",
+    "updated": "Script actualizado",
+    "update_error": "No se pudo actualizar el script",
+    "deleted": "Script eliminado",
+    "delete_error": "No se pudo eliminar el script"
+  },
   "card": {
     "actions_aria": "Acciones para {{name}}",
     "run": "Ejecutar",
@@ -52,6 +60,7 @@
     "save_error": "No se pudo guardar."
   },
   "run": {
+    "document_title": "Ejecutar script",
     "header_subtitle": "Ejecución del script",
     "script_not_found": "Script no encontrado.",
     "loading": "Cargando…",

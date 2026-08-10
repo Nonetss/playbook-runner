@@ -1,6 +1,7 @@
 import { consumeEventIterator } from "@orpc/client"
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { InventoryItem, Job, JobRunEvent } from "@/features/jobs/types"
 import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { useOrpcMutation } from "@/hooks/useOrpcMutation"
@@ -179,8 +180,9 @@ function applyToggle(
 
 // ── Mutations ────────────────────────────────────────────────────────────────
 
-export const useJobCreate = () =>
-  useResourceMutation<CreateInput, Job, Job[]>({
+export const useJobCreate = () => {
+  const { t } = useTranslation("jobs")
+  return useResourceMutation<CreateInput, Job, Job[]>({
     mutationFn: (input) =>
       orpc.jobs.create.call({
         name: input.name,
@@ -194,10 +196,12 @@ export const useJobCreate = () =>
       }) as Promise<Job>,
     listKey,
     applyOptimistic: applyCreate,
-    messages: { success: "Job creado", error: "No se pudo crear el job" },
+    messages: { success: t("toast.created"), error: t("toast.create_error") },
   })
+}
 
 export const useJobUpdate = () => {
+  const { t } = useTranslation("jobs")
   const queryClient = useQueryClient()
   const mutation = useResourceMutation<UpdateInput, Job, Job[]>({
     mutationFn: (input) =>
@@ -214,10 +218,7 @@ export const useJobUpdate = () => {
       }) as Promise<Job>,
     listKey,
     applyOptimistic: applyUpdate,
-    messages: {
-      success: "Job actualizado",
-      error: "No se pudo actualizar el job",
-    },
+    messages: { success: t("toast.updated"), error: t("toast.update_error") },
   })
 
   return {
@@ -232,24 +233,26 @@ export const useJobUpdate = () => {
   }
 }
 
-export const useJobDelete = () =>
-  useResourceMutation<{ id: string }, Job, Job[]>({
+export const useJobDelete = () => {
+  const { t } = useTranslation("jobs")
+  return useResourceMutation<{ id: string }, Job, Job[]>({
     mutationFn: (input) => orpc.jobs.delete.call(input) as Promise<Job>,
     listKey,
     applyOptimistic: applyDelete,
-    messages: { success: "Job eliminado", error: "No se pudo eliminar el job" },
+    messages: { success: t("toast.deleted"), error: t("toast.delete_error") },
   })
+}
 
-export const useJobToggleEnabled = () =>
-  useResourceMutation<{ id: string; enabled: boolean }, Job, Job[]>({
+export const useJobToggleEnabled = () => {
+  const { t } = useTranslation("jobs")
+  return useResourceMutation<{ id: string; enabled: boolean }, Job, Job[]>({
     mutationFn: (input) => orpc.jobs.toggleEnabled.call(input) as Promise<Job>,
     listKey,
     applyOptimistic: applyToggle,
-    messages: {
-      success: "Estado del job actualizado",
-      error: "No se pudo cambiar el estado del job",
-    },
+    messages: { success: t("toast.toggled"), error: t("toast.toggle_error") },
   })
+}
+}
 
 /**
  * Trigger an immediate run of a job. The backend records the run and streams
@@ -257,12 +260,13 @@ export const useJobToggleEnabled = () =>
  * the runs list (polling while `live`) then reflects progress.
  */
 export const useJobRun = () => {
+  const { t } = useTranslation("jobs")
   const queryClient = useQueryClient()
   return useOrpcMutation({
     mutationFn: (input: { id: string }) =>
       orpc.jobs.run.call(input) as Promise<{ runId: string | null }>,
-    success: "Ejecución iniciada",
-    error: "No se pudo ejecutar el job",
+    success: t("toast.run_started"),
+    error: t("toast.run_error"),
     onSuccess: (_data, input) => {
       queryClient.invalidateQueries({
         queryKey: orpc.jobs.runs.list.queryKey({ input: { jobId: input.id } }),
@@ -297,6 +301,7 @@ export type JobRunWatchResult = {
  * show; the caller should rely on the polled/stored data for it instead.
  */
 export function useJobRunWatch() {
+  const { t } = useTranslation("jobs")
   const [watchingRunId, setWatchingRunId] = useState<string | null>(null)
   const [phase, setPhase] = useState<JobRunWatchPhase>("idle")
   const [events, setEvents] = useState<JobRunEvent[]>([])
@@ -347,7 +352,9 @@ export function useJobRunWatch() {
           onError: (err) => {
             if (generation !== generationRef.current) return
             unsubscribeRef.current = null
-            setErrorMessage(err instanceof Error ? err.message : "Error de red")
+            setErrorMessage(
+              err instanceof Error ? err.message : t("toast.network_error")
+            )
             setPhase("error")
           },
         }

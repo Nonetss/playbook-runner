@@ -6,6 +6,7 @@ const Loader2 = getIcon("status", "loading")
 const Computer = getIcon("resources", "device")
 
 import { useMemo } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -48,6 +49,7 @@ export function RelationsDialog({
   entityName,
   options,
 }: RelationsDialogProps) {
+  const { t } = useTranslation("inventory")
   const isDevice = kind === "deviceGroups"
 
   const byDevice = useDeviceGroupsByDevice(entityId, {
@@ -101,32 +103,30 @@ export function RelationsDialog({
             ? { deviceId: entityId, groupId: option.id }
             : { groupId: entityId, deviceId: option.id }
         )
-        notifySuccess("Asignación eliminada")
+        notifySuccess(t("relations.removed"))
       } else {
         await assign.mutateAsync(
           isDevice
             ? { deviceId: entityId, groupId: option.id }
             : { groupId: entityId, deviceId: option.id }
         )
-        notifySuccess("Asignación creada")
+        notifySuccess(t("relations.created"))
       }
     } catch (err) {
       notifyError(
-        isSelected
-          ? "No se pudo quitar la asignación"
-          : "No se pudo crear la asignación",
+        isSelected ? t("relations.remove_error") : t("relations.create_error"),
         err instanceof Error ? err.message : undefined
       )
     }
   }
 
-  const title = isDevice ? "Grupos del dispositivo" : "Dispositivos del grupo"
+  const title = isDevice
+    ? t("relations.device_groups_title")
+    : t("relations.group_devices_title")
   const description = isDevice
-    ? `Selecciona los grupos a los que pertenece "${entityName}".`
-    : `Selecciona los dispositivos que forman parte de "${entityName}".`
-  const empty = isDevice
-    ? "No hay grupos disponibles."
-    : "No hay dispositivos disponibles."
+    ? t("relations.device_groups_description", { name: entityName })
+    : t("relations.group_devices_description", { name: entityName })
+  const empty = isDevice ? t("relations.no_groups") : t("relations.no_devices")
   const OptionIcon = isDevice ? Folder : Computer
 
   return (
@@ -140,11 +140,11 @@ export function RelationsDialog({
         {relationsPending ? (
           <div className="text-muted-foreground flex items-center gap-2 py-6 text-sm">
             <Loader2 className="size-4 animate-spin" />
-            Cargando relaciones...
+            {t("relations.loading")}
           </div>
         ) : relationsError ? (
           <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-            No se pudieron cargar las relaciones.
+            {t("relations.load_error")}
           </div>
         ) : options.length === 0 ? (
           <div className="rounded-xl border border-dashed bg-card px-4 py-8 text-center text-sm">

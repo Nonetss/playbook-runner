@@ -14,6 +14,33 @@
     "error": "Could not delete the job"
   },
   "toggle_error": "Could not change the job state",
+  "card": {
+    "actions_for": "Actions for {{name}}",
+    "enable_action": "Enable job",
+    "disable_action": "Disable job",
+    "view_runs": "View runs",
+    "manual": "Manual",
+    "disabled": "Disabled",
+    "playbook_prefix": "Playbook: ",
+    "no_playbook": "No playbook assigned",
+    "inventory_empty": "No inventory selected",
+    "inventory_count": "{{count}} item in inventory",
+    "inventory_count_other": "{{count}} items in inventory",
+    "forks": "Forks: {{count}}"
+  },
+  "toast": {
+    "created": "Job created",
+    "create_error": "Could not create the job",
+    "updated": "Job updated",
+    "update_error": "Could not update the job",
+    "deleted": "Job deleted",
+    "delete_error": "Could not delete the job",
+    "toggled": "Job status updated",
+    "toggle_error": "Could not change the job state",
+    "run_started": "Run started",
+    "run_error": "Could not run the job",
+    "network_error": "Network error"
+  },
   "form": {
     "back_aria": "Back",
     "create_title": "New job",

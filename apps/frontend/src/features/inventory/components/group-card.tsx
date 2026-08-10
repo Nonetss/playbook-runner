@@ -35,6 +35,7 @@ export function GroupCard({
   isDeleting = false,
 }: GroupCardProps) {
   const { t } = useTranslation("common")
+  const { t: tInventory } = useTranslation("inventory")
   return (
     <ResourceCard
       icon={<Folder className="size-4" />}
@@ -43,7 +44,7 @@ export function GroupCard({
       contentClassName="flex flex-1 flex-col gap-3"
       actions={
         <RowActionsMenu
-          label={`Acciones para ${group.name}`}
+          label={tInventory("group.actions_for", { name: group.name })}
           disabled={isDeleting}
         >
           <DropdownMenuItem onClick={() => onEdit(group)}>
@@ -67,7 +68,7 @@ export function GroupCard({
       {devices.length > 0 ? (
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-muted-foreground text-xs">
-            {devices.length} dispositivo{devices.length === 1 ? "" : "s"}:
+            {tInventory("group.device_count", { count: devices.length })}:
           </span>
           {devices.slice(0, 4).map((device) => (
             <Badge key={device.id} variant="outline" className="text-xs">
@@ -82,7 +83,7 @@ export function GroupCard({
         </div>
       ) : (
         <p className="text-muted-foreground text-xs">
-          Sin dispositivos asignados.
+          {tInventory("group.no_devices")}
         </p>
       )}
 
@@ -95,7 +96,7 @@ export function GroupCard({
       >
         <a href={`/inventory/${group.id}/group`}>
           <Settings2 className="size-4" />
-          Gestionar
+          {tInventory("group.manage")}
         </a>
       </Button>
     </ResourceCard>

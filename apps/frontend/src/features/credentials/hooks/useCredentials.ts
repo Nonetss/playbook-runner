@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query"
+import { useTranslation } from "react-i18next"
 import type { Credential } from "@/features/credentials/types"
 import { useHydratedQuery } from "@/hooks/useHydratedQuery"
 import { useResourceMutation } from "@/hooks/useResourceMutation"
@@ -76,8 +77,9 @@ function applyDeleteOptimistic(
   )
 }
 
-export const useCredentialCreate = () =>
-  useResourceMutation<
+export const useCredentialCreate = () => {
+  const { t } = useTranslation("credentials")
+  return useResourceMutation<
     { name: string; username: string; privateKey: string; publicKey: string },
     Credential,
     Credential[]
@@ -86,14 +88,13 @@ export const useCredentialCreate = () =>
       orpc.credentials.create.call(input) as Promise<Credential>,
     listKey,
     applyOptimistic: applyCreateOptimistic,
-    messages: {
-      success: "Credencial creada",
-      error: "No se pudo crear la credencial",
-    },
+    messages: { success: t("toast.created"), error: t("toast.create_error") },
   })
+}
 
-export const useCredentialUpdate = () =>
-  useResourceMutation<
+export const useCredentialUpdate = () => {
+  const { t } = useTranslation("credentials")
+  return useResourceMutation<
     {
       id: string
       name: string
@@ -108,23 +109,21 @@ export const useCredentialUpdate = () =>
       orpc.credentials.update.call(input) as Promise<Credential>,
     listKey,
     applyOptimistic: applyUpdateOptimistic,
-    messages: {
-      success: "Credencial actualizada",
-      error: "No se pudo actualizar la credencial",
-    },
+    messages: { success: t("toast.updated"), error: t("toast.update_error") },
   })
+}
 
 export const useCredentialGenerate = () =>
   useMutation(orpc.credentials.generate.mutationOptions())
 
-export const useCredentialDelete = () =>
-  useResourceMutation<{ id: string }, Credential, Credential[]>({
+export const useCredentialDelete = () => {
+  const { t } = useTranslation("credentials")
+  return useResourceMutation<{ id: string }, Credential, Credential[]>({
     mutationFn: (input) =>
       orpc.credentials.delete.call(input) as Promise<Credential>,
     listKey,
     applyOptimistic: applyDeleteOptimistic,
-    messages: {
-      success: "Credencial eliminada",
-      error: "No se pudo eliminar la credencial",
-    },
+    messages: { success: t("toast.deleted"), error: t("toast.delete_error") },
   })
+}
+}

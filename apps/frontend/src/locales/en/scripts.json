@@ -13,6 +13,14 @@
     "confirm_description": "This action cannot be undone.",
     "error": "Could not delete the script"
   },
+  "toast": {
+    "created": "Script created",
+    "create_error": "Could not create the script",
+    "updated": "Script updated",
+    "update_error": "Could not update the script",
+    "deleted": "Script deleted",
+    "delete_error": "Could not delete the script"
+  },
   "card": {
     "actions_aria": "Actions for {{name}}",
     "run": "Run",
@@ -52,6 +60,7 @@
     "save_error": "Could not save."
   },
   "run": {
+    "document_title": "Run script",
     "header_subtitle": "Run the script",
     "script_not_found": "Script not found.",
     "loading": "Loading...",

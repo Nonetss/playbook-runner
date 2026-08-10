@@ -1,8 +1,12 @@
 ---
 import { ScriptFormPage } from "@/features/scripts"
 import Layout from "@/layouts/Layout.astro"
+import { getServerT } from "@/lib/i18n/server"
+
+const { locale } = Astro.locals
+const t = await getServerT(locale, "scripts")
 ---
 
-<Layout title="Nuevo script">
+<Layout title={t("form.create_title")}>
   <ScriptFormPage client:only="react" />
 </Layout>

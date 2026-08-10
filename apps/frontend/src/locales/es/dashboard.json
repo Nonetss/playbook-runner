@@ -1,5 +1,6 @@
 {
   "page": {
+    "document_title": "Inicio",
     "title": "Bienvenido{{name}}",
     "subtitle": "Resumen de tu entorno de automatización",
     "new_job_cta": "Nuevo job"

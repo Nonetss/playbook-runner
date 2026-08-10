@@ -10,18 +10,44 @@
     }
   },
   "group": {
+    "document_title": "Group",
     "empty_title": "No groups",
     "empty_description": "Create your first group to start organizing devices.",
     "delete_confirm_title": "Delete \"{{label}}\"",
     "delete_confirm_description": "This action cannot be undone.",
-    "delete_error": "Could not delete the group"
+    "delete_error": "Could not delete the group",
+    "detail_loading": "Loading group…",
+    "detail_load_error": "Could not load the group.",
+    "back_to_inventory": "Back to inventory",
+    "back_aria": "Back",
+    "information": "INFORMATION",
+    "devices": "Devices",
+    "delete_title": "Delete group",
+    "delete_description": "This will delete the group and all device assignments. This cannot be undone.",
+    "delete_hint": "Delete the group and unlink all its devices. This cannot be undone.",
+    "delete": "Delete",
+    "save_changes": "Save changes",
+    "deleting": "Deleting…",
+    "manage": "Manage",
+    "device_count": "{{count}} device",
+    "device_count_other": "{{count}} devices",
+    "no_devices": "No devices assigned.",
+    "no_devices_in_inventory": "No devices yet. Create one in inventory first.",
+    "assigned_count": "{{assigned}} of {{total}} assigned",
+    "danger_zone": "DANGER ZONE",
+    "common_saving": "Saving…",
+    "not_found": "Group not found.",
+    "actions_for": "Actions for {{name}}"
   },
   "device": {
     "empty_title": "No devices",
     "empty_description": "Add your first device to start managing your inventory.",
     "delete_confirm_title": "Delete \"{{label}}\"",
     "delete_confirm_description": "This action cannot be undone.",
-    "delete_error": "Could not delete the device"
+    "delete_error": "Could not delete the device",
+    "groups": "Groups",
+    "assign_group": "Assign to a group",
+    "actions_for": "Actions for {{name}}"
   },
   "group_form": {
     "create_title": "New group",
@@ -53,10 +79,40 @@
     "save_changes": "Save changes"
   },
   "ping": {
+    "title": "Ping — {{name}}",
+    "connecting_local": "Connecting…",
+    "retry": "Retry",
+    "close": "Close",
+    "running_close": "Running…",
+    "result_ok": "Host reachable",
+    "result_failed": "Host unreachable",
+    "result_status": "status",
     "connecting": "Live output is connected.",
     "stop_watching": "Stop watching",
     "stopped_watching": "Live watching stopped",
     "server_may_still_be_running": "The server-side ping may still be active.",
-    "connection_error": "The live ping connection ended"
+    "connection_error": "The live ping connection ended",
+    "event_play_started": "▶ Play started",
+    "event_task_default": "Task",
+    "event_changed": "changed",
+    "event_ok": "ok",
+    "event_skipped": "skipped",
+    "event_failed": "failed",
+    "event_unreachable": "unreachable",
+    "event_summary": "■ Summary"
+  },
+  "relations": {
+    "created": "Assignment created",
+    "removed": "Assignment removed",
+    "create_error": "Could not create the assignment",
+    "remove_error": "Could not remove the assignment",
+    "device_groups_title": "Device groups",
+    "group_devices_title": "Group devices",
+    "device_groups_description": "Select the groups that include \"{{name}}\".",
+    "group_devices_description": "Select the devices included in \"{{name}}\".",
+    "no_groups": "No groups available.",
+    "no_devices": "No devices available.",
+    "loading": "Loading relationships…",
+    "load_error": "Could not load relationships."
   }
 }

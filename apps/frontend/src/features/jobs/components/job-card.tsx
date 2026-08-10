@@ -36,6 +36,7 @@ export function JobCard({
   isTogglingEnabled = false,
 }: JobCardProps) {
   const { t } = useTranslation("common")
+  const { t: tJobs } = useTranslation("jobs")
   const inventoryCount = job.inventoryJson?.length ?? 0
 
   return (
@@ -50,16 +51,20 @@ export function JobCard({
             checked={job.enabled}
             disabled={isTogglingEnabled || isDeleting}
             onCheckedChange={(checked) => onToggleEnabled(job.id, checked)}
-            aria-label={job.enabled ? "Desactivar job" : "Activar job"}
+            aria-label={
+              job.enabled
+                ? tJobs("card.disable_action")
+                : tJobs("card.enable_action")
+            }
           />
           <RowActionsMenu
-            label={`Acciones para ${job.name}`}
+            label={tJobs("card.actions_for", { name: job.name })}
             disabled={isDeleting}
           >
             <DropdownMenuItem asChild>
               <a href={`/jobs/${job.id}`}>
                 <History className="size-4" />
-                Ver ejecuciones
+                {tJobs("card.view_runs")}
               </a>
             </DropdownMenuItem>
             <DropdownMenuItem
@@ -94,12 +99,12 @@ export function JobCard({
           </Badge>
         ) : (
           <Badge variant="outline" className="text-xs text-muted-foreground">
-            Manual
+            {tJobs("card.manual")}
           </Badge>
         )}
         {!job.enabled && (
           <Badge variant="outline" className="text-xs text-muted-foreground">
-            Desactivado
+            {tJobs("card.disabled")}
           </Badge>
         )}
       </div>
@@ -107,21 +112,25 @@ export function JobCard({
       <div className="space-y-1">
         {playbookName ? (
           <p className="text-sm">
-            <span className="text-muted-foreground">Playbook: </span>
+            <span className="text-muted-foreground">
+              {tJobs("card.playbook_prefix")}
+            </span>
             <span className="font-medium">{playbookName}</span>
           </p>
         ) : (
           <p className="text-muted-foreground text-sm italic">
-            Sin playbook asignado
+            {tJobs("card.no_playbook")}
           </p>
         )}
         <p className="text-muted-foreground text-xs">
           {inventoryCount === 0
-            ? "Sin selección de inventario"
-            : `${inventoryCount} elemento${inventoryCount === 1 ? "" : "s"} en inventario`}
+            ? tJobs("card.inventory_empty")
+            : tJobs("card.inventory_count", { count: inventoryCount })}
         </p>
         {job.forks > 1 && (
-          <p className="text-muted-foreground text-xs">Forks: {job.forks}</p>
+          <p className="text-muted-foreground text-xs">
+            {tJobs("card.forks", { count: job.forks })}
+          </p>
         )}
       </div>
 
@@ -134,7 +143,7 @@ export function JobCard({
       >
         <a href={`/jobs/${job.id}`}>
           <History className="size-4" />
-          Ver ejecuciones
+          {tJobs("card.view_runs")}
         </a>
       </Button>
     </ResourceCard>

@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useTranslation } from "react-i18next"
 import { TEXTAREA_BASE_CLASS } from "@/components/shared/resource-form-modal"
 import { Button } from "@/components/ui/button"
 import {
@@ -55,6 +56,7 @@ export function CredentialFormModal({
   onOpenChange,
   credential = null,
 }: CredentialFormModalProps) {
+  const { t } = useTranslation("credentials")
   const isEditing = !!credential
   const createCredential = useCredentialCreate()
   const updateCredential = useCredentialUpdate()
@@ -101,11 +103,7 @@ export function CredentialFormModal({
         publicKey: generated.publicKey,
       }))
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "No se pudo generar el par de claves."
-      )
+      setError(err instanceof Error ? err.message : t("form.generate_error"))
     }
   }
 
@@ -120,9 +118,7 @@ export function CredentialFormModal({
       }
       onOpenChange(false)
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "No se pudo guardar la credencial."
-      )
+      setError(err instanceof Error ? err.message : t("form.save_error"))
     }
   }
 
@@ -138,12 +134,12 @@ export function CredentialFormModal({
       <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Editar credencial" : "Nueva credencial"}
+            {isEditing ? t("form.edit_title") : t("form.create_title")}
           </DialogTitle>
           <DialogDescription>
             {isEditing
-              ? "Actualiza los datos de acceso SSH."
-              : "Añade una credencial SSH para tus despliegues."}
+              ? t("form.edit_description")
+              : t("form.create_description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -162,7 +158,7 @@ export function CredentialFormModal({
                 disabled={isSubmitting}
                 onClick={() => switchMode("import")}
               >
-                Importar clave existente
+                {t("form.import_existing")}
               </Button>
               <Button
                 type="button"
@@ -172,14 +168,15 @@ export function CredentialFormModal({
                 disabled={isSubmitting}
                 onClick={() => switchMode("generate")}
               >
-                Generar nueva clave
+                {t("form.generate_new")}
               </Button>
             </div>
           ) : null}
 
           <div className="space-y-2">
             <Label htmlFor="name-field">
-              Nombre<span aria-hidden> *</span>
+              {t("form.name_label")}
+              <span aria-hidden> *</span>
             </Label>
             <Input
               id="name-field"
@@ -193,7 +190,8 @@ export function CredentialFormModal({
 
           <div className="space-y-2">
             <Label htmlFor="username-field">
-              Usuario<span aria-hidden> *</span>
+              {t("form.username_label")}
+              <span aria-hidden> *</span>
             </Label>
             <Input
               id="username-field"
@@ -209,7 +207,8 @@ export function CredentialFormModal({
             <>
               <div className="space-y-2">
                 <Label htmlFor="privateKey-field">
-                  Clave privada<span aria-hidden> *</span>
+                  {t("form.private_key_label")}
+                  <span aria-hidden> *</span>
                 </Label>
                 <textarea
                   id="privateKey-field"
@@ -224,7 +223,8 @@ export function CredentialFormModal({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="publicKey-field">
-                  Clave pública<span aria-hidden> *</span>
+                  {t("form.public_key_label")}
+                  <span aria-hidden> *</span>
                 </Label>
                 <textarea
                   id="publicKey-field"
@@ -243,8 +243,8 @@ export function CredentialFormModal({
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm text-muted-foreground">
                   {showGeneratedKeys
-                    ? "Par de claves ed25519 generado. Se guardará al crear la credencial."
-                    : "Genera un par de claves SSH ed25519 nuevo."}
+                    ? t("form.generate_success")
+                    : t("form.generate_hint")}
                 </p>
                 <Button
                   type="button"
@@ -254,16 +254,18 @@ export function CredentialFormModal({
                   onClick={handleGenerate}
                 >
                   {generateKeyPair.isPending
-                    ? "Generando..."
+                    ? t("form.generating")
                     : showGeneratedKeys
-                      ? "Regenerar"
-                      : "Generar par de claves"}
+                      ? t("form.regenerate")
+                      : t("form.generate")}
                 </Button>
               </div>
 
               {showGeneratedKeys ? (
                 <div className="space-y-2">
-                  <Label htmlFor="generated-public-key">Clave pública</Label>
+                  <Label htmlFor="generated-public-key">
+                    {t("form.public_key_label")}
+                  </Label>
                   <textarea
                     id="generated-public-key"
                     readOnly
@@ -285,7 +287,7 @@ export function CredentialFormModal({
               disabled={isSubmitting}
               onClick={() => handleOpenChange(false)}
             >
-              Cancelar
+              {t("form.cancel")}
             </Button>
             <Button
               type="submit"
@@ -295,10 +297,10 @@ export function CredentialFormModal({
               }
             >
               {isSubmitting
-                ? "Guardando..."
+                ? t("form.saving")
                 : isEditing
-                  ? "Guardar cambios"
-                  : "Crear credencial"}
+                  ? t("form.save_changes")
+                  : t("form.create")}
             </Button>
           </DialogFooter>
         </form>

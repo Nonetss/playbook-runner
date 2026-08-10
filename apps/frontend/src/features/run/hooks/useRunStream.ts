@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { RunEvent, RunPhase, RunResult } from "@/features/run/types"
 
 export type RunStreamCallbacks = {
@@ -12,10 +13,8 @@ export type RunStreamSubscribe<TRequest> = (
   callbacks: RunStreamCallbacks
 ) => () => void
 
-function formatError(error: unknown) {
-  return error instanceof Error && error.message
-    ? error.message
-    : "The run connection ended unexpectedly."
+function formatError(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback
 }
 
 /**
@@ -26,6 +25,7 @@ function formatError(error: unknown) {
 export function useRunStream<TRequest>(
   subscribe: RunStreamSubscribe<TRequest>
 ) {
+  const { t } = useTranslation("common")
   const [phase, setPhase] = useState<RunPhase>("idle")
   const [events, setEvents] = useState<RunEvent[]>([])
   const [result, setResult] = useState<RunResult | null>(null)
@@ -69,7 +69,7 @@ export function useRunStream<TRequest>(
         onError: (error) => {
           if (generation !== generationRef.current) return
           unsubscribeRef.current = null
-          setErrorMessage(formatError(error))
+          setErrorMessage(formatError(error, t("run_console.connection_error")))
           setPhase("error")
         },
       })

@@ -111,6 +111,7 @@
     "error": "No se pudo eliminar el playbook"
   },
   "run": {
+    "document_title": "Ejecutar playbook",
     "header_subtitle": "Ejecución del playbook",
     "playbook_not_found": "Playbook no encontrado.",
     "loading": "Cargando…",

@@ -14,6 +14,33 @@
     "error": "No se pudo eliminar el job"
   },
   "toggle_error": "No se pudo cambiar el estado del job",
+  "card": {
+    "actions_for": "Acciones para {{name}}",
+    "enable_action": "Activar job",
+    "disable_action": "Desactivar job",
+    "view_runs": "Ver ejecuciones",
+    "manual": "Manual",
+    "disabled": "Desactivado",
+    "playbook_prefix": "Playbook: ",
+    "no_playbook": "Sin playbook asignado",
+    "inventory_empty": "Sin selección de inventario",
+    "inventory_count": "{{count}} elemento en inventario",
+    "inventory_count_other": "{{count}} elementos en inventario",
+    "forks": "Forks: {{count}}"
+  },
+  "toast": {
+    "created": "Job creado",
+    "create_error": "No se pudo crear el job",
+    "updated": "Job actualizado",
+    "update_error": "No se pudo actualizar el job",
+    "deleted": "Job eliminado",
+    "delete_error": "No se pudo eliminar el job",
+    "toggled": "Estado del job actualizado",
+    "toggle_error": "No se pudo cambiar el estado del job",
+    "run_started": "Ejecución iniciada",
+    "run_error": "No se pudo ejecutar el job",
+    "network_error": "Error de red"
+  },
   "form": {
     "back_aria": "Volver",
     "create_title": "Nuevo job",

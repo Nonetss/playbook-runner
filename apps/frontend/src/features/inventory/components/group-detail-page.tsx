@@ -7,6 +7,7 @@ const Computer = getIcon("resources", "device")
 const Trash2 = getIcon("actions", "delete")
 
 import { useEffect, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,6 +28,8 @@ import { navigate } from "@/lib/navigate"
 import { cn } from "@/lib/utils"
 
 function GroupDetailPageInner({ id }: { id: string }) {
+  const { t } = useTranslation("inventory")
+  const { t: tCommon } = useTranslation("common")
   const { data: group, isPending, isError } = useGroupGet(id)
   const { data: allDevices = [] } = useDevicesList()
   const { data: groupRelations = [] } = useDeviceGroupsByGroup(id)
@@ -67,11 +70,10 @@ function GroupDetailPageInner({ id }: { id: string }) {
   async function handleDelete() {
     if (!group) return
     const confirmed = await confirm({
-      title: `Eliminar "${group.name}"`,
-      description:
-        "Esta acción eliminará el grupo y todas sus asignaciones de dispositivos. No se puede deshacer.",
-      confirmLabel: "Eliminar",
-      cancelLabel: "Cancelar",
+      title: t("group.delete_confirm_title", { label: group.name }),
+      description: t("group.delete_description"),
+      confirmLabel: t("group.delete"),
+      cancelLabel: tCommon("actions.cancel"),
       variant: "destructive",
     })
     if (!confirmed) return
@@ -94,7 +96,7 @@ function GroupDetailPageInner({ id }: { id: string }) {
       <main className="flex w-full flex-1 items-center justify-center p-6">
         <div className="text-muted-foreground flex items-center gap-2 text-sm">
           <Loader2 className="size-4 animate-spin" />
-          Cargando grupo…
+          {t("group.detail_loading")}
         </div>
       </main>
     )
@@ -104,12 +106,12 @@ function GroupDetailPageInner({ id }: { id: string }) {
     return (
       <main className="w-full flex-1 p-6 lg:px-8">
         <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          No se pudo cargar el grupo.
+          {t("group.detail_load_error")}
         </div>
         <Button asChild variant="outline" className="mt-4">
           <a href="/inventory">
             <ArrowLeft className="size-4" />
-            Volver al inventario
+            {t("group.back_to_inventory")}
           </a>
         </Button>
       </main>
@@ -127,7 +129,12 @@ function GroupDetailPageInner({ id }: { id: string }) {
       {/* Header */}
       <div className="mb-8 flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Button asChild variant="ghost" size="icon-sm" aria-label="Volver">
+          <Button
+            asChild
+            variant="ghost"
+            size="icon-sm"
+            aria-label={t("group.back_aria")}
+          >
             <a href="/inventory">
               <ArrowLeft className="size-4" />
             </a>
@@ -146,28 +153,34 @@ function GroupDetailPageInner({ id }: { id: string }) {
       <div className="mx-auto max-w-3xl space-y-10">
         {/* ── Información ── */}
         <section>
-          <h2 className="mb-4 type-label text-muted-foreground">Información</h2>
+          <h2 className="mb-4 type-label text-muted-foreground">
+            {t("group.information")}
+          </h2>
           <form onSubmit={handleSave} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="group-name">Nombre</Label>
+                <Label htmlFor="group-name">
+                  {t("group_form.name_label")}
+                </Label>
                 <Input
                   id="group-name"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={updateGroup.isPending}
-                  placeholder="webservers"
+                  placeholder={t("group_form.name_placeholder")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="group-description">Descripción</Label>
+                <Label htmlFor="group-description">
+                  {t("group_form.description_label")}
+                </Label>
                 <Input
                   id="group-description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   disabled={updateGroup.isPending}
-                  placeholder="Servidores web de producción"
+                  placeholder={t("group_form.description_placeholder")}
                 />
               </div>
             </div>
@@ -176,10 +189,10 @@ function GroupDetailPageInner({ id }: { id: string }) {
                 {updateGroup.isPending ? (
                   <>
                     <Loader2 className="size-4 animate-spin" />
-                    Guardando…
+                    {t("group.common_saving")}
                   </>
                 ) : (
-                  "Guardar cambios"
+                  {t("group.save_changes")}
                 )}
               </Button>
             </div>
@@ -189,17 +202,21 @@ function GroupDetailPageInner({ id }: { id: string }) {
         {/* ── Dispositivos ── */}
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="type-label text-muted-foreground">Dispositivos</h2>
+            <h2 className="type-label text-muted-foreground">
+              {t("group.devices")}
+            </h2>
             <span className="text-muted-foreground text-xs">
-              {assignedIds.size} de {allDevices.length} asignado
-              {assignedIds.size === 1 ? "" : "s"}
+              {t("group.assigned_count", {
+                assigned: assignedIds.size,
+                total: allDevices.length,
+              })}
             </span>
           </div>
 
           {allDevices.length === 0 ? (
             <div className="rounded-xl border border-dashed bg-card px-4 py-8 text-center">
               <p className="text-muted-foreground text-sm">
-                No hay dispositivos. Crea alguno en el inventario primero.
+                {t("group.no_devices_in_inventory")}
               </p>
             </div>
           ) : (
@@ -255,15 +272,14 @@ function GroupDetailPageInner({ id }: { id: string }) {
         {/* ── Zona de peligro ── */}
         <section>
           <h2 className="mb-4 type-label text-muted-foreground">
-            Zona de peligro
+            {t("group.danger_zone")}
           </h2>
           <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-medium">Eliminar grupo</p>
+                <p className="text-sm font-medium">{t("group.delete_title")}</p>
                 <p className="text-muted-foreground text-xs mt-0.5">
-                  Elimina el grupo y desvincula todos sus dispositivos. Esta
-                  acción no se puede deshacer.
+                  {t("group.delete_hint")}
                 </p>
               </div>
               <Button
@@ -273,7 +289,9 @@ function GroupDetailPageInner({ id }: { id: string }) {
                 disabled={deleteGroup.isPending}
               >
                 <Trash2 className="size-4" />
-                {deleteGroup.isPending ? "Eliminando…" : "Eliminar"}
+                {deleteGroup.isPending
+                  ? t("group.deleting")
+                  : t("group.delete")}
               </Button>
             </div>
           </div>
@@ -288,7 +306,9 @@ export function GroupDetailPage({ id }: { id?: string }) {
     return (
       <AppProviders>
         <main className="flex flex-1 items-center justify-center p-6">
-          <p className="text-muted-foreground text-sm">Grupo no encontrado.</p>
+          <p className="text-muted-foreground text-sm">
+            {t("group.not_found")}
+          </p>
         </main>
       </AppProviders>
     )

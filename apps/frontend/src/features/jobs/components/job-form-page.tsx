@@ -57,9 +57,10 @@ function valuesFromJob(job: Job): FormValues {
   }
 }
 
-function inventoryFromJob(
-  inventoryJson: InventoryItem[] | null | undefined
-): { groups: Set<string>; devices: Set<string> } {
+function inventoryFromJob(inventoryJson: InventoryItem[] | null | undefined): {
+  groups: Set<string>
+  devices: Set<string>
+} {
   const groups = new Set<string>()
   const devices = new Set<string>()
   for (const item of inventoryJson ?? []) {
@@ -121,13 +122,7 @@ function JobFormLoadError() {
   )
 }
 
-function JobForm({
-  id,
-  initialJob,
-}: {
-  id?: string
-  initialJob: Job | null
-}) {
+function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
   const { t } = useTranslation("jobs")
   const { t: tCommon } = useTranslation("common")
   const isEditing = !!id
