@@ -27,7 +27,7 @@ import {
   useJobGet,
   useJobUpdate,
 } from "@/features/jobs/hooks/useJobs"
-import type { InventoryItem } from "@/features/jobs/types"
+import type { InventoryItem, Job } from "@/features/jobs/types"
 import { usePlaybooksList } from "@/features/playbooks/hooks/usePlaybooks"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { navigate } from "@/lib/navigate"
@@ -54,14 +54,7 @@ const EMPTY: FormValues = {
   enabled: true,
 }
 
-function valuesFromJob(job: {
-  name: string
-  description: string | null
-  playbookId: string | null
-  cronExpression: string | null
-  forks: number
-  enabled: boolean
-}): FormValues {
+function valuesFromJob(job: Job): FormValues {
   return {
     name: job.name,
     description: job.description ?? "",
@@ -95,9 +88,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
   } = useJobGet(id ?? "", { enabled: isEditing })
 
   if (isEditing && jobLoading) {
-    return (
-      <JobFormLoading />
-    )
+    return <JobFormLoading />
   }
 
   if (isEditing && (jobError || !job)) {
@@ -106,13 +97,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
 
   // Remount when the job id changes so edit mode seeds state from the loaded
   // row on the first paint — no post-paint useEffect that flashes empty fields.
-  return (
-    <JobForm
-      key={job?.id ?? "new"}
-      id={id}
-      initialJob={job ?? null}
-    />
-  )
+  return <JobForm key={job?.id ?? "new"} id={id} initialJob={job ?? null} />
 }
 
 function JobFormLoading() {
@@ -149,16 +134,7 @@ function JobForm({
   initialJob,
 }: {
   id?: string
-  initialJob: {
-    name: string
-    description: string | null
-    playbookId: string | null
-    cronExpression: string | null
-    forks: number
-    enabled: boolean
-    inventoryJson: InventoryItem[] | null
-    extravarsJson: Record<string, string> | null
-  } | null
+  initialJob: Job | null
 }) {
   const { t } = useTranslation("jobs")
   const { t: tCommon } = useTranslation("common")
