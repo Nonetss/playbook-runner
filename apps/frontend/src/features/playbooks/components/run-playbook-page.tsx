@@ -24,9 +24,11 @@ import { PlaybookSwitcher } from "@/features/playbooks/components/playbook-switc
 import { usePlaybookGet } from "@/features/playbooks/hooks/usePlaybooks"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { PlaybookRunConsole } from "@/features/run/components/playbook-run-console"
+import { RunStreamStatus } from "@/features/run/components/run-stream-status"
 import { useRunInventorySelection } from "@/features/run/hooks/useRunInventorySelection"
 import { useRunPlaybook } from "@/features/run/hooks/useRunPlaybook"
 import type { RunSelection } from "@/features/run/types"
+import { useConfirm } from "@/hooks/useConfirm"
 import { cn } from "@/lib/utils"
 
 // ── RunPlaybookPageInner ──────────────────────────────────────────────────────
@@ -36,7 +38,16 @@ function RunPlaybookPageInner({ id }: { id: string }) {
   const { data: playbook } = usePlaybookGet(id)
   const { data: groups = [], isPending: groupsLoading } = useGroupsList()
   const { data: devices = [], isPending: devicesLoading } = useDevicesList()
-  const { phase, events, result, errorMessage, start, reset } = useRunPlaybook()
+  const {
+    phase,
+    events,
+    result,
+    errorMessage,
+    start,
+    stopWatching,
+    reset,
+  } = useRunPlaybook()
+  const confirm = useConfirm()
 
   const inventoryReady = !groupsLoading && !devicesLoading
   const {
@@ -57,7 +68,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
   const selectionCount = selectedGroups.size + selectedDevices.size
   const isRunning = phase === "running"
 
-  function handleRun() {
+  async function handleRun() {
     if (!playbook || selectionCount === 0) return
     const inventory: RunSelection[] = [
       ...[...selectedGroups].map((id) => ({ id, type: "group" as const })),
@@ -66,6 +77,30 @@ function RunPlaybookPageInner({ id }: { id: string }) {
     const extravarMap = Object.fromEntries(
       extravars.filter((e) => e.key.trim()).map((e) => [e.key.trim(), e.value])
     )
+
+    const targetNames = [
+      ...groups.filter((group) => selectedGroups.has(group.id)).map((g) => g.name),
+      ...devices
+        .filter((device) => selectedDevices.has(device.id))
+        .map((d) => d.name),
+    ]
+    const targetSummary =
+      targetNames.length > 4
+        ? `${targetNames.slice(0, 4).join(", ")} +${targetNames.length - 4}`
+        : targetNames.join(", ")
+    const confirmed = await confirm({
+      title: t("run.confirm_title", { name: playbook.name }),
+      description: t("run.confirm_description", {
+        targets: targetSummary,
+        count: selectionCount,
+        forks,
+        variables: Object.keys(extravarMap).length,
+      }),
+      confirmLabel: t("run.confirm_run"),
+      cancelLabel: t("run.cancel"),
+    })
+    if (!confirmed) return
+
     start(playbook.id, inventory, { forks, extravars: extravarMap })
   }
 
@@ -150,12 +185,18 @@ function RunPlaybookPageInner({ id }: { id: string }) {
           </div>
 
           {/* Result / error banners */}
-          {phase === "error" ? (
-            <div className="mx-3 mb-3 flex shrink-0 items-start gap-2 rounded-lg border border-red-900/50 bg-red-950/40 px-3 py-2 text-xs text-red-400 sm:mx-5 sm:mb-4">
-              <XCircle className="mt-0.5 size-3.5 shrink-0" />
-              <span>{errorMessage}</span>
-            </div>
-          ) : null}
+          <RunStreamStatus
+            phase={phase}
+            errorMessage={errorMessage}
+            onStopWatching={stopWatching}
+            labels={{
+              connecting: t("run.connecting"),
+              stopWatching: t("run.stop_watching"),
+              stoppedWatching: t("run.stopped_watching"),
+              serverMayStillBeRunning: t("run.server_may_still_be_running"),
+              connectionError: t("run.connection_error"),
+            }}
+          />
 
           {phase === "done" && result ? (
             <div

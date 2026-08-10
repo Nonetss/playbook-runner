@@ -20,19 +20,23 @@ import { useDevicesList } from "@/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/features/inventory/hooks/useGroups"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { RunHostConsole } from "@/features/run/components/run-host-console"
+import { RunStreamStatus } from "@/features/run/components/run-stream-status"
 import {
   type CommandModule,
   type CommandRequest,
   useRunCommand,
 } from "@/features/run/hooks/useRunCommand"
 import type { RunSelection } from "@/features/run/types"
+import { useConfirm } from "@/hooks/useConfirm"
 import { cn } from "@/lib/utils"
 
 function CommandsPageInner() {
   const { t } = useTranslation("commands")
   const { data: groups = [] } = useGroupsList()
   const { data: devices = [] } = useDevicesList()
-  const { phase, events, result, errorMessage, start, reset } = useRunCommand()
+  const { phase, events, result, errorMessage, start, stopWatching, reset } =
+    useRunCommand()
+  const confirm = useConfirm()
 
   const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set())
   const [selectedDevices, setSelectedDevices] = useState<Set<string>>(new Set())
@@ -47,7 +51,7 @@ function CommandsPageInner() {
     trimmedCommand.length > 0 && selectionCount > 0 && phase !== "running"
   const isRunning = phase === "running"
 
-  function handleRun() {
+  async function handleRun() {
     if (!canRun) return
     const inventory: RunSelection[] = [
       ...[...selectedGroups].map((id) => ({ id, type: "group" as const })),
@@ -60,6 +64,34 @@ function CommandsPageInner() {
       become,
       forks,
     }
+
+    const targetNames = [
+      ...groups
+        .filter((group) => selectedGroups.has(group.id))
+        .map((g) => g.name),
+      ...devices
+        .filter((device) => selectedDevices.has(device.id))
+        .map((d) => d.name),
+    ]
+    const targetSummary =
+      targetNames.length > 4
+        ? `${targetNames.slice(0, 4).join(", ")} +${targetNames.length - 4}`
+        : targetNames.join(", ")
+    const confirmed = await confirm({
+      title: t("confirm.title"),
+      description: t("confirm.description", {
+        command: trimmedCommand,
+        module,
+        targets: targetSummary,
+        count: selectionCount,
+        forks,
+        become: become ? t("confirm.with_sudo") : t("confirm.without_sudo"),
+      }),
+      confirmLabel: t("confirm.run"),
+      cancelLabel: t("confirm.cancel"),
+    })
+    if (!confirmed) return
+
     void start(body)
   }
 
@@ -128,12 +160,20 @@ function CommandsPageInner() {
           </div>
 
           {/* Result / error banners */}
-          {phase === "error" ? (
-            <div className="mx-5 mb-4 flex shrink-0 items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-              <XCircle className="mt-0.5 size-3.5 shrink-0" />
-              <span>{errorMessage}</span>
-            </div>
-          ) : null}
+          <RunStreamStatus
+            phase={phase}
+            errorMessage={errorMessage}
+            onStopWatching={stopWatching}
+            labels={{
+              connecting: t("run_status.connecting"),
+              stopWatching: t("run_status.stop_watching"),
+              stoppedWatching: t("run_status.stopped_watching"),
+              serverMayStillBeRunning: t(
+                "run_status.server_may_still_be_running"
+              ),
+              connectionError: t("run_status.connection_error"),
+            }}
+          />
 
           {phase === "done" && result ? (
             <div
