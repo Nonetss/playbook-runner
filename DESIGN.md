@@ -37,12 +37,25 @@ typography:
     fontFamily: "Outfit Variable, Outfit, sans-serif"
     fontSize: "0.875rem"
     lineHeight: 1.5
+  meta:
+    fontFamily: "Outfit Variable, Outfit, sans-serif"
+    fontSize: "0.75rem"
+    lineHeight: 1.4
   label:
     fontFamily: "Outfit Variable, Outfit, sans-serif"
     fontSize: "0.75rem"        # text-xs uppercase tracking-wide
     fontWeight: 600
     letterSpacing: "0.05em"
     textCase: "uppercase"
+  consoleMeta:
+    fontFamily: "Geist Mono Variable, Geist Mono, ui-monospace, monospace"
+    fontSize: "0.6875rem"       # dense console chrome only
+    lineHeight: 1.4
+    letterSpacing: "0.015em"
+  consoleBody:
+    fontFamily: "Geist Mono Variable, Geist Mono, ui-monospace, monospace"
+    fontSize: "0.8125rem"       # streamed output and host details
+    lineHeight: 1.55
 rounded:
   sm: "calc(0.375rem - 4px)"   # 2px
   md: "calc(0.375rem - 2px)"   # 4px
@@ -193,9 +206,14 @@ is no third face — no serif display, no system font masquerading as a choice.
   color `muted-foreground`): section headers in forms, run panels, dashboard
   blocks, history tables. This is the recurring signature that ties the product
   together.
+- **Meta** (`Outfit`, `text-xs`, `line-height: 1.4`): dates, hints, supporting
+  descriptions, and secondary navigation copy.
 - **Mono** (`Geist Mono`, typically `text-xs`, `tabular-nums` when aligning):
   playbook YAML, script bodies, cron strings, ISO timestamps, host keys,
   durations, API tokens.
+- **Console meta/body** (`Geist Mono`, `0.6875rem` / `0.8125rem`): dense run
+  chrome and streamed output only. These are intentional operational roles,
+  not general-purpose UI sizes.
 
 ### Named Rules
 
@@ -206,6 +224,11 @@ with `font-mono` should include `tabular-nums` so digits line up.
 uppercase microcopy, not as decorative chip clusters. Status may use
 `Badge` / `RunStatusBadge` when the domain needs a scannable run state — keep
 them small and token-bound.
+
+Global heading defaults follow the same operational scale: page titles are
+`1.5rem / 1.2`, section headings are body-sized unless a surface explicitly
+promotes them, and display-sized marketing typography is not used in product
+chrome.
 
 ## Layout
 

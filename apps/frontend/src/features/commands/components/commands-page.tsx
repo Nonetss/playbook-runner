@@ -112,7 +112,7 @@ function CommandsPageInner() {
               <span className="size-2.5 rounded-full bg-amber-500/80" />
               <span className="size-2.5 rounded-full bg-emerald-500/80" />
             </span>
-            <span className="ml-2 truncate font-mono text-[11px] text-zinc-500">
+            <span className="ml-2 truncate font-mono type-console-meta text-zinc-500">
               <span className="text-zinc-600">{module}</span>
               <span className="mx-1.5 text-zinc-700">{become ? "#" : "$"}</span>
               <span className="text-zinc-400">{trimmedCommand || "—"}</span>
@@ -164,7 +164,7 @@ function CommandsPageInner() {
           {/* Inventory */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+              <p className="text-muted-foreground type-label">
                 {t("panel.inventory")}
               </p>
               {selectionCount > 0 ? (
@@ -175,7 +175,7 @@ function CommandsPageInner() {
                     setSelectedDevices(new Set())
                   }}
                   disabled={isRunning}
-                  className="text-muted-foreground hover:text-foreground text-[11px] transition-colors disabled:opacity-50"
+                  className="type-meta text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
                 >
                   {t("panel.clear", { count: selectionCount })}
                 </button>
@@ -219,7 +219,7 @@ function CommandsPageInner() {
 
           {/* Command + module + become */}
           <div className="space-y-3 border-t pt-3">
-            <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+            <p className="text-muted-foreground type-label">
               {t("panel.command_section")}
             </p>
 
@@ -263,7 +263,7 @@ function CommandsPageInner() {
                   <ShieldAlert className="size-3.5" />
                   {t("panel.become")}
                 </Label>
-                <p className="text-muted-foreground mt-0.5 text-[11px] leading-snug">
+                <p className="type-meta text-muted-foreground mt-0.5">
                   {t("panel.become_hint")}
                 </p>
               </div>
@@ -356,9 +356,7 @@ function ModulePicker({
           </button>
         ))}
       </div>
-      <p className="text-muted-foreground text-[11px] leading-snug">
-        {active.hint}
-      </p>
+      <p className="type-meta text-muted-foreground">{active.hint}</p>
     </div>
   )
 }

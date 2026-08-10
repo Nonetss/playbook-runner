@@ -267,7 +267,7 @@ function JobDetailPageInner({ id }: { id: string }) {
               <span className="size-2.5 rounded-full bg-amber-500/80" />
               <span className="size-2.5 rounded-full bg-emerald-500/80" />
             </span>
-            <span className="ml-2 truncate font-mono text-[11px] text-zinc-500">
+            <span className="ml-2 truncate font-mono type-console-meta text-zinc-500">
               <span className="text-zinc-600">job</span>
               <span className="mx-1.5 text-zinc-700">$</span>
               <span className="text-zinc-400">{job.name}</span>
@@ -332,7 +332,7 @@ function JobDetailPageInner({ id }: { id: string }) {
 
         {/* ── History sidebar ── */}
         <div className="flex h-[38%] min-h-40 max-h-64 shrink-0 flex-col gap-2 overflow-y-auto border-t p-3 sm:gap-3 sm:p-4 lg:h-auto lg:min-h-0 lg:max-h-none lg:w-72 lg:border-t-0 lg:border-l">
-          <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+          <p className="text-muted-foreground type-label">
             {t("detail.history")}
           </p>
 

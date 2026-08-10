@@ -191,7 +191,7 @@ export function RunPlaybookModal({
             />
 
             <div className="space-y-3 border-t pt-3">
-              <p className="text-muted-foreground text-xs font-medium uppercase">
+              <p className="text-muted-foreground type-label">
                 {t("run_modal.options_section")}
               </p>
 

@@ -359,11 +359,11 @@
     letter-spacing: var(--type-display-tracking);
   }
   h2 {
-    font-size: 1rem;
+    font-size: var(--type-body-size);
     line-height: 1.4;
   }
   h3 {
-    font-size: 0.875rem;
+    font-size: var(--type-body-size);
     line-height: 1.4;
   }
 
@@ -404,7 +404,6 @@
     border-top: 1px solid var(--border);
     margin-block: calc(var(--spacing) * 8);
   }
-
 }
 
 /* Page transitions for Astro's <ClientRouter />: quick fade with a

@@ -146,9 +146,7 @@ function GroupDetailPageInner({ id }: { id: string }) {
       <div className="mx-auto max-w-3xl space-y-10">
         {/* ── Información ── */}
         <section>
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Información
-          </h2>
+          <h2 className="mb-4 type-label text-muted-foreground">Información</h2>
           <form onSubmit={handleSave} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -191,9 +189,7 @@ function GroupDetailPageInner({ id }: { id: string }) {
         {/* ── Dispositivos ── */}
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Dispositivos
-            </h2>
+            <h2 className="type-label text-muted-foreground">Dispositivos</h2>
             <span className="text-muted-foreground text-xs">
               {assignedIds.size} de {allDevices.length} asignado
               {assignedIds.size === 1 ? "" : "s"}
@@ -258,7 +254,7 @@ function GroupDetailPageInner({ id }: { id: string }) {
 
         {/* ── Zona de peligro ── */}
         <section>
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <h2 className="mb-4 type-label text-muted-foreground">
             Zona de peligro
           </h2>
           <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">

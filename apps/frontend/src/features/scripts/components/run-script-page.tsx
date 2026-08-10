@@ -120,7 +120,7 @@ function RunScriptPageInner({ id }: { id: string }) {
               <span className="size-2.5 rounded-full bg-amber-500/80" />
               <span className="size-2.5 rounded-full bg-emerald-500/80" />
             </span>
-            <span className="ml-2 truncate font-mono text-[11px] text-zinc-500">
+            <span className="ml-2 truncate font-mono type-console-meta text-zinc-500">
               <span className="text-zinc-600">script</span>
               <span className="mx-1.5 text-zinc-700">{become ? "#" : "$"}</span>
               <span className="text-zinc-400">
@@ -173,7 +173,7 @@ function RunScriptPageInner({ id }: { id: string }) {
         <div className="flex w-72 shrink-0 flex-col gap-5 overflow-y-auto border-l p-4">
           {/* Inventory */}
           <div className="space-y-3">
-            <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+            <p className="text-muted-foreground type-label">
               {t("run.panel.inventory")}
             </p>
 
@@ -214,7 +214,7 @@ function RunScriptPageInner({ id }: { id: string }) {
 
           {/* Options */}
           <div className="space-y-3 border-t pt-3">
-            <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+            <p className="text-muted-foreground type-label">
               {t("run.panel.options")}
             </p>
 

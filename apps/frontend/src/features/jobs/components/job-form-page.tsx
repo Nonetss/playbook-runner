@@ -54,58 +54,139 @@ const EMPTY: FormValues = {
   enabled: true,
 }
 
+function valuesFromJob(job: {
+  name: string
+  description: string | null
+  playbookId: string | null
+  cronExpression: string | null
+  forks: number
+  enabled: boolean
+}): FormValues {
+  return {
+    name: job.name,
+    description: job.description ?? "",
+    playbookId: job.playbookId ?? "",
+    cronExpression: job.cronExpression ?? "",
+    forks: job.forks,
+    enabled: job.enabled,
+  }
+}
+
+function inventoryFromJob(
+  inventoryJson: InventoryItem[] | null | undefined
+): { groups: Set<string>; devices: Set<string> } {
+  const groups = new Set<string>()
+  const devices = new Set<string>()
+  for (const item of inventoryJson ?? []) {
+    if (item.type === "group") groups.add(item.id)
+    else devices.add(item.id)
+  }
+  return { groups, devices }
+}
+
 export type JobFormPageProps = { id?: string }
 
 function JobFormPageInner({ id }: JobFormPageProps) {
+  const isEditing = !!id
+  const {
+    data: job,
+    isPending: jobLoading,
+    isError: jobError,
+  } = useJobGet(id ?? "", { enabled: isEditing })
+
+  if (isEditing && jobLoading) {
+    return (
+      <JobFormLoading />
+    )
+  }
+
+  if (isEditing && (jobError || !job)) {
+    return <JobFormLoadError />
+  }
+
+  // Remount when the job id changes so edit mode seeds state from the loaded
+  // row on the first paint — no post-paint useEffect that flashes empty fields.
+  return (
+    <JobForm
+      key={job?.id ?? "new"}
+      id={id}
+      initialJob={job ?? null}
+    />
+  )
+}
+
+function JobFormLoading() {
+  const { t } = useTranslation("jobs")
+  return (
+    <main className="flex w-full flex-1 items-center justify-center p-6">
+      <div className="text-muted-foreground flex items-center gap-2 text-sm">
+        <Loader2 className="size-4 animate-spin" />
+        {t("form.loading")}
+      </div>
+    </main>
+  )
+}
+
+function JobFormLoadError() {
+  const { t } = useTranslation("jobs")
+  return (
+    <main className="w-full flex-1 p-6 lg:px-8">
+      <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+        {t("form.load_error")}
+      </div>
+      <Button asChild variant="outline" className="mt-4">
+        <a href="/jobs/scheduler">
+          <ArrowLeft className="size-4" />
+          {t("form.back_to_jobs")}
+        </a>
+      </Button>
+    </main>
+  )
+}
+
+function JobForm({
+  id,
+  initialJob,
+}: {
+  id?: string
+  initialJob: {
+    name: string
+    description: string | null
+    playbookId: string | null
+    cronExpression: string | null
+    forks: number
+    enabled: boolean
+    inventoryJson: InventoryItem[] | null
+    extravarsJson: Record<string, string> | null
+  } | null
+}) {
   const { t } = useTranslation("jobs")
   const { t: tCommon } = useTranslation("common")
   const isEditing = !!id
   const createJob = useJobCreate()
   const updateJob = useJobUpdate()
 
-  const {
-    data: job,
-    isPending: jobLoading,
-    isError: jobError,
-  } = useJobGet(id ?? "", { enabled: isEditing })
   const { data: playbooks = [] } = usePlaybooksList()
   const { data: groups = [] } = useGroupsList()
   const { data: devices = [] } = useDevicesList()
 
-  const [values, setValues] = React.useState<FormValues>(EMPTY)
+  const initialInventory = inventoryFromJob(initialJob?.inventoryJson)
+  const [values, setValues] = React.useState<FormValues>(() =>
+    initialJob ? valuesFromJob(initialJob) : EMPTY
+  )
   const [selectedGroups, setSelectedGroups] = React.useState<Set<string>>(
-    new Set()
+    () => initialInventory.groups
   )
   const [selectedDevices, setSelectedDevices] = React.useState<Set<string>>(
-    new Set()
+    () => initialInventory.devices
   )
-  const [extravars, setExtravars] = React.useState<ExtravarRow[]>([])
+  const [extravars, setExtravars] = React.useState<ExtravarRow[]>(() =>
+    Object.entries(initialJob?.extravarsJson ?? {}).map(([key, value]) => ({
+      key,
+      value,
+    }))
+  )
   const [error, setError] = React.useState<string | null>(null)
-
-  React.useEffect(() => {
-    if (isEditing && job) {
-      setValues({
-        name: job.name,
-        description: job.description ?? "",
-        playbookId: job.playbookId ?? "",
-        cronExpression: job.cronExpression ?? "",
-        forks: job.forks,
-        enabled: job.enabled,
-      })
-      const gIds = new Set<string>()
-      const dIds = new Set<string>()
-      for (const item of job.inventoryJson ?? []) {
-        if (item.type === "group") gIds.add(item.id)
-        else dIds.add(item.id)
-      }
-      setSelectedGroups(gIds)
-      setSelectedDevices(dIds)
-      const evars = Object.entries(job.extravarsJson ?? {}).map(
-        ([key, value]) => ({ key, value })
-      )
-      setExtravars(evars)
-    }
-  }, [isEditing, job])
 
   const isSubmitting = createJob.isPending || updateJob.isPending
 
@@ -163,33 +244,6 @@ function JobFormPageInner({ id }: JobFormPageProps) {
     }
   }
 
-  if (isEditing && jobLoading) {
-    return (
-      <main className="flex w-full flex-1 items-center justify-center p-6">
-        <div className="text-muted-foreground flex items-center gap-2 text-sm">
-          <Loader2 className="size-4 animate-spin" />
-          {t("form.loading")}
-        </div>
-      </main>
-    )
-  }
-
-  if (isEditing && (jobError || !job)) {
-    return (
-      <main className="w-full flex-1 p-6 lg:px-8">
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          {t("form.load_error")}
-        </div>
-        <Button asChild variant="outline" className="mt-4">
-          <a href="/jobs/scheduler">
-            <ArrowLeft className="size-4" />
-            {t("form.back_to_jobs")}
-          </a>
-        </Button>
-      </main>
-    )
-  }
-
   const selectionCount = selectedGroups.size + selectedDevices.size
 
   return (
@@ -218,7 +272,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
       <form onSubmit={handleSubmit} className="mx-auto max-w-3xl space-y-8">
         {/* ── Info ── */}
         <section className="space-y-4">
-          <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+          <h2 className="text-muted-foreground type-label">
             {t("form.info_section")}
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -265,16 +319,20 @@ function JobFormPageInner({ id }: JobFormPageProps) {
 
         {/* ── Playbook ── */}
         <section className="space-y-4">
-          <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+          <h2 className="text-muted-foreground type-label">
             {t("form.playbook_section")}
           </h2>
           <div className="space-y-2">
             <Label htmlFor="job-playbook">{t("form.playbook_label")}</Label>
             <Select
               value={values.playbookId || SELECT_EMPTY_VALUE}
-              onValueChange={(next) =>
+              onValueChange={(next) => {
+                // Radix Select inside a <form> can emit a spurious "" when the
+                // controlled value is set before native <option>s exist; ignore
+                // it so edit mode doesn't wipe the saved playbook.
+                if (!next) return
                 set("playbookId", next === SELECT_EMPTY_VALUE ? "" : next)
-              }
+              }}
               disabled={isSubmitting}
             >
               <SelectTrigger id="job-playbook" className="w-full">
@@ -297,7 +355,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
         {/* ── Inventario ── */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+            <h2 className="text-muted-foreground type-label">
               {t("form.inventory_section")}
             </h2>
             <span className="text-muted-foreground text-xs">
@@ -350,7 +408,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
 
         {/* ── Schedule ── */}
         <section className="space-y-4">
-          <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+          <h2 className="text-muted-foreground type-label">
             {t("form.schedule_section")}
           </h2>
           <div className="space-y-2">
@@ -391,7 +449,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
 
         {/* ── Options ── */}
         <section className="space-y-4">
-          <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+          <h2 className="text-muted-foreground type-label">
             {t("form.options_section")}
           </h2>
 

@@ -147,7 +147,7 @@ function HostCard({ result }: { result: HostResult }) {
         </span>
         <span
           className={cn(
-            "flex shrink-0 items-center gap-1 text-[11px] font-medium",
+            "flex shrink-0 items-center gap-1 type-console-meta font-medium",
             meta.textClass
           )}
         >
@@ -160,7 +160,7 @@ function HostCard({ result }: { result: HostResult }) {
           {t(`run_console.status.${result.status}`)}
         </span>
         {result.rc != null ? (
-          <span className="shrink-0 font-mono text-[11px] text-zinc-600">
+          <span className="shrink-0 font-mono type-console-meta text-zinc-600">
             rc={result.rc}
           </span>
         ) : null}
@@ -184,7 +184,7 @@ function HostCard({ result }: { result: HostResult }) {
 
         {hasStdout ? (
           <pre
-            className="whitespace-pre-wrap wrap-break-word text-[13px] leading-relaxed text-zinc-100"
+            className="type-console-body whitespace-pre-wrap wrap-break-word text-zinc-100"
             style={{ fontFamily: TERMINAL_FONT_STACK }}
           >
             {result.stdout}
@@ -208,7 +208,7 @@ function HostCard({ result }: { result: HostResult }) {
           >
             <p
               className={cn(
-                "mb-1 text-[10px] font-semibold tracking-wide uppercase",
+                "mb-1 type-console-meta font-semibold tracking-wide uppercase",
                 stderrIsError ? "text-red-500/70" : "text-zinc-600"
               )}
             >
@@ -216,7 +216,7 @@ function HostCard({ result }: { result: HostResult }) {
             </p>
             <pre
               className={cn(
-                "whitespace-pre-wrap wrap-break-word text-[13px] leading-relaxed",
+                "type-console-body whitespace-pre-wrap wrap-break-word",
                 stderrIsError ? "text-red-400" : "text-zinc-500"
               )}
               style={{ fontFamily: TERMINAL_FONT_STACK }}

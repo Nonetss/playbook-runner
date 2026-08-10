@@ -70,9 +70,7 @@ function LanguagePicker({
           </button>
         ))}
       </div>
-      <p className="text-muted-foreground text-[11px] leading-snug">
-        {hints[active]}
-      </p>
+      <p className="type-meta text-muted-foreground">{hints[active]}</p>
     </div>
   )
 }

@@ -106,7 +106,7 @@ function HistoryPageInner() {
       {/* Aggregate metrics + window selector */}
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+          <h2 className="text-muted-foreground type-label">
             {t("history.metrics_title")}
           </h2>
           <RunWindowPicker value={window} onChange={setWindow} />
@@ -164,7 +164,7 @@ function HistoryPageInner() {
       ) : (
         <>
           <SoftCardList className="bg-card">
-            <div className="grid grid-cols-[1.4fr_0.9fr_0.9fr_0.7fr_0.6fr_1fr] gap-3 border-b px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="grid grid-cols-[1.4fr_0.9fr_0.9fr_0.7fr_0.6fr_1fr] gap-3 border-b px-3 py-2 type-label text-muted-foreground">
               <span>{t("history.headers.job")}</span>
               <span>{t("history.headers.status")}</span>
               <span>{t("history.headers.hosts")}</span>

@@ -113,7 +113,7 @@ export function PlaybookSwitcher({
         onCloseAutoFocus={(event) => event.preventDefault()}
       >
         <div className="bg-muted/40 border-b px-3 py-2">
-          <p className="text-muted-foreground mb-2 text-[11px] font-medium uppercase tracking-wide">
+          <p className="type-label text-muted-foreground mb-2">
             {t("run.switcher.label")}
           </p>
           <div className="relative">
@@ -161,7 +161,7 @@ export function PlaybookSwitcher({
                       {playbook.name}
                     </span>
                     {folderName ? (
-                      <span className="text-muted-foreground mt-0.5 flex items-center gap-1 truncate text-[11px]">
+                      <span className="type-meta text-muted-foreground mt-0.5 flex items-center gap-1 truncate">
                         <Folder className="size-2.5 shrink-0" />
                         {folderName}
                       </span>

@@ -19,7 +19,7 @@ export function StatCard({
       <Card className="relative overflow-hidden transition-all duration-200 group-hover:shadow-lg group-hover:-translate-y-0.5">
         <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
         <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3">
-          <CardTitle className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <CardTitle className="type-label text-muted-foreground">
             {title}
           </CardTitle>
           <div className="bg-primary/12 text-primary flex size-9 shrink-0 items-center justify-center rounded-lg ring-1 ring-primary/10">

@@ -248,7 +248,7 @@ function HostResultRow({ result }: { result: TaskHostResult }) {
         </span>
         <span
           className={cn(
-            "flex shrink-0 items-center gap-1 text-[11px] font-medium",
+            "flex shrink-0 items-center gap-1 type-console-meta font-medium",
             meta.textClass
           )}
         >
@@ -261,7 +261,7 @@ function HostResultRow({ result }: { result: TaskHostResult }) {
           {t(`run_console.status.${result.status}`)}
         </span>
         {result.rc != null ? (
-          <span className="shrink-0 font-mono text-[11px] text-zinc-600">
+          <span className="shrink-0 font-mono type-console-meta text-zinc-600">
             rc={result.rc}
           </span>
         ) : null}
@@ -280,7 +280,7 @@ function HostResultRow({ result }: { result: TaskHostResult }) {
 
       {result.stdout ? (
         <pre
-          className="mt-1 pl-5 whitespace-pre-wrap wrap-break-word text-[12px] leading-relaxed text-zinc-400"
+          className="type-console-body mt-1 pl-5 whitespace-pre-wrap wrap-break-word text-zinc-400"
           style={{ fontFamily: TERMINAL_FONT_STACK }}
         >
           {result.stdout}
@@ -290,7 +290,7 @@ function HostResultRow({ result }: { result: TaskHostResult }) {
       {result.stderr ? (
         <pre
           className={cn(
-            "mt-1 pl-5 whitespace-pre-wrap wrap-break-word text-[12px] leading-relaxed",
+            "type-console-body mt-1 pl-5 whitespace-pre-wrap wrap-break-word",
             stderrIsError ? "text-destructive" : "text-muted-foreground"
           )}
           style={{ fontFamily: TERMINAL_FONT_STACK }}
@@ -318,12 +318,12 @@ function TaskCard({ task }: { task: TaskBlock }) {
           {task.name || "—"}
         </span>
         {failCount > 0 ? (
-          <span className="shrink-0 font-mono text-[11px] text-destructive">
+          <span className="shrink-0 font-mono type-console-meta text-destructive">
             {failCount} fallo{failCount === 1 ? "" : "s"}
           </span>
         ) : null}
         {okCount > 0 ? (
-          <span className="shrink-0 font-mono text-[11px] text-zinc-600">
+          <span className="shrink-0 font-mono type-console-meta text-zinc-600">
             {okCount} ok
           </span>
         ) : null}
@@ -360,7 +360,7 @@ function RecapCard({ rows }: { rows: RecapRow[] }) {
           return (
             <div
               key={row.host}
-              className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 font-mono text-[11px]"
+              className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 font-mono type-console-meta"
             >
               <span className={cn("min-w-0 flex-1 truncate", tone)}>
                 {row.host}
@@ -423,7 +423,7 @@ export function PlaybookRunConsole({
           {plays.map((play) => (
             <div key={play.key} className="space-y-2">
               {play.name ? (
-                <p className="px-0.5 font-mono text-[11px] font-semibold tracking-wide text-zinc-500 uppercase">
+                <p className="px-0.5 font-mono type-console-meta font-semibold tracking-wide text-zinc-500 uppercase">
                   PLAY{" "}
                   <span className="text-zinc-300 normal-case">{play.name}</span>
                 </p>
