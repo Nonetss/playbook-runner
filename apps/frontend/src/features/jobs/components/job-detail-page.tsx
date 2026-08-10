@@ -312,6 +312,7 @@ function JobDetailPageInner({ id }: { id: string }) {
             phase={watch.phase}
             errorMessage={watch.errorMessage}
             onStopWatching={watch.stopWatching}
+            variant="terminal"
             labels={{
               connecting: t("detail.connecting"),
               stopWatching: t("detail.stop_watching"),

@@ -164,6 +164,7 @@ function CommandsPageInner() {
             phase={phase}
             errorMessage={errorMessage}
             onStopWatching={stopWatching}
+            variant="terminal"
             labels={{
               connecting: t("run_status.connecting"),
               stopWatching: t("run_status.stop_watching"),
@@ -178,10 +179,10 @@ function CommandsPageInner() {
           {phase === "done" && result ? (
             <div
               className={cn(
-                "mx-5 mb-4 flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs",
+                "mx-3 mb-3 flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs sm:mx-5 sm:mb-4",
                 result.ok
-                  ? "border-border bg-muted/20 text-foreground"
-                  : "border-destructive/40 bg-destructive/10 text-destructive"
+                  ? "border-emerald-900/50 bg-emerald-950/40 text-emerald-400"
+                  : "border-amber-900/50 bg-amber-950/40 text-amber-400"
               )}
             >
               {result.ok ? (

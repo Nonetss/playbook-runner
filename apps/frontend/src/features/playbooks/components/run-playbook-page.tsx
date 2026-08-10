@@ -183,6 +183,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
             phase={phase}
             errorMessage={errorMessage}
             onStopWatching={stopWatching}
+            variant="terminal"
             labels={{
               connecting: t("run.connecting"),
               stopWatching: t("run.stop_watching"),

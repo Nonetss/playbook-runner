@@ -175,6 +175,7 @@ function RunScriptPageInner({ id }: { id: string }) {
             phase={phase}
             errorMessage={errorMessage}
             onStopWatching={stopWatching}
+            variant="terminal"
             labels={{
               connecting: t("run_status.connecting"),
               stopWatching: t("run_status.stop_watching"),
