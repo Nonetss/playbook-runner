@@ -1,19 +1,14 @@
 import { getIcon } from "@/lib/icon-registry"
 
 const AlertTriangle = getIcon("status", "alert")
-const Check = getIcon("controls", "check")
 const CheckCircle2 = getIcon("status", "success")
-const ChevronDown = getIcon("controls", "expand")
-const Folder = getIcon("resources", "folder")
 const Loader2 = getIcon("status", "loading")
 const Play = getIcon("actions", "play")
-const Search = getIcon("views", "search")
-const Server = getIcon("resources", "server")
 const ShieldAlert = getIcon("status", "warning")
 const TerminalSquare = getIcon("resources", "terminalSquare")
 const XCircle = getIcon("status", "error")
 
-import { type ReactNode, useMemo, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Badge } from "@/components/ui/badge"
@@ -23,6 +18,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { useDevicesList } from "@/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/features/inventory/hooks/useGroups"
+import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { RunHostConsole } from "@/features/run/components/run-host-console"
 import {
   type CommandModule,
@@ -32,109 +28,6 @@ import {
 import type { RunSelection } from "@/features/run/types"
 import { cn } from "@/lib/utils"
 
-type ToggleRowProps = {
-  name: string
-  description?: string | null
-  icon: typeof Server
-  selected: boolean
-  onToggle: () => void
-  disabled?: boolean
-}
-
-type InventoryCollapsibleProps = {
-  title: string
-  count: number
-  selectedCount: number
-  expanded: boolean
-  onToggle: () => void
-  disabled?: boolean
-  children: ReactNode
-}
-
-function InventoryCollapsible({
-  title,
-  count,
-  selectedCount,
-  expanded,
-  onToggle,
-  disabled,
-  children,
-}: InventoryCollapsibleProps) {
-  return (
-    <div className="space-y-1">
-      <button
-        type="button"
-        onClick={onToggle}
-        disabled={disabled}
-        className="hover:bg-accent flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        <ChevronDown
-          className={cn(
-            "text-muted-foreground size-3.5 shrink-0 transition-transform",
-            !expanded && "-rotate-90"
-          )}
-        />
-        <span className="min-w-0 flex-1 text-xs font-medium">{title}</span>
-        <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
-          {selectedCount > 0 ? `${selectedCount}/` : ""}
-          {count}
-        </span>
-      </button>
-      {expanded ? children : null}
-    </div>
-  )
-}
-
-function matchesInventorySearch(
-  query: string,
-  ...fields: (string | null | undefined)[]
-): boolean {
-  if (!query) return true
-  return fields.some((field) => field?.toLowerCase().includes(query))
-}
-
-function ToggleRow({
-  name,
-  description,
-  icon: Icon,
-  selected,
-  onToggle,
-  disabled,
-}: ToggleRowProps) {
-  return (
-    <li>
-      <button
-        type="button"
-        onClick={onToggle}
-        disabled={disabled}
-        className="hover:bg-accent flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        <span
-          className={cn(
-            "flex size-3.5 shrink-0 items-center justify-center rounded-sm border",
-            selected
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-input"
-          )}
-        >
-          {selected ? <Check className="size-2.5" /> : null}
-        </span>
-        <Icon className="text-muted-foreground size-3.5 shrink-0" />
-        <span className="min-w-0 flex-1">
-          <span className="block truncate font-medium leading-tight">
-            {name}
-          </span>
-          {description ? (
-            <span className="text-muted-foreground block truncate text-xs">
-              {description}
-            </span>
-          ) : null}
-        </span>
-      </button>
-    </li>
-  )
-}
-
 function CommandsPageInner() {
   const { t } = useTranslation("commands")
   const { data: groups = [] } = useGroupsList()
@@ -143,43 +36,16 @@ function CommandsPageInner() {
 
   const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set())
   const [selectedDevices, setSelectedDevices] = useState<Set<string>>(new Set())
-  const [inventorySearch, setInventorySearch] = useState("")
-  const [groupsExpanded, setGroupsExpanded] = useState(true)
-  const [devicesExpanded, setDevicesExpanded] = useState(false)
   const [command, setCommand] = useState("uptime")
   const [module, setModule] = useState<CommandModule>("shell")
   const [become, setBecome] = useState(false)
   const [forks, setForks] = useState(1)
-
-  const searchQuery = inventorySearch.trim().toLowerCase()
-
-  const filteredGroups = useMemo(
-    () =>
-      groups.filter((group) =>
-        matchesInventorySearch(searchQuery, group.name, group.description)
-      ),
-    [groups, searchQuery]
-  )
-
-  const filteredDevices = useMemo(
-    () =>
-      devices.filter((device) =>
-        matchesInventorySearch(searchQuery, device.name, device.ipAddress)
-      ),
-    [devices, searchQuery]
-  )
 
   const selectionCount = selectedGroups.size + selectedDevices.size
   const trimmedCommand = command.trim()
   const canRun =
     trimmedCommand.length > 0 && selectionCount > 0 && phase !== "running"
   const isRunning = phase === "running"
-
-  function toggle(set: Set<string>, id: string): Set<string> {
-    const next = new Set(set)
-    next.has(id) ? next.delete(id) : next.add(id)
-    return next
-  }
 
   function handleRun() {
     if (!canRun) return
@@ -316,102 +182,39 @@ function CommandsPageInner() {
               ) : null}
             </div>
 
-            {groups.length > 0 || devices.length > 0 ? (
-              <div className="relative">
-                <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
-                <Input
-                  type="search"
-                  placeholder={t("panel.search_placeholder")}
-                  value={inventorySearch}
-                  onChange={(e) => setInventorySearch(e.target.value)}
-                  disabled={isRunning}
-                  className="h-8 pl-8 text-xs"
-                />
-              </div>
-            ) : null}
-
-            {groups.length > 0 ? (
-              <InventoryCollapsible
-                title={t("panel.groups")}
-                count={filteredGroups.length}
-                selectedCount={
-                  filteredGroups.filter((g) => selectedGroups.has(g.id)).length
-                }
-                expanded={groupsExpanded}
-                onToggle={() => setGroupsExpanded((v) => !v)}
-                disabled={isRunning}
-              >
-                {filteredGroups.length > 0 ? (
-                  <ul className="space-y-0.5 pl-1">
-                    {filteredGroups.map((group) => (
-                      <ToggleRow
-                        key={group.id}
-                        name={group.name}
-                        description={group.description}
-                        icon={Folder}
-                        selected={selectedGroups.has(group.id)}
-                        onToggle={() =>
-                          setSelectedGroups((s) => toggle(s, group.id))
-                        }
-                        disabled={isRunning}
-                      />
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-muted-foreground px-2 py-1 text-xs">
-                    {t("panel.no_results")}
-                  </p>
-                )}
-              </InventoryCollapsible>
-            ) : null}
-
-            {devices.length > 0 ? (
-              <InventoryCollapsible
-                title={t("panel.devices")}
-                count={filteredDevices.length}
-                selectedCount={
-                  filteredDevices.filter((d) => selectedDevices.has(d.id))
-                    .length
-                }
-                expanded={devicesExpanded}
-                onToggle={() => setDevicesExpanded((v) => !v)}
-                disabled={isRunning}
-              >
-                {filteredDevices.length > 0 ? (
-                  <ul className="space-y-0.5 pl-1">
-                    {filteredDevices.map((device) => (
-                      <ToggleRow
-                        key={device.id}
-                        name={device.name}
-                        description={device.ipAddress}
-                        icon={Server}
-                        selected={selectedDevices.has(device.id)}
-                        onToggle={() =>
-                          setSelectedDevices((s) => toggle(s, device.id))
-                        }
-                        disabled={isRunning}
-                      />
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-muted-foreground px-2 py-1 text-xs">
-                    {t("panel.no_results")}
-                  </p>
-                )}
-              </InventoryCollapsible>
-            ) : null}
-
-            {groups.length === 0 && devices.length === 0 ? (
-              <p className="text-muted-foreground px-2 text-xs">
-                {t("panel.empty_inventory")}
-              </p>
-            ) : searchQuery &&
-              filteredGroups.length === 0 &&
-              filteredDevices.length === 0 ? (
-              <p className="text-muted-foreground px-2 text-xs">
-                {t("panel.no_match")}
-              </p>
-            ) : null}
+            <InventorySelectionList
+              groups={groups}
+              devices={devices}
+              selectedGroups={selectedGroups}
+              selectedDevices={selectedDevices}
+              onToggleGroup={(groupId) =>
+                setSelectedGroups((current) => {
+                  const next = new Set(current)
+                  next.has(groupId) ? next.delete(groupId) : next.add(groupId)
+                  return next
+                })
+              }
+              onToggleDevice={(deviceId) =>
+                setSelectedDevices((current) => {
+                  const next = new Set(current)
+                  next.has(deviceId)
+                    ? next.delete(deviceId)
+                    : next.add(deviceId)
+                  return next
+                })
+              }
+              labels={{
+                groups: t("panel.groups"),
+                devices: t("panel.devices"),
+                searchPlaceholder: t("panel.search_placeholder"),
+                noResults: t("panel.no_results"),
+                emptyInventory: t("panel.empty_inventory"),
+                noMatch: t("panel.no_match"),
+              }}
+              searchable
+              collapsible
+              disabled={isRunning}
+            />
           </div>
 
           {/* Command + module + become */}

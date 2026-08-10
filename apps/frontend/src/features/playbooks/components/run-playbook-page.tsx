@@ -3,20 +3,15 @@ import { getIcon } from "@/lib/icon-registry"
 const AlertTriangle = getIcon("status", "alert")
 const ArrowLeft = getIcon("navigation", "back")
 const BookText = getIcon("resources", "book")
-const Check = getIcon("controls", "check")
 const CheckCircle2 = getIcon("status", "success")
-const ChevronDown = getIcon("controls", "expand")
-const Folder = getIcon("resources", "folder")
 const Loader2 = getIcon("status", "loading")
 const Pencil = getIcon("actions", "edit")
 const Play = getIcon("actions", "play")
 const Plus = getIcon("actions", "add")
-const Search = getIcon("views", "search")
-const Server = getIcon("resources", "server")
 const Trash2 = getIcon("actions", "delete")
 const XCircle = getIcon("status", "error")
 
-import { type ReactNode, useMemo, useState } from "react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Badge } from "@/components/ui/badge"
@@ -27,112 +22,12 @@ import { useDevicesList } from "@/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/features/inventory/hooks/useGroups"
 import { PlaybookSwitcher } from "@/features/playbooks/components/playbook-switcher"
 import { usePlaybookGet } from "@/features/playbooks/hooks/usePlaybooks"
+import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { PlaybookRunConsole } from "@/features/run/components/playbook-run-console"
 import { useRunInventorySelection } from "@/features/run/hooks/useRunInventorySelection"
 import { useRunPlaybook } from "@/features/run/hooks/useRunPlaybook"
 import type { RunSelection } from "@/features/run/types"
 import { cn } from "@/lib/utils"
-
-// ── InventoryCollapsible ──────────────────────────────────────────────────────
-
-type InventoryCollapsibleProps = {
-  title: string
-  count: number
-  selectedCount: number
-  expanded: boolean
-  onToggle: () => void
-  children: ReactNode
-}
-
-function InventoryCollapsible({
-  title,
-  count,
-  selectedCount,
-  expanded,
-  onToggle,
-  children,
-}: InventoryCollapsibleProps) {
-  return (
-    <div className="space-y-1">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="hover:bg-accent flex min-h-11 w-full items-center gap-1.5 rounded-md px-2 py-2.5 text-left transition-colors lg:min-h-0 lg:py-1.5"
-      >
-        <ChevronDown
-          className={cn(
-            "text-muted-foreground size-3.5 shrink-0 transition-transform",
-            !expanded && "-rotate-90"
-          )}
-        />
-        <span className="min-w-0 flex-1 text-xs font-medium">{title}</span>
-        <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
-          {selectedCount > 0 ? `${selectedCount}/` : ""}
-          {count}
-        </span>
-      </button>
-      {expanded ? children : null}
-    </div>
-  )
-}
-
-function matchesInventorySearch(
-  query: string,
-  ...fields: (string | null | undefined)[]
-): boolean {
-  if (!query) return true
-  return fields.some((field) => field?.toLowerCase().includes(query))
-}
-
-// ── ToggleRow ─────────────────────────────────────────────────────────────────
-
-type ToggleRowProps = {
-  name: string
-  description?: string | null
-  icon: typeof Server
-  selected: boolean
-  onToggle: () => void
-}
-
-function ToggleRow({
-  name,
-  description,
-  icon: Icon,
-  selected,
-  onToggle,
-}: ToggleRowProps) {
-  return (
-    <li>
-      <button
-        type="button"
-        onClick={onToggle}
-        className="hover:bg-accent flex min-h-11 w-full items-center gap-2.5 rounded-md px-2 py-2.5 text-left text-sm transition-colors lg:min-h-0 lg:py-1.5"
-      >
-        <span
-          className={cn(
-            "flex size-3.5 shrink-0 items-center justify-center rounded-sm border",
-            selected
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-input"
-          )}
-        >
-          {selected ? <Check className="size-2.5" /> : null}
-        </span>
-        <Icon className="text-muted-foreground size-3.5 shrink-0" />
-        <span className="min-w-0 flex-1">
-          <span className="block truncate font-medium leading-tight">
-            {name}
-          </span>
-          {description ? (
-            <span className="text-muted-foreground block truncate text-xs">
-              {description}
-            </span>
-          ) : null}
-        </span>
-      </button>
-    </li>
-  )
-}
 
 // ── RunPlaybookPageInner ──────────────────────────────────────────────────────
 
@@ -154,40 +49,13 @@ function RunPlaybookPageInner({ id }: { id: string }) {
     devices,
     ready: inventoryReady,
   })
-  const [inventorySearch, setInventorySearch] = useState("")
-  const [groupsExpanded, setGroupsExpanded] = useState(true)
-  const [devicesExpanded, setDevicesExpanded] = useState(false)
   const [forks, setForks] = useState(1)
   const [extravars, setExtravars] = useState<{ key: string; value: string }[]>(
     []
   )
 
-  const searchQuery = inventorySearch.trim().toLowerCase()
-
-  const filteredGroups = useMemo(
-    () =>
-      groups.filter((group) =>
-        matchesInventorySearch(searchQuery, group.name, group.description)
-      ),
-    [groups, searchQuery]
-  )
-
-  const filteredDevices = useMemo(
-    () =>
-      devices.filter((device) =>
-        matchesInventorySearch(searchQuery, device.name, device.ipAddress)
-      ),
-    [devices, searchQuery]
-  )
-
   const selectionCount = selectedGroups.size + selectedDevices.size
   const isRunning = phase === "running"
-
-  function toggle(set: Set<string>, id: string): Set<string> {
-    const next = new Set(set)
-    next.has(id) ? next.delete(id) : next.add(id)
-    return next
-  }
 
   function handleRun() {
     if (!playbook || selectionCount === 0) return
@@ -321,97 +189,38 @@ function RunPlaybookPageInner({ id }: { id: string }) {
               {t("run.panel.inventory")}
             </p>
 
-            {groups.length > 0 || devices.length > 0 ? (
-              <div className="relative">
-                <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
-                <Input
-                  type="search"
-                  placeholder={t("run.panel.search_placeholder")}
-                  value={inventorySearch}
-                  onChange={(e) => setInventorySearch(e.target.value)}
-                  className="h-10 pl-8 text-xs lg:h-8"
-                />
-              </div>
-            ) : null}
-
-            {groups.length > 0 ? (
-              <InventoryCollapsible
-                title={t("run.panel.groups")}
-                count={filteredGroups.length}
-                selectedCount={
-                  filteredGroups.filter((g) => selectedGroups.has(g.id)).length
-                }
-                expanded={searchQuery ? true : groupsExpanded}
-                onToggle={() => setGroupsExpanded((v) => !v)}
-              >
-                {filteredGroups.length > 0 ? (
-                  <ul className="space-y-0.5 pl-1">
-                    {filteredGroups.map((group) => (
-                      <ToggleRow
-                        key={group.id}
-                        name={group.name}
-                        description={group.description}
-                        icon={Folder}
-                        selected={selectedGroups.has(group.id)}
-                        onToggle={() =>
-                          setSelectedGroups((s) => toggle(s, group.id))
-                        }
-                      />
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-muted-foreground px-2 py-1 text-xs">
-                    {t("run.panel.no_results")}
-                  </p>
-                )}
-              </InventoryCollapsible>
-            ) : null}
-
-            {devices.length > 0 ? (
-              <InventoryCollapsible
-                title={t("run.panel.devices")}
-                count={filteredDevices.length}
-                selectedCount={
-                  filteredDevices.filter((d) => selectedDevices.has(d.id))
-                    .length
-                }
-                expanded={searchQuery ? true : devicesExpanded}
-                onToggle={() => setDevicesExpanded((v) => !v)}
-              >
-                {filteredDevices.length > 0 ? (
-                  <ul className="space-y-0.5 pl-1">
-                    {filteredDevices.map((device) => (
-                      <ToggleRow
-                        key={device.id}
-                        name={device.name}
-                        description={device.ipAddress}
-                        icon={Server}
-                        selected={selectedDevices.has(device.id)}
-                        onToggle={() =>
-                          setSelectedDevices((s) => toggle(s, device.id))
-                        }
-                      />
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-muted-foreground px-2 py-1 text-xs">
-                    {t("run.panel.no_results")}
-                  </p>
-                )}
-              </InventoryCollapsible>
-            ) : null}
-
-            {groups.length === 0 && devices.length === 0 ? (
-              <p className="text-muted-foreground px-2 text-xs">
-                {t("run.panel.empty_inventory")}
-              </p>
-            ) : searchQuery &&
-              filteredGroups.length === 0 &&
-              filteredDevices.length === 0 ? (
-              <p className="text-muted-foreground px-2 text-xs">
-                {t("run.panel.no_match")}
-              </p>
-            ) : null}
+            <InventorySelectionList
+              groups={groups}
+              devices={devices}
+              selectedGroups={selectedGroups}
+              selectedDevices={selectedDevices}
+              onToggleGroup={(groupId) =>
+                setSelectedGroups((current) => {
+                  const next = new Set(current)
+                  next.has(groupId) ? next.delete(groupId) : next.add(groupId)
+                  return next
+                })
+              }
+              onToggleDevice={(deviceId) =>
+                setSelectedDevices((current) => {
+                  const next = new Set(current)
+                  next.has(deviceId)
+                    ? next.delete(deviceId)
+                    : next.add(deviceId)
+                  return next
+                })
+              }
+              labels={{
+                groups: t("run.panel.groups"),
+                devices: t("run.panel.devices"),
+                searchPlaceholder: t("run.panel.search_placeholder"),
+                noResults: t("run.panel.no_results"),
+                emptyInventory: t("run.panel.empty_inventory"),
+                noMatch: t("run.panel.no_match"),
+              }}
+              searchable
+              collapsible
+            />
           </div>
 
           {/* Options */}

@@ -1,11 +1,8 @@
 import { getIcon } from "@/lib/icon-registry"
 
 const ArrowLeft = getIcon("navigation", "back")
-const Check = getIcon("controls", "check")
-const Folder = getIcon("resources", "folder")
 const Loader2 = getIcon("status", "loading")
 const Plus = getIcon("actions", "add")
-const Server = getIcon("resources", "server")
 const Trash2 = getIcon("actions", "delete")
 
 import * as React from "react"
@@ -32,8 +29,8 @@ import {
 } from "@/features/jobs/hooks/useJobs"
 import type { InventoryItem } from "@/features/jobs/types"
 import { usePlaybooksList } from "@/features/playbooks/hooks/usePlaybooks"
+import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { navigate } from "@/lib/navigate"
-import { cn } from "@/lib/utils"
 
 const SELECT_EMPTY_VALUE = "__none__"
 
@@ -58,50 +55,6 @@ const EMPTY: FormValues = {
 }
 
 export type JobFormPageProps = { id?: string }
-
-function InventoryToggleRow({
-  name,
-  description,
-  icon: Icon,
-  selected,
-  onToggle,
-}: {
-  name: string
-  description?: string | null
-  icon: React.ElementType
-  selected: boolean
-  onToggle: () => void
-}) {
-  return (
-    <li>
-      <button
-        type="button"
-        onClick={onToggle}
-        className="hover:bg-accent flex w-full items-center gap-3 rounded-md px-2 py-1.5 text-left transition-colors"
-      >
-        <span
-          className={cn(
-            "flex size-4 shrink-0 items-center justify-center rounded-sm border transition-colors",
-            selected
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-input"
-          )}
-        >
-          {selected ? <Check className="size-3" /> : null}
-        </span>
-        <Icon className="text-muted-foreground size-3.5 shrink-0" />
-        <span className="min-w-0">
-          <span className="block truncate text-sm font-medium">{name}</span>
-          {description ? (
-            <span className="text-muted-foreground block truncate text-xs">
-              {description}
-            </span>
-          ) : null}
-        </span>
-      </button>
-    </li>
-  )
-}
 
 function JobFormPageInner({ id }: JobFormPageProps) {
   const { t } = useTranslation("jobs")
@@ -158,22 +111,6 @@ function JobFormPageInner({ id }: JobFormPageProps) {
 
   function set<K extends keyof FormValues>(key: K, value: FormValues[K]) {
     setValues((v) => ({ ...v, [key]: value }))
-  }
-
-  function toggleGroup(id: string) {
-    setSelectedGroups((s) => {
-      const n = new Set(s)
-      n.has(id) ? n.delete(id) : n.add(id)
-      return n
-    })
-  }
-
-  function toggleDevice(id: string) {
-    setSelectedDevices((s) => {
-      const n = new Set(s)
-      n.has(id) ? n.delete(id) : n.add(id)
-      return n
-    })
   }
 
   function addExtravar() {
@@ -377,50 +314,36 @@ function JobFormPageInner({ id }: JobFormPageProps) {
               {t("form.no_inventory")}
             </p>
           ) : (
-            <div className="rounded-xl border">
-              {groups.length > 0 ? (
-                <div className="p-3">
-                  <p className="text-muted-foreground mb-1 px-2 text-xs font-medium">
-                    {t("form.groups_label")}
-                  </p>
-                  <ul className="space-y-0.5">
-                    {groups.map((g) => (
-                      <InventoryToggleRow
-                        key={g.id}
-                        name={g.name}
-                        description={g.description}
-                        icon={Folder}
-                        selected={selectedGroups.has(g.id)}
-                        onToggle={() => toggleGroup(g.id)}
-                      />
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-
-              {groups.length > 0 && devices.length > 0 ? (
-                <div className="border-t" />
-              ) : null}
-
-              {devices.length > 0 ? (
-                <div className="p-3">
-                  <p className="text-muted-foreground mb-1 px-2 text-xs font-medium">
-                    {t("form.devices_label")}
-                  </p>
-                  <ul className="space-y-0.5">
-                    {devices.map((d) => (
-                      <InventoryToggleRow
-                        key={d.id}
-                        name={d.name}
-                        description={d.ipAddress}
-                        icon={Server}
-                        selected={selectedDevices.has(d.id)}
-                        onToggle={() => toggleDevice(d.id)}
-                      />
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
+            <div className="rounded-xl border p-3">
+              <InventorySelectionList
+                groups={groups}
+                devices={devices}
+                selectedGroups={selectedGroups}
+                selectedDevices={selectedDevices}
+                onToggleGroup={(groupId) =>
+                  setSelectedGroups((current) => {
+                    const next = new Set(current)
+                    next.has(groupId) ? next.delete(groupId) : next.add(groupId)
+                    return next
+                  })
+                }
+                onToggleDevice={(deviceId) =>
+                  setSelectedDevices((current) => {
+                    const next = new Set(current)
+                    next.has(deviceId)
+                      ? next.delete(deviceId)
+                      : next.add(deviceId)
+                    return next
+                  })
+                }
+                labels={{
+                  groups: t("form.groups_label"),
+                  devices: t("form.devices_label"),
+                  noResults: t("form.no_inventory"),
+                  emptyInventory: t("form.no_inventory"),
+                  noMatch: t("form.no_inventory"),
+                }}
+              />
             </div>
           )}
         </section>

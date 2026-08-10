@@ -1,13 +1,10 @@
 import { getIcon } from "@/lib/icon-registry"
 
 const AlertTriangle = getIcon("status", "alert")
-const Check = getIcon("controls", "check")
 const CheckCircle2 = getIcon("status", "success")
-const Folder = getIcon("resources", "folder")
 const Loader2 = getIcon("status", "loading")
 const Play = getIcon("actions", "play")
 const Plus = getIcon("actions", "add")
-const Server = getIcon("resources", "server")
 const Trash2 = getIcon("actions", "delete")
 const XCircle = getIcon("status", "error")
 
@@ -28,6 +25,7 @@ import { Label } from "@/components/ui/label"
 import { useDevicesList } from "@/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/features/inventory/hooks/useGroups"
 import type { Playbook } from "@/features/playbooks/types"
+import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { useRunPlaybook } from "@/features/run/hooks/useRunPlaybook"
 import type { RunEvent, RunSelection } from "@/features/run/types"
 import { cn } from "@/lib/utils"
@@ -87,52 +85,6 @@ const toneClass: Record<Tone, string> = {
   muted: "text-muted-foreground",
 }
 
-type ToggleRowProps = {
-  name: string
-  description?: string | null
-  icon: typeof Server
-  selected: boolean
-  onToggle: () => void
-}
-
-function ToggleRow({
-  name,
-  description,
-  icon: Icon,
-  selected,
-  onToggle,
-}: ToggleRowProps) {
-  return (
-    <li>
-      <button
-        type="button"
-        onClick={onToggle}
-        className="hover:bg-accent flex w-full items-center gap-3 rounded-md border border-transparent px-3 py-2 text-left text-sm transition-colors"
-      >
-        <span
-          className={cn(
-            "flex size-4 shrink-0 items-center justify-center rounded-sm border",
-            selected
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-input"
-          )}
-        >
-          {selected ? <Check className="size-3" /> : null}
-        </span>
-        <Icon className="text-muted-foreground size-4 shrink-0" />
-        <span className="min-w-0 flex-1 truncate">
-          <span className="block truncate font-medium">{name}</span>
-          {description ? (
-            <span className="text-muted-foreground block truncate text-xs">
-              {description}
-            </span>
-          ) : null}
-        </span>
-      </button>
-    </li>
-  )
-}
-
 export function RunPlaybookModal({
   open,
   onOpenChange,
@@ -171,13 +123,6 @@ export function RunPlaybookModal({
 
   const selectionCount = selectedGroups.size + selectedDevices.size
 
-  function toggle(set: Set<string>, id: string): Set<string> {
-    const next = new Set(set)
-    if (next.has(id)) next.delete(id)
-    else next.add(id)
-    return next
-  }
-
   function handleRun() {
     if (!playbook || selectionCount === 0) return
     const inventory: RunSelection[] = [
@@ -215,57 +160,35 @@ export function RunPlaybookModal({
 
         {phase === "idle" ? (
           <div className="space-y-4">
-            {groups.length > 0 ? (
-              <div>
-                <p className="text-muted-foreground mb-1 text-xs font-medium uppercase">
-                  {t("run_modal.groups_section")}
-                </p>
-                <ul className="space-y-1">
-                  {groups.map((group) => (
-                    <ToggleRow
-                      key={group.id}
-                      name={group.name}
-                      description={group.description}
-                      icon={Folder}
-                      selected={selectedGroups.has(group.id)}
-                      onToggle={() =>
-                        setSelectedGroups((s) => toggle(s, group.id))
-                      }
-                    />
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-
-            {devices.length > 0 ? (
-              <div>
-                <p className="text-muted-foreground mb-1 text-xs font-medium uppercase">
-                  {t("run_modal.devices_section")}
-                </p>
-                <ul className="space-y-1">
-                  {devices.map((device) => (
-                    <ToggleRow
-                      key={device.id}
-                      name={device.name}
-                      description={device.ipAddress}
-                      icon={Server}
-                      selected={selectedDevices.has(device.id)}
-                      onToggle={() =>
-                        setSelectedDevices((s) => toggle(s, device.id))
-                      }
-                    />
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-
-            {groups.length === 0 && devices.length === 0 ? (
-              <div className="rounded-xl border border-dashed bg-card px-4 py-8 text-center text-sm">
-                <p className="text-muted-foreground">
-                  {t("run_modal.empty_inventory")}
-                </p>
-              </div>
-            ) : null}
+            <InventorySelectionList
+              groups={groups}
+              devices={devices}
+              selectedGroups={selectedGroups}
+              selectedDevices={selectedDevices}
+              onToggleGroup={(groupId) =>
+                setSelectedGroups((current) => {
+                  const next = new Set(current)
+                  next.has(groupId) ? next.delete(groupId) : next.add(groupId)
+                  return next
+                })
+              }
+              onToggleDevice={(deviceId) =>
+                setSelectedDevices((current) => {
+                  const next = new Set(current)
+                  next.has(deviceId)
+                    ? next.delete(deviceId)
+                    : next.add(deviceId)
+                  return next
+                })
+              }
+              labels={{
+                groups: t("run_modal.groups_section"),
+                devices: t("run_modal.devices_section"),
+                noResults: t("run_modal.empty_inventory"),
+                emptyInventory: t("run_modal.empty_inventory"),
+                noMatch: t("run_modal.empty_inventory"),
+              }}
+            />
 
             <div className="space-y-3 border-t pt-3">
               <p className="text-muted-foreground text-xs font-medium uppercase">
