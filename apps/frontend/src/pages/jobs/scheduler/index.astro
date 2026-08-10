@@ -1,0 +1,12 @@
+---
+import { JobsPage } from "@/features/jobs/components/jobs-page"
+import WithSidebar from "@/layouts/WithSidebar.astro"
+import { getServerT } from "@/lib/i18n/server"
+
+const { locale } = Astro.locals
+const t = await getServerT(locale, "jobs")
+---
+
+<WithSidebar title={t("page.title")} section="/jobs">
+  <JobsPage client:only="react" />
+</WithSidebar>

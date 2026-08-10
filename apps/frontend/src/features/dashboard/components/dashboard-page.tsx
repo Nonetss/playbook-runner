@@ -90,7 +90,7 @@ function JobRow({ job, playbookName }: { job: Job; playbookName?: string }) {
 
 function ActivityRow({ run }: { run: JobRunFeedRow }) {
   const { t } = useTranslation("jobs")
-  const href = run.jobId ? `/jobs/${run.jobId}?run=${run.id}` : "/history"
+  const href = run.jobId ? `/jobs/${run.jobId}?run=${run.id}` : "/jobs/history"
   return (
     <a
       href={href}
@@ -184,7 +184,7 @@ function DashboardPageInner() {
               ? undefined
               : `${enabledJobs} ${t("stats.active", { count: enabledJobs })} · ${scheduledJobs} ${t("stats.scheduled", { count: scheduledJobs })}`
           }
-          href="/jobs"
+          href="/jobs/scheduler"
         />
         <StatCard
           icon={FileCode2}
@@ -231,7 +231,7 @@ function DashboardPageInner() {
                 ? `${metrics.okCount}/${metrics.total} ${t("stats.avg_duration").toLowerCase()}`
                 : undefined
             }
-            href="/history"
+            href="/jobs/history"
           />
           <StatCard
             icon={Timer}
@@ -242,7 +242,7 @@ function DashboardPageInner() {
                 ? `${formatRunDurationMs(metrics.avgDurationMs)} ${t("stats.avg_duration").toLowerCase()}`
                 : undefined
             }
-            href="/history"
+            href="/jobs/history"
           />
           <StatCard
             icon={XCircle}
@@ -253,7 +253,7 @@ function DashboardPageInner() {
                 ? `${Math.round((metrics.failedCount / metrics.total) * 100)}%`
                 : undefined
             }
-            href="/history"
+            href="/jobs/history"
           />
         </div>
       </section>
@@ -266,7 +266,10 @@ function DashboardPageInner() {
             {t("dashboard_activity.title", { ns: "jobs" })}
           </CardTitle>
           <Button variant="ghost" size="sm" asChild>
-            <a href="/history" className="gap-1 text-xs text-muted-foreground">
+            <a
+              href="/jobs/history"
+              className="gap-1 text-xs text-muted-foreground"
+            >
               {t("dashboard_activity.view_history", { ns: "jobs" })}
               <ChevronRight className="size-3.5" />
             </a>
@@ -303,7 +306,10 @@ function DashboardPageInner() {
             {t("jobs_section.title")}
           </CardTitle>
           <Button variant="ghost" size="sm" asChild>
-            <a href="/jobs" className="gap-1 text-xs text-muted-foreground">
+            <a
+              href="/jobs/scheduler"
+              className="gap-1 text-xs text-muted-foreground"
+            >
               {t("jobs_section.view_all")}
               <ChevronRight className="size-3.5" />
             </a>

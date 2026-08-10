@@ -219,7 +219,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
       } else {
         await createJob.mutateAsync(payload)
       }
-      navigate("/jobs")
+      navigate("/jobs/scheduler")
     } catch (err) {
       setError(err instanceof Error ? err.message : t("form.save_error"))
     }
@@ -243,7 +243,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
           {t("form.load_error")}
         </div>
         <Button asChild variant="outline" className="mt-4">
-          <a href="/jobs">
+          <a href="/jobs/scheduler">
             <ArrowLeft className="size-4" />
             {t("form.back_to_jobs")}
           </a>
@@ -263,7 +263,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
           size="icon-sm"
           aria-label={t("form.back_aria")}
         >
-          <a href="/jobs">
+          <a href="/jobs/scheduler">
             <ArrowLeft className="size-4" />
           </a>
         </Button>
@@ -561,7 +561,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
             variant="outline"
             disabled={isSubmitting}
           >
-            <a href="/jobs">{tCommon("actions.cancel")}</a>
+            <a href="/jobs/scheduler">{tCommon("actions.cancel")}</a>
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? (

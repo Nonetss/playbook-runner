@@ -175,7 +175,7 @@ function JobDetailPageInner({ id }: { id: string }) {
           {t("detail.load_error")}
         </div>
         <Button asChild variant="outline">
-          <a href="/jobs">
+          <a href="/jobs/scheduler">
             <ArrowLeft className="size-4" />
             {t("detail.back_to_jobs")}
           </a>
@@ -195,7 +195,7 @@ function JobDetailPageInner({ id }: { id: string }) {
           className="size-10 shrink-0 sm:size-8"
           aria-label={t("detail.back_aria")}
         >
-          <a href="/jobs">
+          <a href="/jobs/scheduler">
             <ArrowLeft className="size-4" />
           </a>
         </Button>

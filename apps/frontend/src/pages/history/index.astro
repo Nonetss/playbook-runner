@@ -1,12 +1,5 @@
 ---
-import { HistoryPage } from "@/features/history"
-import Layout from "@/layouts/Layout.astro"
-import { getServerT } from "@/lib/i18n/server"
-
-const { locale } = Astro.locals
-const t = await getServerT(locale, "jobs")
+return Astro.redirect("/jobs/history", 301)
 ---
 
-<Layout title={t("history.page.title")}>
-  <HistoryPage client:only="react" />
-</Layout>
+<!-- Legacy route; the redirect is returned before this markup renders. -->

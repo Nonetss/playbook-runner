@@ -1,0 +1,12 @@
+---
+import { HistoryPage } from "@/features/history"
+import WithSidebar from "@/layouts/WithSidebar.astro"
+import { getServerT } from "@/lib/i18n/server"
+
+const { locale } = Astro.locals
+const t = await getServerT(locale, "jobs")
+---
+
+<WithSidebar title={t("history.page.title")} section="/jobs">
+  <HistoryPage client:only="react" />
+</WithSidebar>

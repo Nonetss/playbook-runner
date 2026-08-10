@@ -8,6 +8,10 @@ import {
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
+import { SoftCardList } from "@/components/shared/data-display/soft-card-list"
+import { StateCard } from "@/components/shared/data-display/state-card"
+import { PageHero } from "@/components/shared/layout/page-hero"
+import { PageShell } from "@/components/shared/layout/page-shell"
 import { Button } from "@/components/ui/button"
 import { StatCard } from "@/components/ui/stat-card"
 import {
@@ -28,7 +32,7 @@ import type { JobRunFeedRow, JobRunMetricsWindow } from "@/features/jobs/types"
  * row stays interactive without throwing on a missing job.
  */
 function runHref(run: JobRunFeedRow): string {
-  if (!run.jobId) return "/history"
+  if (!run.jobId) return "/jobs/history"
   return `/jobs/${run.jobId}?run=${run.id}`
 }
 
@@ -91,18 +95,12 @@ function HistoryPageInner() {
   const successPct = metrics ? Math.round(metrics.successRate * 100) : null
 
   return (
-    <main className="mx-auto w-full max-w-5xl space-y-8 px-4 py-8 md:px-6">
-      <header className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-            <HistoryIcon className="size-6" />
-            {t("history.page.title")}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t("history.page.subtitle")}
-          </p>
-        </div>
-      </header>
+    <PageShell maxWidth="5xl" className="space-y-8">
+      <PageHero
+        icon={<HistoryIcon className="size-5" />}
+        title={t("history.page.title")}
+        description={t("history.page.subtitle")}
+      />
 
       {/* Aggregate metrics + window selector */}
       <section className="space-y-3">
@@ -120,13 +118,13 @@ function HistoryPageInner() {
               successPct == null ? (metrics ? "0%" : "—") : `${successPct}%`
             }
             sub={metrics ? `${metrics.okCount}/${metrics.total}` : undefined}
-            href="/history"
+            href="/jobs/history"
           />
           <StatCard
             icon={Timer}
             title={tDashboard("stats.runs_in_window")}
             value={metrics ? metrics.total : "—"}
-            href="/history"
+            href="/jobs/history"
           />
           <StatCard
             icon={XCircle}
@@ -137,42 +135,35 @@ function HistoryPageInner() {
                 ? `${Math.round((metrics.failedCount / metrics.total) * 100)}%`
                 : undefined
             }
-            href="/history"
+            href="/jobs/history"
           />
           <StatCard
             icon={Timer}
             title={tDashboard("stats.avg_duration")}
             value={metrics ? formatRunDurationMs(metrics.avgDurationMs) : "—"}
-            href="/history"
+            href="/jobs/history"
           />
         </div>
       </section>
 
       {isPending ? (
-        <div className="text-muted-foreground flex items-center gap-2 py-12 justify-center text-sm">
-          <Loader2 className="size-4 animate-spin" />
-          {t("history.loading")}
-        </div>
+        <StateCard spinner title={t("history.loading")} />
       ) : isError ? (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-6 text-sm text-destructive">
-          {t("history.load_error")}
-          <Button
-            variant="outline"
-            size="sm"
-            className="ml-3"
-            onClick={() => refetch()}
-          >
-            {tCommon("actions.retry")}
-          </Button>
-        </div>
+        <StateCard
+          title={t("history.load_error")}
+          tone="destructive"
+          action={
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              {tCommon("actions.retry")}
+            </Button>
+          }
+        />
       ) : runs.length === 0 ? (
-        <div className="rounded-xl border border-dashed bg-card px-4 py-16 text-center">
-          <p className="text-muted-foreground text-sm">{t("history.empty")}</p>
-        </div>
+        <StateCard title={t("history.empty")} />
       ) : (
         <>
-          <div className="rounded-xl border bg-card">
-            <div className="grid grid-cols-[1.4fr_0.9fr_0.9fr_0.7fr_0.6fr_1fr] gap-3 border-b px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <SoftCardList className="bg-card">
+            <div className="grid grid-cols-[1.4fr_0.9fr_0.9fr_0.7fr_0.6fr_1fr] gap-3 border-b px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <span>{t("history.headers.job")}</span>
               <span>{t("history.headers.status")}</span>
               <span>{t("history.headers.hosts")}</span>
@@ -180,12 +171,10 @@ function HistoryPageInner() {
               <span>{t("history.headers.duration")}</span>
               <span>{t("history.headers.timestamp")}</span>
             </div>
-            <div className="divide-y divide-border/50">
-              {runs.map((run) => (
-                <FeedRow key={run.id} run={run} />
-              ))}
-            </div>
-          </div>
+            {runs.map((run) => (
+              <FeedRow key={run.id} run={run} />
+            ))}
+          </SoftCardList>
 
           <div className="flex items-center justify-between gap-3">
             <p className="text-muted-foreground text-xs">
@@ -207,7 +196,7 @@ function HistoryPageInner() {
           </div>
         </>
       )}
-    </main>
+    </PageShell>
   )
 }
 
