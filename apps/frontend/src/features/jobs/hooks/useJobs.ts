@@ -107,12 +107,12 @@ const listKey = orpc.jobs.list.queryKey()
 
 type CreateInput = {
   name: string
-  description?: string
-  playbookId?: string
+  description?: string | null
+  playbookId?: string | null
   inventoryJson?: InventoryItem[]
   extravarsJson?: Record<string, string>
   forks?: number
-  cronExpression?: string
+  cronExpression?: string | null
   enabled?: boolean
 }
 
@@ -145,12 +145,19 @@ function applyUpdate(current: Job[] | undefined, input: UpdateInput) {
       ? {
           ...j,
           name: input.name ?? j.name,
-          description: input.description ?? j.description,
-          playbookId: input.playbookId ?? j.playbookId,
+          description:
+            input.description !== undefined
+              ? input.description
+              : j.description,
+          playbookId:
+            input.playbookId !== undefined ? input.playbookId : j.playbookId,
           inventoryJson: input.inventoryJson ?? j.inventoryJson,
           extravarsJson: input.extravarsJson ?? j.extravarsJson,
           forks: input.forks ?? j.forks,
-          cronExpression: input.cronExpression ?? j.cronExpression,
+          cronExpression:
+            input.cronExpression !== undefined
+              ? input.cronExpression
+              : j.cronExpression,
           enabled: input.enabled ?? j.enabled,
         }
       : j
@@ -192,8 +199,9 @@ export const useJobCreate = () =>
     messages: { success: "Job creado", error: "No se pudo crear el job" },
   })
 
-export const useJobUpdate = () =>
-  useResourceMutation<UpdateInput, Job, Job[]>({
+export const useJobUpdate = () => {
+  const queryClient = useQueryClient()
+  const mutation = useResourceMutation<UpdateInput, Job, Job[]>({
     mutationFn: (input) =>
       orpc.jobs.update.call({
         id: input.id,
@@ -213,6 +221,18 @@ export const useJobUpdate = () =>
       error: "No se pudo actualizar el job",
     },
   })
+
+  return {
+    ...mutation,
+    mutateAsync: async (input: UpdateInput) => {
+      const result = await mutation.mutateAsync(input)
+      await queryClient.invalidateQueries({
+        queryKey: orpc.jobs.get.queryKey({ input: { id: input.id } }),
+      })
+      return result
+    },
+  }
+}
 
 export const useJobDelete = () =>
   useResourceMutation<{ id: string }, Job, Job[]>({

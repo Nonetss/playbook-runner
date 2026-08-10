@@ -3,12 +3,12 @@ import z from "zod"
 const item = z.object({ id: z.string(), type: z.enum(["group", "device"]) })
 const job = z.object({
   name: z.string().min(1),
-  description: z.string().optional(),
-  playbookId: z.string().optional(),
+  description: z.string().nullable().optional(),
+  playbookId: z.string().nullable().optional(),
   inventoryJson: z.array(item).default([]),
   extravarsJson: z.record(z.string(), z.string()).default({}),
   forks: z.number().int().min(1).default(1),
-  cronExpression: z.string().optional(),
+  cronExpression: z.string().nullable().optional(),
   enabled: z.boolean().default(true),
 })
 

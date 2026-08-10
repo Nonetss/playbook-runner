@@ -11,13 +11,6 @@ import { AppProviders } from "@/components/providers/app-providers"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { useDevicesList } from "@/features/inventory/hooks/useDevices"
 import { useGroupsList } from "@/features/inventory/hooks/useGroups"
@@ -31,8 +24,7 @@ import type { InventoryItem, Job } from "@/features/jobs/types"
 import { usePlaybooksList } from "@/features/playbooks/hooks/usePlaybooks"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { navigate } from "@/lib/navigate"
-
-const SELECT_EMPTY_VALUE = "__none__"
+import { cn } from "@/lib/utils"
 
 type ExtravarRow = { key: string; value: string }
 
@@ -198,13 +190,15 @@ function JobForm({
     )
 
     const payload = {
-      name: values.name,
-      description: values.description || undefined,
-      playbookId: values.playbookId || undefined,
+      name: values.name.trim(),
+      // Always send explicit null so the API never treats a missing key as
+      // "clear" by accident while the field still had a value in the UI.
+      description: values.description.trim() || null,
+      playbookId: values.playbookId || null,
       inventoryJson: inventory,
       extravarsJson: extravarsMap,
       forks: values.forks,
-      cronExpression: values.cronExpression || undefined,
+      cronExpression: values.cronExpression.trim() || null,
       enabled: values.enabled,
     }
 
@@ -272,6 +266,8 @@ function JobForm({
               </Label>
               <Input
                 id="job-description"
+                name="job-description"
+                autoComplete="off"
                 disabled={isSubmitting}
                 placeholder={t("form.description_placeholder")}
                 value={values.description}
@@ -300,31 +296,32 @@ function JobForm({
           </h2>
           <div className="space-y-2">
             <Label htmlFor="job-playbook">{t("form.playbook_label")}</Label>
-            <Select
-              value={values.playbookId || SELECT_EMPTY_VALUE}
-              onValueChange={(next) => {
-                // Radix Select inside a <form> can emit a spurious "" when the
-                // controlled value is set before native <option>s exist; ignore
-                // it so edit mode doesn't wipe the saved playbook.
-                if (!next) return
-                set("playbookId", next === SELECT_EMPTY_VALUE ? "" : next)
-              }}
+            {/*
+              Native <select> on purpose: Radix Select mounts a hidden form
+              control that emits spurious change/"" events inside <form>, which
+              wiped playbookId (and interacted badly with controlled fields)
+              when hydrating an existing job.
+            */}
+            <select
+              id="job-playbook"
               disabled={isSubmitting}
+              value={values.playbookId}
+              onChange={(e) => set("playbookId", e.target.value)}
+              className={cn(
+                "border-input bg-transparent shadow-xs dark:bg-input/30",
+                "focus-visible:border-ring focus-visible:ring-ring/50",
+                "flex h-9 w-full min-w-0 rounded-md border px-3 py-2 text-sm",
+                "outline-none focus-visible:ring-[3px]",
+                "disabled:cursor-not-allowed disabled:opacity-50"
+              )}
             >
-              <SelectTrigger id="job-playbook" className="w-full">
-                <SelectValue placeholder={t("form.playbook_placeholder")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={SELECT_EMPTY_VALUE}>
-                  {t("form.playbook_placeholder")}
-                </SelectItem>
-                {playbooks.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <option value="">{t("form.playbook_placeholder")}</option>
+              {playbooks.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
           </div>
         </section>
 

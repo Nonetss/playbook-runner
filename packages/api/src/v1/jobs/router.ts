@@ -130,12 +130,12 @@ const inventoryItemSchema = z.object({
 
 const jobInputSchema = z.object({
   name: z.string().min(1),
-  description: z.string().optional(),
-  playbookId: z.string().optional(),
+  description: z.string().nullable().optional(),
+  playbookId: z.string().nullable().optional(),
   inventoryJson: z.array(inventoryItemSchema).default([]),
   extravarsJson: z.record(z.string(), z.string()).default({}),
   forks: z.number().int().min(1).default(1),
-  cronExpression: z.string().optional(),
+  cronExpression: z.string().nullable().optional(),
   enabled: z.boolean().default(true),
 })
 
@@ -203,6 +203,8 @@ export const jobsRouter = {
       const { id, ...rest } = input
       return jobsHandler.update(id, {
         name: rest.name,
+        // `null` clears; a string keeps/sets. Optional+omitted still clears
+        // because this endpoint is a full replace — clients must send fields.
         description: rest.description ?? null,
         playbookId: rest.playbookId ?? null,
         inventoryJson: rest.inventoryJson,
