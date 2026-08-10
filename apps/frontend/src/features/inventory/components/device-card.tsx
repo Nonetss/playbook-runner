@@ -4,7 +4,7 @@ const KeyRound = getIcon("resources", "apiKey")
 const Link2 = getIcon("resources", "link")
 const Pencil = getIcon("actions", "edit")
 const Radio = getIcon("resources", "radio")
-const Server = getIcon("resources", "server")
+const Computer = getIcon("resources", "device")
 const Trash2 = getIcon("actions", "delete")
 
 import { useTranslation } from "react-i18next"
@@ -46,7 +46,7 @@ export function DeviceCard({
   const { t } = useTranslation("common")
   return (
     <ResourceCard
-      icon={<Server className="size-4" />}
+      icon={<Computer className="size-4" />}
       title={device.name}
       description={device.description}
       contentClassName="space-y-3"

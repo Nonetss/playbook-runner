@@ -1,6 +1,6 @@
 import { getIcon } from "@/lib/icon-registry"
 
-const FileCode = getIcon("resources", "file")
+const FileCode2 = getIcon("resources", "fileCode")
 
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
@@ -61,7 +61,7 @@ function ScriptsPageInner() {
           description: t("empty.description"),
           ctaLabel: t("page.create"),
           ctaHref: "/scripts/new",
-          icon: <FileCode className="size-5" />,
+          icon: <FileCode2 className="size-5" />,
         }}
       >
         {(items) => (

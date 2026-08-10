@@ -1,6 +1,7 @@
 import { getIcon } from "@/lib/icon-registry"
 
 const ActivityIcon = getIcon("views", "activity")
+const BookText = getIcon("resources", "book")
 const BriefcaseIcon = getIcon("resources", "briefcase")
 const ChevronRight = getIcon("controls", "right")
 const Clock = getIcon("scheduling", "time")
@@ -9,7 +10,6 @@ const KeyRound = getIcon("resources", "apiKey")
 const Plus = getIcon("actions", "add")
 const Server = getIcon("resources", "server")
 const Timer = getIcon("scheduling", "timer")
-const Users = getIcon("resources", "users")
 const XCircle = getIcon("status", "error")
 
 import { useState } from "react"
@@ -367,13 +367,13 @@ function DashboardPageInner() {
         {[
           {
             href: "/playbooks/new",
-            icon: FileCode2,
+            icon: BookText,
             label: t("quick_links.new_playbook_title"),
             desc: t("quick_links.new_playbook_desc"),
           },
           {
             href: "/inventory",
-            icon: Users,
+            icon: Server,
             label: t("quick_links.manage_inventory_title"),
             desc: t("quick_links.manage_inventory_desc"),
           },

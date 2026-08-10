@@ -1,7 +1,7 @@
 import { getIcon } from "@/lib/icon-registry"
 
+const Computer = getIcon("resources", "device")
 const Folder = getIcon("resources", "folder")
-const Server = getIcon("resources", "server")
 
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -275,7 +275,7 @@ function InventoryPageInner({ section }: { section: InventorySection }) {
               description: t("device.empty_description"),
               ctaLabel: t("page.create.device"),
               onCta: openCreateDevice,
-              icon: <Server className="size-5" />,
+              icon: <Computer className="size-5" />,
             }}
           >
             {(items) => (

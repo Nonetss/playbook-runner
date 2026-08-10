@@ -1,6 +1,7 @@
 import { getIcon } from "@/lib/icon-registry"
 
 const ActivityIcon = getIcon("views", "activity")
+const Clock = getIcon("scheduling", "time")
 const HistoryIcon = getIcon("resources", "history")
 const Loader2 = getIcon("status", "loading")
 const Timer = getIcon("scheduling", "timer")
@@ -139,7 +140,7 @@ function HistoryPageInner() {
             href="/jobs/history"
           />
           <StatCard
-            icon={Timer}
+            icon={Clock}
             title={tDashboard("stats.avg_duration")}
             value={metrics ? formatRunDurationMs(metrics.avgDurationMs) : "—"}
             href="/jobs/history"

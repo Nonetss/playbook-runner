@@ -3,7 +3,7 @@ import { getIcon } from "@/lib/icon-registry"
 const Check = getIcon("controls", "check")
 const Folder = getIcon("resources", "folder")
 const Loader2 = getIcon("status", "loading")
-const Server = getIcon("resources", "server")
+const Computer = getIcon("resources", "device")
 
 import { useMemo } from "react"
 import { Button } from "@/components/ui/button"
@@ -127,7 +127,7 @@ export function RelationsDialog({
   const empty = isDevice
     ? "No hay grupos disponibles."
     : "No hay dispositivos disponibles."
-  const OptionIcon = isDevice ? Folder : Server
+  const OptionIcon = isDevice ? Folder : Computer
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

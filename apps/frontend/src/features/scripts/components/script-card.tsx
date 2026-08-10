@@ -1,6 +1,6 @@
 import { getIcon } from "@/lib/icon-registry"
 
-const FileCode = getIcon("resources", "file")
+const FileCode2 = getIcon("resources", "fileCode")
 const Pencil = getIcon("actions", "edit")
 const Play = getIcon("actions", "play")
 const Trash2 = getIcon("actions", "delete")
@@ -37,7 +37,7 @@ export function ScriptCard({
 
   return (
     <ResourceCard
-      icon={<FileCode className="size-4" />}
+      icon={<FileCode2 className="size-4" />}
       title={script.name}
       description={script.description}
       contentClassName="flex flex-1 flex-col gap-3"

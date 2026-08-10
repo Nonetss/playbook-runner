@@ -1,7 +1,7 @@
 import { getIcon } from "@/lib/icon-registry"
 
 const Plus = getIcon("actions", "add")
-const Server = getIcon("resources", "server")
+const Computer = getIcon("resources", "device")
 
 import { Button } from "@/components/ui/button"
 import { DeviceCard } from "@/features/inventory/components/device-card"
@@ -42,7 +42,7 @@ export function DeviceList({
     return (
       <div className="rounded-xl border border-dashed bg-card px-6 py-12 text-center">
         <div className="bg-primary/10 text-primary mx-auto mb-4 flex size-12 items-center justify-center rounded-full">
-          <Server className="size-5" />
+          <Computer className="size-5" />
         </div>
         <h2 className="text-lg font-semibold">Sin dispositivos</h2>
         <p className="text-muted-foreground mx-auto mt-2 max-w-sm text-sm">

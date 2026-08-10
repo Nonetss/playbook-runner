@@ -3,7 +3,7 @@ import { getIcon } from "@/lib/icon-registry"
 const ArrowLeft = getIcon("navigation", "back")
 const Check = getIcon("controls", "check")
 const Loader2 = getIcon("status", "loading")
-const Server = getIcon("resources", "server")
+const Computer = getIcon("resources", "device")
 const Trash2 = getIcon("actions", "delete")
 
 import { useEffect, useMemo, useState } from "react"
@@ -230,7 +230,7 @@ function GroupDetailPageInner({ id }: { id: string }) {
                           <Check className="size-3" />
                         ) : null}
                       </span>
-                      <Server className="text-muted-foreground size-4 shrink-0" />
+                      <Computer className="text-muted-foreground size-4 shrink-0" />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-medium text-sm">
                           {device.name}
