@@ -97,34 +97,12 @@ codes, and ready-to-run `curl`/client snippets. The raw spec lives at
 
 ## Architecture
 
-Three small services in one monorepo:
+Three services compose an Ansible control plane in a single monorepo. The
+browser consumes the Astro frontend, which proxies `/rpc` and `/api` to the
+Hono backend; the backend owns the database and the gRPC channel to the
+executor.
 
-```txt
-                  ┌────────────────┐
-   browser ─────▶│  frontend      │  Astro SSR + React islands
-                  │  :4321         │  (Caddy in front, see Dockerfile)
-                  └───────┬────────┘
-                          │  /rpc, /api (proxied)
-                          ▼
-                  ┌────────────────┐         ┌────────────────┐
-                  │  backend       │───────▶│  postgres      │
-                  │  :3000         │         │  :5432         │
-                  │  Hono + oRPC   │         └────────────────┘
-                  │  + Better Auth │
-                  │  + Drizzle ORM │
-                  │  + cron loop   │◀───────────────────────┐
-                  └───────┬────────┘                         │
-                          │  gRPC :50051 — RunnerService     │  gRPC :50052
-                          │  (RunBundle/RunPing/RunCommand/  │  PingService
-                          │   RunScript, streamed RunEvent,  │  (health demo)
-                          │   SERVICE_TOKEN auth)            │
-                          ▼                                  │
-                  ┌────────────────┐                         │
-                  │  ansible       │  Python FastAPI + gRPC server
-                  │  :8000/:50051  │  wraps ansible-runner   │
-                  │  (no DB)       │  ───────────────────────┘
-                  └────────────────┘
-```
+![Architecture: browser → Astro frontend → Hono backend → PostgreSQL + Ansible executor](img/architecture.svg)
 
 The Python service is deliberately dumb: it has no database connection.
 The backend resolves a run (playbook content or an ad-hoc command + the
