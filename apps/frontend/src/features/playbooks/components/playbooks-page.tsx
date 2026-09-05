@@ -29,7 +29,6 @@ import {
 } from "@/features/playbooks/hooks/use-playbook-folders"
 import {
   usePlaybookDelete,
-  usePlaybookMove,
   usePlaybooksList,
 } from "@/features/playbooks/hooks/use-playbooks"
 import type { Playbook, PlaybookFolder } from "@/features/playbooks/types"
@@ -55,7 +54,6 @@ function PlaybooksPageInner() {
     refetch: refetchFolders,
   } = usePlaybookFoldersList()
   const deletePlaybook = usePlaybookDelete()
-  const movePlaybook = usePlaybookMove()
   const deleteFolder = usePlaybookFolderDelete()
   const confirm = useConfirm()
   const [folderFormOpen, setFolderFormOpen] = React.useState(false)
@@ -146,23 +144,6 @@ function PlaybooksPageInner() {
     }
   }
 
-  async function handleDropPlaybook(
-    folder: PlaybookFolder,
-    playbookId: string
-  ) {
-    const playbook = playbooks.find((item) => item.id === playbookId)
-    if (!playbook || playbook.folderId === folder.id) return
-
-    try {
-      await movePlaybook.mutateAsync({
-        id: playbook.id,
-        folderId: folder.id,
-      })
-    } catch {
-      // The shared mutation hook displays the localized error toast.
-    }
-  }
-
   const pageTitle = folderId
     ? (activeFolder?.name ?? t("folder.not_found"))
     : t("page.title")
@@ -246,12 +227,6 @@ function PlaybooksPageInner() {
         )}
       </div>
 
-      {!folderId && folders.length > 0 && playbooks.length > 0 ? (
-        <p className="text-muted-foreground mb-4 text-xs">
-          {t("folder.drag_hint")}
-        </p>
-      ) : null}
-
       <ResourceListState
         isPending={isPending || areFoldersPending}
         isError={isError || areFoldersError}
@@ -284,7 +259,6 @@ function PlaybooksPageInner() {
             allPlaybooks={playbooks}
             onEditFolder={openFolderEdit}
             onDeleteFolder={handleFolderDelete}
-            onDropPlaybook={handleDropPlaybook}
             onDelete={handleDelete}
             onMove={setMovingPlaybook}
             locale={cardLocale}

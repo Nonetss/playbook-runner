@@ -5,7 +5,6 @@ const FolderOpen = getIcon("resources", "folderOpen")
 const Pencil = getIcon("actions", "edit")
 const Trash2 = getIcon("actions", "delete")
 
-import * as React from "react"
 import { useTranslation } from "react-i18next"
 import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
 import { Badge } from "@/components/ui/badge"
@@ -23,14 +22,11 @@ import type { Playbook, PlaybookFolder } from "@/features/playbooks/types"
 import { navigate } from "@/lib/navigate"
 import { cn } from "@/lib/utils"
 
-const PLAYBOOK_DRAG_TYPE = "application/x-playbook-id"
-
 type PlaybookFolderCardProps = {
   folder: PlaybookFolder
   playbooks: Playbook[]
   onEdit: (folder: PlaybookFolder) => void
   onDelete: (folder: PlaybookFolder) => void
-  onDropPlaybook: (folder: PlaybookFolder, playbookId: string) => void
   isDeleting?: boolean
 }
 
@@ -39,16 +35,10 @@ export function PlaybookFolderCard({
   playbooks,
   onEdit,
   onDelete,
-  onDropPlaybook,
   isDeleting = false,
 }: PlaybookFolderCardProps) {
   const { t } = useTranslation("playbooks")
-  const [isDragOver, setIsDragOver] = React.useState(false)
   const openHref = `/playbooks?folder=${encodeURIComponent(folder.id)}`
-
-  function acceptsPlaybook(event: React.DragEvent) {
-    return Array.from(event.dataTransfer.types).includes(PLAYBOOK_DRAG_TYPE)
-  }
 
   function isInteractiveTarget(target: EventTarget | null) {
     return (target as HTMLElement | null)?.closest(
@@ -67,9 +57,8 @@ export function PlaybookFolderCard({
       tabIndex={isDeleting ? undefined : 0}
       aria-label={`${t("folder.open")} ${folder.name}`}
       className={cn(
-        "relative h-full gap-4 py-4 transition-[box-shadow,background-color]",
-        !isDeleting && "cursor-pointer",
-        isDragOver && "bg-accent/50 ring-2 ring-primary"
+        "relative h-full gap-4 py-4",
+        !isDeleting && "cursor-pointer"
       )}
       onClick={(event) => {
         if (isInteractiveTarget(event.target)) return
@@ -81,23 +70,6 @@ export function PlaybookFolderCard({
         if (isInteractiveTarget(event.target)) return
         event.preventDefault()
         openFolder()
-      }}
-      onDragEnter={(event) => {
-        if (acceptsPlaybook(event)) setIsDragOver(true)
-      }}
-      onDragOver={(event) => {
-        if (!acceptsPlaybook(event)) return
-        event.preventDefault()
-        event.dataTransfer.dropEffect = "move"
-        setIsDragOver(true)
-      }}
-      onDragLeave={() => setIsDragOver(false)}
-      onDrop={(event) => {
-        if (!acceptsPlaybook(event)) return
-        event.preventDefault()
-        setIsDragOver(false)
-        const playbookId = event.dataTransfer.getData(PLAYBOOK_DRAG_TYPE)
-        if (playbookId) onDropPlaybook(folder, playbookId)
       }}
     >
       <CardHeader className="px-4">
@@ -142,11 +114,6 @@ export function PlaybookFolderCard({
       </CardHeader>
 
       <CardContent className="flex flex-1 flex-col gap-3 px-4">
-        {isDragOver ? (
-          <p className="text-primary text-xs font-medium">
-            {t("folder.drop_here")}
-          </p>
-        ) : null}
         <p className="text-muted-foreground text-xs">
           {t("folder.playbook_count", { count: playbooks.length })}
         </p>

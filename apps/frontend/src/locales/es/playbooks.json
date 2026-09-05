@@ -68,8 +68,6 @@
     "not_found": "Carpeta no encontrada",
     "delete_title": "Eliminar \"{{name}}\"",
     "delete_description": "La carpeta se eliminará y sus playbooks volverán a la raíz.",
-    "drag_hint": "Arrastra un playbook y suéltalo sobre una carpeta para guardarlo dentro.",
-    "drop_here": "Suelta aquí para moverlo",
     "toast_created": "Carpeta creada",
     "toast_create_error": "No se pudo crear la carpeta",
     "toast_updated": "Carpeta actualizada",

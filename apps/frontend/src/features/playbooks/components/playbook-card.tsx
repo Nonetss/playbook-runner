@@ -7,7 +7,6 @@ const Pencil = getIcon("actions", "edit")
 const Play = getIcon("actions", "play")
 const Trash2 = getIcon("actions", "delete")
 
-import type * as React from "react"
 import { useTranslation } from "react-i18next"
 import { ResourceCard } from "@/components/shared/data-display/resource-card"
 import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
@@ -15,9 +14,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import type { Playbook } from "@/features/playbooks/types"
+import { navigate } from "@/lib/navigate"
 import { cn } from "@/lib/utils"
-
-const PLAYBOOK_DRAG_TYPE = "application/x-playbook-id"
 
 type PlaybookCardProps = {
   playbook: Playbook
@@ -44,14 +42,40 @@ export function PlaybookCard({
         day: "numeric",
       })
     : null
+  const editHref = `/playbooks/${playbook.id}/edit`
+
+  function isInteractiveTarget(target: EventTarget | null) {
+    return (target as HTMLElement | null)?.closest(
+      '[data-slot="card-action"], a, button'
+    )
+  }
+
+  function openEdit() {
+    if (isDeleting) return
+    navigate(editHref)
+  }
 
   return (
     <ResourceCard
+      role="link"
+      tabIndex={isDeleting ? undefined : 0}
+      aria-label={`${t("card.edit")} ${playbook.name}`}
       icon={<BookText className="size-4" />}
       title={playbook.name}
       description={playbook.description}
       descriptionClassName="line-clamp-2 wrap-break-word"
       contentClassName="flex flex-1 flex-col gap-3"
+      onClick={(event) => {
+        if (isInteractiveTarget(event.target)) return
+        openEdit()
+      }}
+      onKeyDown={(event) => {
+        if (isDeleting) return
+        if (event.key !== "Enter" && event.key !== " ") return
+        if (isInteractiveTarget(event.target)) return
+        event.preventDefault()
+        openEdit()
+      }}
       actions={
         <RowActionsMenu
           label={t("card.actions_aria", { name: playbook.name })}
@@ -64,7 +88,7 @@ export function PlaybookCard({
             </a>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <a href={`/playbooks/${playbook.id}/edit`}>
+            <a href={editHref}>
               <Pencil className="size-4" />
               {t("card.edit")}
             </a>
@@ -82,16 +106,7 @@ export function PlaybookCard({
           </DropdownMenuItem>
         </RowActionsMenu>
       }
-      className={cn(
-        "h-full gap-4 py-4",
-        !isDeleting && "cursor-grab active:cursor-grabbing"
-      )}
-      draggable={!isDeleting}
-      onDragStart={(event: React.DragEvent<HTMLDivElement>) => {
-        event.dataTransfer.effectAllowed = "move"
-        event.dataTransfer.setData(PLAYBOOK_DRAG_TYPE, playbook.id)
-        event.dataTransfer.setData("text/plain", playbook.id)
-      }}
+      className={cn("h-full gap-4 py-4", !isDeleting && "cursor-pointer")}
     >
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="secondary" className="font-mono text-xs">

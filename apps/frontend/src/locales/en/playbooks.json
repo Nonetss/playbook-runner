@@ -68,8 +68,6 @@
     "not_found": "Folder not found",
     "delete_title": "Delete \"{{name}}\"",
     "delete_description": "The folder will be deleted and its playbooks will return to the root.",
-    "drag_hint": "Drag a playbook and drop it onto a folder to move it inside.",
-    "drop_here": "Drop here to move it",
     "toast_created": "Folder created",
     "toast_create_error": "Could not create the folder",
     "toast_updated": "Folder updated",

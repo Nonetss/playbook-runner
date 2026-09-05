@@ -9,7 +9,6 @@ type PlaybookListProps = {
   allPlaybooks?: Playbook[]
   onEditFolder: (folder: PlaybookFolder) => void
   onDeleteFolder: (folder: PlaybookFolder) => void
-  onDropPlaybook: (folder: PlaybookFolder, playbookId: string) => void
   onDelete: (id: string) => void
   onMove: (playbook: Playbook) => void
   deletingId?: string | null
@@ -24,7 +23,6 @@ export function PlaybookList({
   allPlaybooks = playbooks,
   onEditFolder,
   onDeleteFolder,
-  onDropPlaybook,
   onDelete,
   onMove,
   deletingId = null,
@@ -44,7 +42,6 @@ export function PlaybookList({
             playbooks={folderPlaybooks}
             onEdit={onEditFolder}
             onDelete={onDeleteFolder}
-            onDropPlaybook={onDropPlaybook}
             isDeleting={deletingFolderId === folder.id}
           />
         )
