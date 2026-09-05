@@ -316,8 +316,8 @@ function CommandsPageInner() {
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <Label htmlFor="cmd-forks" className="w-14 shrink-0 text-xs">
+            <div className="flex items-center gap-3">
+              <Label htmlFor="cmd-forks" className="w-16 shrink-0 text-xs">
                 {t("panel.forks")}
               </Label>
               <Input
@@ -332,7 +332,7 @@ function CommandsPageInner() {
                   )
                 }
                 disabled={isRunning}
-                className="h-10 w-20 text-xs lg:h-7"
+                className="h-10 w-24 text-xs lg:h-7 lg:w-20"
               />
             </div>
           </div>
