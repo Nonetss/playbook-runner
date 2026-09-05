@@ -208,7 +208,9 @@ function PlaybooksPageInner() {
               <SelectGroup>
                 <SelectItem value="all">{t("filters.all")}</SelectItem>
                 {!folderId ? (
-                  <SelectItem value="folders">{t("filters.folders")}</SelectItem>
+                  <SelectItem value="folders">
+                    {t("filters.folders")}
+                  </SelectItem>
                 ) : null}
                 <SelectItem value="playbooks">
                   {t("filters.playbooks")}
