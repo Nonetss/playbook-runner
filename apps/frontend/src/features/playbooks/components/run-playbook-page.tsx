@@ -218,131 +218,136 @@ function RunPlaybookPageInner({ id }: { id: string }) {
         </div>
 
         {/* ── Options panel ── */}
-        <div className="flex max-h-[46dvh] min-h-0 shrink-0 flex-col gap-4 overflow-y-auto border-t p-3 pb-0 sm:gap-5 sm:p-4 sm:pb-0 lg:max-h-none lg:w-72 lg:border-t-0 lg:border-l lg:pb-4">
-          {/* Inventory */}
-          <div className="space-y-3">
-            <p className="text-muted-foreground type-label">
-              {t("run.panel.inventory")}
-            </p>
+        <div className="flex max-h-[46dvh] min-h-0 shrink-0 flex-col border-t lg:max-h-none lg:w-72 lg:border-t-0 lg:border-l">
+          {/* Scrollable content */}
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-3 sm:gap-5 sm:p-4">
+            {/* Inventory */}
+            <div className="space-y-3">
+              <p className="text-muted-foreground type-label">
+                {t("run.panel.inventory")}
+              </p>
 
-            <InventorySelectionList
-              groups={groups}
-              devices={devices}
-              selectedGroups={selectedGroups}
-              selectedDevices={selectedDevices}
-              onToggleGroup={(groupId) =>
-                setSelectedGroups((current) => {
-                  const next = new Set(current)
-                  next.has(groupId) ? next.delete(groupId) : next.add(groupId)
-                  return next
-                })
-              }
-              onToggleDevice={(deviceId) =>
-                setSelectedDevices((current) => {
-                  const next = new Set(current)
-                  next.has(deviceId)
-                    ? next.delete(deviceId)
-                    : next.add(deviceId)
-                  return next
-                })
-              }
-              labels={{
-                groups: t("run.panel.groups"),
-                devices: t("run.panel.devices"),
-                searchPlaceholder: t("run.panel.search_placeholder"),
-                noResults: t("run.panel.no_results"),
-                emptyInventory: t("run.panel.empty_inventory"),
-                noMatch: t("run.panel.no_match"),
-              }}
-              searchable
-              collapsible
-            />
-          </div>
-
-          {/* Options */}
-          <div className="space-y-3 border-t pt-3">
-            <p className="text-muted-foreground type-label">
-              {t("run.panel.options")}
-            </p>
-
-            <div className="flex items-center gap-2">
-              <Label htmlFor="run-forks" className="w-14 shrink-0 text-xs">
-                {t("run.panel.forks")}
-              </Label>
-              <Input
-                id="run-forks"
-                type="number"
-                min={1}
-                max={500}
-                value={forks}
-                onChange={(e) =>
-                  setForks(
-                    Math.max(1, Number.parseInt(e.target.value, 10) || 1)
-                  )
+              <InventorySelectionList
+                groups={groups}
+                devices={devices}
+                selectedGroups={selectedGroups}
+                selectedDevices={selectedDevices}
+                onToggleGroup={(groupId) =>
+                  setSelectedGroups((current) => {
+                    const next = new Set(current)
+                    next.has(groupId) ? next.delete(groupId) : next.add(groupId)
+                    return next
+                  })
                 }
-                className="h-10 w-24 text-xs lg:h-7 lg:w-20"
+                onToggleDevice={(deviceId) =>
+                  setSelectedDevices((current) => {
+                    const next = new Set(current)
+                    next.has(deviceId)
+                      ? next.delete(deviceId)
+                      : next.add(deviceId)
+                    return next
+                  })
+                }
+                labels={{
+                  groups: t("run.panel.groups"),
+                  devices: t("run.panel.devices"),
+                  searchPlaceholder: t("run.panel.search_placeholder"),
+                  noResults: t("run.panel.no_results"),
+                  emptyInventory: t("run.panel.empty_inventory"),
+                  noMatch: t("run.panel.no_match"),
+                }}
+                searchable
+                collapsible
               />
             </div>
 
-            <div className="space-y-2">
-              <p className="text-xs font-medium">{t("run.panel.extravars")}</p>
-              {extravars.map((entry, i) => (
-                <div key={i} className="flex min-w-0 items-center gap-1.5">
-                  <Input
-                    placeholder={t("run.panel.extravars_key_placeholder")}
-                    value={entry.key}
-                    onChange={(e) =>
-                      setExtravars((prev) =>
-                        prev.map((x, j) =>
-                          j === i ? { ...x, key: e.target.value } : x
+            {/* Options */}
+            <div className="space-y-4 border-t pt-4">
+              <p className="text-muted-foreground type-label">
+                {t("run.panel.options")}
+              </p>
+
+              <div className="flex items-center gap-3">
+                <Label htmlFor="run-forks" className="w-16 shrink-0 text-xs">
+                  {t("run.panel.forks")}
+                </Label>
+                <Input
+                  id="run-forks"
+                  type="number"
+                  min={1}
+                  max={500}
+                  value={forks}
+                  onChange={(e) =>
+                    setForks(
+                      Math.max(1, Number.parseInt(e.target.value, 10) || 1)
+                    )
+                  }
+                  className="h-10 w-24 text-xs lg:h-7 lg:w-20"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-xs font-medium">
+                  {t("run.panel.extravars")}
+                </p>
+                {extravars.map((entry, i) => (
+                  <div key={i} className="flex min-w-0 items-center gap-1.5">
+                    <Input
+                      placeholder={t("run.panel.extravars_key_placeholder")}
+                      value={entry.key}
+                      onChange={(e) =>
+                        setExtravars((prev) =>
+                          prev.map((x, j) =>
+                            j === i ? { ...x, key: e.target.value } : x
+                          )
                         )
-                      )
-                    }
-                    className="h-10 min-w-0 flex-1 font-mono text-xs lg:h-7"
-                  />
-                  <Input
-                    placeholder={t("run.panel.extravars_value_placeholder")}
-                    value={entry.value}
-                    onChange={(e) =>
-                      setExtravars((prev) =>
-                        prev.map((x, j) =>
-                          j === i ? { ...x, value: e.target.value } : x
+                      }
+                      className="h-10 min-w-0 flex-1 font-mono text-xs lg:h-7"
+                    />
+                    <Input
+                      placeholder={t("run.panel.extravars_value_placeholder")}
+                      value={entry.value}
+                      onChange={(e) =>
+                        setExtravars((prev) =>
+                          prev.map((x, j) =>
+                            j === i ? { ...x, value: e.target.value } : x
+                          )
                         )
-                      )
-                    }
-                    className="h-10 min-w-0 flex-1 font-mono text-xs lg:h-7"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="size-10 shrink-0 lg:size-7"
-                    aria-label={t("run.panel.extravars_remove_aria")}
-                    onClick={() =>
-                      setExtravars((prev) => prev.filter((_, j) => j !== i))
-                    }
-                  >
-                    <Trash2 className="text-muted-foreground size-3.5" />
-                  </Button>
-                </div>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-10 text-xs lg:h-7"
-                onClick={() =>
-                  setExtravars((prev) => [...prev, { key: "", value: "" }])
-                }
-              >
-                <Plus className="size-3" />
-                {t("run.panel.extravars_add")}
-              </Button>
+                      }
+                      className="h-10 min-w-0 flex-1 font-mono text-xs lg:h-7"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-10 shrink-0 lg:size-7"
+                      aria-label={t("run.panel.extravars_remove_aria")}
+                      onClick={() =>
+                        setExtravars((prev) => prev.filter((_, j) => j !== i))
+                      }
+                    >
+                      <Trash2 className="text-muted-foreground size-3.5" />
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-10 text-xs lg:h-7"
+                  onClick={() =>
+                    setExtravars((prev) => [...prev, { key: "", value: "" }])
+                  }
+                >
+                  <Plus className="size-3" />
+                  {t("run.panel.extravars_add")}
+                </Button>
+              </div>
             </div>
           </div>
 
-          {/* Run button */}
-          <div className="sticky bottom-0 mt-auto border-t bg-background/95 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          {/* Run button (fixed footer, outside scroll area) */}
+          <div className="shrink-0 border-t bg-background px-3 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-4">
             <Button
               className="min-h-11 w-full"
               onClick={handleRun}

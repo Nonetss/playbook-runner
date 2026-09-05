@@ -181,64 +181,60 @@ function PlaybooksPageInner() {
       description={pageDescription}
       createLabel={t("page.create")}
       createHref={createHref}
+      extraActions={
+        folderId ? (
+          <Button asChild variant="outline">
+            <a href="/playbooks">
+              <ArrowLeft className="size-4" />
+              {t("folder.back_to_root")}
+            </a>
+          </Button>
+        ) : (
+          <Button variant="outline" onClick={openFolderCreate}>
+            <FolderPlus className="size-4" />
+            {t("folder.create")}
+          </Button>
+        )
+      }
     >
-      <div className="mb-4 space-y-3">
-        <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center">
-          <div className="flex items-center gap-2">
-            {folderId ? (
-              <Button asChild variant="outline" size="sm">
-                <a href="/playbooks">
-                  <ArrowLeft className="size-4" />
-                  {t("folder.back_to_root")}
-                </a>
-              </Button>
-            ) : (
-              <Button variant="outline" size="sm" onClick={openFolderCreate}>
-                <FolderPlus className="size-4" />
-                {t("folder.create")}
-              </Button>
-            )}
+      <div className="mb-4 space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="relative min-w-0 flex-1 md:max-w-sm">
+            <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
+            <Input
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder={t("filters.search_placeholder")}
+              aria-label={t("filters.search_label")}
+              className="pl-8"
+            />
           </div>
 
-          <div className="flex flex-col gap-2 w-full md:w-auto md:flex-row md:items-center">
-            <div className="flex w-full md:w-auto items-center gap-2">
-              <Search className="text-muted-foreground size-4 shrink-0" />
-              <Input
-                type="search"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder={t("filters.search_placeholder")}
-                aria-label={t("filters.search_label")}
-              />
-            </div>
-
-            <Select
-              value={resourceFilter}
-              onValueChange={(value) =>
-                setResourceFilter(value as ResourceFilter)
-              }
+          <Select
+            value={resourceFilter}
+            onValueChange={(value) =>
+              setResourceFilter(value as ResourceFilter)
+            }
+          >
+            <SelectTrigger
+              className="w-32 shrink-0 sm:w-40"
+              aria-label={t("filters.type_label")}
             >
-              <SelectTrigger
-                className="w-full md:w-40"
-                aria-label={t("filters.type_label")}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="all">{t("filters.all")}</SelectItem>
-                  {!folderId ? (
-                    <SelectItem value="folders">
-                      {t("filters.folders")}
-                    </SelectItem>
-                  ) : null}
-                  <SelectItem value="playbooks">
-                    {t("filters.playbooks")}
-                  </SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="all">{t("filters.all")}</SelectItem>
+                {!folderId ? (
+                  <SelectItem value="folders">{t("filters.folders")}</SelectItem>
+                ) : null}
+                <SelectItem value="playbooks">
+                  {t("filters.playbooks")}
+                </SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
 
         {search && (

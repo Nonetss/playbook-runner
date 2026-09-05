@@ -15,6 +15,8 @@ export interface ResourcePageProps {
   createHref?: string
   /** Hide the create CTA (e.g. when the feature has a custom layout). */
   hideCreate?: boolean
+  /** Extra header actions rendered next to the create CTA. */
+  extraActions?: React.ReactNode
   className?: string
   children: React.ReactNode
 }
@@ -31,9 +33,24 @@ export function ResourcePage({
   onCreate,
   createHref,
   hideCreate = false,
+  extraActions,
   className,
   children,
 }: ResourcePageProps) {
+  const createButton = hideCreate ? null : createHref ? (
+    <Button asChild>
+      <a href={createHref}>
+        <Plus className="size-4" />
+        {createLabel}
+      </a>
+    </Button>
+  ) : (
+    <Button onClick={onCreate}>
+      <Plus className="size-4" />
+      {createLabel}
+    </Button>
+  )
+
   return (
     <PageShell className={className}>
       <PageHero
@@ -41,20 +58,11 @@ export function ResourcePage({
         description={description}
         className="mb-6"
         action={
-          !hideCreate ? (
-            createHref ? (
-              <Button asChild>
-                <a href={createHref}>
-                  <Plus className="size-4" />
-                  {createLabel}
-                </a>
-              </Button>
-            ) : (
-              <Button onClick={onCreate}>
-                <Plus className="size-4" />
-                {createLabel}
-              </Button>
-            )
+          extraActions || createButton ? (
+            <>
+              {extraActions}
+              {createButton}
+            </>
           ) : undefined
         }
       />
