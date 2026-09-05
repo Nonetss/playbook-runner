@@ -99,7 +99,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
   }
 
   return (
-    <main className="flex h-[calc(100dvh-var(--navbar-height))] w-full min-h-0 flex-col overflow-hidden">
+    <main className="fixed inset-x-0 top-(--navbar-height) bottom-0 flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b px-3 py-3 sm:px-6">
         <Button
@@ -218,7 +218,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
         </div>
 
         {/* ── Options panel ── */}
-        <div className="flex max-h-[46dvh] min-h-0 shrink-0 flex-col border-t lg:max-h-none lg:w-72 lg:border-t-0 lg:border-l">
+        <div className="flex max-h-[46dvh] min-h-0 shrink-0 flex-col overflow-hidden border-t lg:h-full lg:max-h-none lg:w-72 lg:border-t-0 lg:border-l">
           {/* Scrollable content */}
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-3 sm:gap-5 sm:p-4">
             {/* Inventory */}
