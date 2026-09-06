@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next"
+import { toFolderId } from "@/features/playbooks/folder-id"
 import type { Playbook } from "@/features/playbooks/types"
 import { useHydratedQuery } from "@/hooks/use-hydrated-query"
 import { useResourceMutation } from "@/hooks/use-resource-mutation"
@@ -34,7 +35,7 @@ function applyCreateOptimistic(
     name: input.name,
     description: input.description ?? "",
     content: input.content,
-    folderId: input.folderId ?? null,
+    folderId: toFolderId(input.folderId),
   } as unknown as Playbook
   return [...current, optimistic]
 }
@@ -57,7 +58,7 @@ function applyUpdateOptimistic(
           name: input.name,
           description: input.description ?? playbook.description ?? null,
           content: input.content,
-          folderId: input.folderId ?? null,
+          folderId: toFolderId(input.folderId),
         }
       : playbook
   )
@@ -88,7 +89,7 @@ export function usePlaybookCreate() {
         name: input.name,
         description: input.description ?? "",
         content: input.content,
-        folderId: input.folderId ?? null,
+        folderId: toFolderId(input.folderId),
       }) as Promise<Playbook>,
     listKey,
     applyOptimistic: applyCreateOptimistic,
@@ -118,7 +119,7 @@ export function usePlaybookUpdate() {
         name: input.name,
         description: input.description ?? "",
         content: input.content,
-        folderId: input.folderId ?? null,
+        folderId: toFolderId(input.folderId),
       }) as Promise<Playbook>,
     listKey,
     applyOptimistic: applyUpdateOptimistic,
@@ -150,12 +151,16 @@ export function usePlaybookMove() {
     Playbook,
     Playbook[]
   >({
-    mutationFn: (input) => orpc.playbooks.move.call(input) as Promise<Playbook>,
+    mutationFn: (input) =>
+      orpc.playbooks.move.call({
+        id: input.id,
+        folderId: toFolderId(input.folderId),
+      }) as Promise<Playbook>,
     listKey,
     applyOptimistic: (current, input) =>
       current?.map((playbook) =>
         playbook.id === input.id
-          ? { ...playbook, folderId: input.folderId }
+          ? { ...playbook, folderId: toFolderId(input.folderId) }
           : playbook
       ),
     messages: {

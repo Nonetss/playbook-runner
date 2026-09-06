@@ -17,10 +17,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  PLAYBOOK_ROOT_FOLDER_VALUE,
+  toFolderId,
+} from "@/features/playbooks/folder-id"
 import { usePlaybookMove } from "@/features/playbooks/hooks/use-playbooks"
 import type { Playbook, PlaybookFolder } from "@/features/playbooks/types"
-
-const ROOT_VALUE = "__root__"
 
 type MovePlaybookDialogProps = {
   open: boolean
@@ -37,17 +39,21 @@ export function MovePlaybookDialog({
 }: MovePlaybookDialogProps) {
   const { t } = useTranslation("playbooks")
   const movePlaybook = usePlaybookMove()
-  const [destination, setDestination] = React.useState(ROOT_VALUE)
+  const [destination, setDestination] = React.useState(
+    PLAYBOOK_ROOT_FOLDER_VALUE
+  )
 
   React.useEffect(() => {
-    if (open) setDestination(playbook?.folderId ?? ROOT_VALUE)
+    if (open) {
+      setDestination(playbook?.folderId ?? PLAYBOOK_ROOT_FOLDER_VALUE)
+    }
   }, [open, playbook?.folderId])
 
   async function handleMove() {
     if (!playbook) return
     await movePlaybook.mutateAsync({
       id: playbook.id,
-      folderId: destination === ROOT_VALUE ? null : destination,
+      folderId: toFolderId(destination),
     })
     onOpenChange(false)
   }
@@ -72,7 +78,9 @@ export function MovePlaybookDialog({
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value={ROOT_VALUE}>{t("folder.root")}</SelectItem>
+              <SelectItem value={PLAYBOOK_ROOT_FOLDER_VALUE}>
+                {t("folder.root")}
+              </SelectItem>
               {folders.map((folder) => (
                 <SelectItem key={folder.id} value={folder.id}>
                   {folder.name}
@@ -97,7 +105,7 @@ export function MovePlaybookDialog({
             disabled={
               movePlaybook.isPending ||
               !playbook ||
-              destination === (playbook.folderId ?? ROOT_VALUE)
+              destination === (playbook.folderId ?? PLAYBOOK_ROOT_FOLDER_VALUE)
             }
           >
             {movePlaybook.isPending ? t("move.moving") : t("move.confirm")}

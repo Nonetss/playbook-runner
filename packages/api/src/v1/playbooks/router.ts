@@ -6,6 +6,7 @@ import {
   PlaybookFolderNotFoundError,
   playbooksHandler,
 } from "#v1/playbooks/handler"
+import { playbooksInput } from "#v1/playbooks/input"
 
 const uuidSchema = z.string().uuid()
 
@@ -30,12 +31,7 @@ const playbookFolderSchema = z.object({
 export type Playbook = z.infer<typeof playbookSchema>
 export type PlaybookFolder = z.infer<typeof playbookFolderSchema>
 
-const playbookInput = z.object({
-  name: z.string().trim().min(1),
-  description: z.string(),
-  content: z.string().min(1),
-  folderId: uuidSchema.nullable().optional(),
-})
+const playbookInput = playbooksInput.playbook
 
 const folderInput = z.object({
   name: z.string().trim().min(1),
@@ -162,7 +158,7 @@ export const playbooksRouter = {
       tags: ["Playbooks"],
       method: "GET",
     })
-    .input(z.object({ folderId: uuidSchema.nullable() }))
+    .input(playbooksInput.folderId)
     .output(z.array(playbookSchema))
     .handler(async ({ input }) => {
       return playbooksHandler.listByFolder(input.folderId)
@@ -215,12 +211,7 @@ export const playbooksRouter = {
       tags: ["Playbooks"],
       method: "PUT",
     })
-    .input(
-      z.object({
-        id: uuidSchema,
-        folderId: uuidSchema.nullable(),
-      })
-    )
+    .input(playbooksInput.move)
     .output(playbookSchema.nullable())
     .errors({
       BAD_REQUEST: {

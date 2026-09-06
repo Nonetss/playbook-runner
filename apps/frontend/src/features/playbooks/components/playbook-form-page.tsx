@@ -19,6 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  PLAYBOOK_ROOT_FOLDER_VALUE,
+  toFolderId,
+} from "@/features/playbooks/folder-id"
 import { usePlaybookFoldersList } from "@/features/playbooks/hooks/use-playbook-folders"
 import {
   usePlaybookCreate,
@@ -38,7 +42,7 @@ function getInitialValues(): FormValues {
   const folderId =
     typeof window === "undefined"
       ? null
-      : new URLSearchParams(window.location.search).get("folder")
+      : toFolderId(new URLSearchParams(window.location.search).get("folder"))
   return { name: "", description: "", content: "", folderId }
 }
 
@@ -90,7 +94,7 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
       name: values.name,
       description: values.description || undefined,
       content: values.content,
-      folderId: values.folderId,
+      folderId: toFolderId(values.folderId),
     }
     try {
       if (isEditing && id) {
@@ -196,11 +200,11 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
           <div className="space-y-2">
             <Label htmlFor="folder-field">{t("form.folder_label")}</Label>
             <Select
-              value={values.folderId ?? "__root__"}
+              value={values.folderId ?? PLAYBOOK_ROOT_FOLDER_VALUE}
               onValueChange={(value) =>
                 setValues((current) => ({
                   ...current,
-                  folderId: value === "__root__" ? null : value,
+                  folderId: toFolderId(value),
                 }))
               }
               disabled={isSubmitting}
@@ -210,7 +214,9 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="__root__">{t("folder.root")}</SelectItem>
+                  <SelectItem value={PLAYBOOK_ROOT_FOLDER_VALUE}>
+                    {t("folder.root")}
+                  </SelectItem>
                   {folders.map((folder) => (
                     <SelectItem key={folder.id} value={folder.id}>
                       {folder.name}
