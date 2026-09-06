@@ -35,7 +35,12 @@ export function RowActionsMenu({
           <MoreHorizontal className="size-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">{children}</DropdownMenuContent>
+      <DropdownMenuContent
+        align="end"
+        onClick={(event) => event.stopPropagation()}
+      >
+        {children}
+      </DropdownMenuContent>
     </DropdownMenu>
   )
 }

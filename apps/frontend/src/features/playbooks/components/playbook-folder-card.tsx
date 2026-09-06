@@ -42,7 +42,7 @@ export function PlaybookFolderCard({
 
   function isInteractiveTarget(target: EventTarget | null) {
     return (target as HTMLElement | null)?.closest(
-      '[data-slot="card-action"], a, button'
+      '[data-slot="card-action"], [data-slot="dropdown-menu-item"], [role="menuitem"], a, button'
     )
   }
 
