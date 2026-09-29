@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useTranslation } from "react-i18next"
-import { Text } from "@/components/shared/brand/typography"
+import { dataFieldClass, Text } from "@/components/shared/brand/typography"
 import { InlineAlert } from "@/components/shared/feedback/inline-alert"
 import { FormField } from "@/components/shared/form/field-label"
 import { FormDialog } from "@/components/shared/form/form-dialog"
@@ -14,6 +14,7 @@ import {
   useCredentialUpdate,
 } from "@/features/credentials/hooks/use-credentials"
 import type { Credential } from "@/features/credentials/types"
+import { cn } from "@/lib/utils"
 
 export type CredentialFormValues = {
   name: string
@@ -217,7 +218,7 @@ export function CredentialFormModal({
               value={values.privateKey}
               rows={5}
               onChange={(e) => updateField("privateKey", e.target.value)}
-              className="font-mono text-xs"
+              className={dataFieldClass}
             />
           </FormField>
           <FormField
@@ -233,7 +234,7 @@ export function CredentialFormModal({
               value={values.publicKey}
               rows={3}
               onChange={(e) => updateField("publicKey", e.target.value)}
-              className="font-mono text-xs"
+              className={dataFieldClass}
             />
           </FormField>
         </>
@@ -270,7 +271,7 @@ export function CredentialFormModal({
                 readOnly
                 value={values.publicKey}
                 rows={3}
-                className="font-mono text-xs text-muted-foreground"
+                className={cn(dataFieldClass, "text-muted-foreground")}
               />
             </FormField>
           ) : null}

@@ -5,12 +5,14 @@ const Copy = getIcon("actions", "copy")
 
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { dataFieldClass } from "@/components/shared/brand/typography"
 import { InlineAlert } from "@/components/shared/feedback/inline-alert"
 import { FormField } from "@/components/shared/form/field-label"
 import { FormDialog } from "@/components/shared/form/form-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { notifyError, notifySuccess } from "@/lib/toast"
+import { cn } from "@/lib/utils"
 
 export type ApiKeyCreatedDialogProps = {
   open: boolean
@@ -64,7 +66,10 @@ export function ApiKeyCreatedDialog({
               id="api-key-value"
               readOnly
               value={fullKey}
-              className="h-auto min-w-0 flex-1 py-2.5 font-mono text-xs leading-relaxed break-all select-all"
+              className={cn(
+                dataFieldClass,
+                "h-auto min-w-0 flex-1 py-2.5 leading-relaxed break-all select-all"
+              )}
             />
             <Button
               type="button"

@@ -5,6 +5,7 @@ const TerminalSquare = getIcon("resources", "terminalSquare")
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
+import { dataFieldClass } from "@/components/shared/brand/typography"
 import { FormField } from "@/components/shared/form/field-label"
 import { SegmentedPicker } from "@/components/shared/form/segmented-picker"
 import { PageHero } from "@/components/shared/layout/page-hero"
@@ -34,6 +35,7 @@ import {
 import { toggleIn } from "@/features/run/hooks/use-selection-toggle"
 import type { RunSelection } from "@/features/run/types"
 import { useConfirm } from "@/hooks/use-confirm"
+import { cn } from "@/lib/utils"
 
 function CommandsPageInner() {
   const { t } = useTranslation("commands")
@@ -208,7 +210,12 @@ function CommandsPageInner() {
             >
               <FormField label={t("panel.command")} htmlFor="cmd-text">
                 <div className="relative">
-                  <span className="pointer-events-none absolute top-2 left-3 font-mono text-xs text-muted-foreground select-none">
+                  <span
+                    className={cn(
+                      dataFieldClass,
+                      "pointer-events-none absolute top-2 left-3 text-muted-foreground select-none pointer-coarse:text-base"
+                    )}
+                  >
                     {become ? "#" : "$"}
                   </span>
                   <Textarea
@@ -218,7 +225,7 @@ function CommandsPageInner() {
                     disabled={isRunning}
                     rows={3}
                     spellCheck={false}
-                    className="min-h-20 pl-6 font-mono text-xs md:text-xs"
+                    className={cn(dataFieldClass, "min-h-20 pl-6")}
                     placeholder={t("panel.command_placeholder")}
                   />
                 </div>
