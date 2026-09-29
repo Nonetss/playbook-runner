@@ -467,6 +467,7 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
                   <li key={i} className="flex min-w-0 items-center gap-2">
                     <Input
                       placeholder={t("form.extravars_key_placeholder")}
+                      aria-label={t("form.extravars_key_aria", { n: i + 1 })}
                       value={row.key}
                       onChange={(e) => updateExtravar(i, "key", e.target.value)}
                       disabled={isSubmitting}
@@ -474,6 +475,7 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
                     />
                     <Input
                       placeholder={t("form.extravars_value_placeholder")}
+                      aria-label={t("form.extravars_value_aria", { n: i + 1 })}
                       value={row.value}
                       onChange={(e) =>
                         updateExtravar(i, "value", e.target.value)

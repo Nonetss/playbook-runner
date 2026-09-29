@@ -222,6 +222,9 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                   <div key={i} className="flex min-w-0 items-center gap-1.5">
                     <Input
                       placeholder={t("run.panel.extravars_key_placeholder")}
+                      aria-label={t("run.panel.extravars_key_aria", {
+                        n: i + 1,
+                      })}
                       value={entry.key}
                       onChange={(e) =>
                         setExtravars((prev) =>
@@ -234,6 +237,9 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                     />
                     <Input
                       placeholder={t("run.panel.extravars_value_placeholder")}
+                      aria-label={t("run.panel.extravars_value_aria", {
+                        n: i + 1,
+                      })}
                       value={entry.value}
                       onChange={(e) =>
                         setExtravars((prev) =>
