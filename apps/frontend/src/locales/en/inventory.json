@@ -29,7 +29,6 @@
     "empty_description": "Create your first group to start organizing devices.",
     "delete_confirm_title": "Delete \"{{label}}\"",
     "delete_confirm_description": "This action cannot be undone.",
-    "delete_error": "Could not delete the group",
     "detail_loading": "Loading group…",
     "detail_load_error": "Could not load the group.",
     "back_to_inventory": "Back to inventory",
@@ -51,17 +50,18 @@
     "danger_zone": "DANGER ZONE",
     "common_saving": "Saving…",
     "not_found": "Group not found.",
-    "actions_for": "Actions for {{name}}"
+    "actions_for": "Actions for {{name}}",
+    "fallback_label": "this group"
   },
   "device": {
     "empty_title": "No devices",
     "empty_description": "Add your first device to start managing your inventory.",
     "delete_confirm_title": "Delete \"{{label}}\"",
     "delete_confirm_description": "This action cannot be undone.",
-    "delete_error": "Could not delete the device",
     "groups": "Groups",
     "assign_group": "Assign to a group",
-    "actions_for": "Actions for {{name}}"
+    "actions_for": "Actions for {{name}}",
+    "fallback_label": "this device"
   },
   "group_form": {
     "create_title": "New group",

@@ -12,7 +12,8 @@
     "scheduler": "Scheduler",
     "history": "Historial",
     "config": "Configuración",
-    "me": "Mi perfil"
+    "me": "Mi perfil",
+    "admin_users": "Usuarios"
   },
   "descriptions": {
     "credentials": "Gestiona las claves y usuarios de acceso.",

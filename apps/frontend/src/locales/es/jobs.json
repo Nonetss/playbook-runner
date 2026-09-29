@@ -10,10 +10,8 @@
   },
   "delete": {
     "confirm_title": "Eliminar \"{{label}}\"",
-    "confirm_description": "Esta acción eliminará el job y su historial de ejecuciones. No se puede deshacer.",
-    "error": "No se pudo eliminar el job"
+    "confirm_description": "Esta acción eliminará el job y su historial de ejecuciones. No se puede deshacer."
   },
-  "toggle_error": "No se pudo cambiar el estado del job",
   "card": {
     "actions_for": "Acciones para {{name}}",
     "enable_action": "Activar job",

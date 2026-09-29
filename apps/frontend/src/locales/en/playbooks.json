@@ -105,8 +105,7 @@
   },
   "delete": {
     "confirm_title": "Delete \"{{label}}\"",
-    "confirm_description": "This action cannot be undone.",
-    "error": "Could not delete the playbook"
+    "confirm_description": "This action cannot be undone."
   },
   "run": {
     "document_title": "Run playbook",

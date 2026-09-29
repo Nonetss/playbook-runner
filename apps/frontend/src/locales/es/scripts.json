@@ -10,8 +10,7 @@
   },
   "delete": {
     "confirm_title": "Eliminar \"{{label}}\"",
-    "confirm_description": "Esta acción no se puede deshacer.",
-    "error": "No se pudo eliminar el script"
+    "confirm_description": "Esta acción no se puede deshacer."
   },
   "toast": {
     "created": "Script creado",

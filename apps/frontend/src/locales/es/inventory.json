@@ -29,7 +29,6 @@
     "empty_description": "Crea tu primer grupo para empezar a organizar dispositivos.",
     "delete_confirm_title": "Eliminar \"{{label}}\"",
     "delete_confirm_description": "Esta acción no se puede deshacer.",
-    "delete_error": "No se pudo eliminar el grupo",
     "detail_loading": "Cargando grupo…",
     "detail_load_error": "No se pudo cargar el grupo.",
     "back_to_inventory": "Volver al inventario",
@@ -51,17 +50,18 @@
     "danger_zone": "ZONA DE PELIGRO",
     "common_saving": "Guardando…",
     "not_found": "Grupo no encontrado.",
-    "actions_for": "Acciones para {{name}}"
+    "actions_for": "Acciones para {{name}}",
+    "fallback_label": "este grupo"
   },
   "device": {
     "empty_title": "Sin dispositivos",
     "empty_description": "Añade tu primer dispositivo para empezar a gestionar el inventario.",
     "delete_confirm_title": "Eliminar \"{{label}}\"",
     "delete_confirm_description": "Esta acción no se puede deshacer.",
-    "delete_error": "No se pudo eliminar el dispositivo",
     "groups": "Grupos",
     "assign_group": "Asignar a un grupo",
-    "actions_for": "Acciones para {{name}}"
+    "actions_for": "Acciones para {{name}}",
+    "fallback_label": "este dispositivo"
   },
   "group_form": {
     "create_title": "Nuevo grupo",

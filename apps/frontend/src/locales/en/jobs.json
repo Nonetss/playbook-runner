@@ -10,10 +10,8 @@
   },
   "delete": {
     "confirm_title": "Delete \"{{label}}\"",
-    "confirm_description": "This action will delete the job and its execution history. It cannot be undone.",
-    "error": "Could not delete the job"
+    "confirm_description": "This action will delete the job and its execution history. It cannot be undone."
   },
-  "toggle_error": "Could not change the job state",
   "card": {
     "actions_for": "Actions for {{name}}",
     "enable_action": "Enable job",

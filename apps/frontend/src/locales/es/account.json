@@ -18,5 +18,34 @@
   },
   "nav": {
     "my_profile": "Mi perfil"
+  },
+  "admin_users": {
+    "title": "Usuarios",
+    "subtitle": "Crea cuentas y gestiona roles. El registro público está desactivado.",
+    "you": "(tú)",
+    "banned": "Bloqueado",
+    "ban": "Bloquear",
+    "unban": "Desbloquear",
+    "role_for": "Rol de {{name}}",
+    "empty": "Todavía no hay usuarios",
+    "columns": {
+      "role": "Rol"
+    },
+    "create": {
+      "open": "Nuevo usuario",
+      "title": "Crear usuario",
+      "description": "El usuario podrá iniciar sesión en seguida con este email y contraseña.",
+      "password": "Contraseña (mín. 8 caracteres)",
+      "submit": "Crear usuario"
+    },
+    "toast": {
+      "created": "Usuario creado",
+      "updated": "Usuario actualizado",
+      "error": "No se pudo actualizar el usuario"
+    }
+  },
+  "pending": {
+    "title": "Cuenta pendiente de aprobación",
+    "description": "Tu cuenta existe pero aún no tiene acceso. Pide a un administrador que te asigne un rol."
   }
 }

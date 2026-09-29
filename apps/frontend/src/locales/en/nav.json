@@ -12,7 +12,8 @@
     "scheduler": "Scheduler",
     "history": "History",
     "config": "Settings",
-    "me": "My profile"
+    "me": "My profile",
+    "admin_users": "Users"
   },
   "descriptions": {
     "credentials": "Manage the keys and users used for access.",

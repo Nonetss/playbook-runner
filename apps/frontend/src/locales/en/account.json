@@ -18,5 +18,34 @@
   },
   "nav": {
     "my_profile": "My profile"
+  },
+  "admin_users": {
+    "title": "Users",
+    "subtitle": "Create accounts and manage roles. Public sign-up is disabled.",
+    "you": "(you)",
+    "banned": "Banned",
+    "ban": "Ban",
+    "unban": "Unban",
+    "role_for": "Role for {{name}}",
+    "empty": "No users yet",
+    "columns": {
+      "role": "Role"
+    },
+    "create": {
+      "open": "New user",
+      "title": "Create user",
+      "description": "The user can sign in right away with this email and password.",
+      "password": "Password (min. 8 characters)",
+      "submit": "Create user"
+    },
+    "toast": {
+      "created": "User created",
+      "updated": "User updated",
+      "error": "Could not update the user"
+    }
+  },
+  "pending": {
+    "title": "Account pending approval",
+    "description": "Your account exists but has not been granted access yet. Ask an administrator to assign you a role."
   }
 }
