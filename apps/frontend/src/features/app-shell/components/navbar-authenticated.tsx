@@ -39,7 +39,7 @@ export interface NavbarAuthenticatedProps {
 }
 
 const pillBase =
-  "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium outline-none transition-colors duration-200 focus-visible:ring-[3px] focus-visible:ring-ring/50"
+  "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-200 focus-ring"
 const pillInactive =
   "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
 const pillActive = "bg-primary/10 text-primary"
