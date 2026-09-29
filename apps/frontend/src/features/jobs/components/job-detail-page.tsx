@@ -1,6 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query"
 import { getIcon } from "@/lib/icon-registry"
 
+const ChevronLeft = getIcon("navigation", "previous")
+const ChevronRight = getIcon("navigation", "next")
 const Clock = getIcon("scheduling", "time")
 const Loader2 = getIcon("status", "loading")
 const Pencil = getIcon("actions", "edit")
@@ -24,6 +26,7 @@ import {
 import {
   useJobGet,
   useJobRun,
+  useJobRunGet,
   useJobRunsList,
   useJobRunWatch,
 } from "@/features/jobs/hooks/use-jobs"
@@ -60,15 +63,20 @@ function JobDetailPageInner({ id }: { id: string }) {
   const watch = useJobRunWatch()
   const confirm = useConfirm()
 
-  const { data: runs = [], isPending: runsLoading } = useJobRunsList(id, {
+  const [page, setPage] = useState(0)
+  const {
+    data: runsPage,
+    isPending: runsLoading,
+    isPlaceholderData: runsPageChanging,
+  } = useJobRunsList(id, page, {
     // Poll while anything is running so the status flips without a refresh.
     live: true,
   })
+  const runs = runsPage?.runs ?? []
+  const hasNextPage = runsPage?.hasNext ?? false
 
   // Pre-select the run referenced in `?run=...` so the history feed and
-  // dashboard activity panel can deep-link straight to a run. Cleared once
-  // consumed so subsequent clicks inside this page follow the newest-run
-  // default again.
+  // dashboard activity panel can deep-link straight to a run.
   const initialRunId = useMemo(() => {
     if (typeof window === "undefined") return null
     return new URLSearchParams(window.location.search).get("run")
@@ -76,34 +84,39 @@ function JobDetailPageInner({ id }: { id: string }) {
 
   const [selectedId, setSelectedId] = useState<string | null>(initialRunId)
 
-  // Default selection: keep the newest run focused as the list updates,
-  // unless the user explicitly clicked a run already (`?run=...`), chose
-  // a different one in the side list, or just triggered a run whose row
-  // has not landed in the polled list yet.
-  useEffect(() => {
-    if (runs.length === 0) {
-      if (!selectedId) setSelectedId(null)
-      return
-    }
-    if (!selectedId) {
-      setSelectedId(runs[0].id)
-      return
-    }
-    // Hold onto a just-triggered run id even before the list reflects it —
-    // otherwise we'd snap back to the previous newest run and "Ejecutar
-    // ahora" would appear to do nothing.
-    if (
-      !runs.some((r) => r.id === selectedId) &&
-      watch.watchingRunId !== selectedId
-    ) {
-      setSelectedId(runs[0].id)
-    }
-  }, [runs, selectedId, watch.watchingRunId])
-
-  const selectedRun = useMemo(
-    () => runs.find((r) => r.id === selectedId) ?? null,
-    [runs, selectedId]
+  // The selected run may live on another page (a deep link to an old run,
+  // or the user paged away after picking one), or be a just-triggered run
+  // whose row has not landed in the polled list yet: fetch it on its own.
+  const listedRun = runs.find((r) => r.id === selectedId) ?? null
+  const { data: fetchedRun, isError: selectedRunMissing } = useJobRunGet(
+    selectedId,
+    { enabled: !runsLoading && !listedRun }
   )
+  const selectedRun =
+    listedRun ?? (fetchedRun?.id === selectedId ? fetchedRun : null)
+
+  // Default selection: focus the newest run when nothing is selected yet.
+  useEffect(() => {
+    if (selectedId || page !== 0) return
+    const newest = runs[0]
+    if (newest) setSelectedId(newest.id)
+  }, [runs, selectedId, page])
+
+  // A `?run=...` that does not exist (deleted, malformed) falls back to the
+  // newest-run default.
+  useEffect(() => {
+    if (!selectedRunMissing || listedRun) return
+    if (watch.watchingRunId === selectedId) return
+    setSelectedId(null)
+    setPage(0)
+  }, [selectedRunMissing, listedRun, selectedId, watch.watchingRunId])
+
+  // A page emptied under us (runs deleted) steps back to the first one.
+  useEffect(() => {
+    if (page > 0 && !runsLoading && !runsPageChanging && runs.length === 0) {
+      setPage(0)
+    }
+  }, [page, runsLoading, runsPageChanging, runs.length])
 
   // Whenever the currently-selected run shows as `running` in the polled
   // list — whether it's cron-triggered, started from another tab, or just
@@ -124,7 +137,14 @@ function JobDetailPageInner({ id }: { id: string }) {
     queryClient.invalidateQueries({
       queryKey: orpc.jobs.runs.list.queryKey({ input: { jobId: id } }),
     })
-  }, [watch.phase, queryClient, id])
+    if (watch.watchingRunId) {
+      queryClient.invalidateQueries({
+        queryKey: orpc.jobs.runs.get.queryKey({
+          input: { id: watch.watchingRunId },
+        }),
+      })
+    }
+  }, [watch.phase, watch.watchingRunId, queryClient, id])
 
   function focusRun(runId: string) {
     setSelectedId(runId)
@@ -157,6 +177,7 @@ function JobDetailPageInner({ id }: { id: string }) {
       return // useJobRun already showed the error toast (e.g. already running).
     }
     if (runId) {
+      setPage(0)
       focusRun(runId)
       watch.start(runId)
     }
@@ -272,7 +293,40 @@ function JobDetailPageInner({ id }: { id: string }) {
           </>
         }
         panel={
-          <TerminalPanelSection label={t("detail.history")}>
+          <TerminalPanelSection
+            label={t("detail.history")}
+            aside={
+              page > 0 || hasNextPage ? (
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7"
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    disabled={page === 0 || runsPageChanging}
+                    aria-label={t("detail.newer_runs")}
+                    title={t("detail.newer_runs")}
+                  >
+                    <ChevronLeft className="size-4" />
+                  </Button>
+                  <Text variant="data" tone="muted">
+                    {t("detail.page", { page: page + 1 })}
+                  </Text>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7"
+                    onClick={() => setPage((p) => p + 1)}
+                    disabled={!hasNextPage || runsPageChanging}
+                    aria-label={t("detail.older_runs")}
+                    title={t("detail.older_runs")}
+                  >
+                    <ChevronRight className="size-4" />
+                  </Button>
+                </div>
+              ) : null
+            }
+          >
             {runsLoading ? (
               <p className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Loader2 className="size-3.5 animate-spin" />
@@ -287,7 +341,12 @@ function JobDetailPageInner({ id }: { id: string }) {
                 {t("detail.empty_runs_suffix")}
               </p>
             ) : (
-              <ul className="-mx-2 space-y-0.5">
+              <ul
+                className={cn(
+                  "-mx-2 space-y-0.5 transition-opacity",
+                  runsPageChanging && "opacity-60"
+                )}
+              >
                 {runs.map((run) => {
                   const active = run.id === selectedId
                   return (

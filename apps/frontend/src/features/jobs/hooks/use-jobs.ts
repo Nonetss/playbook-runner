@@ -1,5 +1,9 @@
 import { consumeEventIterator } from "@orpc/client"
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { InventoryItem, Job, JobRunEvent } from "@/features/jobs/types"
@@ -20,20 +24,34 @@ export const useJobGet = (id: string, options?: { enabled?: boolean }) =>
     })
   )
 
+/** Runs shown per page in a job's history panel. */
+export const JOB_RUNS_PAGE_SIZE = 15
+
 /**
- * List a job's runs. While `live` is on, polls only as long as one of the
- * listed runs is still `running`, so a freshly-triggered run flips to its
- * terminal status without a manual refresh — then polling stops on its own
- * instead of continuing indefinitely while the page stays open.
+ * One page of a job's runs, newest first. Asks for one extra row so the
+ * caller knows whether an older page exists without a separate count query.
+ * While `live` is on, polls only as long as one of the listed runs is still
+ * `running`, so a freshly-triggered run flips to its terminal status without
+ * a manual refresh — then polling stops on its own.
  */
 export const useJobRunsList = (
   jobId: string,
+  page: number,
   options?: { enabled?: boolean; live?: boolean }
 ) =>
   useHydratedQuery(
     orpc.jobs.runs.list.queryOptions({
-      input: { jobId },
+      input: {
+        jobId,
+        limit: JOB_RUNS_PAGE_SIZE + 1,
+        offset: page * JOB_RUNS_PAGE_SIZE,
+      },
       enabled: !!jobId && (options?.enabled ?? true),
+      placeholderData: keepPreviousData,
+      select: (runs) => ({
+        runs: runs.slice(0, JOB_RUNS_PAGE_SIZE),
+        hasNext: runs.length > JOB_RUNS_PAGE_SIZE,
+      }),
       refetchInterval: options?.live
         ? (query) =>
             query.state.data?.some((run) => run.status === "running")
@@ -44,6 +62,19 @@ export const useJobRunsList = (
   )
 
 /** Fetch a single run; polls while it is still `running`. */
+export const useJobRunGet = (
+  id: string | null,
+  options?: { enabled?: boolean }
+) =>
+  useHydratedQuery(
+    orpc.jobs.runs.get.queryOptions({
+      input: { id: id ?? "" },
+      enabled: !!id && (options?.enabled ?? true),
+      refetchInterval: (query) =>
+        query.state.data?.status === "running" ? 3000 : false,
+    })
+  )
+
 /**
  * Infinite query over the cross-job run feed (`jobs.runs.listAll`). Each
  * page carries `nextCursor`; we thread it through as the TanStack
