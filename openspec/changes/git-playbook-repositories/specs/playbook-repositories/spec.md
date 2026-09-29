@@ -57,3 +57,25 @@ playbook.
 #### Scenario: Delete with scheduled jobs
 - **WHEN** a user deletes a repository whose playbook is used by a job
 - **THEN** the repository and its playbooks SHALL be removed and the job's playbook SHALL be null
+
+### Requirement: List remote branches before saving
+The system SHALL list the branches and the default branch of a Git URL
+(optionally authenticated with a stored SSH credential) without creating a
+repository or mirror, and the repository form SHALL offer them as a select,
+preselecting the default branch and falling back to free text when the remote
+cannot be listed.
+
+#### Scenario: Branches of a public remote
+- **WHEN** a user enters `https://github.com/ansible/ansible-examples.git` in the repository form
+- **THEN** the branch field SHALL list its branches with `master` preselected as the default
+
+#### Scenario: Remote cannot be listed
+- **WHEN** the remote is unreachable or requires authentication that was not provided
+- **THEN** the form SHALL show the error and let the user type the branch name
+
+### Requirement: First sync on creation
+Creating a repository from the UI SHALL start its first sync automatically.
+
+#### Scenario: Save a new repository
+- **WHEN** a user saves a new repository
+- **THEN** the UI SHALL sync it without a further action and show its progress
