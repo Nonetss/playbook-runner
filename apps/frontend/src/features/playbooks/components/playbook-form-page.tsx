@@ -1,5 +1,6 @@
 import { getIcon } from "@/lib/icon-registry"
 
+const Copy = getIcon("actions", "copy")
 const Play = getIcon("actions", "play")
 
 import * as React from "react"
@@ -33,6 +34,7 @@ import {
   usePlaybookUpdate,
 } from "@/features/playbooks/hooks/use-playbooks"
 import { useRepositoriesList } from "@/features/playbooks/hooks/use-repositories"
+import { useConfirm } from "@/hooks/use-confirm"
 import { navigate } from "@/lib/navigate"
 
 type FormValues = {
@@ -73,6 +75,39 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
   const repository = isGit
     ? repositories.find((item) => item.id === playbook?.repositoryId)
     : undefined
+
+  const confirm = useConfirm()
+  const { t: tCommon } = useTranslation("common")
+
+  /**
+   * Copy a Git playbook into an inline one the user can edit. Only this file
+   * travels: roles, templates and vars next to it in the repository don't.
+   */
+  async function handleCopy() {
+    if (!playbook) return
+    const confirmed = await confirm({
+      title: t("repository.copy_title", { name: playbook.name }),
+      description: t("repository.copy_description"),
+      confirmLabel: t("repository.copy"),
+      cancelLabel: tCommon("actions.cancel"),
+    })
+    if (!confirmed) return
+    try {
+      const created = await createPlaybook.mutateAsync({
+        name: t("repository.copy_name", { name: playbook.name }),
+        description: t("repository.copy_origin", {
+          repository: repository?.name ?? "Git",
+          path: playbook.path ?? playbook.name,
+          commit: repository?.lastCommitSha?.slice(0, 7) ?? "—",
+        }),
+        content: playbook.content,
+        folderId: null,
+      })
+      navigate(`/playbooks/${created.id}/edit`)
+    } catch {
+      // The shared mutation hook displays the localized error toast.
+    }
+  }
 
   const [values, setValues] = React.useState<FormValues>(getInitialValues)
   const [error, setError] = React.useState<string | null>(null)
@@ -159,16 +194,30 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
               : t("form.create_subtitle")
         }
         action={
-          isEditing && id && !playbook?.missing ? (
-            <Button asChild variant="outline">
-              <AppLink
-                href={`/playbooks/${id}/run`}
-                aria-label={t("form.run_aria")}
-              >
-                <Play className="size-4" />
-                {t("form.run")}
-              </AppLink>
-            </Button>
+          isEditing && id ? (
+            <div className="flex flex-wrap items-center gap-2">
+              {isGit ? (
+                <Button
+                  variant="outline"
+                  onClick={handleCopy}
+                  disabled={createPlaybook.isPending}
+                >
+                  <Copy className="size-4" />
+                  {t("repository.copy")}
+                </Button>
+              ) : null}
+              {playbook?.missing ? null : (
+                <Button asChild variant="outline">
+                  <AppLink
+                    href={`/playbooks/${id}/run`}
+                    aria-label={t("form.run_aria")}
+                  >
+                    <Play className="size-4" />
+                    {t("form.run")}
+                  </AppLink>
+                </Button>
+              )}
+            </div>
           ) : undefined
         }
       />

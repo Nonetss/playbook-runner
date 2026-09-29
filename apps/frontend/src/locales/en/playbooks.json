@@ -248,9 +248,9 @@
     "delete_description": "The repository and its synced playbooks will be deleted. Jobs using them will be left without a playbook.",
     "source_label": "Source",
     "read_only": "Git · read-only",
-    "missing": "Missing upstream",
+    "missing": "Missing upstream (used by a job)",
     "read_only_notice": "Synced from Git at commit {{commit}}. Read-only: change it in the repository and sync again.",
-    "missing_notice": "This file no longer exists in the repository branch, so it can't be run.",
+    "missing_notice": "This file no longer exists in the repository branch, so it can't be run. It's kept because a job still uses it: point the job at another playbook, or copy it to Playbook Runner.",
     "toast_created": "Repository added",
     "toast_create_error": "Could not add the repository",
     "toast_updated": "Repository updated",
@@ -264,7 +264,12 @@
     "branches_loading": "Listing branches…",
     "branches_error": "Could not list the branches ({{message}}). Type the branch name.",
     "branches_empty": "The repository has no branches yet.",
-    "default_branch": "default"
+    "default_branch": "default",
+    "copy": "Copy to Playbook Runner",
+    "copy_title": "Copy \"{{name}}\" to Playbook Runner?",
+    "copy_description": "You'll get a regular playbook you can edit, independent from the repository. Only this file is copied: roles, templates or vars it uses from the repository won't be available to the copy.",
+    "copy_name": "{{name}} (copy)",
+    "copy_origin": "Copied from {{repository}} · {{path}} @ {{commit}}"
   },
   "section": {
     "collapse": "Collapse {{name}}",

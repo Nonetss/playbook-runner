@@ -248,9 +248,9 @@
     "delete_description": "Se eliminarán el repositorio y sus playbooks sincronizados. Los jobs que los usen se quedarán sin playbook.",
     "source_label": "Origen",
     "read_only": "Git · solo lectura",
-    "missing": "Ya no existe",
+    "missing": "Ya no existe (lo usa un job)",
     "read_only_notice": "Sincronizado desde Git en el commit {{commit}}. Solo lectura: modifícalo en el repositorio y vuelve a sincronizar.",
-    "missing_notice": "Este fichero ya no existe en la rama del repositorio, así que no se puede ejecutar.",
+    "missing_notice": "Este fichero ya no existe en la rama del repositorio, así que no se puede ejecutar. Se conserva porque un job lo usa: cambia el playbook del job o haz una copia en Playbook Runner.",
     "toast_created": "Repositorio añadido",
     "toast_create_error": "No se pudo añadir el repositorio",
     "toast_updated": "Repositorio actualizado",
@@ -264,7 +264,12 @@
     "branches_loading": "Listando ramas…",
     "branches_error": "No se pudieron listar las ramas ({{message}}). Escribe el nombre de la rama.",
     "branches_empty": "El repositorio todavía no tiene ramas.",
-    "default_branch": "por defecto"
+    "default_branch": "por defecto",
+    "copy": "Hacer copia en Playbook Runner",
+    "copy_title": "¿Copiar \"{{name}}\" a Playbook Runner?",
+    "copy_description": "Tendrás un playbook normal que puedes editar, independiente del repositorio. Solo se copia este fichero: los roles, templates o vars del repositorio que use no estarán disponibles en la copia.",
+    "copy_name": "{{name}} (copia)",
+    "copy_origin": "Copiado de {{repository}} · {{path}} @ {{commit}}"
   },
   "section": {
     "collapse": "Contraer {{name}}",
