@@ -5,6 +5,7 @@ const TerminalSquare = getIcon("resources", "terminalSquare")
 import * as React from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
+import { Text } from "@/components/shared/brand/typography"
 import { CodeEditor } from "@/components/shared/code-editor"
 import { InlineAlert } from "@/components/shared/feedback/inline-alert"
 import { StateCard } from "@/components/shared/feedback/state-card"
@@ -139,7 +140,7 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
         onSubmit={handleSubmit}
         className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-5 split:overflow-hidden"
       >
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,16rem)]">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
           <FormField
             label={t("form.name_label")}
             htmlFor="name-field"
@@ -169,10 +170,7 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
               onChange={(e) => updateField("description", e.target.value)}
             />
           </FormField>
-          <FormField
-            label={t("form.language_label")}
-            hint={t(`form.language.${values.language}_hint`)}
-          >
+          <FormField label={t("form.language_label")}>
             <SegmentedPicker
               mono
               ariaLabel={t("form.language_label")}
@@ -189,9 +187,20 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
         </div>
 
         <div className="flex min-h-0 flex-col gap-2 split:overflow-hidden">
-          <FieldLabel htmlFor="content-field" required className="shrink-0">
-            <span id="content-field-label">{t("form.content_label")}</span>
-          </FieldLabel>
+          <div className="flex shrink-0 items-baseline justify-between gap-4">
+            <FieldLabel htmlFor="content-field" required>
+              <span id="content-field-label">{t("form.content_label")}</span>
+            </FieldLabel>
+            <Text
+              as="p"
+              variant="meta"
+              tone="muted"
+              className="min-w-0 truncate max-sm:hidden"
+              title={t(`form.language.${values.language}_hint`)}
+            >
+              {t(`form.language.${values.language}_hint`)}
+            </Text>
+          </div>
           <div className="min-h-[60dvh] flex-1 split:min-h-0">
             <CodeEditor
               id="content-field"
