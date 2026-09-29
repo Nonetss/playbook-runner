@@ -111,6 +111,8 @@ class AnsibleRunnerConfig(BaseModel):
             "ansible_become_user": settings.ansible_become_user,
         }
     )
+    # Extra environment on top of the SSH host-key policy variables.
+    envvars: dict[str, str] = Field(default_factory=dict)
     event_handler: EventHandler | None = None
     status_handler: StatusHandler | None = None
     finished_callback: FinishedCallback | None = None
@@ -134,7 +136,7 @@ class AnsibleRunnerConfig(BaseModel):
                 "inventory": self.inventory.root,
                 "forks": self.forks,
                 "extravars": self.extravars,
-                "envvars": ssh_envvars(),
+                "envvars": {**ssh_envvars(), **self.envvars},
             }
         else:
             kwargs = {
@@ -144,7 +146,7 @@ class AnsibleRunnerConfig(BaseModel):
                 "inventory": self.inventory.root,
                 "forks": self.forks,
                 "extravars": self.extravars,
-                "envvars": ssh_envvars(),
+                "envvars": {**ssh_envvars(), **self.envvars},
             }
         # Solo pasamos opcionales que tengan valor, para no pisar los
         # comportamientos por defecto de ansible-runner con ``None``/``""``.

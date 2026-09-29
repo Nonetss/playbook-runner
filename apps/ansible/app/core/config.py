@@ -31,6 +31,14 @@ class Settings(BaseSettings):
     # below Docker's 10 s stop timeout.
     grpc_shutdown_grace_s: float = Field(default=8, gt=0)
 
+    # Git playbook repositories: mirrors live in ``STATE_DIR/repos``. Each git
+    # command is bounded by ``git_timeout_s``; a mirror larger than
+    # ``git_max_repo_mb`` is dropped and the sync fails. Syncs have their own
+    # small admission limit, separate from ``max_concurrent_runs``.
+    git_timeout_s: float = Field(default=120, gt=0)
+    git_max_repo_mb: int = Field(default=512, ge=1)
+    max_concurrent_syncs: int = Field(default=2, ge=1)
+
     # Shared secret guarding gRPC in both directions (backend <-> ansible).
     # Must match the backend's SERVICE_TOKEN. When empty the gRPC server here
     # still starts (grpc.aio has no "don't start" mode), but every call is

@@ -17,13 +17,16 @@ from loguru import logger
 
 from app.core.config import settings
 from app.grpc.stubs import (
+    DeleteRepositoryResponse,
     Done,
+    PlaybookFile,
     RunBundleResponse,
     RunCommandResponse,
     RunnerServiceServicer,
     RunPingResponse,
     RunScriptResponse,
     Stats,
+    SyncRepositoryResponse,
     TaskEvent,
 )
 from app.services.ansible.events import AnsibleEvent, log_event_handler
@@ -36,9 +39,9 @@ from app.services.ansible.materialize import (
     write_script_file,
 )
 from app.services.ansible.models import (
-    ResolvedPlaybook,
     ResolvedRunBundle,
     host_from_proto,
+    playbook_from_proto,
 )
 from app.services.ansible.payload import event_payload
 from app.services.ansible.runner import (
@@ -46,6 +49,15 @@ from app.services.ansible.runner import (
     AnsibleRunner,
     AnsibleRunnerConfig,
 )
+from app.services.git import mirror
+from app.services.git.discover import discover
+from app.services.git.mirror import GitError
+
+_GIT_STATUS = {
+    "invalid": grpc.StatusCode.INVALID_ARGUMENT,
+    "not_found": grpc.StatusCode.NOT_FOUND,
+    "unavailable": grpc.StatusCode.UNAVAILABLE,
+}
 
 _PING_PLAYBOOK = """\
 - name: Ping
@@ -136,23 +148,33 @@ class RunnerServicer(RunnerServiceServicer):
             return
 
         bundle = ResolvedRunBundle(
-            playbook=ResolvedPlaybook(
-                name=request.playbook.name, content=request.playbook.content
-            ),
+            playbook=playbook_from_proto(request.playbook),
             hosts=[host_from_proto(h) for h in request.hosts],
         )
 
+        # A fresh state volume has no mirror: fetch the pinned commit first.
+        git = bundle.playbook.git
+        if git is not None:
+            try:
+                await mirror.ensure_commit(
+                    git.repository_id, git.url, git.commit, git.private_key
+                )
+            except GitError as exc:
+                yield RunBundleResponse(error=str(exc))
+                return
+
         async def build_config(materialized: MaterializedRun) -> AnsibleRunnerConfig:
             return AnsibleRunnerConfig(
-                playbook=materialized.playbook_path.name,
+                playbook=materialized.playbook,
                 private_data_dir=str(materialized.run_dir),
-                project_dir=str(materialized.run_dir),
+                project_dir=str(materialized.project_dir),
                 inventory=materialized.inventory,
                 forks=request.forks or 1,
                 extravars={
                     "ansible_become_user": settings.ansible_become_user,
                     **dict(request.extravars),
                 },
+                envvars=materialized.envvars,
                 event_handler=log_event_handler,
             )
 
@@ -254,3 +276,42 @@ class RunnerServicer(RunnerServiceServicer):
             build_config,
         ):
             yield frame
+
+    async def SyncRepository(self, request, context):
+        """Fetch de la rama al mirror y descubrimiento de playbooks en su cabeza."""
+        logger.bind(peer=context.peer(), repository=request.repository_id).info(
+            "SyncRepository recibido"
+        )
+        if mirror.SYNC_SLOTS.locked():
+            await context.abort(
+                grpc.StatusCode.RESOURCE_EXHAUSTED,
+                "Too many concurrent syncs, try again later",
+            )
+        async with mirror.SYNC_SLOTS:
+            try:
+                commit = await mirror.sync(
+                    request.repository_id,
+                    request.url,
+                    request.branch or "main",
+                    request.private_key if request.HasField("private_key") else None,
+                )
+                found = await asyncio.to_thread(
+                    discover, request.repository_id, commit, request.subdir
+                )
+            except GitError as exc:
+                await context.abort(_GIT_STATUS[exc.kind], str(exc))
+        return SyncRepositoryResponse(
+            commit=commit,
+            playbooks=[PlaybookFile(path=p.path, content=p.content) for p in found],
+        )
+
+    async def DeleteRepository(self, request, context):
+        """Borra el mirror de un repositorio eliminado en el backend."""
+        logger.bind(peer=context.peer(), repository=request.repository_id).info(
+            "DeleteRepository recibido"
+        )
+        try:
+            await mirror.delete(request.repository_id)
+        except GitError as exc:
+            await context.abort(_GIT_STATUS[exc.kind], str(exc))
+        return DeleteRepositoryResponse()

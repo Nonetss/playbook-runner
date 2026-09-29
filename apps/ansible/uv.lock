@@ -751,6 +751,7 @@ dependencies = [
     { name = "grpcio" },
     { name = "loguru" },
     { name = "protobuf" },
+    { name = "pyyaml" },
     { name = "scalar-fastapi" },
 ]
 
@@ -771,6 +772,7 @@ requires-dist = [
     { name = "grpcio", specifier = ">=1.68.0" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "protobuf", specifier = ">=6" },
+    { name = "pyyaml", specifier = ">=6" },
     { name = "scalar-fastapi", specifier = ">=1.8.2" },
 ]
 

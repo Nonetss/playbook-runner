@@ -13,6 +13,7 @@ dependencies = [
     "grpcio>=1.68.0",
     "loguru>=0.7.3",
     "protobuf>=6",
+    "pyyaml>=6",
     "scalar-fastapi>=1.8.2",
 ]
 

@@ -3,7 +3,8 @@
 ``ansible-runner`` necesita un playbook accesible como fichero y una clave
 privada por host en disco. Por cada run:
 
-- escribimos el ``content`` del playbook en un ``.yml`` con nombre único;
+- escribimos el ``content`` del playbook en un ``.yml`` con nombre único o,
+  si viene de Git, volcamos el árbol del commit en ``project/``;
 - escribimos cada clave privada en un fichero ``0600`` y mapeamos device →
   ruta de la clave;
 - construimos el inventario JSON con ``HostVars`` por host.
@@ -24,8 +25,9 @@ from pathlib import Path
 from typing import Any
 
 from app.core.config import settings
-from app.services.ansible.models import ResolvedRunBundle
+from app.services.ansible.models import GitPlaybookSource, ResolvedRunBundle
 from app.services.ansible.runner import HostVars, Inventory
+from app.services.git.mirror import GitError, export_tree, safe_repo_path
 
 
 @dataclass
@@ -49,15 +51,25 @@ class MaterializedRun:
 
     Atributos:
         run_dir: directorio temporal del run (a eliminar al terminar).
+        project_dir: directorio del proyecto Ansible (``run_dir`` o el árbol
+            exportado de Git).
         playbook_path: ruta del fichero playbook materializado.
         key_path_map: mapping device name -> ruta del fichero con la clave.
         inventory: inventario ya listo para ``ansible_runner.run``.
+        envvars: variables de entorno extra para ansible-runner.
     """
 
     run_dir: Path
+    project_dir: Path
     playbook_path: Path
     key_path_map: dict[str, Path]
     inventory: Inventory
+    envvars: dict[str, str]
+
+    @property
+    def playbook(self) -> str:
+        """Ruta del playbook relativa a ``project_dir``."""
+        return self.playbook_path.relative_to(self.project_dir).as_posix()
 
 
 def _short_hash(s: str) -> str:
@@ -184,19 +196,59 @@ def materialize(bundle: ResolvedRunBundle) -> MaterializedRun:
     """Materializa el bundle en ficheros y devuelve un ``MaterializedRun``."""
     safe_name = bundle.playbook.name.replace("/", "_").replace(" ", "_") or "playbook"
     materialized_hosts = materialize_hosts(bundle.hosts, safe_name)
+    run_dir = materialized_hosts.run_dir
 
-    playbook_path = (
-        materialized_hosts.run_dir
-        / f"{safe_name}-{_short_hash(bundle.playbook.content)}.yml"
-    )
-    playbook_path.write_text(bundle.playbook.content, encoding="utf-8")
+    try:
+        if bundle.playbook.git is not None:
+            project_dir, playbook_path, envvars = _materialize_git(
+                run_dir, bundle.playbook.git
+            )
+        else:
+            project_dir = run_dir
+            playbook_path = (
+                run_dir / f"{safe_name}-{_short_hash(bundle.playbook.content)}.yml"
+            )
+            playbook_path.write_text(bundle.playbook.content, encoding="utf-8")
+            envvars = {}
+    except Exception:
+        cleanup(materialized_hosts)
+        raise
 
     return MaterializedRun(
-        run_dir=materialized_hosts.run_dir,
+        run_dir=run_dir,
+        project_dir=project_dir,
         playbook_path=playbook_path,
         key_path_map=materialized_hosts.key_path_map,
         inventory=materialized_hosts.inventory,
+        envvars=envvars,
     )
+
+
+def _materialize_git(
+    run_dir: Path, source: GitPlaybookSource
+) -> tuple[Path, Path, dict[str, str]]:
+    """Exporta el commit a ``run_dir/project`` y localiza el playbook.
+
+    El ``ansible.cfg`` del repositorio se ignora: ``ANSIBLE_CONFIG`` apunta a
+    un fichero vacío controlado por el runner (tiene prioridad sobre el
+    ``ansible.cfg`` del directorio de trabajo).
+    """
+    project_dir = run_dir / "project"
+    export_tree(source.repository_id, source.commit, project_dir)
+
+    relative = safe_repo_path(source.path)
+    playbook_path = (project_dir / relative).resolve()
+    if (
+        not playbook_path.is_relative_to(project_dir.resolve())
+        or not playbook_path.is_file()
+    ):
+        raise GitError(
+            "not_found", f"Playbook {source.path!r} not found at {source.commit}"
+        )
+
+    runner_cfg = run_dir / "runner-ansible.cfg"
+    runner_cfg.write_text("", encoding="utf-8")
+    return project_dir.resolve(), playbook_path, {"ANSIBLE_CONFIG": str(runner_cfg)}
 
 
 def cleanup(materialized: MaterializedHosts | MaterializedRun) -> None:

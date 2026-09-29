@@ -20,14 +20,38 @@ class ResolvedHost(BaseModel):
     connection: str
 
 
+class GitPlaybookSource(BaseModel):
+    repository_id: str
+    url: str
+    commit: str
+    path: str
+    private_key: str | None = None
+
+
 class ResolvedPlaybook(BaseModel):
     name: str
     content: str
+    # Set for Git-sourced playbooks: run ``path`` from the exported tree.
+    git: GitPlaybookSource | None = None
 
 
 class ResolvedRunBundle(BaseModel):
     playbook: ResolvedPlaybook
     hosts: list[ResolvedHost]
+
+
+def playbook_from_proto(playbook) -> ResolvedPlaybook:
+    git = None
+    if playbook.HasField("git"):
+        source = playbook.git
+        git = GitPlaybookSource(
+            repository_id=source.repository_id,
+            url=source.url,
+            commit=source.commit,
+            path=source.path,
+            private_key=source.private_key if source.HasField("private_key") else None,
+        )
+    return ResolvedPlaybook(name=playbook.name, content=playbook.content, git=git)
 
 
 def host_from_proto(host) -> ResolvedHost:
