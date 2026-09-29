@@ -26,7 +26,7 @@ export function StatTile({
         {value}
       </Text>
       {sub ? (
-        <Text as="p" variant="meta" tone="muted" className="truncate">
+        <Text as="p" variant="meta" tone="muted">
           {sub}
         </Text>
       ) : null}

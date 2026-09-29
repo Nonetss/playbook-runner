@@ -71,9 +71,9 @@ export const jobDefinition: EntityListDefinition<Job, JobRowContext> = {
           )
         }
         return (
-          <span className="flex min-w-0 items-center gap-2">
+          <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
             <RunStatusTag status={rollup.latestStatus} />
-            <Text variant="data" tone="muted" className="truncate">
+            <Text variant="data" tone="muted">
               {formatDateTime(rollup.latestCreatedAt, language)}
             </Text>
           </span>
