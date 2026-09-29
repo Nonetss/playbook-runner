@@ -1,4 +1,5 @@
-import z from "zod"
+import { z } from "zod"
+import { idSchema } from "#v1/schemas"
 
 const script = z.object({
   name: z.string(),
@@ -7,9 +8,11 @@ const script = z.object({
   language: z.enum(["bash", "python"]).default("bash"),
 })
 
+const byId = z.object({ id: idSchema })
+
 export const scriptsInput = {
   create: script,
-  get: z.object({ id: z.string() }),
-  update: script.extend({ id: z.string() }),
-  remove: z.object({ id: z.string() }),
+  get: byId,
+  update: script.extend({ id: idSchema }),
+  delete: byId,
 }

@@ -1,34 +1,68 @@
 import { db } from "@playbook-runner/db"
-import { type NewScript, scripts } from "@playbook-runner/db/schema/scripts"
+import { scripts } from "@playbook-runner/db/schema/scripts"
 import { asc, eq } from "drizzle-orm"
+import type { z } from "zod"
+import type { Context } from "#context"
+import { errors } from "#errors"
+import type { scriptsInput } from "#v1/scripts/input"
 
 export const scriptsHandler = {
-  create: async (script: NewScript) => {
-    const s = await db.insert(scripts).values(script).returning()
-    return s[0] ?? null
+  create: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof scriptsInput.create>
+  }) => {
+    const [row] = await db.insert(scripts).values(input).returning()
+    if (!row) throw errors.INTERNAL_SERVER_ERROR()
+    return row
   },
 
-  list: async () => {
-    const s = await db.select().from(scripts).orderBy(asc(scripts.createdAt))
-    return s
+  list: async (_: { context: Context; input?: unknown }) => {
+    return db.select().from(scripts).orderBy(asc(scripts.createdAt))
   },
 
-  get: async (id: string) => {
-    const s = await db.select().from(scripts).where(eq(scripts.id, id))
-    return s[0] ?? null
+  get: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof scriptsInput.get>
+  }) => {
+    const [row] = await db
+      .select()
+      .from(scripts)
+      .where(eq(scripts.id, input.id))
+    if (!row) throw errors.NOT_FOUND()
+    return row
   },
 
-  update: async (id: string, script: NewScript) => {
-    const s = await db
+  update: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof scriptsInput.update>
+  }) => {
+    const { id, ...values } = input
+    const [row] = await db
       .update(scripts)
-      .set(script)
+      .set({ ...values, updatedAt: new Date() })
       .where(eq(scripts.id, id))
       .returning()
-    return s[0] ?? null
+    if (!row) throw errors.NOT_FOUND()
+    return row
   },
 
-  delete: async (id: string) => {
-    const s = await db.delete(scripts).where(eq(scripts.id, id)).returning()
-    return s[0] ?? null
+  delete: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof scriptsInput.delete>
+  }) => {
+    const [row] = await db
+      .delete(scripts)
+      .where(eq(scripts.id, input.id))
+      .returning()
+    if (!row) throw errors.NOT_FOUND()
+    return row
   },
 }

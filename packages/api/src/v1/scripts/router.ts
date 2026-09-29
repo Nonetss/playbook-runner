@@ -1,91 +1,66 @@
-import { z } from "zod"
 import { protectedProcedure } from "#index"
 import { scriptsHandler } from "#v1/scripts/handler"
 import { scriptsInput } from "#v1/scripts/input"
+import { scriptsOutput } from "#v1/scripts/output"
 
-const scriptSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string().nullable(),
-  content: z.string(),
-  language: z.enum(["bash", "python"]),
-  createdAt: z.coerce.date().nullable(),
-  updatedAt: z.coerce.date().nullable(),
-})
-
-export type Script = z.infer<typeof scriptSchema>
+export type { Script } from "#v1/scripts/output"
 
 export const scriptsRouter = {
   create: protectedProcedure
     .route({
       summary: "Create a script",
       description:
-        "Persists a new bash script (name, description, shell content).",
+        "Persists a new script (name, description, language, content).",
       tags: ["Scripts"],
       method: "POST",
     })
     .input(scriptsInput.create)
-    .output(scriptSchema.nullable())
-    .handler(async ({ input }) => {
-      const script = await scriptsHandler.create(input)
-      return script ?? null
-    }),
+    .output(scriptsOutput.create)
+    .handler(({ context, input }) => scriptsHandler.create({ context, input })),
 
   list: protectedProcedure
     .route({
       summary: "List scripts",
-      description: "Returns every stored bash script.",
+      description: "Returns every stored script.",
       tags: ["Scripts"],
       method: "GET",
     })
-    .output(z.array(scriptSchema))
-    .handler(async () => {
-      const scripts = await scriptsHandler.list()
-      return scripts ?? []
-    }),
+    .output(scriptsOutput.list)
+    .handler(({ context, input }) => scriptsHandler.list({ context, input })),
 
   get: protectedProcedure
     .route({
       summary: "Get a script",
       description:
-        "Returns a single bash script by id, or null when no row matches.",
+        "Returns a single script by id. Fails with NOT_FOUND when no row matches.",
       tags: ["Scripts"],
       method: "GET",
     })
     .input(scriptsInput.get)
-    .output(scriptSchema.nullable())
-    .handler(async ({ input }) => {
-      const script = await scriptsHandler.get(input.id)
-      return script ?? null
-    }),
+    .output(scriptsOutput.get)
+    .handler(({ context, input }) => scriptsHandler.get({ context, input })),
 
   update: protectedProcedure
     .route({
       summary: "Update a script",
       description:
-        "Replaces the name, description, and shell content of an existing script.",
+        "Replaces the name, description, language, and content of an existing script. Fails with NOT_FOUND when no row matches.",
       tags: ["Scripts"],
       method: "PUT",
     })
     .input(scriptsInput.update)
-    .output(scriptSchema.nullable())
-    .handler(async ({ input }) => {
-      const script = await scriptsHandler.update(input.id, input)
-      return script ?? null
-    }),
+    .output(scriptsOutput.update)
+    .handler(({ context, input }) => scriptsHandler.update({ context, input })),
 
   delete: protectedProcedure
     .route({
       summary: "Delete a script",
       description:
-        "Deletes a bash script by id. Returns the deleted row, or null.",
+        "Deletes a script by id and returns the deleted row. Fails with NOT_FOUND when no row matches.",
       tags: ["Scripts"],
       method: "DELETE",
     })
-    .input(scriptsInput.remove)
-    .output(scriptSchema.nullable())
-    .handler(async ({ input }) => {
-      const script = await scriptsHandler.delete(input.id)
-      return script ?? null
-    }),
+    .input(scriptsInput.delete)
+    .output(scriptsOutput.delete)
+    .handler(({ context, input }) => scriptsHandler.delete({ context, input })),
 }
