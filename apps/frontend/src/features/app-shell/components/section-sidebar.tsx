@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
+import { textVariants } from "@/components/shared/brand/typography"
 import { AppLink } from "@/components/ui/app-link"
 import {
   Sidebar,
@@ -80,7 +81,7 @@ function SectionSidebarContent({ currentPath }: { currentPath: string }) {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="font-medium text-label uppercase tracking-[0.12em]">
+          <SidebarGroupLabel className={textVariants({ role: "label" })}>
             {t("labels.section_navigation")}
           </SidebarGroupLabel>
           <SidebarGroupContent>

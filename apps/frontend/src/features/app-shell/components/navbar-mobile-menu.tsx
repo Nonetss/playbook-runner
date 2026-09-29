@@ -5,6 +5,7 @@ const Menu = getIcon("controls", "menu")
 import { useEffect, useState } from "react"
 import { flushSync } from "react-dom"
 import { useTranslation } from "react-i18next"
+import { textVariants } from "@/components/shared/brand/typography"
 import { AppLink } from "@/components/ui/app-link"
 import {
   Sheet,
@@ -69,7 +70,9 @@ export function NavbarMobileMenu({
             className="gap-0 border-border bg-popover p-0 text-popover-foreground data-[state=closed]:animate-none sm:max-w-xs [&>button]:top-3.5 [&>button]:text-muted-foreground hover:[&>button]:text-foreground"
           >
             <SheetHeader className="border-border border-b px-4 py-4 text-left">
-              <SheetTitle className="font-medium text-label uppercase tracking-[0.12em] text-muted-foreground">
+              <SheetTitle
+                className={textVariants({ role: "label", tone: "muted" })}
+              >
                 {tCommon("labels.navigation_title")}
               </SheetTitle>
             </SheetHeader>

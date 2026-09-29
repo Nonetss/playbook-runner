@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
+import { textVariants } from "@/components/shared/brand/typography"
 import { InlineAlert } from "@/components/shared/feedback/inline-alert"
 import { FormField } from "@/components/shared/form/field-label"
 import { Button } from "@/components/ui/button"
@@ -79,10 +80,10 @@ function SignInFormInner() {
   return (
     <Card className="mx-auto w-full max-w-sm gap-0 rounded-xl border-border bg-card py-0 shadow-none">
       <CardHeader className="gap-1.5 border-b px-6 py-5">
-        <CardTitle className="text-display font-semibold tracking-tight">
+        <CardTitle className={textVariants({ role: "display" })}>
           {t("sign_in.title")}
         </CardTitle>
-        <CardDescription className="text-meta">
+        <CardDescription className={textVariants({ role: "meta" })}>
           {t("sign_in.subtitle")}
         </CardDescription>
       </CardHeader>
