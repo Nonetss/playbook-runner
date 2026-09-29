@@ -49,7 +49,7 @@ export function SegmentedPicker<T extends string>({
             disabled={disabled}
             onClick={() => onChange(option.value)}
             className={cn(
-              "inline-flex h-8 min-w-0 items-center justify-center gap-1.5 rounded-md border px-2.5 text-xs font-medium whitespace-nowrap pointer-coarse:h-10 transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:size-3.5",
+              "inline-flex h-8 min-w-0 items-center justify-center gap-1.5 rounded-md border px-2.5 text-xs font-medium whitespace-nowrap pointer-coarse:h-10 transition-colors focus-ring disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:size-3.5",
               mono && "font-mono font-normal",
               selected
                 ? "border-foreground bg-foreground text-background"

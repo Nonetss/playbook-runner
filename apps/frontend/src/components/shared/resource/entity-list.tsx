@@ -224,7 +224,7 @@ function EntityListRow<TItem, TContext>({
         <AppLink
           href={definition.getOpenHref(item, context)}
           aria-label={accessibleLabel}
-          className="min-w-0 rounded-md text-left outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          className="min-w-0 rounded-md text-left focus-ring"
         >
           {primaryBlock}
         </AppLink>
@@ -233,7 +233,7 @@ function EntityListRow<TItem, TContext>({
           type="button"
           onClick={() => definition.onOpen?.(item, context)}
           aria-label={accessibleLabel}
-          className="min-w-0 rounded-md text-left outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          className="min-w-0 rounded-md text-left focus-ring"
         >
           {primaryBlock}
         </button>
@@ -342,14 +342,14 @@ function EntityCard<TItem, TContext>({
         <AppLink
           href={openHref}
           aria-label={accessibleLabel}
-          className="absolute inset-0 z-0 rounded-xl outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          className="absolute inset-0 z-0 rounded-xl focus-ring"
         />
       ) : definition.onOpen ? (
         <button
           type="button"
           onClick={() => definition.onOpen?.(item, context)}
           aria-label={accessibleLabel}
-          className="absolute inset-0 z-0 rounded-xl outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          className="absolute inset-0 z-0 rounded-xl focus-ring"
         />
       ) : null}
 
