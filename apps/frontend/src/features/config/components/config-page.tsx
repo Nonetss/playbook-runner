@@ -116,6 +116,9 @@ function ConfigPageInner() {
       >
         {(apiKeys) => (
           <EntityCardGrid
+            // The page is capped at 6xl: a fifth column (1920px+) would
+            // squeeze each key card to ~220px.
+            className="min-[120rem]:grid-cols-4"
             items={apiKeys}
             definition={apiKeyDefinition}
             context={{
