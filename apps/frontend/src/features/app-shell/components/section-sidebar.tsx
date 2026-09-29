@@ -17,6 +17,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { ScrollerRestoration } from "@/features/app-shell/components/scroller-restoration"
 import { SIDEBAR_TOGGLE_EVENT } from "@/features/app-shell/sidebar-events"
 import { isNavLinkActive } from "@/features/app-shell/site-nav"
 import { useCurrentPath } from "@/hooks/use-current-path"
@@ -127,6 +128,7 @@ function SectionSidebarInner({
       className="flex min-h-0 w-auto shrink-0"
     >
       <SidebarToggleBridge />
+      <ScrollerRestoration initialPath={initialPath} />
       <SectionSidebarContent currentPath={currentPath} />
     </SidebarProvider>
   )

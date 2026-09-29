@@ -2,9 +2,12 @@ import { getIcon } from "@/lib/icon-registry"
 
 const ArrowLeft = getIcon("navigation", "back")
 
-import type { ComponentProps, ReactNode } from "react"
+import type { ReactNode } from "react"
 import { Text } from "@/components/shared/brand/typography"
-import { PageShell } from "@/components/shared/layout/page-shell"
+import {
+  PageShell,
+  type PageShellMaxWidth,
+} from "@/components/shared/layout/page-shell"
 import { AppLink } from "@/components/ui/app-link"
 import { cn } from "@/lib/utils"
 
@@ -22,7 +25,7 @@ export function DetailFrame({
 }: {
   backHref: string
   backLabel: ReactNode
-  maxWidth?: ComponentProps<typeof PageShell>["maxWidth"]
+  maxWidth?: PageShellMaxWidth
   className?: string
   children: ReactNode
 }) {

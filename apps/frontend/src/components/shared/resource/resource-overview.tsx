@@ -1,11 +1,14 @@
-import type { ComponentProps, ReactNode } from "react"
+import type { ReactNode } from "react"
 import {
   QueryState,
   type QueryStateQuery,
   type StateCardDefinition,
 } from "@/components/shared/feedback/query-state"
 import { PageHero } from "@/components/shared/layout/page-hero"
-import { PageShell } from "@/components/shared/layout/page-shell"
+import {
+  PageShell,
+  type PageShellMaxWidth,
+} from "@/components/shared/layout/page-shell"
 import type { SurfaceId } from "@/lib/app-surfaces"
 
 /**
@@ -53,7 +56,7 @@ export function ResourceOverview<TData>({
   filteredEmpty?: Partial<StateCardDefinition> & { onClear?: () => void }
   children: (data: TData) => ReactNode
   footer?: ReactNode
-  maxWidth?: ComponentProps<typeof PageShell>["maxWidth"]
+  maxWidth?: PageShellMaxWidth
 }) {
   return (
     <PageShell maxWidth={maxWidth}>
