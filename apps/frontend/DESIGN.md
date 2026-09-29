@@ -71,14 +71,25 @@ tracking by hand.
 
 ## Layout
 
-- **Shell**: sticky full-width navbar (`--navbar-height: 3.6rem`). Every
+- **Shell**: sticky full-width navbar (`--navbar-height: 3.6rem`) whose
+  section menus open on hover (Radix `NavigationMenu`, panel centred under
+  its trigger). Every
   navigation section (Inventory, Automation, Jobs) renders inside
   `WithSidebar.astro`: a persisted section sidebar island plus a plain `<main>`
   scroller that owns the only page padding (`px-4 py-6 sm:px-6`).
   Top-level pages without a section (dashboard, config, admin, profile) use
   `Layout.astro` with the same padding through `PageShell`.
-- **Width**: `PageShell` `6xl` for lists and overviews, `3xl` for single
-  column forms/profile, `full` for editors and consoles.
+- **Width**: `PageShell` inherits the layout width through
+  `--page-max-width`: `6xl` in `Layout.astro`, full width → 80% from `lg` in
+  `WithSidebar.astro`. Pages override with `maxWidth`: `4xl`/`3xl` for
+  single-column forms and profile, `full` for tables, editors and consoles,
+  `6xl`/`80%` explicitly when needed.
+- **Layout options** (both layouts): `padding="compact"` for dense tables,
+  `scrollToTop` for the floating back-to-top button (mounted once, shown past
+  400px of scroll). `WithSidebar` adds `boundedContent` (page owns its own
+  scroll region from `sm` up), `persistScroll` (restore the inset offset
+  across navigations; `false` snaps to top, `"owned"` leaves it to the page)
+  and `locked`.
 - **Locked pages**: editors and run consoles pass `locked` to the layout; the
   scroller becomes `overflow-hidden` and the page fills the remaining height
   with `flex-1 min-h-0`. Never compute `calc(100dvh - …)` by hand.
@@ -111,10 +122,13 @@ shadcn primitives (Radix, `new-york`) restyled to the tokens.
   `QueryState` loading/error/empty cascade. `children` renders success only.
 - **`EntityCardGrid` + `EntityListDefinition`**: resource collections
   (playbooks, scripts, devices, groups, credentials, jobs, API keys, users)
-  are a responsive grid (1 → 2 → 3 columns) of flat `rounded-xl border
+  are a responsive grid (`cardGridClass`: 1 column, 2 from `sm`, 3 from
+  `lg`, 4 from `xl`, 5 from 1920px — shared with `SurfaceCardGrid`) of flat `rounded-xl border
   bg-card/40 p-5` cards: headline name + meta description with the
   `RowActionsMenu` top-right, fact rows (`MetadataCell`) under a hairline,
-  and status tag + quick action at the bottom. Hover firms the border; no
+  and status tag + quick action at the bottom. Fact rows switch from one to
+  two columns with the card's own width (container query), so narrow cards
+  never truncate IPs or labels. Hover firms the border; no
   shadow, no icon wells. One definition file per resource under
   `features/<name>/definitions/`. `EntityList` renders the same definition
   as `divide-y` rows and is used for activity feeds (dashboard).

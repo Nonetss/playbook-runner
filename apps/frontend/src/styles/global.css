@@ -268,6 +268,36 @@
   }
 }
 
+/* Tight viewport box for the back-to-top island so it never stretches into
+   a full-width strip over the page. */
+.scroll-to-top-root,
+.scroll-to-top-root astro-island {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  width: auto;
+  height: auto;
+  pointer-events: none;
+}
+
+.scroll-to-top-root :is(button, [data-slot="scroll-to-top"]) {
+  pointer-events: auto;
+}
+
+@media (min-width: 768px) {
+  .scroll-to-top-root,
+  .scroll-to-top-root astro-island {
+    right: 1.5rem;
+    bottom: 1.5rem;
+  }
+}
+
+/* Anchor scrolling off inside the inset scroller: restoration owns it. */
+@utility overflow-anchor-none {
+  overflow-anchor: none;
+}
+
 /* Flat dot-grid texture behind the guest auth screen. */
 @utility bg-dot-grid {
   position: relative;

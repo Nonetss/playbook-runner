@@ -23,20 +23,22 @@ test.describe("Navbar autenticada (escritorio)", () => {
     }
   })
 
-  test("el desplegable de una sección enlaza a sus páginas", async ({
+  test("el desplegable de una sección se abre al pasar el ratón", async ({
     page,
   }) => {
     await page.goto("/")
-    const trigger = page
-      .getByRole("banner")
-      .getByRole("button", { name: "Automatización", exact: true })
+    const banner = page.getByRole("banner")
+    const trigger = banner.getByRole("button", {
+      name: "Automatización",
+      exact: true,
+    })
     await waitForHydration(trigger)
-    await trigger.click()
+    await trigger.hover()
 
-    const menu = page.getByRole("menu")
-    for (const label of [/playbooks/i, /scripts/i, /comandos/i]) {
+    await expect(trigger).toHaveAttribute("data-state", "open")
+    for (const label of [/^playbooks/i, /^scripts/i, /^comandos/i]) {
       await expect(
-        menu.getByRole("menuitem", { name: label }).first()
+        banner.getByRole("link", { name: label }).first()
       ).toBeVisible()
     }
   })
