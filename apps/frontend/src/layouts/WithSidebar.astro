@@ -7,9 +7,10 @@ import Layout from "@/layouts/Layout.astro"
 interface Props {
   title: string
   /**
-   * Full-height page (editors, run consoles) from `md` up: the scroller stops
-   * scrolling and the page fills the remaining height with `flex-1 min-h-0`.
-   * Below `md` the page scrolls; editors and consoles keep a minimum height.
+   * Full-height page (editors, run consoles) on `split` viewports (`md` wide
+   * and 34rem tall): the scroller stops scrolling and the page fills the
+   * remaining height with `flex-1 min-h-0`. Otherwise (phones, landscape
+   * phones) the page scrolls; editors and consoles keep a minimum height.
    */
   locked?: boolean
   /**
@@ -69,9 +70,9 @@ const paddingClass = {
           : "false"}
       class:list={[
         "flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-anchor-none",
-        // `locked` fixes the height from `md` up only: on phones the stacked
-        // fields and the editor/console need page scroll.
-        locked ? "overflow-y-auto md:overflow-hidden" : "overflow-y-auto",
+        // `locked` fixes the height on `split` viewports only: on phones the
+        // stacked fields and the editor/console need page scroll.
+        locked ? "overflow-y-auto split:overflow-hidden" : "overflow-y-auto",
       ]}
     >
       <div
@@ -84,9 +85,9 @@ const paddingClass = {
         class:list={[
           "flex min-w-0 flex-1 flex-col [--page-max-width:100%]",
           paddingClass,
-          locked && "md:min-h-0",
+          locked && "split:min-h-0",
           boundedContent && "min-h-0",
-          locked && "max-md:pt-2 md:overflow-hidden",
+          locked && "stacked:pt-2 split:overflow-hidden",
           boundedContent &&
             !locked &&
             "sm:overflow-hidden",

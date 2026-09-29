@@ -29,3 +29,27 @@ const getServerSnapshot = () => false
 export function useIsMobile() {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 }
+
+const TABLET_QUERY = `(min-width: ${MOBILE_BREAKPOINT}px) and (max-width: 1023.98px)`
+
+let tabletQuery: MediaQueryList | undefined
+
+function getTabletQuery() {
+  tabletQuery ??= window.matchMedia(TABLET_QUERY)
+  return tabletQuery
+}
+
+function subscribeTablet(onChange: () => void) {
+  const mql = getTabletQuery()
+  mql.addEventListener("change", onChange)
+  return () => mql.removeEventListener("change", onChange)
+}
+
+/** `true` between the `md` and `lg` breakpoints (tablet portrait). */
+export function useIsTablet() {
+  return useSyncExternalStore(
+    subscribeTablet,
+    () => getTabletQuery().matches,
+    getServerSnapshot
+  )
+}

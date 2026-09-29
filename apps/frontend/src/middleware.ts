@@ -3,7 +3,15 @@ import { authServer } from "@/lib/auth-server"
 import { LOCALE_COOKIE } from "@/lib/i18n/config"
 import { resolveLocaleFromHeaders } from "@/lib/i18n/resolve"
 
-const publicPaths = ["/login", "/scalar", "/openapi.json"]
+const publicPaths = [
+  "/login",
+  "/scalar",
+  "/openapi.json",
+  // PWA: the browser fetches these without cookies (manifest) or before login.
+  "/manifest.webmanifest",
+  "/sw.js",
+  "/pwa",
+]
 const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
 // Paths that never need an auth check. Anything matching is forwarded as-is

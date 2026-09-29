@@ -11,6 +11,15 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Locked pages (editors, run consoles) split the viewport height only when
+   there is height to split: from `md` wide AND 34rem tall. Phones in either
+   orientation get `stacked`, where the page scrolls and the editor/console
+   keep a minimum height. Mirrored in `features/run/components/terminal-frame.tsx`. */
+@custom-variant split (@media (width >= 48rem) and (height >= 34rem));
+@custom-variant stacked (
+  @media not all and (width >= 48rem) and (height >= 34rem)
+);
+
 /* Tokens are documented in apps/frontend/DESIGN.md. Colour roles keep their
    meaning in both themes; the terminal set below is the only place where
    state colours (ok/changed/failed) exist. */

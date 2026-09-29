@@ -1,0 +1,20 @@
+---
+---
+
+<link rel="manifest" href="/manifest.webmanifest">
+<meta
+  name="theme-color"
+  content="#faf9f5"
+  media="(prefers-color-scheme: light)"
+>
+<meta name="theme-color" content="#262624" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-title" content="Playbook Runner">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png">
+<script is:inline>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js")
+  })
+}
+</script>

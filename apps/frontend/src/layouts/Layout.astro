@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { NavbarAuthenticated } from "@/features/app-shell/components/navbar-authenticated"
 import { NavbarGuest } from "@/features/app-shell/components/navbar-guest"
 import FontPreload from "@/layouts/font-preload.astro"
+import PwaHead from "@/layouts/pwa-head.astro"
 
 interface Props {
   title: string
@@ -66,6 +67,7 @@ const hasSession = !!user && !!session
     )
     </script>
     <link rel="icon" href="/logo.svg" type="image/svg+xml">
+    <PwaHead />
   </head>
   <body
     class:list={[
