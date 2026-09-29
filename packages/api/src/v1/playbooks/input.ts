@@ -1,6 +1,5 @@
-import z from "zod"
-
-const uuid = z.string().uuid()
+import { z } from "zod"
+import { idSchema } from "#v1/schemas"
 
 /** UI sentinels / empty values that mean "no folder" (root). */
 function coerceFolderId(value: unknown) {
@@ -18,7 +17,9 @@ function coerceFolderId(value: unknown) {
   return trimmed
 }
 
-const folderId = z.preprocess(coerceFolderId, uuid.nullable())
+const folderId = z.preprocess(coerceFolderId, idSchema.nullable())
+
+const byId = z.object({ id: idSchema })
 
 const playbook = z.object({
   name: z.string().trim().min(1),
@@ -26,15 +27,23 @@ const playbook = z.object({
   content: z.string().min(1),
   folderId: folderId.optional(),
 })
+
 const folder = z.object({
   name: z.string().trim().min(1),
   description: z.string().optional(),
 })
 
 export const playbooksInput = {
-  playbook,
-  folder,
-  id: z.object({ id: z.string() }),
-  folderId: z.object({ folderId }),
-  move: z.object({ id: uuid, folderId }),
+  create: playbook,
+  listByFolder: z.object({ folderId }),
+  get: byId,
+  update: playbook.extend({ id: idSchema }),
+  move: z.object({ id: idSchema, folderId }),
+  delete: byId,
+  folders: {
+    create: folder,
+    get: byId,
+    update: folder.extend({ id: idSchema }),
+    delete: byId,
+  },
 }

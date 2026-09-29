@@ -1,49 +1,13 @@
-import { z } from "zod"
-import { errors } from "#errors"
 import { protectedProcedure } from "#index"
-import { playbookFoldersHandler } from "#v1/playbooks/folders"
-import {
-  PlaybookFolderNotFoundError,
-  playbooksHandler,
-} from "#v1/playbooks/handler"
+import { playbooksHandler } from "#v1/playbooks/handler"
 import { playbooksInput } from "#v1/playbooks/input"
+import { playbooksOutput } from "#v1/playbooks/output"
 
-const uuidSchema = z.string().uuid()
+export type { Playbook, PlaybookFolder } from "#v1/playbooks/output"
 
-const playbookSchema = z.object({
-  id: uuidSchema,
-  name: z.string(),
-  description: z.string().nullable(),
-  content: z.string(),
-  folderId: uuidSchema.nullable(),
-  createdAt: z.coerce.date().nullable(),
-  updatedAt: z.coerce.date().nullable(),
-})
-
-const playbookFolderSchema = z.object({
-  id: uuidSchema,
-  name: z.string(),
-  description: z.string().nullable(),
-  createdAt: z.coerce.date().nullable(),
-  updatedAt: z.coerce.date().nullable(),
-})
-
-export type Playbook = z.infer<typeof playbookSchema>
-export type PlaybookFolder = z.infer<typeof playbookFolderSchema>
-
-const playbookInput = playbooksInput.playbook
-
-const folderInput = z.object({
-  name: z.string().trim().min(1),
-  description: z.string().optional(),
-})
-
-function handleFolderError(error: unknown): never {
-  if (error instanceof PlaybookFolderNotFoundError) {
-    throw errors.BAD_REQUEST({ message: "Playbook folder not found" })
-  }
-  throw error
-}
+const folderNotFound = {
+  BAD_REQUEST: { message: "Playbook folder not found", status: 400 },
+} as const
 
 export const playbooksRouter = {
   folders: {
@@ -54,11 +18,11 @@ export const playbooksRouter = {
         tags: ["Playbooks"],
         method: "POST",
       })
-      .input(folderInput)
-      .output(playbookFolderSchema.nullable())
-      .handler(async ({ input }) => {
-        return playbookFoldersHandler.create(input)
-      }),
+      .input(playbooksInput.folders.create)
+      .output(playbooksOutput.folders.create)
+      .handler(({ context, input }) =>
+        playbooksHandler.folders.create({ context, input })
+      ),
 
     list: protectedProcedure
       .route({
@@ -67,51 +31,49 @@ export const playbooksRouter = {
         tags: ["Playbooks"],
         method: "GET",
       })
-      .output(z.array(playbookFolderSchema))
-      .handler(async () => {
-        return playbookFoldersHandler.list()
-      }),
+      .output(playbooksOutput.folders.list)
+      .handler(({ context }) => playbooksHandler.folders.list({ context })),
 
     get: protectedProcedure
       .route({
         summary: "Get a playbook folder",
-        description: "Returns a playbook folder by id, or null.",
+        description: "Returns a playbook folder by id. NOT_FOUND when missing.",
         tags: ["Playbooks"],
         method: "GET",
       })
-      .input(z.object({ id: uuidSchema }))
-      .output(playbookFolderSchema.nullable())
-      .handler(async ({ input }) => {
-        return playbookFoldersHandler.get(input.id)
-      }),
+      .input(playbooksInput.folders.get)
+      .output(playbooksOutput.folders.get)
+      .handler(({ context, input }) =>
+        playbooksHandler.folders.get({ context, input })
+      ),
 
     update: protectedProcedure
       .route({
         summary: "Update a playbook folder",
-        description: "Renames or updates a playbook folder.",
+        description:
+          "Renames or updates a playbook folder. NOT_FOUND when missing.",
         tags: ["Playbooks"],
         method: "PUT",
       })
-      .input(folderInput.extend({ id: uuidSchema }))
-      .output(playbookFolderSchema.nullable())
-      .handler(async ({ input }) => {
-        const { id, ...folder } = input
-        return playbookFoldersHandler.update(id, folder)
-      }),
+      .input(playbooksInput.folders.update)
+      .output(playbooksOutput.folders.update)
+      .handler(({ context, input }) =>
+        playbooksHandler.folders.update({ context, input })
+      ),
 
     delete: protectedProcedure
       .route({
         summary: "Delete a playbook folder",
         description:
-          "Deletes a folder and moves its playbooks to the root through the database relation.",
+          "Deletes a folder and moves its playbooks to the root through the database relation. NOT_FOUND when missing.",
         tags: ["Playbooks"],
         method: "DELETE",
       })
-      .input(z.object({ id: uuidSchema }))
-      .output(playbookFolderSchema.nullable())
-      .handler(async ({ input }) => {
-        return playbookFoldersHandler.delete(input.id)
-      }),
+      .input(playbooksInput.folders.delete)
+      .output(playbooksOutput.folders.delete)
+      .handler(({ context, input }) =>
+        playbooksHandler.folders.delete({ context, input })
+      ),
   },
 
   create: protectedProcedure
@@ -121,21 +83,12 @@ export const playbooksRouter = {
       tags: ["Playbooks"],
       method: "POST",
     })
-    .input(playbookInput)
-    .output(playbookSchema.nullable())
-    .errors({
-      BAD_REQUEST: {
-        message: "Playbook folder not found",
-        status: 400,
-      },
-    })
-    .handler(async ({ input }) => {
-      try {
-        return await playbooksHandler.create(input)
-      } catch (error) {
-        handleFolderError(error)
-      }
-    }),
+    .errors(folderNotFound)
+    .input(playbooksInput.create)
+    .output(playbooksOutput.create)
+    .handler(({ context, input }) =>
+      playbooksHandler.create({ context, input })
+    ),
 
   list: protectedProcedure
     .route({
@@ -144,11 +97,8 @@ export const playbooksRouter = {
       tags: ["Playbooks"],
       method: "GET",
     })
-    .output(z.array(playbookSchema))
-    .handler(async () => {
-      const playbooks = await playbooksHandler.list()
-      return playbooks ?? []
-    }),
+    .output(playbooksOutput.list)
+    .handler(({ context }) => playbooksHandler.list({ context })),
 
   listByFolder: protectedProcedure
     .route({
@@ -158,87 +108,62 @@ export const playbooksRouter = {
       tags: ["Playbooks"],
       method: "GET",
     })
-    .input(playbooksInput.folderId)
-    .output(z.array(playbookSchema))
-    .handler(async ({ input }) => {
-      return playbooksHandler.listByFolder(input.folderId)
-    }),
+    .input(playbooksInput.listByFolder)
+    .output(playbooksOutput.listByFolder)
+    .handler(({ context, input }) =>
+      playbooksHandler.listByFolder({ context, input })
+    ),
 
   get: protectedProcedure
     .route({
       summary: "Get a playbook",
-      description:
-        "Returns a single playbook by id, or null when no row matches.",
+      description: "Returns a single playbook by id. NOT_FOUND when missing.",
       tags: ["Playbooks"],
       method: "GET",
     })
-    .input(z.object({ id: z.string() }))
-    .output(playbookSchema.nullable())
-    .handler(async ({ input }) => {
-      const playbook = await playbooksHandler.get(input.id)
-      return playbook ?? null
-    }),
+    .input(playbooksInput.get)
+    .output(playbooksOutput.get)
+    .handler(({ context, input }) => playbooksHandler.get({ context, input })),
 
   update: protectedProcedure
     .route({
       summary: "Update a playbook",
       description:
-        "Replaces the name, description, and YAML content of an existing playbook.",
+        "Replaces the name, description, and YAML content of an existing playbook. NOT_FOUND when missing.",
       tags: ["Playbooks"],
       method: "PUT",
     })
-    .input(playbookInput.extend({ id: uuidSchema }))
-    .output(playbookSchema.nullable())
-    .errors({
-      BAD_REQUEST: {
-        message: "Playbook folder not found",
-        status: 400,
-      },
-    })
-    .handler(async ({ input }) => {
-      const { id, ...playbook } = input
-      try {
-        return await playbooksHandler.update(id, playbook)
-      } catch (error) {
-        handleFolderError(error)
-      }
-    }),
+    .errors(folderNotFound)
+    .input(playbooksInput.update)
+    .output(playbooksOutput.update)
+    .handler(({ context, input }) =>
+      playbooksHandler.update({ context, input })
+    ),
 
   move: protectedProcedure
     .route({
       summary: "Move a playbook",
-      description: "Moves a playbook to a folder or to the root.",
+      description:
+        "Moves a playbook to a folder or to the root. NOT_FOUND when missing.",
       tags: ["Playbooks"],
       method: "PUT",
     })
+    .errors(folderNotFound)
     .input(playbooksInput.move)
-    .output(playbookSchema.nullable())
-    .errors({
-      BAD_REQUEST: {
-        message: "Playbook folder not found",
-        status: 400,
-      },
-    })
-    .handler(async ({ input }) => {
-      try {
-        return await playbooksHandler.move(input.id, input.folderId)
-      } catch (error) {
-        handleFolderError(error)
-      }
-    }),
+    .output(playbooksOutput.move)
+    .handler(({ context, input }) => playbooksHandler.move({ context, input })),
 
   delete: protectedProcedure
     .route({
       summary: "Delete a playbook",
       description:
-        "Deletes a playbook by id. Returns the deleted row, or null.",
+        "Deletes a playbook by id and returns the deleted row. NOT_FOUND when missing.",
       tags: ["Playbooks"],
       method: "DELETE",
     })
-    .input(z.object({ id: z.string() }))
-    .output(playbookSchema.nullable())
-    .handler(async ({ input }) => {
-      const playbook = await playbooksHandler.delete(input.id)
-      return playbook ?? null
-    }),
+    .input(playbooksInput.delete)
+    .output(playbooksOutput.delete)
+    .handler(({ context, input }) =>
+      playbooksHandler.delete({ context, input })
+    ),
 }
