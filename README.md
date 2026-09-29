@@ -118,6 +118,14 @@ codes, and ready-to-run `curl`/client snippets. The raw spec lives at
   never returned by the API.
 - **Playbooks** — write Ansible YAML in the browser, save it, version it in
   the database. No more `scp`ing `.yml` files around.
+- **Git repositories** — prefer to keep playbooks in Git? Register a
+  repository (public HTTPS, or SSH with a stored credential as deploy key)
+  and press *Sync*: every playbook file on the branch shows up as a
+  read-only playbook you can run and schedule. Runs execute from a checkout
+  of the synced commit, so roles, templates, `group_vars` and `files/` next
+  to the playbook just work, and job history records the commit. Galaxy
+  `requirements.yml` is not installed, and the repository's `ansible.cfg`
+  is ignored.
 - **Run on demand** — pick a playbook, pick a group (or a hand-picked set
   of devices), review the confirmation step, click *Run*. Output streams
   into the browser live, so you see `PLAY [...]` and `TASK [...]` lines as
@@ -292,7 +300,8 @@ playbook-runner/
 └── scripts/         # bootstrap.sh installer
 ```
 
-Persistent Ansible runner state (currently the SSH `known_hosts` file) lives in
+Persistent Ansible runner state (the SSH `known_hosts` file and the Git
+repository mirrors under `repos/`) lives in
 `STATE_DIR`: `.data/ansible-runner` in local development (the default, excluded
 from Git and Docker build contexts) and the `ansible_state` named volume mounted
 at `/app/state` in Docker. Per-run inventories and SSH keys are written to
@@ -341,6 +350,7 @@ Copy from `.env.example` and `apps/backend/.env.example` and fill in
 | `GENERIC_OAUTH_CLIENT_ID` / `_SECRET` / `_ISSUER` | no | All three enable SSO. |
 | `SSH_HOST_KEY_POLICY` | no | Ansible service: `accept-new` (default), `strict`, `off`. |
 | `MAX_CONCURRENT_RUNS` | no | Ansible service: default `8`. |
+| `GIT_TIMEOUT_S` / `GIT_MAX_REPO_MB` / `MAX_CONCURRENT_SYNCS` | no | Ansible service, Git repositories: per-command timeout (default `120`), max mirror size (default `512`), concurrent syncs (default `2`). |
 | `LOG_LEVEL` | no | `info` by default. |
 
 ## Authentication
