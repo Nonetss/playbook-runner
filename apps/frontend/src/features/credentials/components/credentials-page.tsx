@@ -1,15 +1,18 @@
 import { getIcon } from "@/lib/icon-registry"
 
 const KeyRound = getIcon("resources", "apiKey")
+const Plus = getIcon("actions", "add")
 
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
-import { ResourceListState } from "@/components/shared/resource-list-state"
-import { ResourcePage } from "@/components/shared/resource-page"
-import { useIsAdmin } from "@/features/auth"
+import { HeroCount } from "@/components/shared/layout/page-hero"
+import { EntityCardGrid } from "@/components/shared/resource/entity-list"
+import { ResourceOverview } from "@/components/shared/resource/resource-overview"
+import { Button } from "@/components/ui/button"
 import { CredentialFormModal } from "@/features/credentials/components/credential-form-modal"
-import { CredentialList } from "@/features/credentials/components/credential-list"
+import { ProvisionScriptDialog } from "@/features/credentials/components/provision-script-dialog"
+import { credentialDefinition } from "@/features/credentials/definitions/credential.definition"
 import {
   useCredentialDelete,
   useCredentialsList,
@@ -18,20 +21,17 @@ import type { Credential } from "@/features/credentials/types"
 import { useConfirm } from "@/hooks/use-confirm"
 
 function CredentialsPageInner() {
-  const { t } = useTranslation("credentials")
+  const { t, i18n } = useTranslation("credentials")
   const { t: tCommon } = useTranslation("common")
-  const {
-    data: credentials = [],
-    isPending,
-    isError,
-    refetch,
-  } = useCredentialsList()
+  const query = useCredentialsList()
   const deleteCredential = useCredentialDelete()
   const confirm = useConfirm()
-  const isAdmin = useIsAdmin()
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editingCredential, setEditingCredential] = useState<Credential | null>(
+    null
+  )
+  const [provisionTarget, setProvisionTarget] = useState<Credential | null>(
     null
   )
 
@@ -47,70 +47,87 @@ function CredentialsPageInner() {
 
   function handleModalOpenChange(open: boolean) {
     setModalOpen(open)
-    if (!open) {
-      setEditingCredential(null)
-    }
+    if (!open) setEditingCredential(null)
   }
 
-  async function handleDelete(id: string) {
-    const credential = credentials.find((item) => item.id === id)
-    const label = credential?.name ?? t("delete.fallback_label")
+  async function handleDelete(credential: Credential) {
     const confirmed = await confirm({
-      title: t("delete.confirm_title", { label }),
+      title: t("delete.confirm_title", {
+        label: credential.name || t("delete.fallback_label"),
+      }),
       description: t("delete.confirm_description"),
       confirmLabel: tCommon("actions.delete"),
       cancelLabel: tCommon("actions.cancel"),
       variant: "destructive",
     })
-
     if (!confirmed) return
-
     // The mutation hook shows the error toast.
-    deleteCredential.mutate({ id })
+    deleteCredential.mutate({ id: credential.id })
   }
 
+  const createButton = (
+    <Button onClick={openCreateModal}>
+      <Plus className="size-4" />
+      {t("page.create")}
+    </Button>
+  )
+
   return (
-    <ResourcePage
-      title={t("page.title")}
-      description={t("page.subtitle")}
-      createLabel={t("page.create")}
-      onCreate={openCreateModal}
-      hideCreate={!isAdmin}
-    >
+    <>
+      <ResourceOverview
+        surface="credentials"
+        heroMeta={
+          <HeroCount
+            segments={[
+              {
+                count: query.data?.length ?? 0,
+                label: tCommon("labels.total"),
+              },
+            ]}
+          />
+        }
+        heroAction={createButton}
+        query={query}
+        isEmpty={(credentials) => credentials.length === 0}
+        empty={{
+          icon: <KeyRound />,
+          title: t("empty.title"),
+          description: t("empty.description"),
+          action: createButton,
+        }}
+      >
+        {(credentials) => (
+          <EntityCardGrid
+            items={credentials}
+            definition={credentialDefinition}
+            context={{
+              t,
+              tCommon,
+              language: i18n.language,
+              deletingId: deleteCredential.isPending
+                ? (deleteCredential.variables?.id ?? null)
+                : null,
+              onEdit: openEditModal,
+              onDelete: handleDelete,
+              onProvision: setProvisionTarget,
+            }}
+          />
+        )}
+      </ResourceOverview>
+
       <CredentialFormModal
         open={modalOpen}
         onOpenChange={handleModalOpenChange}
         credential={editingCredential}
       />
-
-      <ResourceListState
-        isPending={isPending}
-        isError={isError}
-        onRetry={() => refetch()}
-        items={credentials}
-        empty={{
-          title: t("empty.title"),
-          description: t("empty.description"),
-          ...(isAdmin
-            ? { ctaLabel: t("page.create"), onCta: openCreateModal }
-            : {}),
-          icon: <KeyRound className="size-5" />,
+      <ProvisionScriptDialog
+        open={!!provisionTarget}
+        onOpenChange={(open) => {
+          if (!open) setProvisionTarget(null)
         }}
-      >
-        {(items) => (
-          <CredentialList
-            credentials={items}
-            onEdit={isAdmin ? openEditModal : undefined}
-            onDelete={isAdmin ? handleDelete : undefined}
-            deletingId={
-              deleteCredential.isPending
-                ? (deleteCredential.variables?.id ?? null)
-                : null
-            }
-          />
-        )}
-      </ResourceListState>
-    </ResourcePage>
+        credential={provisionTarget}
+      />
+    </>
   )
 }
 

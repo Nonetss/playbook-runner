@@ -5,15 +5,8 @@ const Copy = getIcon("actions", "copy")
 
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { FormDialog } from "@/components/shared/form/form-dialog"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import type { Credential } from "@/features/credentials/types"
 import { notifyError, notifySuccess } from "@/lib/toast"
 
@@ -62,44 +55,37 @@ export function ProvisionScriptDialog({
   }
 
   return (
-    <Dialog
+    <FormDialog
       open={open}
       onOpenChange={(next) => {
         if (!next) setCopied(false)
         onOpenChange(next)
       }}
-    >
-      <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-xl">
-        <DialogHeader>
-          <DialogTitle>{t("provision.title")}</DialogTitle>
-          <DialogDescription>
-            {t("provision.description", { username: credential?.username })}
-          </DialogDescription>
-        </DialogHeader>
-
-        <pre className="bg-muted text-foreground max-h-80 w-full min-w-0 overflow-auto rounded-md border px-3 py-2 font-mono text-xs whitespace-pre">
-          {script}
-        </pre>
-
-        <DialogFooter>
+      width="xl"
+      title={t("provision.title")}
+      description={t("provision.description", {
+        username: credential?.username,
+      })}
+      cancelLabel={t("provision.close")}
+      footer={
+        <>
           <Button type="button" variant="outline" onClick={handleCopy}>
             {copied ? (
-              <>
-                <Check className="size-4" />
-                {t("provision.copied")}
-              </>
+              <Check className="size-4" />
             ) : (
-              <>
-                <Copy className="size-4" />
-                {t("provision.copy")}
-              </>
+              <Copy className="size-4" />
             )}
+            {copied ? t("provision.copied") : t("provision.copy")}
           </Button>
           <Button type="button" onClick={() => onOpenChange(false)}>
             {t("provision.close")}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <pre className="max-h-80 w-full min-w-0 overflow-auto rounded-md border bg-card/40 px-3 py-2 font-mono text-xs whitespace-pre text-foreground">
+        {script}
+      </pre>
+    </FormDialog>
   )
 }

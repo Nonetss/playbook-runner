@@ -1,33 +1,39 @@
 import { getIcon } from "@/lib/icon-registry"
 
-const AlertTriangle = getIcon("status", "alert")
-const CheckCircle2 = getIcon("status", "success")
-const Loader2 = getIcon("status", "loading")
-const Play = getIcon("actions", "play")
-const ShieldAlert = getIcon("status", "warning")
 const TerminalSquare = getIcon("resources", "terminalSquare")
 
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
-import { Badge } from "@/components/ui/badge"
+import { FormField } from "@/components/shared/form/field-label"
+import { SegmentedPicker } from "@/components/shared/form/segmented-picker"
+import { PageHero } from "@/components/shared/layout/page-hero"
+import { PageShell } from "@/components/shared/layout/page-shell"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
 import { useDevicesList } from "@/features/inventory/hooks/use-devices"
 import { useGroupsList } from "@/features/inventory/hooks/use-groups"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
+import { RunButton } from "@/features/run/components/run-button"
 import { RunHostConsole } from "@/features/run/components/run-host-console"
+import {
+  RunForksOption,
+  RunSwitchOption,
+} from "@/features/run/components/run-options"
+import { RunResultBanner } from "@/features/run/components/run-result-banner"
 import { RunStreamStatus } from "@/features/run/components/run-stream-status"
+import {
+  TerminalFrame,
+  TerminalPanelSection,
+} from "@/features/run/components/terminal-frame"
 import {
   type CommandModule,
   type CommandRequest,
   useRunCommand,
 } from "@/features/run/hooks/use-run-command"
+import { toggleIn } from "@/features/run/hooks/use-selection-toggle"
 import type { RunSelection } from "@/features/run/types"
 import { useConfirm } from "@/hooks/use-confirm"
-import { cn } from "@/lib/utils"
 
 function CommandsPageInner() {
   const { t } = useTranslation("commands")
@@ -106,299 +112,168 @@ function CommandsPageInner() {
       hint: t("module.shell_hint"),
     },
   ]
+  const activeModule = MODULES.find((m) => m.value === module) ?? MODULES[0]
 
   return (
-    <main className="flex h-[calc(100dvh-var(--navbar-height))] w-full min-h-0 flex-col overflow-hidden">
-      {/* Header */}
-      <div className="flex shrink-0 items-center gap-3 border-b px-3 py-3 sm:px-6">
-        <div className="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-md">
-          <TerminalSquare className="size-4.5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-base font-semibold leading-tight">
-            {t("page.title")}
-          </h1>
-          <p className="text-muted-foreground text-xs">{t("page.subtitle")}</p>
-        </div>
-        {phase !== "idle" ? (
-          <Button
-            variant="outline"
-            size="sm"
-            className="min-h-10 sm:min-h-8"
-            onClick={reset}
-            disabled={isRunning}
-          >
-            {t("actions.new_run")}
-          </Button>
-        ) : null}
-      </div>
+    <PageShell maxWidth="full">
+      <PageHero
+        surface="commands"
+        action={
+          phase !== "idle" ? (
+            <Button variant="outline" onClick={reset} disabled={isRunning}>
+              {t("actions.new_run")}
+            </Button>
+          ) : undefined
+        }
+      />
 
-      {/* Body */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row">
-        {/* ── Terminal ── */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-zinc-950">
-          {/* Faux terminal title bar */}
-          <div className="flex shrink-0 items-center gap-2 border-b border-zinc-800/80 px-4 py-2">
-            <span className="flex gap-1.5">
-              <span className="size-2.5 rounded-full bg-red-500/80" />
-              <span className="size-2.5 rounded-full bg-amber-500/80" />
-              <span className="size-2.5 rounded-full bg-emerald-500/80" />
-            </span>
-            <span className="ml-2 truncate font-mono type-console-meta text-zinc-500">
-              <span className="text-zinc-600">{module}</span>
-              <span className="mx-1.5 text-zinc-700">{become ? "#" : "$"}</span>
-              <span className="text-zinc-400">{trimmedCommand || "—"}</span>
-            </span>
-          </div>
-
-          <div className="flex min-h-0 flex-1 flex-col">
-            <RunHostConsole
+      <TerminalFrame
+        context={module}
+        privileged={become}
+        command={trimmedCommand || "—"}
+        banners={
+          <>
+            <RunStreamStatus
               phase={phase}
-              events={events}
-              idlePrompt={t("console.idle_prompt")}
+              errorMessage={errorMessage}
+              onStopWatching={stopWatching}
+              variant="terminal"
+              labels={{
+                connecting: t("run_status.connecting"),
+                stopWatching: t("run_status.stop_watching"),
+                stoppedWatching: t("run_status.stopped_watching"),
+                serverMayStillBeRunning: t(
+                  "run_status.server_may_still_be_running"
+                ),
+                connectionError: t("run_status.connection_error"),
+              }}
             />
-          </div>
-
-          {/* Result / error banners */}
-          <RunStreamStatus
-            phase={phase}
-            errorMessage={errorMessage}
-            onStopWatching={stopWatching}
-            variant="terminal"
-            labels={{
-              connecting: t("run_status.connecting"),
-              stopWatching: t("run_status.stop_watching"),
-              stoppedWatching: t("run_status.stopped_watching"),
-              serverMayStillBeRunning: t(
-                "run_status.server_may_still_be_running"
-              ),
-              connectionError: t("run_status.connection_error"),
-            }}
-          />
-
-          {phase === "done" && result ? (
-            <div
-              className={cn(
-                "mx-3 mb-3 flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs sm:mx-5 sm:mb-4",
-                result.ok
-                  ? "border-emerald-900/50 bg-emerald-950/40 text-emerald-400"
-                  : "border-amber-900/50 bg-amber-950/40 text-amber-400"
-              )}
-            >
-              {result.ok ? (
-                <CheckCircle2 className="size-3.5 shrink-0" />
-              ) : (
-                <AlertTriangle className="size-3.5 shrink-0" />
-              )}
-              <span>
-                {t("result.finished_with_status", {
+            {phase === "done" && result ? (
+              <RunResultBanner
+                result={result}
+                message={t("result.finished_with_status", {
                   status: result.status,
                   rc: result.rc ?? "?",
                 })}
-              </span>
-            </div>
-          ) : null}
-        </div>
-
-        {/* ── Options panel ── */}
-        <div className="flex max-h-[46dvh] min-h-0 shrink-0 flex-col gap-5 overflow-y-auto border-t p-3 pb-0 sm:p-4 sm:pb-0 lg:max-h-none lg:w-80 lg:border-t-0 lg:border-l lg:pb-4">
-          {/* Inventory */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-muted-foreground type-label">
-                {t("panel.inventory")}
-              </p>
-              {selectionCount > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedGroups(new Set())
-                    setSelectedDevices(new Set())
-                  }}
-                  disabled={isRunning}
-                  className="type-meta text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
-                >
-                  {t("panel.clear", { count: selectionCount })}
-                </button>
-              ) : null}
-            </div>
-
-            <InventorySelectionList
-              groups={groups}
-              devices={devices}
-              selectedGroups={selectedGroups}
-              selectedDevices={selectedDevices}
-              onToggleGroup={(groupId) =>
-                setSelectedGroups((current) => {
-                  const next = new Set(current)
-                  next.has(groupId) ? next.delete(groupId) : next.add(groupId)
-                  return next
-                })
-              }
-              onToggleDevice={(deviceId) =>
-                setSelectedDevices((current) => {
-                  const next = new Set(current)
-                  next.has(deviceId)
-                    ? next.delete(deviceId)
-                    : next.add(deviceId)
-                  return next
-                })
-              }
-              labels={{
-                groups: t("panel.groups"),
-                devices: t("panel.devices"),
-                searchPlaceholder: t("panel.search_placeholder"),
-                noResults: t("panel.no_results"),
-                emptyInventory: t("panel.empty_inventory"),
-                noMatch: t("panel.no_match"),
-              }}
-              searchable
-              collapsible
-              disabled={isRunning}
-            />
-          </div>
-
-          {/* Command + module + become */}
-          <div className="space-y-3 border-t pt-3">
-            <p className="text-muted-foreground type-label">
-              {t("panel.command_section")}
-            </p>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="cmd-text" className="text-xs">
-                {t("panel.command")}
-              </Label>
-              <div className="relative">
-                <span className="text-muted-foreground pointer-events-none absolute top-1.5 left-3 font-mono text-xs select-none">
-                  {become ? "#" : "$"}
-                </span>
-                <textarea
-                  id="cmd-text"
-                  value={command}
-                  onChange={(e) => setCommand(e.target.value)}
-                  disabled={isRunning}
-                  rows={3}
-                  spellCheck={false}
-                  className="border-input bg-transparent ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring w-full rounded-md border py-1.5 pr-3 pl-6 font-mono text-xs shadow-xs focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholder={t("panel.command_placeholder")}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs">{t("panel.module")}</Label>
-              <ModulePicker
-                value={module}
-                onChange={setModule}
-                disabled={isRunning}
-                modules={MODULES}
               />
-            </div>
+            ) : null}
+          </>
+        }
+        panel={
+          <>
+            <TerminalPanelSection
+              label={t("panel.inventory")}
+              aside={
+                selectionCount > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedGroups(new Set())
+                      setSelectedDevices(new Set())
+                    }}
+                    disabled={isRunning}
+                    className="text-meta text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+                  >
+                    {t("panel.clear", { count: selectionCount })}
+                  </button>
+                ) : null
+              }
+            >
+              <InventorySelectionList
+                groups={groups}
+                devices={devices}
+                selectedGroups={selectedGroups}
+                selectedDevices={selectedDevices}
+                onToggleGroup={toggleIn(setSelectedGroups)}
+                onToggleDevice={toggleIn(setSelectedDevices)}
+                labels={{
+                  groups: t("panel.groups"),
+                  devices: t("panel.devices"),
+                  searchPlaceholder: t("panel.search_placeholder"),
+                  noResults: t("panel.no_results"),
+                  emptyInventory: t("panel.empty_inventory"),
+                  noMatch: t("panel.no_match"),
+                }}
+                searchable
+                collapsible
+                disabled={isRunning}
+              />
+            </TerminalPanelSection>
 
-            <div className="flex items-start justify-between gap-2 rounded-md border p-2.5">
-              <div className="min-w-0">
-                <Label
-                  htmlFor="cmd-become"
-                  className="flex items-center gap-1.5 text-xs"
-                >
-                  <ShieldAlert className="size-3.5" />
-                  {t("panel.become")}
-                </Label>
-                <p className="type-meta text-muted-foreground mt-0.5">
-                  {t("panel.become_hint")}
-                </p>
-              </div>
-              <Switch
+            <TerminalPanelSection
+              label={t("panel.command_section")}
+              className="border-t pt-5"
+            >
+              <FormField label={t("panel.command")} htmlFor="cmd-text">
+                <div className="relative">
+                  <span className="pointer-events-none absolute top-2 left-3 font-mono text-xs text-muted-foreground select-none">
+                    {become ? "#" : "$"}
+                  </span>
+                  <Textarea
+                    id="cmd-text"
+                    value={command}
+                    onChange={(e) => setCommand(e.target.value)}
+                    disabled={isRunning}
+                    rows={3}
+                    spellCheck={false}
+                    className="min-h-20 pl-6 font-mono text-xs md:text-xs"
+                    placeholder={t("panel.command_placeholder")}
+                  />
+                </div>
+              </FormField>
+
+              <FormField label={t("panel.module")} hint={activeModule.hint}>
+                <SegmentedPicker
+                  mono
+                  ariaLabel={t("panel.module")}
+                  value={module}
+                  onChange={setModule}
+                  disabled={isRunning}
+                  options={MODULES.map((m) => ({
+                    value: m.value,
+                    label: m.label,
+                    icon: <TerminalSquare />,
+                  }))}
+                />
+              </FormField>
+
+              <RunSwitchOption
                 id="cmd-become"
+                label={t("panel.become")}
+                hint={t("panel.become_hint")}
                 checked={become}
                 onCheckedChange={setBecome}
                 disabled={isRunning}
               />
-            </div>
 
-            <div className="flex items-center gap-3">
-              <Label htmlFor="cmd-forks" className="w-16 shrink-0 text-xs">
-                {t("panel.forks")}
-              </Label>
-              <Input
+              <RunForksOption
                 id="cmd-forks"
-                type="number"
-                min={1}
-                max={500}
+                label={t("panel.forks")}
                 value={forks}
-                onChange={(e) =>
-                  setForks(
-                    Math.max(1, Number.parseInt(e.target.value, 10) || 1)
-                  )
-                }
+                onChange={setForks}
                 disabled={isRunning}
-                className="h-10 w-24 text-xs lg:h-7 lg:w-20"
               />
-            </div>
-          </div>
-
-          {/* Run button */}
-          <div className="sticky bottom-0 mt-auto border-t bg-background/95 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-            <Button className="w-full" onClick={handleRun} disabled={!canRun}>
-              {isRunning ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  {t("actions.running")}
-                </>
-              ) : (
-                <>
-                  <Play className="size-4" />
-                  {t("actions.run")}
-                  {selectionCount > 0 ? (
-                    <Badge variant="secondary" className="ml-1">
-                      {selectionCount}
-                    </Badge>
-                  ) : null}
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      </div>
-    </main>
-  )
-}
-
-function ModulePicker({
-  value,
-  onChange,
-  disabled,
-  modules,
-}: {
-  value: CommandModule
-  onChange: (next: CommandModule) => void
-  disabled?: boolean
-  modules: { value: CommandModule; label: string; hint: string }[]
-}) {
-  const active = modules.find((m) => m.value === value) ?? modules[0]
-  return (
-    <div className="space-y-1.5">
-      <div className="grid grid-cols-2 gap-1.5">
-        {modules.map((m) => (
-          <button
-            key={m.value}
-            type="button"
-            onClick={() => onChange(m.value)}
-            disabled={disabled}
-            className={cn(
-              "flex items-center justify-center gap-1.5 rounded-md border px-2.5 py-1.5 font-mono text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-              value === m.value
-                ? "border-primary bg-primary/10 text-foreground"
-                : "border-input text-muted-foreground hover:bg-accent"
-            )}
-          >
-            <TerminalSquare className="size-3.5" />
-            {m.label}
-          </button>
-        ))}
-      </div>
-      <p className="type-meta text-muted-foreground">{active.hint}</p>
-    </div>
+            </TerminalPanelSection>
+          </>
+        }
+        panelFooter={
+          <RunButton
+            running={isRunning}
+            disabled={!canRun}
+            selectionCount={selectionCount}
+            label={t("actions.run")}
+            runningLabel={t("actions.running")}
+            onClick={handleRun}
+          />
+        }
+      >
+        <RunHostConsole
+          phase={phase}
+          events={events}
+          idlePrompt={t("console.idle_prompt")}
+        />
+      </TerminalFrame>
+    </PageShell>
   )
 }
 

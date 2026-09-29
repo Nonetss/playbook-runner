@@ -1,129 +1,81 @@
 import { getIcon } from "@/lib/icon-registry"
 
-const ActivityIcon = getIcon("views", "activity")
-const BookText = getIcon("resources", "book")
-const BriefcaseIcon = getIcon("resources", "briefcase")
+const Activity = getIcon("views", "activity")
+const Briefcase = getIcon("resources", "briefcase")
 const ChevronRight = getIcon("controls", "right")
-const Clock = getIcon("scheduling", "time")
-const FileCode2 = getIcon("resources", "fileCode")
-const KeyRound = getIcon("resources", "apiKey")
 const Plus = getIcon("actions", "add")
-const Server = getIcon("resources", "server")
-const Timer = getIcon("scheduling", "timer")
-const XCircle = getIcon("status", "error")
 
-import { useState } from "react"
+import { type ReactNode, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
+import { Text } from "@/components/shared/brand/typography"
+import { StateCard } from "@/components/shared/feedback/state-card"
 import { PageHero } from "@/components/shared/layout/page-hero"
 import { PageShell } from "@/components/shared/layout/page-shell"
-import { Badge } from "@/components/ui/badge"
+import { SurfaceCardGrid } from "@/components/shared/navigation/surface-card"
+import { EntityList } from "@/components/shared/resource/entity-list"
+import { AppLink } from "@/components/ui/app-link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { StatCard } from "@/components/ui/stat-card"
 import { useCredentialsList } from "@/features/credentials/hooks/use-credentials"
+import { StatTile } from "@/features/dashboard/components/stat-tile"
+import { dashboardJobDefinition } from "@/features/dashboard/definitions/dashboard-job.definition"
+import { recentRunDefinition } from "@/features/dashboard/definitions/recent-run.definition"
 import { useDevicesList } from "@/features/inventory/hooks/use-devices"
 import { useGroupsList } from "@/features/inventory/hooks/use-groups"
 import {
   formatRunDurationMs,
-  formatRunTimestamp,
-  RunStatusBadge,
   RunWindowPicker,
-} from "@/features/jobs"
+} from "@/features/jobs/components/run-widgets"
 import {
   useJobRunMetrics,
   useJobRunsAll,
   useJobsList,
 } from "@/features/jobs/hooks/use-jobs"
-import type {
-  Job,
-  JobRunFeedRow,
-  JobRunMetricsWindow,
-} from "@/features/jobs/types"
+import type { JobRunFeedRow, JobRunMetricsWindow } from "@/features/jobs/types"
 import { usePlaybooksList } from "@/features/playbooks/hooks/use-playbooks"
 import { authClient } from "@/lib/auth-client"
 
-function JobRow({ job, playbookName }: { job: Job; playbookName?: string }) {
-  const { t } = useTranslation("dashboard")
+function SectionHeader({
+  title,
+  action,
+}: {
+  title: string
+  action?: ReactNode
+}) {
   return (
-    <a
-      href={`/jobs/${job.id}`}
-      className="group flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-accent"
-    >
-      <div className="flex min-w-0 items-center gap-3">
-        <div className="bg-primary/10 text-primary flex size-8 shrink-0 items-center justify-center rounded-md">
-          <BriefcaseIcon className="size-3.5" />
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium">{job.name}</p>
-          <p className="truncate text-xs text-muted-foreground">
-            {playbookName ?? t("job_row.no_playbook")}
-          </p>
-        </div>
-      </div>
-
-      <div className="flex shrink-0 items-center gap-2">
-        {job.cronExpression ? (
-          <Badge
-            variant="secondary"
-            className="hidden gap-1 font-mono text-xs sm:flex"
-          >
-            <Clock className="size-3" />
-            {job.cronExpression}
-          </Badge>
-        ) : (
-          <Badge
-            variant="outline"
-            className="hidden text-xs text-muted-foreground sm:flex"
-          >
-            {t("job_row.manual")}
-          </Badge>
-        )}
-        <Badge
-          variant={job.enabled ? "default" : "outline"}
-          className="text-xs"
-        >
-          {job.enabled ? t("job_row.active") : t("job_row.inactive")}
-        </Badge>
-        <ChevronRight className="size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-      </div>
-    </a>
+    <div className="flex min-h-8 items-center justify-between gap-3">
+      <Text as="h2" variant="label" tone="muted">
+        {title}
+      </Text>
+      {action}
+    </div>
   )
 }
 
-function ActivityRow({ run }: { run: JobRunFeedRow }) {
-  const { t } = useTranslation("jobs")
-  const href = run.jobId ? `/jobs/${run.jobId}?run=${run.id}` : "/jobs/history"
+function SectionLink({
+  href,
+  children,
+}: {
+  href: string
+  children: ReactNode
+}) {
   return (
-    <a
+    <AppLink
       href={href}
-      className="group flex items-center justify-between gap-3 rounded-lg px-3 py-2 transition-colors hover:bg-accent"
+      className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
     >
-      <div className="flex min-w-0 items-center gap-2">
-        <RunStatusBadge
-          status={run.status}
-          hostsOk={run.hostsOk}
-          hostsFailed={run.hostsFailed}
-        />
-        <span className="truncate text-sm">
-          {run.jobName ?? t("history.deleted_job")}
-        </span>
-      </div>
-      <div className="text-muted-foreground flex shrink-0 items-center gap-3 text-xs">
-        <span className="font-mono">{formatRunDurationMs(run.durationMs)}</span>
-        <span className="font-mono hidden sm:inline">
-          {formatRunTimestamp(run.startedAt ?? run.createdAt)}
-        </span>
-        <ChevronRight className="size-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
-      </div>
-    </a>
+      {children}
+      <ChevronRight className="size-3.5" />
+    </AppLink>
   )
 }
 
 function DashboardPageInner() {
   const { data: session } = authClient.useSession()
   const user = session?.user
-  const { t } = useTranslation("dashboard")
+  const { t, i18n } = useTranslation("dashboard")
+  const { t: tJobs } = useTranslation("jobs")
+  const { t: tCommon } = useTranslation("common")
 
   const { data: jobs = [], isPending: jobsPending } = useJobsList()
   const { data: playbooks = [], isPending: playbooksPending } =
@@ -134,15 +86,13 @@ function DashboardPageInner() {
     useCredentialsList()
 
   const [runWindow, setRunWindow] = useState<JobRunMetricsWindow>("24h")
-  // Live-polled so a freshly-triggered job updates the cards without refresh.
+  // Live-polled so a freshly-triggered job updates the figures without refresh.
   const { data: metrics } = useJobRunMetrics(runWindow, { live: true })
   const { data: activityData } = useJobRunsAll({ live: true })
 
-  const playbookMap = new Map(playbooks.map((p) => [p.id, p.name]))
-
+  const playbookNames = new Map(playbooks.map((p) => [p.id, p.name]))
   const enabledJobs = jobs.filter((j) => j.enabled).length
   const scheduledJobs = jobs.filter((j) => j.cronExpression).length
-
   const isPending =
     jobsPending ||
     playbooksPending ||
@@ -155,26 +105,25 @@ function DashboardPageInner() {
   const successPct = metrics ? Math.round(metrics.successRate * 100) : null
 
   return (
-    <PageShell maxWidth="6xl" className="space-y-8">
+    <PageShell>
       <PageHero
+        surface="dashboard"
         title={t("page.title", {
           name: user?.name ? `, ${user.name}` : "",
         })}
         description={t("page.subtitle")}
         action={
-          <Button asChild className="shrink-0">
-            <a href="/jobs/new">
+          <Button asChild>
+            <AppLink href="/jobs/new">
               <Plus className="size-4" />
               {t("page.new_job_cta")}
-            </a>
+            </AppLink>
           </Button>
         }
       />
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <StatCard
-          icon={BriefcaseIcon}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <StatTile
           title={t("stats.jobs")}
           value={isPending ? "—" : jobs.length}
           sub={
@@ -184,14 +133,12 @@ function DashboardPageInner() {
           }
           href="/jobs/scheduler"
         />
-        <StatCard
-          icon={FileCode2}
+        <StatTile
           title={t("stats.playbooks")}
           value={isPending ? "—" : playbooks.length}
           href="/playbooks"
         />
-        <StatCard
-          icon={Server}
+        <StatTile
           title={t("stats.devices")}
           value={isPending ? "—" : devices.length}
           sub={
@@ -199,51 +146,40 @@ function DashboardPageInner() {
               ? undefined
               : `${groups.length} ${t("stats.groups_label", { count: groups.length })}`
           }
-          href="/inventory"
+          href="/inventory/devices"
         />
-        <StatCard
-          icon={KeyRound}
+        <StatTile
           title={t("stats.credentials")}
           value={isPending ? "—" : credentials.length}
           href="/inventory/credentials"
         />
       </div>
 
-      {/* Run metrics + window selector */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-muted-foreground type-label">
-            {t("runs_metrics.title")}
-          </h2>
-          <RunWindowPicker value={runWindow} onChange={setRunWindow} />
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <StatCard
-            icon={ActivityIcon}
+      <section className="flex flex-col gap-3">
+        <SectionHeader
+          title={t("runs_metrics.title")}
+          action={<RunWindowPicker value={runWindow} onChange={setRunWindow} />}
+        />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <StatTile
             title={t("stats.success_rate")}
             value={
               successPct == null ? (metrics ? "0%" : "—") : `${successPct}%`
             }
-            sub={
-              metrics
-                ? `${metrics.okCount}/${metrics.total} ${t("stats.avg_duration").toLowerCase()}`
-                : undefined
-            }
+            sub={metrics ? `${metrics.okCount}/${metrics.total}` : undefined}
             href="/jobs/history"
           />
-          <StatCard
-            icon={Timer}
+          <StatTile
             title={t("stats.runs_in_window")}
             value={metrics ? metrics.total : "—"}
             sub={
               metrics
-                ? `${formatRunDurationMs(metrics.avgDurationMs)} ${t("stats.avg_duration").toLowerCase()}`
+                ? `${t("stats.avg_duration")} ${formatRunDurationMs(metrics.avgDurationMs)}`
                 : undefined
             }
             href="/jobs/history"
           />
-          <StatCard
-            icon={XCircle}
+          <StatTile
             title={t("stats.failures")}
             value={metrics ? metrics.failedCount : "—"}
             sub={
@@ -256,147 +192,69 @@ function DashboardPageInner() {
         </div>
       </section>
 
-      {/* Recent activity */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="flex items-center gap-2 text-base font-semibold">
-            <ActivityIcon className="size-4" />
-            {t("dashboard_activity.title", { ns: "jobs" })}
-          </CardTitle>
-          <Button variant="ghost" size="sm" asChild>
-            <a
-              href="/jobs/history"
-              className="gap-1 text-xs text-muted-foreground"
-            >
-              {t("dashboard_activity.view_history", { ns: "jobs" })}
-              <ChevronRight className="size-3.5" />
-            </a>
-          </Button>
-        </CardHeader>
-        <CardContent className="px-3 pb-3">
-          {activityData == null ? (
-            <div className="space-y-2 py-2">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-10 animate-pulse rounded-lg bg-muted"
-                />
-              ))}
-            </div>
-          ) : activityRuns.length === 0 ? (
-            <p className="text-muted-foreground py-6 text-center text-sm">
-              {t("dashboard_activity.empty", { ns: "jobs" })}
-            </p>
-          ) : (
-            <div className="divide-y divide-border/50">
-              {activityRuns.map((run) => (
-                <ActivityRow key={run.id} run={run} />
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <section className="flex flex-col gap-3">
+        <SectionHeader
+          title={tJobs("dashboard_activity.title")}
+          action={
+            <SectionLink href="/jobs/history">
+              {tJobs("dashboard_activity.view_history")}
+            </SectionLink>
+          }
+        />
+        {activityData == null ? (
+          <StateCard spinner title={tCommon("actions.loading")} />
+        ) : activityRuns.length === 0 ? (
+          <StateCard
+            icon={<Activity />}
+            title={tJobs("dashboard_activity.empty")}
+          />
+        ) : (
+          <EntityList
+            items={activityRuns}
+            definition={recentRunDefinition}
+            context={{ tJobs, language: i18n.language }}
+          />
+        )}
+      </section>
 
-      {/* Jobs list */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-base font-semibold">
-            {t("jobs_section.title")}
-          </CardTitle>
-          <Button variant="ghost" size="sm" asChild>
-            <a
-              href="/jobs/scheduler"
-              className="gap-1 text-xs text-muted-foreground"
-            >
+      <section className="flex flex-col gap-3">
+        <SectionHeader
+          title={t("jobs_section.title")}
+          action={
+            <SectionLink href="/jobs/scheduler">
               {t("jobs_section.view_all")}
-              <ChevronRight className="size-3.5" />
-            </a>
-          </Button>
-        </CardHeader>
-        <CardContent className="px-3 pb-3">
-          {jobsPending ? (
-            <div className="space-y-2 py-2">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-12 animate-pulse rounded-lg bg-muted"
-                />
-              ))}
-            </div>
-          ) : jobs.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-8 text-center">
-              <div className="bg-muted flex size-12 items-center justify-center rounded-full">
-                <BriefcaseIcon className="size-5 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">
-                  {t("jobs_section.empty_title")}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {t("jobs_section.empty_description")}
-                </p>
-              </div>
-              <Button asChild size="sm" variant="outline">
-                <a href="/jobs/new">
+            </SectionLink>
+          }
+        />
+        {jobsPending ? (
+          <StateCard spinner title={tCommon("actions.loading")} />
+        ) : jobs.length === 0 ? (
+          <StateCard
+            icon={<Briefcase />}
+            title={t("jobs_section.empty_title")}
+            description={t("jobs_section.empty_description")}
+            action={
+              <Button asChild variant="outline">
+                <AppLink href="/jobs/new">
                   <Plus className="size-4" />
                   {t("jobs_section.create_job")}
-                </a>
+                </AppLink>
               </Button>
-            </div>
-          ) : (
-            <div className="divide-y divide-border/50">
-              {jobs.slice(0, 8).map((job) => (
-                <JobRow
-                  key={job.id}
-                  job={job}
-                  playbookName={
-                    job.playbookId ? playbookMap.get(job.playbookId) : undefined
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            }
+          />
+        ) : (
+          <EntityList
+            items={jobs.slice(0, 8)}
+            definition={dashboardJobDefinition}
+            context={{ t, playbookNames }}
+          />
+        )}
+      </section>
 
-      {/* Quick links */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {[
-          {
-            href: "/playbooks/new",
-            icon: BookText,
-            label: t("quick_links.new_playbook_title"),
-            desc: t("quick_links.new_playbook_desc"),
-          },
-          {
-            href: "/inventory",
-            icon: Server,
-            label: t("quick_links.manage_inventory_title"),
-            desc: t("quick_links.manage_inventory_desc"),
-          },
-          {
-            href: "/inventory/credentials",
-            icon: KeyRound,
-            label: t("quick_links.ssh_credentials_title"),
-            desc: t("quick_links.ssh_credentials_desc"),
-          },
-        ].map(({ href, icon: Icon, label, desc }) => (
-          <a key={href} href={href} className="group block">
-            <Card className="h-full transition-colors group-hover:bg-accent/30">
-              <CardContent className="flex items-center gap-3 pt-5">
-                <div className="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-md">
-                  <Icon className="size-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">{label}</p>
-                  <p className="text-xs text-muted-foreground">{desc}</p>
-                </div>
-                <ChevronRight className="ml-auto size-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-              </CardContent>
-            </Card>
-          </a>
-        ))}
-      </div>
+      <section className="flex flex-col gap-3">
+        <SectionHeader title={t("quick_links.title")} />
+        <SurfaceCardGrid surfaces={["playbooks", "devices", "credentials"]} />
+      </section>
     </PageShell>
   )
 }

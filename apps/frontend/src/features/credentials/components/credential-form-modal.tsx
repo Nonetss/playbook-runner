@@ -1,24 +1,19 @@
 import * as React from "react"
 import { useTranslation } from "react-i18next"
-import { TEXTAREA_BASE_CLASS } from "@/components/shared/resource-form-modal"
+import { Text } from "@/components/shared/brand/typography"
+import { InlineAlert } from "@/components/shared/feedback/inline-alert"
+import { FormField } from "@/components/shared/form/field-label"
+import { FormDialog } from "@/components/shared/form/form-dialog"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
 import {
   useCredentialCreate,
   useCredentialGenerate,
   useCredentialUpdate,
 } from "@/features/credentials/hooks/use-credentials"
 import type { Credential } from "@/features/credentials/types"
-import { cn } from "@/lib/utils"
 
 export type CredentialFormValues = {
   name: string
@@ -136,192 +131,153 @@ export function CredentialFormModal({
   const showGeneratedKeys = mode === "generate" && !!values.privateKey
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? t("form.edit_title") : t("form.create_title")}
-          </DialogTitle>
-          <DialogDescription>
-            {isEditing
-              ? t("form.edit_description")
-              : t("form.create_description")}
-          </DialogDescription>
-        </DialogHeader>
-
-        <form
-          id="credential-form"
-          onSubmit={handleSubmit}
-          className="space-y-4"
+    <FormDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      title={isEditing ? t("form.edit_title") : t("form.create_title")}
+      description={
+        isEditing ? t("form.edit_description") : t("form.create_description")
+      }
+      formId="credential-form"
+      onSubmit={handleSubmit}
+      isPending={isSubmitting}
+      submitDisabled={mode === "generate" && !values.privateKey && !isEditing}
+      submitLabel={
+        isSubmitting
+          ? t("form.saving")
+          : isEditing
+            ? t("form.save_changes")
+            : t("form.create")
+      }
+      cancelLabel={t("form.cancel")}
+    >
+      {!isEditing ? (
+        <Tabs
+          value={mode}
+          onValueChange={(next) => switchMode(next as KeyMode)}
         >
-          {!isEditing ? (
-            <div className="flex gap-1 rounded-md border bg-muted p-1">
-              <Button
-                type="button"
-                size="sm"
-                variant={mode === "import" ? "default" : "ghost"}
-                className="flex-1"
-                disabled={isSubmitting}
-                onClick={() => switchMode("import")}
-              >
-                {t("form.import_existing")}
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={mode === "generate" ? "default" : "ghost"}
-                className="flex-1"
-                disabled={isSubmitting}
-                onClick={() => switchMode("generate")}
-              >
-                {t("form.generate_new")}
-              </Button>
-            </div>
-          ) : null}
+          <TabsList className="w-full">
+            <TabsTrigger value="import" disabled={isSubmitting}>
+              {t("form.import_existing")}
+            </TabsTrigger>
+            <TabsTrigger value="generate" disabled={isSubmitting}>
+              {t("form.generate_new")}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      ) : null}
 
-          <div className="space-y-2">
-            <Label htmlFor="name-field">
-              {t("form.name_label")}
-              <span aria-hidden> *</span>
-            </Label>
-            <Input
-              id="name-field"
+      <FormField label={t("form.name_label")} htmlFor="name-field" required>
+        <Input
+          id="name-field"
+          required
+          disabled={isSubmitting}
+          placeholder="prod-server"
+          value={values.name}
+          onChange={(e) => updateField("name", e.target.value)}
+        />
+      </FormField>
+
+      <FormField
+        label={t("form.username_label")}
+        htmlFor="username-field"
+        required
+      >
+        <Input
+          id="username-field"
+          required
+          disabled={isSubmitting}
+          placeholder="deploy"
+          value={values.username}
+          onChange={(e) => updateField("username", e.target.value)}
+          className="font-mono"
+        />
+      </FormField>
+
+      {mode === "import" || isEditing ? (
+        <>
+          <FormField
+            label={t("form.private_key_label")}
+            htmlFor="privateKey-field"
+            required={!isEditing}
+            hint={
+              isEditing ? (
+                <span id="privateKey-keep-hint">
+                  {t("form.private_key_keep_hint")}
+                </span>
+              ) : undefined
+            }
+          >
+            <Textarea
+              id="privateKey-field"
+              required={!isEditing}
+              aria-describedby={isEditing ? "privateKey-keep-hint" : undefined}
+              disabled={isSubmitting}
+              placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
+              value={values.privateKey}
+              rows={5}
+              onChange={(e) => updateField("privateKey", e.target.value)}
+              className="font-mono text-xs"
+            />
+          </FormField>
+          <FormField
+            label={t("form.public_key_label")}
+            htmlFor="publicKey-field"
+            required
+          >
+            <Textarea
+              id="publicKey-field"
               required
               disabled={isSubmitting}
-              placeholder="prod-server"
-              value={values.name}
-              onChange={(e) => updateField("name", e.target.value)}
+              placeholder="ssh-ed25519 AAAA..."
+              value={values.publicKey}
+              rows={3}
+              onChange={(e) => updateField("publicKey", e.target.value)}
+              className="font-mono text-xs"
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="username-field">
-              {t("form.username_label")}
-              <span aria-hidden> *</span>
-            </Label>
-            <Input
-              id="username-field"
-              required
-              disabled={isSubmitting}
-              placeholder="deploy"
-              value={values.username}
-              onChange={(e) => updateField("username", e.target.value)}
-            />
-          </div>
-
-          {mode === "import" || isEditing ? (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="privateKey-field">
-                  {t("form.private_key_label")}
-                  {isEditing ? null : <span aria-hidden> *</span>}
-                </Label>
-                <textarea
-                  id="privateKey-field"
-                  required={!isEditing}
-                  aria-describedby={
-                    isEditing ? "privateKey-keep-hint" : undefined
-                  }
-                  disabled={isSubmitting}
-                  placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
-                  value={values.privateKey}
-                  rows={5}
-                  onChange={(e) => updateField("privateKey", e.target.value)}
-                  className={cn(TEXTAREA_BASE_CLASS)}
-                />
-                {isEditing ? (
-                  <p
-                    id="privateKey-keep-hint"
-                    className="text-xs text-muted-foreground"
-                  >
-                    {t("form.private_key_keep_hint")}
-                  </p>
-                ) : null}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="publicKey-field">
-                  {t("form.public_key_label")}
-                  <span aria-hidden> *</span>
-                </Label>
-                <textarea
-                  id="publicKey-field"
-                  required
-                  disabled={isSubmitting}
-                  placeholder="ssh-ed25519 AAAA..."
-                  value={values.publicKey}
-                  rows={3}
-                  onChange={(e) => updateField("publicKey", e.target.value)}
-                  className={cn(TEXTAREA_BASE_CLASS)}
-                />
-              </div>
-            </>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm text-muted-foreground">
-                  {showGeneratedKeys
-                    ? t("form.generate_success")
-                    : t("form.generate_hint")}
-                </p>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={isSubmitting || generateKeyPair.isPending}
-                  onClick={handleGenerate}
-                >
-                  {generateKeyPair.isPending
-                    ? t("form.generating")
-                    : showGeneratedKeys
-                      ? t("form.regenerate")
-                      : t("form.generate")}
-                </Button>
-              </div>
-
-              {showGeneratedKeys ? (
-                <div className="space-y-2">
-                  <Label htmlFor="generated-public-key">
-                    {t("form.public_key_label")}
-                  </Label>
-                  <textarea
-                    id="generated-public-key"
-                    readOnly
-                    value={values.publicKey}
-                    rows={3}
-                    className={cn(TEXTAREA_BASE_CLASS, "opacity-80")}
-                  />
-                </div>
-              ) : null}
-            </div>
-          )}
-
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
-
-          <DialogFooter>
+          </FormField>
+        </>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <Text as="p" variant="meta" tone="muted">
+              {showGeneratedKeys
+                ? t("form.generate_success")
+                : t("form.generate_hint")}
+            </Text>
             <Button
               type="button"
+              size="sm"
               variant="outline"
-              disabled={isSubmitting}
-              onClick={() => handleOpenChange(false)}
+              disabled={isSubmitting || generateKeyPair.isPending}
+              onClick={handleGenerate}
             >
-              {t("form.cancel")}
+              {generateKeyPair.isPending
+                ? t("form.generating")
+                : showGeneratedKeys
+                  ? t("form.regenerate")
+                  : t("form.generate")}
             </Button>
-            <Button
-              type="submit"
-              disabled={
-                isSubmitting ||
-                (mode === "generate" && !values.privateKey && !isEditing)
-              }
+          </div>
+
+          {showGeneratedKeys ? (
+            <FormField
+              label={t("form.public_key_label")}
+              htmlFor="generated-public-key"
             >
-              {isSubmitting
-                ? t("form.saving")
-                : isEditing
-                  ? t("form.save_changes")
-                  : t("form.create")}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+              <Textarea
+                id="generated-public-key"
+                readOnly
+                value={values.publicKey}
+                rows={3}
+                className="font-mono text-xs text-muted-foreground"
+              />
+            </FormField>
+          ) : null}
+        </div>
+      )}
+
+      {error ? <InlineAlert>{error}</InlineAlert> : null}
+    </FormDialog>
   )
 }
