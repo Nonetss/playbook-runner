@@ -64,7 +64,6 @@ function prefetchForHref(
     case "/scripts":
       queryClient.prefetchQuery(orpc.scripts.list.queryOptions())
       return
-    case "/jobs":
     case "/jobs/scheduler":
       queryClient.prefetchQuery(orpc.jobs.list.queryOptions())
       return
@@ -105,7 +104,7 @@ function MenuRow({
           <span className="text-xs font-medium leading-tight">
             {t(item.labelKey)}
           </span>
-          <span className="line-clamp-2 text-xs leading-snug text-muted-foreground">
+          <span className="text-xs leading-snug text-muted-foreground lg:whitespace-nowrap">
             {t(item.descriptionKey)}
           </span>
         </span>
@@ -165,7 +164,7 @@ function NavSection({
         {t(item.labelKey)}
         {active ? <StatusDot tone="primary" /> : null}
       </NavigationMenuTrigger>
-      <NavigationMenuContent className="left-1/2 min-w-64 -translate-x-1/2 p-1">
+      <NavigationMenuContent className="left-1/2 w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 p-1.5 md:w-max">
         <MenuRow
           item={item}
           active={currentPath === item.href}

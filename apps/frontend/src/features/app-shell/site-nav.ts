@@ -2,6 +2,7 @@ import {
   type AppSurface,
   appSections,
   appSurfaces,
+  getSectionForPath,
   type SectionId,
 } from "@/lib/app-surfaces"
 import type { LucideIcon } from "@/lib/icon-registry"
@@ -14,6 +15,8 @@ export interface SiteNavSubItem {
 }
 
 export interface SiteNavItem extends SiteNavSubItem {
+  /** Section id: every route of the section marks the item active. */
+  section?: SectionId
   /** Kept visible at constrained desktop widths. */
   primary?: boolean
   subItems?: SiteNavSubItem[]
@@ -27,6 +30,7 @@ export function isNavLinkActive(href: string, pathname: string) {
 
 /** A section is active when its own route or one of its declared subroutes is active. */
 export function isNavItemActive(item: SiteNavItem, pathname: string) {
+  if (item.section) return getSectionForPath(pathname) === item.section
   return (
     isNavLinkActive(item.href, pathname) ||
     item.subItems?.some((subItem) =>
@@ -53,6 +57,7 @@ export const siteNavItems: SiteNavItem[] = (
   Object.keys(appSections) as SectionId[]
 ).map((section) => ({
   ...toNavLink(appSurfaces[section]),
+  section,
   primary: true,
   subItems: appSections[section].map((id) => toNavLink(appSurfaces[id])),
 }))

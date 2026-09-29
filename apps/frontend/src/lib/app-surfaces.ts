@@ -45,11 +45,17 @@ export const appSurfaces = {
     descriptionKey: "descriptions.credentials",
     icon: getIcon("resources", "apiKey"),
   },
-  automation: {
-    href: "/automation",
-    titleKey: "links.automation",
-    descriptionKey: "descriptions.automation",
+  ansible: {
+    href: "/ansible",
+    titleKey: "links.ansible",
+    descriptionKey: "descriptions.ansible",
     icon: getIcon("resources", "workflow"),
+  },
+  bash: {
+    href: "/bash",
+    titleKey: "links.bash",
+    descriptionKey: "descriptions.bash",
+    icon: getIcon("resources", "terminalSquare"),
   },
   playbooks: {
     href: "/playbooks",
@@ -68,12 +74,6 @@ export const appSurfaces = {
     titleKey: "links.commands",
     descriptionKey: "descriptions.commands",
     icon: getIcon("resources", "terminal"),
-  },
-  jobs: {
-    href: "/jobs",
-    titleKey: "links.jobs",
-    descriptionKey: "descriptions.jobs",
-    icon: getIcon("resources", "briefcase"),
   },
   scheduler: {
     href: "/jobs/scheduler",
@@ -112,9 +112,17 @@ export type SurfaceId = keyof typeof appSurfaces
 /** Navigation sections: each renders the persistent section sidebar. */
 export const appSections = {
   inventory: ["devices", "groups", "credentials"],
-  automation: ["playbooks", "scripts", "commands"],
-  jobs: ["scheduler", "history"],
+  ansible: ["playbooks", "scheduler", "history"],
+  bash: ["scripts", "commands"],
 } as const satisfies Record<string, readonly SurfaceId[]>
+
+/**
+ * Extra route prefixes owned by a section beyond its overview and children
+ * (job detail and form routes live under `/jobs/*`).
+ */
+const sectionPrefixes: Partial<Record<SectionId, readonly string[]>> = {
+  ansible: ["/jobs"],
+}
 
 export type SectionId = keyof typeof appSections
 
@@ -135,6 +143,9 @@ export function getSectionForPath(pathname: string): SectionId | undefined {
   ][]) {
     if (matchesHref(appSurfaces[section].href, pathname)) return section
     if (children.some((id) => matchesHref(appSurfaces[id].href, pathname))) {
+      return section
+    }
+    if (sectionPrefixes[section]?.some((href) => matchesHref(href, pathname))) {
       return section
     }
   }
