@@ -1,8 +1,8 @@
 import * as React from "react"
 import { useTranslation } from "react-i18next"
+import { FormField } from "@/components/shared/form/field-label"
 import { FormDialog } from "@/components/shared/form/form-dialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -68,17 +68,23 @@ export function CreateUserDialog({
       submitLabel={t("admin_users.create.submit")}
       cancelLabel={tCommon("actions.cancel")}
     >
-      <div className="space-y-2">
-        <Label htmlFor="admin-user-name">{t("profile.fields.name")}</Label>
+      <FormField
+        label={t("profile.fields.name")}
+        htmlFor="admin-user-name"
+        required
+      >
         <Input
           id="admin-user-name"
           required
           value={values.name}
           onChange={(e) => update("name", e.target.value)}
         />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="admin-user-email">{t("profile.fields.email")}</Label>
+      </FormField>
+      <FormField
+        label={t("profile.fields.email")}
+        htmlFor="admin-user-email"
+        required
+      >
         <Input
           id="admin-user-email"
           type="email"
@@ -86,11 +92,12 @@ export function CreateUserDialog({
           value={values.email}
           onChange={(e) => update("email", e.target.value)}
         />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="admin-user-password">
-          {t("admin_users.create.password")}
-        </Label>
+      </FormField>
+      <FormField
+        label={t("admin_users.create.password")}
+        htmlFor="admin-user-password"
+        required
+      >
         <Input
           id="admin-user-password"
           type="password"
@@ -100,9 +107,12 @@ export function CreateUserDialog({
           value={values.password}
           onChange={(e) => update("password", e.target.value)}
         />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="admin-user-role">{t("admin_users.columns.role")}</Label>
+      </FormField>
+      <FormField
+        label={t("admin_users.columns.role")}
+        htmlFor="admin-user-role"
+        required
+      >
         <Select
           value={values.role}
           onValueChange={(value) => update("role", value as UserRole)}
@@ -118,7 +128,7 @@ export function CreateUserDialog({
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </FormField>
     </FormDialog>
   )
 }

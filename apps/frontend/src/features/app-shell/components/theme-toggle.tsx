@@ -5,6 +5,7 @@ const Sun = getIcon("theme", "light")
 
 import { flushSync } from "react-dom"
 import { useTranslation } from "react-i18next"
+import { navTriggerClass } from "@/features/app-shell/nav-trigger"
 import { cn } from "@/lib/utils"
 
 export interface ThemeToggleProps {
@@ -66,10 +67,7 @@ export const ThemeToggle = ({ className }: ThemeToggleProps) => {
       type="button"
       onClick={toggle}
       aria-label={t("labels.change_theme")}
-      className={cn(
-        "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex size-9 items-center justify-center rounded-md border shadow-xs transition-colors",
-        className
-      )}
+      className={cn(navTriggerClass, className)}
     >
       <Sun className="size-4 shrink-0 hidden dark:block" aria-hidden />
       <Moon className="size-4 shrink-0 block dark:hidden" aria-hidden />

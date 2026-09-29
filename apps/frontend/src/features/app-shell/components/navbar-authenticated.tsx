@@ -27,6 +27,7 @@ import {
   type SiteNavItem,
   siteNavItems,
 } from "@/features/app-shell/site-nav"
+import { useCurrentPath } from "@/hooks/use-current-path"
 import { useScrolled } from "@/hooks/use-scrolled"
 import { orpc } from "@/lib/orpc"
 import { cn } from "@/lib/utils"
@@ -50,8 +51,10 @@ function prefetchForHref(
   href: string
 ) {
   switch (href) {
-    case "/inventory":
+    case "/inventory/devices":
       queryClient.prefetchQuery(orpc.inventory.devices.list.queryOptions())
+      return
+    case "/inventory/groups":
       queryClient.prefetchQuery(orpc.inventory.groups.list.queryOptions())
       return
     case "/inventory/credentials":
@@ -115,7 +118,7 @@ function NavDropdown({
       <DropdownMenuContent
         align="center"
         sideOffset={8}
-        className="min-w-60 rounded-xl bg-popover/95 p-1 shadow-md"
+        className="min-w-64 rounded-lg p-1"
       >
         <DropdownMenuItem asChild>
           <AppLink
@@ -145,7 +148,7 @@ function NavDropdown({
               }
               onMouseEnter={onIntent(subItem.href)}
               onFocus={onIntent(subItem.href)}
-              className="flex min-h-10 items-center gap-2.5 rounded-lg px-2.5 py-2 text-foreground/80 outline-none transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:bg-muted/60 focus-visible:text-foreground data-[current=page]:bg-muted/60 data-[current=page]:text-foreground"
+              className="flex min-h-10 items-center gap-2.5 rounded-md px-2.5 py-2 text-foreground/80 outline-none transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:bg-muted/60 focus-visible:text-foreground aria-[current=page]:bg-muted/60 aria-[current=page]:text-foreground"
             >
               <subItem.icon
                 aria-hidden
@@ -236,7 +239,7 @@ function OverflowMenu({
         <DropdownMenuContent
           align="center"
           sideOffset={8}
-          className="min-w-60 rounded-xl bg-popover/95 p-1 shadow-md"
+          className="min-w-64 rounded-lg p-1"
         >
           {items.map((item) => (
             <DropdownMenuItem key={item.href} asChild>
@@ -247,7 +250,7 @@ function OverflowMenu({
                 }
                 onMouseEnter={onIntent(item.href)}
                 onFocus={onIntent(item.href)}
-                className="flex min-h-10 items-center gap-2.5 rounded-lg px-2.5 py-2 text-foreground/80 outline-none transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:bg-muted/60 focus-visible:text-foreground data-[current=page]:bg-muted/60 data-[current=page]:text-foreground"
+                className="flex min-h-10 items-center gap-2.5 rounded-md px-2.5 py-2 text-foreground/80 outline-none transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:bg-muted/60 focus-visible:text-foreground aria-[current=page]:bg-muted/60 aria-[current=page]:text-foreground"
               >
                 <item.icon
                   aria-hidden
@@ -274,8 +277,9 @@ function NavbarAuthenticatedInner({
   user,
   session: _session,
   nameApp,
-  currentPath,
+  currentPath: initialPath,
 }: NavbarAuthenticatedProps) {
+  const currentPath = useCurrentPath(initialPath)
   const queryClient = useQueryClient()
   const scrolled = useScrolled()
   const overflowItems = siteNavItems.filter((item) => !item.primary)
@@ -288,7 +292,7 @@ function NavbarAuthenticatedInner({
         scrolled ? "border-border shadow-sm" : "border-border/40"
       )}
     >
-      <nav className="mx-auto flex h-navbar max-w-6xl items-center justify-between gap-3 px-4 md:gap-4 md:px-6">
+      <nav className="flex h-navbar items-center justify-between gap-3 px-4 sm:px-6 md:gap-4">
         <AppLink
           href="/"
           className="group flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground"
@@ -301,7 +305,7 @@ function NavbarAuthenticatedInner({
         </AppLink>
 
         <div className="hidden flex-1 justify-center lg:flex">
-          <ul className="flex items-center gap-0.5 rounded-lg border bg-muted/40 p-1">
+          <ul className="flex items-center gap-1">
             {siteNavItems.map((item) => (
               <li
                 key={item.href}

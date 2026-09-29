@@ -1,16 +1,10 @@
+import {
+  type AppSurface,
+  appSections,
+  appSurfaces,
+  type SectionId,
+} from "@/lib/app-surfaces"
 import type { LucideIcon } from "@/lib/icon-registry"
-import { getIcon } from "@/lib/icon-registry"
-
-const BookText = getIcon("resources", "book")
-const BriefcaseBusiness = getIcon("resources", "briefcase")
-const CalendarClock = getIcon("scheduling", "schedule")
-const FileCode2 = getIcon("resources", "fileCode")
-const Folder = getIcon("resources", "folder")
-const History = getIcon("resources", "history")
-const KeyRound = getIcon("resources", "apiKey")
-const Server = getIcon("resources", "server")
-const Computer = getIcon("resources", "device")
-const Terminal = getIcon("resources", "terminal")
 
 export interface SiteNavSubItem {
   href: string
@@ -19,11 +13,7 @@ export interface SiteNavSubItem {
   icon: LucideIcon
 }
 
-export interface SiteNavItem {
-  href: string
-  labelKey: string
-  descriptionKey: string
-  icon: LucideIcon
+export interface SiteNavItem extends SiteNavSubItem {
   /** Kept visible at constrained desktop widths. */
   primary?: boolean
   subItems?: SiteNavSubItem[]
@@ -45,80 +35,27 @@ export function isNavItemActive(item: SiteNavItem, pathname: string) {
   )
 }
 
+function toNavLink(surface: AppSurface): SiteNavSubItem {
+  return {
+    href: surface.href,
+    labelKey: surface.titleKey,
+    descriptionKey: surface.descriptionKey,
+    icon: surface.icon,
+  }
+}
+
 /**
- * Navigation structure, labels, descriptions and icons all derive from this
- * one source. Consumers resolve translation keys so locale changes update
- * every persisted React island without an Astro prop round-trip.
+ * Navigation derives from the page-surface registry (`lib/app-surfaces.ts`),
+ * never from a second list of labels and icons. Consumers resolve translation
+ * keys so locale changes update every persisted React island.
  */
-export const siteNavItems: SiteNavItem[] = [
-  {
-    href: "/inventory",
-    labelKey: "links.inventory",
-    descriptionKey: "descriptions.inventory",
-    icon: Server,
-    primary: true,
-    subItems: [
-      {
-        href: "/inventory/credentials",
-        labelKey: "links.credentials",
-        descriptionKey: "descriptions.credentials",
-        icon: KeyRound,
-      },
-      {
-        href: "/inventory/devices",
-        labelKey: "links.devices",
-        descriptionKey: "descriptions.devices",
-        icon: Computer,
-      },
-      {
-        href: "/inventory/groups",
-        labelKey: "links.groups",
-        descriptionKey: "descriptions.groups",
-        icon: Folder,
-      },
-    ],
-  },
-  {
-    href: "/playbooks",
-    labelKey: "links.playbooks",
-    descriptionKey: "descriptions.playbooks",
-    icon: BookText,
-    primary: true,
-  },
-  {
-    href: "/scripts",
-    labelKey: "links.scripts",
-    descriptionKey: "descriptions.scripts",
-    icon: FileCode2,
-  },
-  {
-    href: "/commands",
-    labelKey: "links.commands",
-    descriptionKey: "descriptions.commands",
-    icon: Terminal,
-  },
-  {
-    href: "/jobs",
-    labelKey: "links.jobs",
-    descriptionKey: "descriptions.jobs",
-    icon: BriefcaseBusiness,
-    primary: true,
-    subItems: [
-      {
-        href: "/jobs/scheduler",
-        labelKey: "links.scheduler",
-        descriptionKey: "descriptions.scheduler",
-        icon: CalendarClock,
-      },
-      {
-        href: "/jobs/history",
-        labelKey: "links.history",
-        descriptionKey: "descriptions.history",
-        icon: History,
-      },
-    ],
-  },
-]
+export const siteNavItems: SiteNavItem[] = (
+  Object.keys(appSections) as SectionId[]
+).map((section) => ({
+  ...toNavLink(appSurfaces[section]),
+  primary: true,
+  subItems: appSections[section].map((id) => toNavLink(appSurfaces[id])),
+}))
 
 export function getSiteNavItemByHref(href: string) {
   return siteNavItems.find((item) => item.href === href)

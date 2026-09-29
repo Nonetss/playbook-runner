@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
+import { InlineAlert } from "@/components/shared/feedback/inline-alert"
+import { FormField } from "@/components/shared/form/field-label"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -11,7 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { authClient } from "@/lib/auth-client"
 import { navigate } from "@/lib/navigate"
 import { getQueryClient } from "@/lib/query-client"
@@ -76,51 +77,50 @@ function SignInFormInner() {
   }
 
   return (
-    <Card className="mx-auto w-full max-w-sm">
-      <CardHeader>
-        <CardTitle className="text-2xl">{t("sign_in.title")}</CardTitle>
-        <CardDescription>{t("sign_in.subtitle")}</CardDescription>
+    <Card className="mx-auto w-full max-w-sm gap-0 rounded-xl border-border bg-card py-0 shadow-none">
+      <CardHeader className="gap-1.5 border-b px-6 py-5">
+        <CardTitle className="text-display font-semibold tracking-tight">
+          {t("sign_in.title")}
+        </CardTitle>
+        <CardDescription className="text-meta">
+          {t("sign_in.subtitle")}
+        </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-6 py-5">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">{t("sign_in.email_label")}</Label>
+          <FormField label={t("sign_in.email_label")} htmlFor="email">
             <Input
               id="email"
               type="email"
               required
+              autoComplete="email"
               placeholder={t("sign_in.email_placeholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-          </div>
+          </FormField>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">{t("sign_in.password_label")}</Label>
+          <FormField label={t("sign_in.password_label")} htmlFor="password">
             <Input
               id="password"
               type="password"
               required
               minLength={8}
+              autoComplete="current-password"
               placeholder={t("sign_in.password_placeholder")}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-          </div>
+          </FormField>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error ? <InlineAlert>{error}</InlineAlert> : null}
 
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? t("sign_in.submitting") : t("sign_in.submit")}
           </Button>
         </form>
       </CardContent>
-      <CardFooter className="flex-col gap-3">
-        <div className="flex w-full items-center gap-3 text-xs text-muted-foreground">
-          <div className="h-px flex-1 bg-border" />
-          o
-          <div className="h-px flex-1 bg-border" />
-        </div>
+      <CardFooter className="flex-col gap-3 border-t px-6 py-5">
         <Button
           variant="outline"
           className="w-full"
@@ -131,7 +131,7 @@ function SignInFormInner() {
             ? t("sign_in.sso_redirecting")
             : t("sign_in.sso_button")}
         </Button>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-center text-meta text-muted-foreground">
           {t("sign_in.no_account_hint")}
         </p>
       </CardFooter>

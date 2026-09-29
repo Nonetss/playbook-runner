@@ -8,6 +8,7 @@ const UserIcon = getIcon("identity", "user")
 const Users = getIcon("resources", "users")
 
 import { useTranslation } from "react-i18next"
+import { AppLink } from "@/components/ui/app-link"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,12 +18,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { navTriggerClass } from "@/features/app-shell/nav-trigger"
 import { authClient } from "@/lib/auth-client"
 import { navigate } from "@/lib/navigate"
 import { getQueryClient } from "@/lib/query-client"
-
-const triggerClass =
-  "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex size-9 items-center justify-center rounded-md border shadow-xs transition-colors outline-none data-[state=open]:bg-accent data-[state=open]:text-accent-foreground"
 
 export interface UserNavProps {
   user: (User & { role?: string | null }) | null
@@ -37,7 +36,7 @@ export function UserNav({ user }: UserNavProps) {
       <a
         href="/login"
         aria-label={t("labels.sign_in")}
-        className={triggerClass}
+        className={navTriggerClass}
       >
         <LogIn className="size-4 shrink-0" aria-hidden />
       </a>
@@ -55,7 +54,7 @@ export function UserNav({ user }: UserNavProps) {
       <DropdownMenuTrigger
         type="button"
         aria-label={t("labels.user_menu")}
-        className={triggerClass}
+        className={navTriggerClass}
       >
         <UserIcon className="size-4 shrink-0" aria-hidden />
       </DropdownMenuTrigger>
@@ -75,17 +74,17 @@ export function UserNav({ user }: UserNavProps) {
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuItem asChild>
-          <a href="/me">
+          <AppLink href="/me">
             <UserCircle2 className="size-4 shrink-0" aria-hidden />
             {tNav("links.me")}
-          </a>
+          </AppLink>
         </DropdownMenuItem>
         {user.role === "admin" ? (
           <DropdownMenuItem asChild>
-            <a href="/admin/users">
+            <AppLink href="/admin/users">
               <Users className="size-4 shrink-0" aria-hidden />
               {tNav("links.admin_users")}
-            </a>
+            </AppLink>
           </DropdownMenuItem>
         ) : null}
         <DropdownMenuSeparator />

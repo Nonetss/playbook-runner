@@ -17,11 +17,11 @@ function NavbarGuestInner({ nameApp }: NavbarGuestProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 border-b bg-background/80 backdrop-blur transition-shadow duration-300 supports-backdrop-filter:bg-background/60",
+        "sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur transition-shadow duration-300 supports-backdrop-filter:bg-background/60",
         scrolled ? "border-border shadow-sm" : "border-border/40"
       )}
     >
-      <nav className="mx-auto flex h-navbar max-w-6xl items-center justify-between gap-3 px-4 md:gap-4 md:px-6">
+      <nav className="flex h-navbar items-center justify-between gap-3 px-4 sm:px-6 md:gap-4">
         <AppLink
           href="/"
           className="group flex shrink-0 items-center gap-2 font-semibold text-foreground text-sm tracking-tight"
