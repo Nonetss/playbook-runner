@@ -126,6 +126,10 @@ like hero descriptions; overview tile titles use `headline` unmodified.
 - Containers `rounded-xl` (10px); controls `rounded-md` (4px); badges
   `rounded-lg`; `rounded-full` only for dots and bars.
 - `border-dashed` only for empty/error/loading blocks.
+- Keyboard focus on custom interactive elements (tiles, stretched links,
+  bare buttons, text links) is the `focus-ring` utility (`global.css`): the
+  same 3px `ring-ring/50` the shadcn controls draw. Never hand-build
+  `outline-none focus-visible:ring-[3px] …`.
 
 ## Components
 
@@ -173,7 +177,10 @@ shadcn primitives (Radix, `new-york`) restyled to the tokens.
 
 The command, script run, playbook run and job detail screens share
 `features/run/components/terminal-frame.tsx`: title bar, prompt, stream
-banner, result banner and optional side panel. The terminal is dark in both
+banner, result banner and optional side panel. Titled cards inside a console (one host, one task,
+the recap) are `TerminalPanel` (`features/run/components/terminal-panel.tsx`):
+raised header bar with icon, mono title and `TerminalPanelMeta` facts over a
+body the caller lays out. The terminal is dark in both
 themes and uses only `--terminal-*` tokens (`bg-terminal-bg`,
 `text-terminal-ok`, …) and `font-terminal`. Status tones are shared by every
 console: `ok`, `changed`, `failed` (also unreachable), `skipped`, `running`

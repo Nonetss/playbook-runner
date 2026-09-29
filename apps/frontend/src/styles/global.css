@@ -307,6 +307,12 @@
   overflow-anchor: none;
 }
 
+/* Keyboard focus for custom interactive elements (links, tiles, bare
+   buttons): the same 3px ring the shadcn controls draw, never an outline. */
+@utility focus-ring {
+  @apply outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50;
+}
+
 /* Flat dot-grid texture behind the guest auth screen. */
 @utility bg-dot-grid {
   position: relative;
