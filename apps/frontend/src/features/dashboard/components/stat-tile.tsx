@@ -17,7 +17,7 @@ export function StatTile({
   return (
     <AppLink
       href={href}
-      className="dash-enter flex min-w-0 flex-col gap-2 rounded-xl border bg-card/40 p-4 outline-none transition-colors duration-200 hover:border-foreground/15 hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      className="dash-enter flex min-w-0 flex-col gap-2 rounded-xl border bg-card/40 p-4 transition-colors duration-200 hover:border-foreground/15 hover:bg-muted/40 focus-ring"
     >
       <Text as="p" variant="label" tone="muted">
         {title}

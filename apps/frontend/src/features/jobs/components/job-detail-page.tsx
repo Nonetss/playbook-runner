@@ -333,7 +333,7 @@ function JobDetailPageInner({ id }: { id: string }) {
                         onClick={() => handleSelectRun(run.id)}
                         aria-current={active ? "true" : undefined}
                         className={cn(
-                          "min-h-11 w-full rounded-md px-2 py-2 text-left outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                          "min-h-11 w-full rounded-md px-2 py-2 text-left transition-colors focus-ring",
                           active ? "bg-muted" : "hover:bg-muted/40"
                         )}
                       >

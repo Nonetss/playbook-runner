@@ -132,7 +132,7 @@ function FolderSection({
             <AppLink
               href={openHref}
               aria-label={`${t("folder.open")} ${folder.name}`}
-              className="truncate rounded-sm outline-none hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50 pointer-coarse:-my-2.5 pointer-coarse:py-2.5"
+              className="truncate rounded-sm hover:underline focus-ring pointer-coarse:-my-2.5 pointer-coarse:py-2.5"
             >
               <Text variant="headline">{folder.name}</Text>
             </AppLink>
