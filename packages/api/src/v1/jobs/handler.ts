@@ -214,11 +214,14 @@ export const jobRunsHandler = {
     context: Context
     input: z.infer<typeof jobRunsInput.list>
   }) => {
-    return db
+    // `id` breaks `created_at` ties so offset pages never overlap or skip.
+    const query = db
       .select()
       .from(jobRuns)
       .where(eq(jobRuns.jobId, input.jobId))
-      .orderBy(desc(jobRuns.createdAt))
+      .orderBy(desc(jobRuns.createdAt), desc(jobRuns.id))
+      .offset(input.offset ?? 0)
+    return input.limit === undefined ? query : query.limit(input.limit)
   },
 
   get: async ({

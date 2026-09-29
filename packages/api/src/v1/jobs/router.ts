@@ -106,7 +106,8 @@ export const jobsRouter = {
     list: protectedProcedure
       .route({
         summary: "List runs for a job",
-        description: "Returns every recorded run of a given job, newest first.",
+        description:
+          "Returns the recorded runs of a given job, newest first. Pass `limit` and `offset` to page through the history; omit them to get every run.",
         tags: ["Jobs"],
         method: "GET",
       })
