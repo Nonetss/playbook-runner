@@ -307,7 +307,16 @@ function JobDetailPageInner({ id }: { id: string }) {
                             hostsOk={run.hostsOk}
                             hostsFailed={run.hostsFailed}
                           />
-                          <span className="text-xs text-muted-foreground">
+                          <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                            {run.commitSha ? (
+                              <Text
+                                variant="data"
+                                tone="muted"
+                                title={run.commitSha}
+                              >
+                                {run.commitSha.slice(0, 7)}
+                              </Text>
+                            ) : null}
                             {run.trigger === "schedule"
                               ? t("detail.trigger_schedule")
                               : t("detail.trigger_manual")}

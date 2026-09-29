@@ -28,6 +28,8 @@ export type JobRun = {
   error: string | null
   hostsOk: number | null
   hostsFailed: number | null
+  /** Commit a Git-sourced playbook ran at; null for inline playbooks. */
+  commitSha: string | null
   startedAt: Date | string | null
   finishedAt: Date | string | null
   createdAt: Date | string | null
