@@ -1,16 +1,25 @@
 import { env } from "@playbook-runner/env/server"
-import { getClient, serverStream } from "@playbook-runner/grpc"
+import {
+  getClient,
+  grpcStatus,
+  isGrpcError,
+  serverStream,
+} from "@playbook-runner/grpc"
 import { RunnerServiceClient } from "@playbook-runner/grpc/stubs"
 import type { z } from "zod"
+import type { Context } from "#context"
 import { errors } from "#errors"
+import type { runInput } from "#v1/run/input"
+import { RUN_TIMEOUT_MS, toEventIterator, toProtoHost } from "#v1/run/proto"
 import {
   ResolveRunCredentiallessError,
   ResolveRunNotFoundError,
   ResolveRunValidationError,
-  runHandler,
-} from "#v1/run/handler"
-import { RUN_TIMEOUT_MS, toEventIterator, toProtoHost } from "#v1/run/proto"
-import type { streamInput } from "#v1/run/stream-input"
+  resolveDevice,
+  resolveHosts,
+  resolveRun,
+  resolveScript,
+} from "#v1/run/resolve"
 
 function requireServiceToken(): string {
   if (!env.SERVICE_TOKEN) {
@@ -36,6 +45,28 @@ function toResolveError(err: unknown): never {
 }
 
 /**
+ * Maps gRPC failures the user can act on to API errors. `RESOURCE_EXHAUSTED`
+ * is the ansible service refusing a run because every slot is busy.
+ *
+ * `yield*` forwards oRPC's `.return()` (client disconnected) down to
+ * `serverStream`, which cancels the gRPC call and so stops the run.
+ */
+async function* interactive<T, R>(
+  iterator: AsyncGenerator<T, R, void>
+): AsyncGenerator<T, R, void> {
+  try {
+    return yield* iterator
+  } catch (err) {
+    if (isGrpcError(err) && err.code === grpcStatus.RESOURCE_EXHAUSTED) {
+      throw errors.TOO_MANY_REQUESTS({
+        message: "Too many concurrent runs, try again in a moment",
+      })
+    }
+    throw err
+  }
+}
+
+/**
  * Resolves a playbook/inventory/script/device against the database (via
  * `runHandler`, the same functions the job scheduler uses in
  * `#jobs/executor`), then streams its execution from the ansible service
@@ -44,12 +75,17 @@ function toResolveError(err: unknown): never {
  * transport takes care of getting this to the browser; no SSE framing here.
  */
 export const streamHandler = {
-  async *ping(input: z.infer<typeof streamInput.ping>) {
+  async *ping({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof runInput.ping>
+  }) {
     const token = requireServiceToken()
 
-    let host: Awaited<ReturnType<typeof runHandler.resolveDevice>>
+    let host: Awaited<ReturnType<typeof resolveDevice>>
     try {
-      host = await runHandler.resolveDevice(input.deviceId)
+      host = await resolveDevice(input.deviceId)
     } catch (err) {
       toResolveError(err)
     }
@@ -60,15 +96,20 @@ export const streamHandler = {
       { host: toProtoHost(host) },
       { token, timeoutMs: RUN_TIMEOUT_MS }
     )
-    return yield* toEventIterator(stream)
+    return yield* interactive(toEventIterator(stream))
   },
 
-  async *run(input: z.infer<typeof streamInput.run>) {
+  async *run({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof runInput.run>
+  }) {
     const token = requireServiceToken()
 
-    let bundle: Awaited<ReturnType<typeof runHandler.resolveRun>>
+    let bundle: Awaited<ReturnType<typeof resolveRun>>
     try {
-      bundle = await runHandler.resolveRun(input.playbookId, input.inventory)
+      bundle = await resolveRun(input.playbookId, input.inventory)
     } catch (err) {
       toResolveError(err)
     }
@@ -84,15 +125,20 @@ export const streamHandler = {
       },
       { token, timeoutMs: RUN_TIMEOUT_MS }
     )
-    return yield* toEventIterator(stream)
+    return yield* interactive(toEventIterator(stream))
   },
 
-  async *command(input: z.infer<typeof streamInput.command>) {
+  async *command({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof runInput.command>
+  }) {
     const token = requireServiceToken()
 
-    let hosts: Awaited<ReturnType<typeof runHandler.resolveHosts>>
+    let hosts: Awaited<ReturnType<typeof resolveHosts>>
     try {
-      hosts = await runHandler.resolveHosts(input.inventory)
+      hosts = await resolveHosts(input.inventory)
     } catch (err) {
       toResolveError(err)
     }
@@ -109,15 +155,20 @@ export const streamHandler = {
       },
       { token, timeoutMs: RUN_TIMEOUT_MS }
     )
-    return yield* toEventIterator(stream)
+    return yield* interactive(toEventIterator(stream))
   },
 
-  async *script(input: z.infer<typeof streamInput.script>) {
+  async *script({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof runInput.script>
+  }) {
     const token = requireServiceToken()
 
-    let bundle: Awaited<ReturnType<typeof runHandler.resolveScript>>
+    let bundle: Awaited<ReturnType<typeof resolveScript>>
     try {
-      bundle = await runHandler.resolveScript(input.scriptId, input.inventory)
+      bundle = await resolveScript(input.scriptId, input.inventory)
     } catch (err) {
       toResolveError(err)
     }
@@ -133,6 +184,6 @@ export const streamHandler = {
       },
       { token, timeoutMs: RUN_TIMEOUT_MS }
     )
-    return yield* toEventIterator(stream)
+    return yield* interactive(toEventIterator(stream))
   },
 }

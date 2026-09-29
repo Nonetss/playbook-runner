@@ -7,7 +7,7 @@ import type {
   RunScriptResponse,
   TaskEvent,
 } from "@playbook-runner/grpc/stubs"
-import type { ResolvedRunHost } from "#v1/run/handler"
+import type { ResolvedRunHost } from "#v1/run/resolve"
 
 /**
  * ansible-runner playbooks/commands/scripts can run far longer than a

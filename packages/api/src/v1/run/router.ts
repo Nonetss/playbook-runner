@@ -1,39 +1,10 @@
-import { eventIterator } from "@orpc/server"
-import { z } from "zod"
 import { protectedProcedure } from "#index"
+import { runInput } from "#v1/run/input"
+import { runOutput } from "#v1/run/output"
 import { streamHandler } from "#v1/run/stream-handler"
-import { streamInput } from "#v1/run/stream-input"
 
-export const statsSchema = z.object({
-  ok: z.record(z.string(), z.number()),
-  changed: z.record(z.string(), z.number()),
-  failures: z.record(z.string(), z.number()),
-  dark: z.record(z.string(), z.number()),
-  skipped: z.record(z.string(), z.number()),
-})
-
-// A single ansible-runner event, reduced to the fields the frontend renders.
-// Shared with `#v1/jobs/router`'s `runs.stream` — same event shape either way.
-export const taskEventSchema = z.object({
-  event: z.string(),
-  host: z.string().optional(),
-  play: z.string().optional(),
-  task: z.string().optional(),
-  task_action: z.string().optional(),
-  changed: z.boolean().optional(),
-  msg: z.string().optional(),
-  stdout: z.string().optional(),
-  stderr: z.string().optional(),
-  rc: z.number().int().optional(),
-  stats: statsSchema.optional(),
-})
-
-// Terminal value of the event iterator, once the run finishes.
-const runResultSchema = z.object({
-  status: z.string(),
-  rc: z.number().int(),
-  ok: z.boolean(),
-})
+// Re-exported for `#v1/jobs/router`, which imports the event shape from here.
+export { taskEventSchema } from "#v1/run/output"
 
 const resolveErrors = {
   NOT_FOUND: { status: 404, message: "Not Found" },
@@ -59,10 +30,10 @@ export const runRouter = {
       tags: ["Run"],
       method: "POST",
     })
-    .input(streamInput.ping)
-    .output(eventIterator(taskEventSchema, runResultSchema))
+    .input(runInput.ping)
+    .output(runOutput.ping)
     .errors(resolveErrors)
-    .handler(({ input }) => streamHandler.ping(input)),
+    .handler(({ context, input }) => streamHandler.ping({ context, input })),
 
   run: protectedProcedure
     .route({
@@ -72,10 +43,10 @@ export const runRouter = {
       tags: ["Run"],
       method: "POST",
     })
-    .input(streamInput.run)
-    .output(eventIterator(taskEventSchema, runResultSchema))
+    .input(runInput.run)
+    .output(runOutput.run)
     .errors(resolveErrors)
-    .handler(({ input }) => streamHandler.run(input)),
+    .handler(({ context, input }) => streamHandler.run({ context, input })),
 
   command: protectedProcedure
     .route({
@@ -85,10 +56,10 @@ export const runRouter = {
       tags: ["Run"],
       method: "POST",
     })
-    .input(streamInput.command)
-    .output(eventIterator(taskEventSchema, runResultSchema))
+    .input(runInput.command)
+    .output(runOutput.command)
     .errors(resolveErrors)
-    .handler(({ input }) => streamHandler.command(input)),
+    .handler(({ context, input }) => streamHandler.command({ context, input })),
 
   script: protectedProcedure
     .route({
@@ -98,8 +69,8 @@ export const runRouter = {
       tags: ["Run"],
       method: "POST",
     })
-    .input(streamInput.script)
-    .output(eventIterator(taskEventSchema, runResultSchema))
+    .input(runInput.script)
+    .output(runOutput.script)
     .errors(resolveErrors)
-    .handler(({ input }) => streamHandler.script(input)),
+    .handler(({ context, input }) => streamHandler.script({ context, input })),
 }

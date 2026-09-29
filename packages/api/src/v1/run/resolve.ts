@@ -7,6 +7,7 @@ import {
 import { playbooks } from "@playbook-runner/db/schema/playbooks"
 import { scripts } from "@playbook-runner/db/schema/scripts"
 import { eq, inArray } from "drizzle-orm"
+import { decryptSecret } from "#v1/credentials/crypto"
 
 export type RunInventorySelection = {
   id: string
@@ -45,125 +46,118 @@ function cidrToAddress(value: string): string {
   return slash === -1 ? value : value.slice(0, slash)
 }
 
-export const runHandler = {
-  resolveRun: async (
-    playbookId: string,
-    inventory: RunInventorySelection[]
-  ): Promise<ResolvedRunBundle> => {
-    const playbook = await db
-      .select({
-        id: playbooks.id,
-        name: playbooks.name,
-        content: playbooks.content,
-      })
-      .from(playbooks)
-      .where(eq(playbooks.id, playbookId))
-      .then((rows) => rows[0] ?? null)
+export async function resolveRun(
+  playbookId: string,
+  inventory: RunInventorySelection[]
+): Promise<ResolvedRunBundle> {
+  const playbook = await db
+    .select({
+      id: playbooks.id,
+      name: playbooks.name,
+      content: playbooks.content,
+    })
+    .from(playbooks)
+    .where(eq(playbooks.id, playbookId))
+    .then((rows) => rows[0] ?? null)
 
-    if (!playbook) {
-      throw new ResolveRunNotFoundError(`Playbook ${playbookId} not found`)
-    }
+  if (!playbook) {
+    throw new ResolveRunNotFoundError(`Playbook ${playbookId} not found`)
+  }
 
-    const hosts = await resolveHosts(inventory)
+  const hosts = await resolveHosts(inventory)
 
-    return {
-      playbook: { name: playbook.name, content: playbook.content },
-      hosts,
-    }
-  },
+  return {
+    playbook: { name: playbook.name, content: playbook.content },
+    hosts,
+  }
+}
 
-  /**
-   * Resolve an inventory selection (devices + groups) into a de-duplicated
-   * list of hosts with credentials. Shared between `resolveRun` (which combines
-   * it with a playbook) and the playbook-less `resolveHosts` oRPC procedure.
-   */
-  resolveHosts,
+/**
+ * Resolve a stored script + inventory selection into an executable bundle.
+ * Mirrors `resolveRun` but the playbook slot is replaced by the script.
+ */
+export async function resolveScript(
+  scriptId: string,
+  inventory: RunInventorySelection[]
+): Promise<ResolvedScriptBundle> {
+  const script = await db
+    .select({
+      id: scripts.id,
+      name: scripts.name,
+      content: scripts.content,
+      language: scripts.language,
+    })
+    .from(scripts)
+    .where(eq(scripts.id, scriptId))
+    .then((rows) => rows[0] ?? null)
 
-  /**
-   * Resolve a stored script + inventory selection into an executable bundle.
-   * Mirrors `resolveRun` but the playbook slot is replaced by the script.
-   */
-  resolveScript: async (
-    scriptId: string,
-    inventory: RunInventorySelection[]
-  ): Promise<ResolvedScriptBundle> => {
-    const script = await db
-      .select({
-        id: scripts.id,
-        name: scripts.name,
-        content: scripts.content,
-        language: scripts.language,
-      })
-      .from(scripts)
-      .where(eq(scripts.id, scriptId))
-      .then((rows) => rows[0] ?? null)
+  if (!script) {
+    throw new ResolveRunNotFoundError(`Script ${scriptId} not found`)
+  }
 
-    if (!script) {
-      throw new ResolveRunNotFoundError(`Script ${scriptId} not found`)
-    }
+  const hosts = await resolveHosts(inventory)
 
-    const hosts = await resolveHosts(inventory)
+  return {
+    script: {
+      name: script.name,
+      content: script.content,
+      language: script.language ?? "bash",
+    },
+    hosts,
+  }
+}
 
-    return {
-      script: {
-        name: script.name,
-        content: script.content,
-        language: script.language ?? "bash",
-      },
-      hosts,
-    }
-  },
+/**
+ * Resolve a single device's connection details for diagnostic-style runs
+ * (ping, ad-hoc tasks) that don't go through a stored playbook. Returns
+ * the same host shape as `resolveRun` but for exactly one device.
+ */
+export async function resolveDevice(
+  deviceId: string
+): Promise<ResolvedRunHost> {
+  const rows = await db
+    .select({
+      deviceId: inventoryDevices.id,
+      deviceName: inventoryDevices.name,
+      ipAddress: inventoryDevices.ipAddress,
+      portSSH: inventoryDevices.portSSH,
+      credentialId: inventoryDevices.credentialId,
+      username: credentials.username,
+      privateKey: credentials.privateKey,
+    })
+    .from(inventoryDevices)
+    .leftJoin(credentials, eq(credentials.id, inventoryDevices.credentialId))
+    .where(eq(inventoryDevices.id, deviceId))
+    .then((rows) => rows[0] ?? null)
 
-  /**
-   * Resolve a single device's connection details for diagnostic-style runs
-   * (ping, ad-hoc tasks) that don't go through a stored playbook. Returns
-   * the same host shape as `resolveRun` but for exactly one device.
-   */
-  resolveDevice: async (deviceId: string): Promise<ResolvedRunHost> => {
-    const rows = await db
-      .select({
-        deviceId: inventoryDevices.id,
-        deviceName: inventoryDevices.name,
-        ipAddress: inventoryDevices.ipAddress,
-        portSSH: inventoryDevices.portSSH,
-        credentialId: inventoryDevices.credentialId,
-        username: credentials.username,
-        privateKey: credentials.privateKey,
-      })
-      .from(inventoryDevices)
-      .leftJoin(credentials, eq(credentials.id, inventoryDevices.credentialId))
-      .where(eq(inventoryDevices.id, deviceId))
-      .then((rows) => rows[0] ?? null)
+  if (!rows) {
+    throw new ResolveRunNotFoundError(`Device ${deviceId} not found`)
+  }
 
-    if (!rows) {
-      throw new ResolveRunNotFoundError(`Device ${deviceId} not found`)
-    }
+  if (!rows.credentialId || !rows.username || !rows.privateKey) {
+    throw new ResolveRunCredentiallessError(
+      `Device "${rows.deviceName}" has no credential associated`
+    )
+  }
 
-    if (!rows.credentialId || !rows.username || !rows.privateKey) {
-      throw new ResolveRunCredentiallessError(
-        `Device "${rows.deviceName}" has no credential associated`
-      )
-    }
-
-    return {
-      name: rows.deviceName,
-      address: cidrToAddress(rows.ipAddress),
-      port: rows.portSSH ?? undefined,
-      username: rows.username,
-      privateKey: rows.privateKey,
-      connection: "ssh" as const,
-    }
-  },
+  return {
+    name: rows.deviceName,
+    address: cidrToAddress(rows.ipAddress),
+    port: rows.portSSH ?? undefined,
+    username: rows.username,
+    privateKey: decryptSecret(rows.privateKey),
+    connection: "ssh" as const,
+  }
 }
 
 /**
  * Resolve an inventory selection into a de-duplicated list of hosts with
  * credentials. Expands group entries to their member devices, joins the
  * device's credential, and fails fast on missing credentials or unknown
- * device ids. Shared between `resolveRun` (which adds a playbook on top) and
- * the playbook-less `run.resolveHosts` oRPC procedure.
+ * device ids. Used by `resolveRun`/`resolveScript` and directly by ad-hoc
+ * command runs.
  */
-async function resolveHosts(
+export async function resolveHosts(
   inventory: RunInventorySelection[]
 ): Promise<ResolvedRunHost[]> {
   const directDeviceIds = inventory
@@ -229,7 +223,7 @@ async function resolveHosts(
       address: cidrToAddress(r.ipAddress),
       port: r.portSSH ?? undefined,
       username: r.username,
-      privateKey: r.privateKey,
+      privateKey: decryptSecret(r.privateKey),
       connection: "ssh" as const,
     }
   })
