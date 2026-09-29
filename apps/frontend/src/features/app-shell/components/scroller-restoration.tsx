@@ -42,7 +42,6 @@ export function ScrollerRestoration({ initialPath }: { initialPath: string }) {
 
   // Recreated on every real navigation so the hook re-binds to the swapped
   // scroller; the key reads the live URL at each save.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname and pageLoad mark navigations
   const resolveKey = useCallback(
     () => `app-inset:${window.location.pathname}${window.location.search}`,
     [pathname, pageLoad]

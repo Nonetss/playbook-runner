@@ -62,7 +62,6 @@ function GroupDetailFrame({ children }: { children: ReactNode }) {
     <DetailFrame
       backHref="/inventory/groups"
       backLabel={t("group.back_to_groups")}
-      maxWidth="3xl"
     >
       {children}
     </DetailFrame>

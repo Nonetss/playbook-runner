@@ -1,20 +1,17 @@
 import { useQueryClient } from "@tanstack/react-query"
 import type { Session, User } from "better-auth"
-import { getIcon } from "@/lib/icon-registry"
-
-const ChevronDown = getIcon("controls", "expand")
-
-import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { StatusDot } from "@/components/shared/data-display/status-dot"
 import { AppLink } from "@/components/ui/app-link"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu"
 import { AppLogo } from "@/features/app-shell/components/app-logo"
 import { LanguageSwitcher } from "@/features/app-shell/components/language-switcher"
 import { NavbarMobileMenu } from "@/features/app-shell/components/navbar-mobile-menu"
@@ -25,6 +22,7 @@ import {
   isNavItemActive,
   isNavLinkActive,
   type SiteNavItem,
+  type SiteNavSubItem,
   siteNavItems,
 } from "@/features/app-shell/site-nav"
 import { useCurrentPath } from "@/hooks/use-current-path"
@@ -81,96 +79,46 @@ function prefetchForHref(
   }
 }
 
-function NavDropdown({
+const menuRow =
+  "flex min-h-10 flex-row items-center gap-2.5 rounded-md px-2.5 py-2 text-foreground/80 outline-none transition-colors hover:bg-muted/60 hover:text-foreground focus:bg-muted/60 focus:text-foreground data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+
+function MenuRow({
   item,
-  currentPath,
+  active,
   onIntent,
 }: {
-  item: SiteNavItem
-  currentPath: string
+  item: SiteNavSubItem
+  active: boolean
   onIntent: (href: string) => () => void
 }) {
   const { t } = useTranslation("nav")
-  const [open, setOpen] = useState(false)
-  const active = isNavItemActive(item, currentPath)
-
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          aria-current={active ? "page" : undefined}
-          className={cn(pillBase, active ? pillActive : pillInactive)}
-          onMouseEnter={onIntent(item.href)}
-          onFocus={onIntent(item.href)}
-        >
-          {t(item.labelKey)}
-          {active ? <StatusDot tone="primary" /> : null}
-          <ChevronDown
-            aria-hidden
-            className={cn(
-              "size-3 opacity-60 transition-transform",
-              open && "rotate-180"
-            )}
-          />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="center"
-        sideOffset={8}
-        className="min-w-64 rounded-lg p-1"
+    <NavigationMenuLink asChild active={active} className={menuRow}>
+      <AppLink
+        href={item.href}
+        aria-current={active ? "page" : undefined}
+        onMouseEnter={onIntent(item.href)}
+        onFocus={onIntent(item.href)}
       >
-        <DropdownMenuItem asChild>
-          <AppLink
-            href={item.href}
-            onMouseEnter={onIntent(item.href)}
-            onFocus={onIntent(item.href)}
-            className="flex min-h-11 items-center gap-2.5 rounded-lg bg-muted/40 px-2.5 py-2 text-foreground outline-none transition-colors hover:bg-muted/60 focus-visible:bg-muted/60"
-          >
-            <item.icon aria-hidden className="size-3.5 shrink-0 text-primary" />
-            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <span className="text-xs font-medium leading-tight">
-                {t(item.labelKey)}
-              </span>
-              <span className="line-clamp-2 text-xs leading-snug text-muted-foreground">
-                {t(item.descriptionKey)}
-              </span>
-            </span>
-          </AppLink>
-        </DropdownMenuItem>
-        <div className="my-1 border-t" />
-        {item.subItems?.map((subItem) => (
-          <DropdownMenuItem key={subItem.href} asChild>
-            <AppLink
-              href={subItem.href}
-              aria-current={
-                isNavLinkActive(subItem.href, currentPath) ? "page" : undefined
-              }
-              onMouseEnter={onIntent(subItem.href)}
-              onFocus={onIntent(subItem.href)}
-              className="flex min-h-10 items-center gap-2.5 rounded-md px-2.5 py-2 text-foreground/80 outline-none transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:bg-muted/60 focus-visible:text-foreground aria-[current=page]:bg-muted/60 aria-[current=page]:text-foreground"
-            >
-              <subItem.icon
-                aria-hidden
-                className="size-3.5 shrink-0 text-primary"
-              />
-              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="text-xs font-medium leading-tight">
-                  {t(subItem.labelKey)}
-                </span>
-                <span className="line-clamp-2 text-xs leading-snug text-muted-foreground">
-                  {t(subItem.descriptionKey)}
-                </span>
-              </span>
-            </AppLink>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+        <item.icon aria-hidden className="size-3.5 shrink-0 text-primary" />
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="text-xs font-medium leading-tight">
+            {t(item.labelKey)}
+          </span>
+          <span className="line-clamp-2 text-xs leading-snug text-muted-foreground">
+            {t(item.descriptionKey)}
+          </span>
+        </span>
+      </AppLink>
+    </NavigationMenuLink>
   )
 }
 
-function NavPill({
+/**
+ * A navigation section: its trigger opens on hover or focus (Radix
+ * `NavigationMenu`), listing the section hub followed by its sub-routes.
+ */
+function NavSection({
   item,
   currentPath,
   onIntent,
@@ -180,96 +128,60 @@ function NavPill({
   onIntent: (href: string) => () => void
 }) {
   const { t } = useTranslation("nav")
-  if (item.subItems?.length) {
+  const active = isNavItemActive(item, currentPath)
+
+  if (!item.subItems?.length) {
     return (
-      <NavDropdown item={item} currentPath={currentPath} onIntent={onIntent} />
+      <NavigationMenuItem>
+        <NavigationMenuLink asChild active={active}>
+          <AppLink
+            href={item.href}
+            aria-current={active ? "page" : undefined}
+            className={cn(pillBase, active ? pillActive : pillInactive)}
+            onMouseEnter={onIntent(item.href)}
+            onFocus={onIntent(item.href)}
+          >
+            {t(item.labelKey)}
+            {active ? <StatusDot tone="primary" /> : null}
+          </AppLink>
+        </NavigationMenuLink>
+      </NavigationMenuItem>
     )
   }
 
-  const active = isNavItemActive(item, currentPath)
   return (
-    <AppLink
-      href={item.href}
-      aria-current={active ? "page" : undefined}
-      className={cn(pillBase, active ? pillActive : pillInactive)}
-      onMouseEnter={onIntent(item.href)}
-      onFocus={onIntent(item.href)}
-    >
-      {t(item.labelKey)}
-      {active ? <StatusDot tone="primary" /> : null}
-    </AppLink>
-  )
-}
-
-function OverflowMenu({
-  items,
-  currentPath,
-  onIntent,
-}: {
-  items: SiteNavItem[]
-  currentPath: string
-  onIntent: (href: string) => () => void
-}) {
-  const { t } = useTranslation("nav")
-  const [open, setOpen] = useState(false)
-  const active = items.some((item) => isNavItemActive(item, currentPath))
-  if (!items.length) return null
-
-  return (
-    <li className="hidden lg:block xl:hidden">
-      <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            aria-label={t("actions.more")}
-            aria-current={active ? "page" : undefined}
-            className={cn(pillBase, active ? pillActive : pillInactive)}
-          >
-            {t("actions.more")}
-            {active ? <StatusDot tone="primary" /> : null}
-            <ChevronDown
-              aria-hidden
-              className={cn(
-                "size-3 opacity-60 transition-transform",
-                open && "rotate-180"
-              )}
-            />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="center"
-          sideOffset={8}
-          className="min-w-64 rounded-lg p-1"
-        >
-          {items.map((item) => (
-            <DropdownMenuItem key={item.href} asChild>
-              <AppLink
-                href={item.href}
-                aria-current={
-                  isNavItemActive(item, currentPath) ? "page" : undefined
-                }
-                onMouseEnter={onIntent(item.href)}
-                onFocus={onIntent(item.href)}
-                className="flex min-h-10 items-center gap-2.5 rounded-md px-2.5 py-2 text-foreground/80 outline-none transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:bg-muted/60 focus-visible:text-foreground aria-[current=page]:bg-muted/60 aria-[current=page]:text-foreground"
-              >
-                <item.icon
-                  aria-hidden
-                  className="size-3.5 shrink-0 text-primary"
-                />
-                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="text-xs font-medium leading-tight">
-                    {t(item.labelKey)}
-                  </span>
-                  <span className="line-clamp-2 text-xs leading-snug text-muted-foreground">
-                    {t(item.descriptionKey)}
-                  </span>
-                </span>
-              </AppLink>
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </li>
+    <NavigationMenuItem>
+      <NavigationMenuTrigger
+        aria-current={active ? "page" : undefined}
+        className={cn(
+          pillBase,
+          "h-auto bg-transparent focus:bg-transparent data-[state=open]:bg-muted/40 data-[state=open]:hover:bg-muted/40 data-[state=open]:focus:bg-muted/40",
+          active ? pillActive : pillInactive,
+          active && "data-[state=open]:bg-primary/10"
+        )}
+        onMouseEnter={onIntent(item.href)}
+        onFocus={onIntent(item.href)}
+      >
+        {t(item.labelKey)}
+        {active ? <StatusDot tone="primary" /> : null}
+      </NavigationMenuTrigger>
+      <NavigationMenuContent className="left-1/2 min-w-64 -translate-x-1/2 p-1">
+        <MenuRow
+          item={item}
+          active={currentPath === item.href}
+          onIntent={onIntent}
+        />
+        <div className="my-1 border-t" />
+        {item.subItems.map((subItem) => (
+          <MenuRow
+            key={subItem.href}
+            item={subItem}
+            active={isNavLinkActive(subItem.href, currentPath)}
+            onIntent={onIntent}
+          />
+        ))}
+      </NavigationMenuContent>
+    </NavigationMenuItem>
   )
 }
 
@@ -282,7 +194,6 @@ function NavbarAuthenticatedInner({
   const currentPath = useCurrentPath(initialPath)
   const queryClient = useQueryClient()
   const scrolled = useScrolled()
-  const overflowItems = siteNavItems.filter((item) => !item.primary)
   const onIntent = (href: string) => () => prefetchForHref(queryClient, href)
 
   return (
@@ -305,25 +216,18 @@ function NavbarAuthenticatedInner({
         </AppLink>
 
         <div className="hidden flex-1 justify-center lg:flex">
-          <ul className="flex items-center gap-1">
-            {siteNavItems.map((item) => (
-              <li
-                key={item.href}
-                className={item.primary ? undefined : "hidden xl:block"}
-              >
-                <NavPill
+          <NavigationMenu viewport={false}>
+            <NavigationMenuList className="gap-1">
+              {siteNavItems.map((item) => (
+                <NavSection
+                  key={item.href}
                   item={item}
                   currentPath={currentPath}
                   onIntent={onIntent}
                 />
-              </li>
-            ))}
-            <OverflowMenu
-              items={overflowItems}
-              currentPath={currentPath}
-              onIntent={onIntent}
-            />
-          </ul>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:hidden">

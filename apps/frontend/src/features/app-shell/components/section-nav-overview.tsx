@@ -8,7 +8,7 @@ import { appSections, type SectionId } from "@/lib/app-surfaces"
 export function SectionNavOverview({ section }: { section: SectionId }) {
   return (
     <AppProviders>
-      <PageShell maxWidth="80%">
+      <PageShell>
         <PageHero surface={section} />
         <SurfaceCardGrid surfaces={appSections[section]} />
       </PageShell>

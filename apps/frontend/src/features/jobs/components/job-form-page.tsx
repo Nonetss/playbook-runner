@@ -109,11 +109,7 @@ function JobFormPageInner({ id }: JobFormPageProps) {
 function JobFormFrame({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation("jobs")
   return (
-    <DetailFrame
-      backHref="/jobs/scheduler"
-      backLabel={t("form.back_to_jobs")}
-      maxWidth="3xl"
-    >
+    <DetailFrame backHref="/jobs/scheduler" backLabel={t("form.back_to_jobs")}>
       {children}
     </DetailFrame>
   )
