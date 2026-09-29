@@ -26,18 +26,9 @@ import {
   useJobUpdate,
 } from "@/features/jobs/hooks/use-jobs"
 import type { InventoryItem, Job } from "@/features/jobs/types"
-import { usePlaybooksList } from "@/features/playbooks/hooks/use-playbooks"
+import { PlaybookPicker } from "@/features/playbooks/components/playbook-picker"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { navigate } from "@/lib/navigate"
-import { cn } from "@/lib/utils"
-
-const NATIVE_SELECT_CLASS = cn(
-  "border-input bg-transparent shadow-xs dark:bg-input/30",
-  "focus-visible:border-ring focus-visible:ring-ring/50",
-  "flex h-9 w-full min-w-0 appearance-none rounded-md border px-3 py-2 text-sm",
-  "outline-none focus-visible:ring-[3px]",
-  "disabled:cursor-not-allowed disabled:opacity-50"
-)
 
 type ExtravarRow = { key: string; value: string }
 
@@ -139,18 +130,23 @@ function FormSection({
   aside,
   children,
 }: {
-  title: string
+  /** Omitted when the only field's own label already names the section. */
+  title?: string
   aside?: React.ReactNode
   children: React.ReactNode
 }) {
   return (
     <section className="space-y-4">
-      <div className="flex min-h-7 items-center justify-between gap-3">
-        <Text as="h2" variant="label" tone="muted">
-          {title}
-        </Text>
-        {aside}
-      </div>
+      {title || aside ? (
+        <div className="flex min-h-7 items-center justify-between gap-3">
+          {title ? (
+            <Text as="h2" variant="label" tone="muted">
+              {title}
+            </Text>
+          ) : null}
+          {aside}
+        </div>
+      ) : null}
       {children}
     </section>
   )
@@ -163,7 +159,6 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
   const createJob = useJobCreate()
   const updateJob = useJobUpdate()
 
-  const { data: playbooks = [] } = usePlaybooksList()
   const { data: groups = [] } = useGroupsList()
   const { data: devices = [] } = useDevicesList()
 
@@ -308,30 +303,15 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
           </div>
         </FormSection>
 
-        <FormSection title={t("form.playbook_section")}>
+        <FormSection>
           <FormField label={t("form.playbook_label")} htmlFor="job-playbook">
-            {/*
-              Native <select> on purpose: Radix Select mounts a hidden form
-              control that emits spurious change/"" events inside <form>, which
-              wiped playbookId (and interacted badly with controlled fields)
-              when hydrating an existing job.
-            */}
-            <select
+            <PlaybookPicker
               id="job-playbook"
-              disabled={isSubmitting}
               value={values.playbookId}
-              onChange={(e) => set("playbookId", e.target.value)}
-              className={NATIVE_SELECT_CLASS}
-            >
-              <option value="">{t("form.playbook_placeholder")}</option>
-              {playbooks
-                .filter((p) => !p.missing || p.id === values.playbookId)
-                .map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-            </select>
+              onChange={(playbookId) => set("playbookId", playbookId)}
+              disabled={isSubmitting}
+              placeholder={t("form.playbook_placeholder")}
+            />
           </FormField>
         </FormSection>
 

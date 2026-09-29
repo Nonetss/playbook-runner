@@ -56,7 +56,6 @@
     "active": "Job active",
     "inactive": "Job disabled",
     "enabled_hint": "When disabled, the cron schedule will not trigger automatic runs.",
-    "playbook_section": "PLAYBOOK",
     "playbook_label": "Playbook to run",
     "playbook_placeholder": "No playbook selected",
     "inventory_section": "INVENTORY",

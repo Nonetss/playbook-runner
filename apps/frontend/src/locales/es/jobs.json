@@ -56,7 +56,6 @@
     "active": "Job activo",
     "inactive": "Job desactivado",
     "enabled_hint": "Si está desactivado, el cron no dispara ejecuciones automáticas.",
-    "playbook_section": "PLAYBOOK",
     "playbook_label": "Playbook a ejecutar",
     "playbook_placeholder": "Sin playbook seleccionado",
     "inventory_section": "INVENTARIO",
