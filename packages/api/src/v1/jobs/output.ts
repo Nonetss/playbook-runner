@@ -34,6 +34,8 @@ const jobRun = z.object({
   // (still in flight, or it failed before Ansible reported).
   hostsOk: z.number().int().nullable(),
   hostsFailed: z.number().int().nullable(),
+  // Commit a Git-sourced playbook ran at; null for inline playbooks.
+  commitSha: z.string().nullable(),
   startedAt: z.coerce.date().nullable(),
   finishedAt: z.coerce.date().nullable(),
   createdAt: z.coerce.date().nullable(),

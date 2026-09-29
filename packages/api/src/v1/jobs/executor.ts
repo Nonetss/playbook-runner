@@ -23,6 +23,8 @@ type RunOutcome = {
   events: RunEventRecord[]
   ok: boolean
   error: string | null
+  /** Commit a Git-sourced playbook ran at. */
+  commitSha?: string
 }
 
 /** The per-host recap Ansible emits once at the end of a play. */
@@ -152,10 +154,15 @@ async function streamRun(
       : err instanceof Error
         ? err.message
         : "Error en la ejecución"
-    return { events, ok: false, error: detail }
+    return { events, ok: false, error: detail, commitSha: bundle.commitSha }
   }
 
-  return { events, ok: error ? false : ok, error }
+  return {
+    events,
+    ok: error ? false : ok,
+    error,
+    commitSha: bundle.commitSha,
+  }
 }
 
 /**
@@ -193,6 +200,7 @@ async function completeRun(
         error: outcome.error,
         hostsOk,
         hostsFailed,
+        commitSha: outcome.commitSha ?? null,
         finishedAt: new Date(),
       })
       .where(eq(jobRuns.id, runId))

@@ -14,6 +14,7 @@ import { RUN_TIMEOUT_MS, toEventIterator, toProtoHost } from "#v1/run/proto"
 import {
   ResolveRunCredentiallessError,
   ResolveRunNotFoundError,
+  ResolveRunPreconditionError,
   ResolveRunValidationError,
   resolveDevice,
   resolveHosts,
@@ -38,7 +39,10 @@ function toResolveError(err: unknown): never {
   if (err instanceof ResolveRunValidationError) {
     throw errors.BAD_REQUEST({ message: err.message })
   }
-  if (err instanceof ResolveRunCredentiallessError) {
+  if (
+    err instanceof ResolveRunCredentiallessError ||
+    err instanceof ResolveRunPreconditionError
+  ) {
     throw errors.PRECONDITION_FAILED({ message: err.message })
   }
   throw err

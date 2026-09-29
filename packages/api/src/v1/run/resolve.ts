@@ -4,6 +4,7 @@ import {
   inventoryDeviceGroups,
   inventoryDevices,
 } from "@playbook-runner/db/schema/inventory"
+import { playbookRepositories } from "@playbook-runner/db/schema/playbook-repositories"
 import { playbooks } from "@playbook-runner/db/schema/playbooks"
 import { scripts } from "@playbook-runner/db/schema/scripts"
 import { eq, inArray } from "drizzle-orm"
@@ -23,9 +24,19 @@ export type ResolvedRunHost = {
   connection: "ssh"
 }
 
+export type ResolvedGitSource = {
+  repository_id: string
+  url: string
+  commit: string
+  path: string
+  private_key?: string
+}
+
 export type ResolvedRunBundle = {
-  playbook: { name: string; content: string }
+  playbook: { name: string; content: string; git?: ResolvedGitSource }
   hosts: ResolvedRunHost[]
+  /** Commit a Git-sourced playbook runs at; undefined for inline playbooks. */
+  commitSha?: string
 }
 
 export type ResolvedScriptBundle = {
@@ -55,6 +66,10 @@ export async function resolveRun(
       id: playbooks.id,
       name: playbooks.name,
       content: playbooks.content,
+      source: playbooks.source,
+      path: playbooks.path,
+      missing: playbooks.missing,
+      repositoryId: playbooks.repositoryId,
     })
     .from(playbooks)
     .where(eq(playbooks.id, playbookId))
@@ -64,11 +79,70 @@ export async function resolveRun(
     throw new ResolveRunNotFoundError(`Playbook ${playbookId} not found`)
   }
 
+  const git =
+    playbook.source === "git" ? await resolveGitSource(playbook) : undefined
+
   const hosts = await resolveHosts(inventory)
 
   return {
-    playbook: { name: playbook.name, content: playbook.content },
+    playbook: { name: playbook.name, content: playbook.content, git },
     hosts,
+    commitSha: git?.commit,
+  }
+}
+
+/**
+ * Pin a Git-sourced playbook to its repository's last synced commit, so the
+ * run executes exactly what the UI shows. The deploy key (if any) is only
+ * decrypted here, like host keys.
+ */
+async function resolveGitSource(playbook: {
+  name: string
+  path: string | null
+  missing: boolean
+  repositoryId: string | null
+}): Promise<ResolvedGitSource> {
+  if (playbook.missing) {
+    throw new ResolveRunPreconditionError(
+      `Playbook "${playbook.name}" no longer exists in its repository`
+    )
+  }
+  const repository = playbook.repositoryId
+    ? await db
+        .select({
+          id: playbookRepositories.id,
+          url: playbookRepositories.url,
+          lastCommitSha: playbookRepositories.lastCommitSha,
+          privateKey: credentials.privateKey,
+        })
+        .from(playbookRepositories)
+        .leftJoin(
+          credentials,
+          eq(credentials.id, playbookRepositories.credentialId)
+        )
+        .where(eq(playbookRepositories.id, playbook.repositoryId))
+        .then((rows) => rows[0] ?? null)
+    : null
+
+  if (!repository || !playbook.path) {
+    throw new ResolveRunNotFoundError(
+      `Repository of playbook "${playbook.name}" not found`
+    )
+  }
+  if (!repository.lastCommitSha) {
+    throw new ResolveRunPreconditionError(
+      `Repository of playbook "${playbook.name}" has not been synced`
+    )
+  }
+
+  return {
+    repository_id: repository.id,
+    url: repository.url,
+    commit: repository.lastCommitSha,
+    path: playbook.path,
+    private_key: repository.privateKey
+      ? decryptSecret(repository.privateKey)
+      : undefined,
   }
 }
 
@@ -255,5 +329,12 @@ export class ResolveRunCredentiallessError extends Error {
   constructor(message: string) {
     super(message)
     this.name = "ResolveRunCredentiallessError"
+  }
+}
+
+export class ResolveRunPreconditionError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "ResolveRunPreconditionError"
   }
 }
