@@ -15,6 +15,8 @@ service RunnerService {
   // Fetch a Git repository into the runner's mirror cache and report the
   // branch head plus the playbook files discovered at that commit.
   rpc SyncRepository(SyncRepositoryRequest) returns (SyncRepositoryResponse);
+  // List the branches of a remote (no mirror involved), to pick one in the UI.
+  rpc ListBranches(ListBranchesRequest) returns (ListBranchesResponse);
   // Drop a repository's mirror cache (the repository was deleted).
   rpc DeleteRepository(DeleteRepositoryRequest) returns (DeleteRepositoryResponse);
 }
@@ -92,6 +94,16 @@ message PlaybookFile {
 message SyncRepositoryResponse {
   string commit = 1;
   repeated PlaybookFile playbooks = 2;
+}
+
+message ListBranchesRequest {
+  string url = 1;
+  optional string private_key = 2;
+}
+
+message ListBranchesResponse {
+  repeated string branches = 1;
+  string default_branch = 2; // "" when the remote HEAD is unknown
 }
 
 message DeleteRepositoryRequest {

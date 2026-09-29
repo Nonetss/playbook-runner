@@ -19,6 +19,7 @@ from app.core.config import settings
 from app.grpc.stubs import (
     DeleteRepositoryResponse,
     Done,
+    ListBranchesResponse,
     PlaybookFile,
     RunBundleResponse,
     RunCommandResponse,
@@ -304,6 +305,19 @@ class RunnerServicer(RunnerServiceServicer):
             commit=commit,
             playbooks=[PlaybookFile(path=p.path, content=p.content) for p in found],
         )
+
+    async def ListBranches(self, request, context):
+        """Ramas de un remoto (``git ls-remote``) para elegir una en el formulario."""
+        logger.bind(peer=context.peer()).info("ListBranches recibido")
+        try:
+            branches, default = await asyncio.to_thread(
+                mirror.list_branches,
+                request.url,
+                request.private_key if request.HasField("private_key") else None,
+            )
+        except GitError as exc:
+            await context.abort(_GIT_STATUS[exc.kind], str(exc))
+        return ListBranchesResponse(branches=branches, default_branch=default)
 
     async def DeleteRepository(self, request, context):
         """Borra el mirror de un repositorio eliminado en el backend."""

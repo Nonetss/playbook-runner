@@ -136,7 +136,11 @@ def _git_env(private_key: str | None) -> Iterator[dict[str, str]]:
 
 
 def _git(
-    args: list[str], *, env: dict[str, str] | None = None, git_dir: Path | None = None
+    args: list[str],
+    *,
+    env: dict[str, str] | None = None,
+    git_dir: Path | None = None,
+    timeout: float | None = None,
 ) -> bytes:
     cmd = ["git"]
     if git_dir is not None:
@@ -147,7 +151,7 @@ def _git(
             cmd,
             env=env,
             capture_output=True,
-            timeout=settings.git_timeout_s,
+            timeout=timeout or settings.git_timeout_s,
             check=False,
         )
     except subprocess.TimeoutExpired as exc:
@@ -156,6 +160,35 @@ def _git(
         stderr = result.stderr.decode("utf-8", "replace").strip()
         raise GitError(_classify(stderr), stderr or f"git {args[0]} failed")
     return result.stdout
+
+
+# Listing branches backs a form field: fail fast instead of the sync timeout.
+_LIST_BRANCHES_TIMEOUT_S = 20
+_MAX_BRANCHES = 1000
+
+
+def list_branches(url: str, private_key: str | None) -> tuple[list[str], str]:
+    """Ramas remotas y rama por defecto (``HEAD``) de ``url`` (bloqueante).
+
+    Usa ``git ls-remote``: no crea mirror ni descarga objetos.
+    """
+    validate_url(url)
+    with _git_env(private_key) as env:
+        out = _git(
+            ["ls-remote", "--symref", url, "HEAD", "refs/heads/*"],
+            env=env,
+            timeout=_LIST_BRANCHES_TIMEOUT_S,
+        )
+    branches: list[str] = []
+    default = ""
+    for line in out.decode("utf-8", "replace").splitlines():
+        target, _, ref = line.partition("\t")
+        if target.startswith("ref: refs/heads/") and ref == "HEAD":
+            default = target.removeprefix("ref: refs/heads/")
+        elif ref.startswith("refs/heads/"):
+            branches.append(ref.removeprefix("refs/heads/"))
+    branches.sort()
+    return branches[:_MAX_BRANCHES], default
 
 
 def _classify(stderr: str) -> GitErrorKind:
