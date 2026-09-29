@@ -45,5 +45,7 @@ export const repositoriesInput = {
   update: repository.extend({ id: idSchema }),
   delete: byId,
   sync: byId,
+  // Branches of a remote before (or without) saving it as a repository.
+  branches: z.object({ url, credentialId: idSchema.nullish() }),
   playbooks: byId,
 }

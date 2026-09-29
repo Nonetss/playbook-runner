@@ -7,7 +7,11 @@ import type { z } from "zod"
 import type { Context } from "#context"
 import { errors } from "#errors"
 import type { repositoriesInput } from "#v1/repositories/input"
-import { deleteRepositoryMirror, syncRepository } from "#v1/repositories/sync"
+import {
+  deleteRepositoryMirror,
+  listRemoteBranches,
+  syncRepository,
+} from "#v1/repositories/sync"
 
 type Input = typeof repositoriesInput
 
@@ -103,6 +107,13 @@ export const repositoriesHandler = {
     context: Context
     input: z.infer<Input["sync"]>
   }) => syncRepository(input.id),
+
+  branches: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<Input["branches"]>
+  }) => listRemoteBranches(input.url, input.credentialId),
 
   playbooks: async ({
     context,

@@ -90,6 +90,20 @@ export const repositoriesRouter = {
       repositoriesHandler.sync({ context, input })
     ),
 
+  branches: protectedProcedure
+    .route({
+      summary: "List a remote's branches",
+      description:
+        "Lists the branches of a Git URL (optionally with an SSH credential) and its default branch, without saving anything. BAD_REQUEST for authentication or URL errors, BAD_GATEWAY when the Git host or runner is unreachable.",
+      tags: ["Repositories"],
+      method: "GET",
+    })
+    .input(repositoriesInput.branches)
+    .output(repositoriesOutput.branches)
+    .handler(({ context, input }) =>
+      repositoriesHandler.branches({ context, input })
+    ),
+
   playbooks: protectedProcedure
     .route({
       summary: "List a repository's playbooks",

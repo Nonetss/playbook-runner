@@ -162,6 +162,48 @@ export async function syncRepository(repositoryId: string) {
   })
 }
 
+/** Decrypted private key of a credential; BAD_REQUEST when it does not exist. */
+async function credentialKey(credentialId: string | null | undefined) {
+  if (!credentialId) return undefined
+  const row = await db
+    .select({ privateKey: credentials.privateKey })
+    .from(credentials)
+    .where(eq(credentials.id, credentialId))
+    .then((rows) => rows[0] ?? null)
+  if (!row) throw errors.BAD_REQUEST({ message: "Credential not found" })
+  return decryptSecret(row.privateKey)
+}
+
+/**
+ * List a remote's branches through the ansible service (`git ls-remote`, no
+ * mirror), so the repository form can offer them before anything is saved.
+ */
+export async function listRemoteBranches(
+  url: string,
+  credentialId: string | null | undefined
+) {
+  const privateKey = await credentialKey(credentialId)
+  const client = getClient(RunnerServiceClient, env.ANSIBLE_GRPC_TARGET)
+  try {
+    const response = await unary(
+      client.listBranches.bind(client),
+      { url, private_key: privateKey },
+      { token: serviceToken(), timeoutMs: 30_000 }
+    )
+    return {
+      branches: response.branches,
+      defaultBranch: response.default_branch || null,
+    }
+  } catch (err) {
+    const message = isGrpcError(err)
+      ? err.details || "Could not list branches"
+      : err instanceof Error
+        ? err.message
+        : "Could not list branches"
+    throw toSyncError(err, message)
+  }
+}
+
 /** Best effort: the mirror is only a cache, a leftover costs disk, not data. */
 export async function deleteRepositoryMirror(repositoryId: string) {
   if (!env.SERVICE_TOKEN) return

@@ -29,6 +29,12 @@ const syncResult = z.object({
   missing: z.number().int(),
 })
 
+const branches = z.object({
+  branches: z.array(z.string()),
+  // Remote HEAD; null when the remote does not advertise it.
+  defaultBranch: z.string().nullable(),
+})
+
 export type PlaybookRepository = z.infer<typeof repository>
 export type PlaybookRepositoryWithCount = z.infer<typeof repositoryWithCount>
 export type RepositorySyncResult = z.infer<typeof syncResult>
@@ -40,5 +46,6 @@ export const repositoriesOutput = {
   update: repository,
   delete: repository,
   sync: syncResult,
+  branches,
   playbooks: playbooksOutput.list,
 }
