@@ -5,7 +5,7 @@ Monorepo `playbook-runner` (Astro + Hono + oRPC + Better Auth + Drizzle/PostgreS
 ## Workspaces & entrypoints
 
 - `apps/frontend` — Astro 7 SSR (`@astrojs/node` standalone), React, Tailwind v4 via Vite plugin, shadcn/ui (new-york, neutral, lucide icons). Runs on `:4321` (Astro); Caddy fronts `:80` in Docker.
-- `apps/backend` — Hono 4 + oRPC. Runs on `:3000`. Built with `tsdown` (not tsc) → `dist/index.mjs` (plus `dist/encrypt-credentials.mjs`). `noExternal: [/.*/]` bundles workspace packages and npm deps so the production image only needs `dist/`. It is a gRPC *client* only (no gRPC server).
+- `apps/backend` — Hono 4 + oRPC. Runs on `:3000`. Built with `tsdown` (not tsc) → `dist/index.mjs` (plus `dist/encrypt-credentials.mjs`). `deps.alwaysBundle: () => true` bundles workspace packages and npm deps so the production image only needs `dist/`. It is a gRPC *client* only (no gRPC server).
 - `apps/ansible` — Python 3.12 FastAPI (`:8000`, only `GET /api/health` + docs) that starts the gRPC `RunnerService` (`:50051`) in its lifespan and runs Ansible through `ansible-runner`. Managed with `uv`; type-checked with BasedPyright, formatted/linted with Ruff. Shared Python code lives in `python/grpc-toolkit` (token interceptor).
 - `packages/api` — oRPC contract: `o`, `publicProcedure`, `protectedProcedure`, `adminProcedure`, `createContext`, `appRouter` (`packages/api/src/index.ts`, `context.ts`, `router.ts`). The root router exposes versions (`v1` today); `src/v1/router.ts` is the version-one router. Subpath exports for `"./*"`. Per-feature layering documented under "Backend API layering" below.
 - `packages/auth` — Better Auth factory (`createAuth()`), exports `auth`. Plugins: `admin()`, `apiKey({ enableSessionForAPIKeys: true })`, optional `genericOAuth`. Public email/password sign-up is disabled (`disableSignUp`): accounts are created by admins (`/admin/users`, `auth.api.createUser`) or auto-provisioned by SSO. Cookies: sameSite=lax, secure, httpOnly (frontend and backend must be same-site).
@@ -17,7 +17,7 @@ Monorepo `playbook-runner` (Astro + Hono + oRPC + Better Auth + Drizzle/PostgreS
   - `@playbook-runner/env/web` — validates `PUBLIC_SERVER_URL` (Astro client prefix).
 - `packages/config` — shared `tsconfig.base.json` (strict, noUncheckedIndexedAccess, verbatimModuleSyntax, `types: ["bun"]`).
 
-Package versions pinned via root `workspaces.catalog`. Bun 1.3.14 with `linker = "isolated"` (`bunfig.toml`).
+Package versions pinned via root `workspaces.catalog`; `better-auth`, `@better-auth/api-key`, `@better-auth/core`, `drizzle-orm`/`drizzle-kit` (`1.0.0-rc.4`), `astro`, `@astrojs/*` and Biome are exact pins, and root `overrides` force `@better-auth/core` and drizzle so transitive copies don't diverge (a caret on `1.0.0-rc.4` resolves to drizzle's branch builds such as `1.0.0-rc.5-<sha>`). Bun 1.3.14 with `linker = "isolated"` (`bunfig.toml`).
 
 ## Frontend feature structure
 
@@ -69,7 +69,7 @@ All scripts go through Turbo:
 
 - `bun run dev` — turbo watch dev (persistent). Use `dev:frontend` / `dev:backend` to scope. Shared raw-TypeScript packages have no-op build tasks so changes restart their consumers.
 - `bun run build` — `dependsOn: ["^build"]`, reads `.env*` as inputs, outputs `dist/**` and `.astro/**`.
-- `bun run check-types` — `tsc -b` per package; the frontend runs `astro check`, and the Ansible service runs BasedPyright.
+- `bun run check-types` — per package: `tsc --noEmit -p .` (api, auth, db, env) or `tsc -b` (backend, grpc, logger; all tsconfigs are `noEmit`); the frontend runs `astro check`, and the Ansible service runs BasedPyright.
 - `bun run check` — `biome check --write .` (format + lint).
 - `bun run format` — formats TypeScript with Biome and Python with Ruff.
 - `bun run db:push | db:generate | db:migrate | db:studio` — filtered to `@playbook-runner/db`.
@@ -85,7 +85,7 @@ Per-package dev: `apps/backend` runs `bun run --hot src/index.ts`; `apps/fronten
 - Ansible runner concurrency: at most `MAX_CONCURRENT_RUNS` (default 8) ansible-runner processes at once (runs, commands, scripts, pings); extra requests fail fast with gRPC `RESOURCE_EXHAUSTED`, which the backend maps to `TOO_MANY_REQUESTS`. `GRPC_SHUTDOWN_GRACE_S` (default 8) bounds how long in-flight runs get to cancel on shutdown. Closing the browser/stream cancels the gRPC call (`serverStream` cancels in `finally`) and the runner stops Ansible, kills leftover worker processes, and only then deletes the run's key files.
 - A job never runs concurrently with itself: `openRun` takes `pg_advisory_xact_lock(hashtext(jobId))` and refuses while a `running` row exists (`jobs.run` → `CONFLICT`, scheduler skips). Job `forks` and run `forks` are capped at 50; cron expressions are validated with `isValidCron` (`packages/api/src/v1/jobs/cron.ts`).
 - `DATABASE_URL` is read from **`apps/backend/.env`** — `packages/db/drizzle.config.ts` calls `dotenv.config({ path: "../../apps/backend/.env" })` explicitly. There is no `packages/db/.env`.
-- Frontend `PUBLIC_SERVER_URL` defaults to `http://localhost:3000` in `astro.config.mjs`. In Docker it's a build arg (compose sets `http://localhost:4321`).
+- Frontend `PUBLIC_SERVER_URL` defaults to `http://localhost:3000` in `astro.config.mjs`. In Docker it's an optional `PUBLIC_SERVER_URL` build arg (unset → empty).
 - `BETTER_AUTH_URL` must differ between local dev (`http://localhost:3000`) and Docker (`http://backend:3000`, set in `compose.yml`).
 - `BETTER_AUTH_SECRET` must be ≥ 32 chars. Generate with `openssl rand -base64 48`.
 - `CREDENTIALS_ENCRYPTION_KEY` (required, base64 of exactly 32 bytes, `openssl rand -base64 32`) encrypts SSH private keys at rest (AES-256-GCM, `v1:` prefix; see `packages/api/src/v1/credentials/crypto.ts`). Private keys are never returned by the API; they are decrypted only in `run/resolve.ts` when building a run. Legacy plaintext rows are re-encrypted by the user with `bun run --filter backend credentials:encrypt` (in the image: `bun dist/encrypt-credentials.mjs`, `--decrypt` to roll back) — the agent never runs it.
@@ -96,14 +96,14 @@ Per-package dev: `apps/backend` runs `bun run --hot src/index.ts`; `apps/fronten
 
 ## Lint / format
 
-Biome 2.5.1 (root `biome.json`): 2-space indent, double quotes, no semicolons, 80-col, organize imports on. One override: `**/*.svelte|astro|vue` disables `useConst`, `useImportType`, unused-vars/imports.
+Biome 2.5.1, pinned exactly (root `biome.json`): 2-space indent, double quotes, no semicolons, 80-col, organize imports on. One override: `**/*.svelte|astro|vue` disables `useConst`, `useImportType`, unused-vars/imports.
 
 No ESLint, no Prettier, no Husky.
 
 ## Docker
 
-- `compose.yml`: services `frontend` (port 4321 → container 80), `backend` (internal 3000), and `ansible` (internal 8000/50051 — add `-f compose.debug.yml` to publish 8000 on the host). `compose.prod.yml` adds `postgres` and pulls images from GHCR. Each has a healthcheck: backend hits `http://localhost:3000/`, frontend hits `http://localhost/login` through Caddy, and Ansible GETs `http://localhost:8000/api/health` **and** opens a TCP connection to gRPC `:50051` (same probe in both compose files). Backend waits for the Ansible healthcheck, while Ansible starts independently. The Ansible image runs as non-root UID 10001 and pins the `uv` build image. Frontend `start.sh` runs Astro SSR (127.0.0.1:4321) and Caddy as background jobs under `wait -n`, so the container dies (and restarts) if either process exits; Caddy reverse-proxies `/rpc/*`, `/api/*`, `/scalar*`, `/openapi.json` to `${BACKEND_UPSTREAM:backend:3000}`.
-- Both Dockerfiles use `node:24-slim` + `oven/bun:1`, copy the workspace manifests first, `bun install --frozen-lockfile` (with `/root/.bun/install/cache` cache mount), then `COPY . .` + `bun run build` — dependency changes are the only thing that busts the install layer. **When adding a workspace, add its `package.json` COPY line to both Dockerfiles.**
+- `compose.yml`: services `frontend` (port 4321 → container 80), `backend` (internal 3000), and `ansible` (internal 8000/50051 — add `-f compose.debug.yml` to publish 8000 on the host). `compose.prod.yml` adds `postgres` and pulls images from GHCR. Each has a healthcheck: backend hits `http://localhost:3000/` with `bun -e`, frontend hits `http://localhost/login` through Caddy, and Ansible GETs `http://localhost:8000/api/health` **and** opens a TCP connection to gRPC `:50051` (same probe in both compose files). Backend waits for the Ansible healthcheck, while Ansible starts independently. The backend runs as `bun`, the frontend as `node`, the Ansible image as non-root UID 10001 and pins the `uv` build image. Frontend `start.sh` runs Astro SSR (127.0.0.1:4321) and Caddy as background jobs under `wait -n`, so the container dies (and restarts) if either process exits; Caddy reverse-proxies `/rpc/*`, `/api/*`, `/scalar*`, `/openapi.json` to `${BACKEND_UPSTREAM:backend:3000}`.
+- Both Dockerfiles build on `node:24-slim` + `oven/bun:1.3.14` (backend runtime: `oven/bun:1.3.14-slim`, no Node), copy the workspace manifests first, `bun install --frozen-lockfile` (with `/root/.bun/install/cache` cache mount), then only what the build reads (`packages`, plus `proto` + `apps/backend` or `apps/frontend`) + `bun run build` — dependency changes are the only thing that busts the install layer. **When adding a workspace, add its `package.json` COPY line to both Dockerfiles.**
 - CI: `.github/workflows/docker-build.yml` triggers on `v*` and `main`, builds `…-backend`, `…-ansible` and `…-frontend` (amd64 + arm64) and pushes them to GHCR (`ghcr.io`) with `GITHUB_TOKEN`. Image tags: `latest`, branch/ref, and `<ref>-<sha8>`.
 
 ## OpenSpec workflow
@@ -132,3 +132,14 @@ If a task seems to require a migration, stop and tell the user — propose the c
 - `apps/backend` exposes `GET /` returning `OK` for the compose healthcheck.
 - Drizzle migrations live in `packages/db/src/migrations/` in drizzle-kit ≥ 0.31 folder format (`<timestamp>_<name>/migration.sql` + `snapshot.json`). The old `meta/` + `0000_*.sql` layout is gone.
 - `.gitignore` excludes `.agents/` and `.claude/` directories.
+
+<!-- BEGIN:turborepo-agent-rules -->
+
+# This is NOT the Turborepo you know
+
+Turborepo configuration, task behavior, and CLI commands can vary between installed versions and may differ from your training data. Resolve the `turbo` package from this file's directory or relevant workspace; in monorepos, it may not be visible from the repository root. For example, run `node -p "require.resolve('turbo/package.json')"` from a workspace that depends on `turbo`.
+
+Read `docs/README.md` inside that installed package first, then read the relevant pages from its `docs/` directory before changing Turborepo configuration or commands. Heed deprecation notices. These bundled docs match the installed package version and are available without network access.
+
+This block is written and re-added by `turbo` before repository-scoped commands when an AI agent is detected. In the Turborepo source repository, its template is defined in `crates/turborepo-cli/src/cli/agent_guidance.rs`. Removing the managed block while updates are enabled means a later qualifying invocation will add it again. Set `"agentGuidance": false` in the root `turbo.json` or `turbo.jsonc` to opt out; this does not remove an existing block. Keep the block committed with your work to avoid an uncommitted change on the next agent invocation.
+<!-- END:turborepo-agent-rules -->
