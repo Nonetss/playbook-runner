@@ -80,7 +80,7 @@ export const repositoriesRouter = {
     .route({
       summary: "Sync a playbook repository",
       description:
-        "Fetches the branch, records its head commit and upserts one read-only playbook per discovered playbook file; files gone upstream are flagged missing. BAD_REQUEST for authentication, URL or branch errors, TOO_MANY_REQUESTS when the runner is busy, BAD_GATEWAY when the Git host or runner is unreachable. NOT_FOUND when missing.",
+        "Fetches the branch, records its head commit and upserts one read-only playbook per discovered playbook file; files gone upstream are deleted, or flagged missing while a job still uses them. BAD_REQUEST for authentication, URL or branch errors, TOO_MANY_REQUESTS when the runner is busy, BAD_GATEWAY when the Git host or runner is unreachable. NOT_FOUND when missing.",
       tags: ["Repositories"],
       method: "POST",
     })

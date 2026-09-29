@@ -26,7 +26,10 @@ const syncResult = z.object({
   repository,
   added: z.number().int(),
   updated: z.number().int(),
+  // Gone upstream but kept because a job uses them.
   missing: z.number().int(),
+  // Gone upstream and deleted.
+  removed: z.number().int(),
 })
 
 const branches = z.object({

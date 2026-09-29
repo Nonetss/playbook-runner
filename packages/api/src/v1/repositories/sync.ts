@@ -1,5 +1,6 @@
 import { db } from "@playbook-runner/db"
 import { credentials } from "@playbook-runner/db/schema/credentials"
+import { jobs } from "@playbook-runner/db/schema/jobs"
 import { playbookRepositories } from "@playbook-runner/db/schema/playbook-repositories"
 import { playbooks } from "@playbook-runner/db/schema/playbooks"
 import { env } from "@playbook-runner/env/server"
@@ -47,8 +48,8 @@ function toSyncError(err: unknown, message: string) {
 /**
  * Fetch a repository through the ansible service and reconcile its
  * Git-sourced playbooks: upsert one per discovered file (keyed by repository
- * + path, so ids and the jobs using them survive syncs) and flag the ones
- * that disappeared as `missing`. A failed sync only records its message.
+ * + path, so ids and the jobs using them survive syncs). Files that
+ * disappeared are deleted, or flagged `missing` while a job still uses them. A failed sync only records its message.
  */
 export async function syncRepository(repositoryId: string) {
   const repository = await db
@@ -128,16 +129,22 @@ export async function syncRepository(repositoryId: string) {
     }
 
     const paths = response.playbooks.map((file) => file.path)
+    // Files gone upstream: drop them unless a job still points at them,
+    // in which case they stay flagged `missing` so the job's failure is
+    // explained instead of its playbook silently becoming null.
+    const vanished = and(
+      eq(playbooks.repositoryId, repositoryId),
+      paths.length > 0 ? notInArray(playbooks.path, paths) : sql`true`
+    )
+    const usedByJob = sql`exists (select 1 from ${jobs} where ${jobs.playbookId} = ${playbooks.id})`
+    const removed = await tx
+      .delete(playbooks)
+      .where(and(vanished, sql`not ${usedByJob}`))
+      .returning({ id: playbooks.id })
     const missing = await tx
       .update(playbooks)
       .set({ missing: true, updatedAt: now })
-      .where(
-        and(
-          eq(playbooks.repositoryId, repositoryId),
-          eq(playbooks.missing, false),
-          paths.length > 0 ? notInArray(playbooks.path, paths) : sql`true`
-        )
-      )
+      .where(and(vanished, usedByJob))
       .returning({ id: playbooks.id })
 
     const [updated] = await tx
@@ -158,6 +165,7 @@ export async function syncRepository(repositoryId: string) {
       added,
       updated: paths.length - added,
       missing: missing.length,
+      removed: removed.length,
     }
   })
 }
