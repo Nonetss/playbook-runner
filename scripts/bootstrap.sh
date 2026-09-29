@@ -123,6 +123,11 @@ gen_secret() {
     openssl rand -base64 48 | tr -d '\n'
 }
 
+# AES-256-GCM key: base64 of exactly 32 bytes (validated by the backend).
+gen_encryption_key() {
+    openssl rand -base64 32 | tr -d '\n'
+}
+
 # Password embedded in a URL (DATABASE_URL): no characters that need escaping
 # (/, +, =). Hex is always URL-safe.
 gen_password() {
@@ -195,9 +200,9 @@ POSTGRES_DB=playbook_runner
 POSTGRES_USER=playbook_runner
 POSTGRES_PASSWORD=$(gen_password)
 BETTER_AUTH_SECRET=$(gen_secret)
-INTERNAL_TOKEN=$(gen_secret)
 SERVICE_TOKEN=$(gen_secret)
-ok "Secrets generated (POSTGRES_PASSWORD, BETTER_AUTH_SECRET, INTERNAL_TOKEN, SERVICE_TOKEN)"
+CREDENTIALS_ENCRYPTION_KEY=$(gen_encryption_key)
+ok "Secrets generated (POSTGRES_PASSWORD, BETTER_AUTH_SECRET, SERVICE_TOKEN, CREDENTIALS_ENCRYPTION_KEY)"
 
 # ── Write .env ───────────────────────────────────────────────────────────────
 ENV_FILE="$TARGET_DIR/.env"
@@ -235,6 +240,10 @@ BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET
 
 JOB_SCHEDULER_ENABLED=1
 
+# AES-256-GCM key that encrypts stored SSH private keys. BACK IT UP: losing it
+# makes every stored private key unrecoverable.
+CREDENTIALS_ENCRYPTION_KEY=$CREDENTIALS_ENCRYPTION_KEY
+
 # ── Seed admin ───────────────────────────────────────────────────────────────
 SEED_ADMIN_NAME=$ADMIN_NAME
 SEED_ADMIN_EMAIL=$ADMIN_EMAIL
@@ -248,13 +257,13 @@ GENERIC_OAUTH_CLIENT_SECRET=$OIDC_SECRET
 GENERIC_OAUTH_ISSUER=$OIDC_ISSUER
 
 # ── Service-to-service auth ──────────────────────────────────────────────────
-INTERNAL_TOKEN=$INTERNAL_TOKEN
-# Guards the gRPC link between backend and ansible (both directions).
+# Guards the gRPC link from the backend to the ansible service.
 SERVICE_TOKEN=$SERVICE_TOKEN
 EOF
 
 chmod 600 "$ENV_FILE"
 ok ".env written to $ENV_FILE (mode 600)"
+note "Back up .env (especially CREDENTIALS_ENCRYPTION_KEY) somewhere safe."
 
 # ── compose.yml ──────────────────────────────────────────────────────────────
 # Saved as compose.yml (not compose.prod.yml) so `docker compose up -d` picks
