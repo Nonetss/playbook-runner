@@ -62,6 +62,7 @@
 
 ## 8. Verification
 
+- [x] 8.0a Reorganise navigation into Inventory / Ansible (playbooks, scheduler, history) / Bash (scripts, commands); `/jobs` and `/automation` redirect to `/ansible` (user decision)
 - [x] 8.0 Switch resource collections to `EntityCardGrid` (user decision: keep cards); open credential writes to every authenticated user
 
 - [x] 8.1 Grep `src/features` and `src/components` for raw palette classes (`zinc|emerald|red|amber|sky|gray|slate|black|white`) and hand-built `calc(100dvh` / `text-2xl` titles; expect zero

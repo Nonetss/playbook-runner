@@ -74,14 +74,13 @@ tracking by hand.
 - **Shell**: sticky full-width navbar (`--navbar-height: 3.6rem`) whose
   section menus open on hover (Radix `NavigationMenu`, panel centred under
   its trigger). Every
-  navigation section (Inventory, Automation, Jobs) renders inside
+  navigation section (Inventory, Ansible, Bash) renders inside
   `WithSidebar.astro`: a persisted section sidebar island plus a plain `<main>`
   scroller that owns the only page padding (`px-4 py-6 sm:px-6`).
   Top-level pages without a section (dashboard, config, admin, profile) use
   `Layout.astro` with the same padding through `PageShell`.
 - **Width**: `PageShell` inherits the layout width through
-  `--page-max-width`: `6xl` in `Layout.astro`, full width → 80% from `lg` in
-  `WithSidebar.astro`. Pages override with `maxWidth`: `4xl`/`3xl` for
+  `--page-max-width`: `6xl` in `Layout.astro`, full width in `WithSidebar.astro`. Pages override with `maxWidth`: `4xl`/`3xl` for
   single-column forms and profile, `full` for tables, editors and consoles,
   `6xl`/`80%` explicitly when needed.
 - **Layout options** (both layouts): `padding="compact"` for dense tables,

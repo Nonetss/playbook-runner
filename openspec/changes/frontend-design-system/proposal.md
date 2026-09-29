@@ -33,9 +33,11 @@ to that standard.
   detail, form and run routes; remove the empty 56px trigger bar, nested
   `<main>` elements and doubled padding; one `locked` layout for full-height
   screens; one `Detail` frame with a back link.
-- Group Playbooks, Scripts and Commands under a new **Automation** navigation
-  section (overview at `/automation`) so every section has the same sidebar
-  shape. Existing URLs (`/playbooks`, `/scripts`, `/commands`) are unchanged.
+- Reorganise navigation into three sections with the same sidebar shape:
+  **Inventory** (devices, groups, credentials), **Ansible** (playbooks,
+  scheduler, history; overview at `/ansible`) and **Bash** (scripts,
+  commands; overview at `/bash`). Existing page URLs are unchanged; `/jobs`
+  and `/automation` redirect to `/ansible`.
 - Add structure-owning primitives ported from `console`: `ResourceOverview`,
   `EntityList` with per-resource row definitions, `QueryState`, `StatusDot` /
   `StatusTag`, plus missing shadcn primitives (`Table`, `Textarea`,
@@ -62,12 +64,14 @@ to that standard.
   for all execution output screens.
 
 ### Modified Capabilities
-- `section-sidebar-layout`: every navigation section (Inventory, Automation,
-  Jobs) uses the persistent sidebar, and the sidebar persists on the
+- `section-sidebar-layout`: every navigation section (Inventory, Ansible,
+  Bash) uses the persistent sidebar, and the sidebar persists on the
   section's detail, form and run routes.
 - `frontend-interface-polish`: shared primitives extend to entity lists with
   row definitions, status dot/tag as the only status marker outside the run
   console, and a single page frame (shell + hero) for every page.
+- `job-section-navigation`: Scheduler and History move into the Ansible
+  section; `/jobs` redirects to `/ansible`.
 - `ssh-credential-management`: credential writes are no longer admin-only;
   any authenticated, non-pending user can create, edit, delete and generate
   credentials.
@@ -80,7 +84,7 @@ to that standard.
 - Code: `apps/frontend/src/styles/global.css`, `components/ui/*`,
   `components/shared/*`, `layouts/*`, `features/app-shell/*`, every feature
   page under `features/*`, `pages/*.astro` (layout wiring and new
-  `automation/index.astro`), i18n catalogues for new labels.
+  `ansible/` and `bash/` overviews), i18n catalogues for new labels.
 - Dependencies: add `@fontsource-variable/space-grotesk` and
   `@fontsource/space-mono`; remove `@fontsource-variable/outfit` and
   `@fontsource-variable/geist-mono`. Add shadcn `table`, `textarea`,

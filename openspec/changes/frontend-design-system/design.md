@@ -86,9 +86,9 @@ the typeface is the largest single contributor to the perceived difference.
 - Add a terminal token set (D8).
 
 ### D4. Page-surface registry
-Add `src/lib/app-surfaces.ts` keyed by surface id (`dashboard`, `automation`,
+Add `src/lib/app-surfaces.ts` keyed by surface id (`dashboard`, `ansible`, `bash`,
 `playbooks`, `scripts`, `commands`, `inventory`, `devices`, `groups`,
-`credentials`, `jobs`, `scheduler`, `history`, `config`, `adminUsers`, `me`)
+`credentials`, `scheduler`, `history`, `config`, `adminUsers`, `me`)
 with `href`, `titleKey`, `descriptionKey`, `icon`, and optional `section`.
 `features/app-shell/site-nav.ts` derives `siteNavItems` from it, and
 `PageHero` accepts `surface="…"` to resolve icon/title/description. `.astro`
@@ -103,14 +103,16 @@ single padding `p-4 sm:p-6`. `WithSidebarShell` and the nested
 `AppShell`/`SidebarInset` wrapper disappear, removing nested islands, nested
 `<main>` and the empty `h-14` bar. The `SidebarTrigger` moves into the page
 hero row on narrow viewports and into the sidebar footer on desktop.
-Sections: Inventory (devices, groups, credentials), Automation (playbooks,
-scripts, commands — new overview route `pages/automation/index.astro`) and
-Jobs (scheduler, history). Detail, form and run routes of a section use
+Sections (revised during apply at the user's request): Inventory (devices,
+groups, credentials), Ansible (playbooks, scheduler, history — overview
+`/ansible`; job detail/form routes under `/jobs/*` map to it through a section
+prefix) and Bash (scripts, commands — overview `/bash`). `/jobs` and
+`/automation` redirect to `/ansible`. Detail, form and run routes of a section use
 `WithSidebar` too, passing the owning section.
 The navbar drops `max-w-6xl` and uses full width with `px-4 sm:px-6`.
 *Alternative:* keep Playbooks/Scripts/Commands top-level without a sidebar.
 Rejected: it keeps two shell shapes, which is the core inconsistency.
-*Alternative:* move them under `/automation/*` URLs. Rejected: breaks links
+*Alternative:* move them under `/ansible/*` and `/bash/*` URLs. Rejected: breaks links
 and E2E tests for no visual gain; `isNavItemActive` already supports
 sub-items whose href is outside the parent path.
 
