@@ -60,9 +60,9 @@ test.describe("Formulario de login", () => {
     await expect(
       page.getByRole("button", { name: /iniciar sesión con sso/i })
     ).toBeVisible()
-    await expect(
-      page.getByRole("link", { name: /¿no tienes cuenta\? regístrate/i })
-    ).toHaveAttribute("href", "/signup")
+    // Public sign-up is disabled: no link, just a hint to ask an admin.
+    await expect(page.getByRole("link", { name: /regístrate/i })).toHaveCount(0)
+    await expect(page.getByText(/pide a un administrador/i)).toBeVisible()
   })
 
   test("credenciales inválidas muestran error visible", async ({ page }) => {

@@ -35,6 +35,19 @@ function ProfileHeader() {
   )
 }
 
+function PendingNotice() {
+  const { t } = useProfileT()
+  return (
+    <div
+      role="status"
+      className="mb-6 rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm"
+    >
+      <p className="font-medium">{t("pending.title")}</p>
+      <p className="text-muted-foreground mt-1">{t("pending.description")}</p>
+    </div>
+  )
+}
+
 function ProfileCard({ user }: { user: User }) {
   const { t, i18n } = useProfileT()
   const displayName =
@@ -155,6 +168,9 @@ function ProfilePageInner({ user, session: _session }: ProfilePageProps) {
   return (
     <PageShell maxWidth="3xl">
       <ProfileHeader />
+      {(user as { role?: string }).role === "pending" ? (
+        <PendingNotice />
+      ) : null}
       {user ? <ProfileCard user={user} /> : null}
     </PageShell>
   )

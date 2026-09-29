@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Seeded administrator
-The seed script SHALL create the initial account through the admin API with role `admin`, SHALL NOT print the password, and SHALL refuse to run with the default seed password when `NODE_ENV` is `production`.
+The seed script SHALL create the initial account through the admin API with role `admin`, SHALL NOT print the password, and SHALL refuse to create the account with the default seed password when `NODE_ENV` is `production`. Because the seed runs on every backend start, refusing SHALL NOT stop the backend.
 
 #### Scenario: Fresh database is seeded
 - **WHEN** the seed script runs against a database without the seed user
@@ -9,7 +9,7 @@ The seed script SHALL create the initial account through the admin API with role
 
 #### Scenario: Default password in production
 - **WHEN** the seed script runs with `NODE_ENV=production` and `SEED_ADMIN_PASSWORD` unset or equal to the documented default
-- **THEN** the script SHALL exit with an error and SHALL NOT create a user
+- **THEN** the seed SHALL log an error and SHALL NOT create a user, and the backend SHALL keep starting
 
 ### Requirement: User management page
 The frontend SHALL provide an admin-only user management page that lists users and lets an administrator create a user (email, name, password, role), change a user's role between `user`, `admin` and `pending`, and ban or unban a user, using the Better Auth admin client.
