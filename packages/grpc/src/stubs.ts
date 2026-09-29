@@ -4,6 +4,8 @@ export {
   Done,
   GitSource,
   Host,
+  ListBranchesRequest,
+  ListBranchesResponse,
   Playbook,
   PlaybookFile,
   RunBundleRequest,
