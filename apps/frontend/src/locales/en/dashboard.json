@@ -46,6 +46,11 @@
     "7d": "Last 7 days",
     "30d": "Last 30 days"
   },
+  "runs_window_short": {
+    "24h": "24 h",
+    "7d": "7 days",
+    "30d": "30 days"
+  },
   "jobs_section": {
     "title": "Jobs",
     "view_all": "View all",

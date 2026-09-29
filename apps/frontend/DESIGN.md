@@ -90,10 +90,24 @@ tracking by hand.
   across navigations; `false` snaps to top, `"owned"` leaves it to the page)
   and `locked`.
 - **Locked pages**: editors and run consoles pass `locked` to the layout;
-  from `md` up the scroller becomes `overflow-hidden` and the page fills the
-  remaining height with `flex-1 min-h-0`. Below `md` the page scrolls
-  normally and the editor/terminal keep a minimum height (`60dvh`/`65dvh`),
-  so stacked fields and side panels stay reachable on phones. Never compute `calc(100dvh - …)` by hand.
+  on `split` viewports (`md` wide **and** 34rem tall, custom variant in
+  `global.css`) the scroller becomes `overflow-hidden` and the page fills the
+  remaining height with `flex-1 min-h-0`. Everywhere else (`stacked`: phones
+  in either orientation) the page scrolls normally and the editor/terminal
+  keep a minimum height (`60dvh`/`65dvh`), so stacked fields and side panels
+  stay reachable. Run screens pass `setupFirst` to `TerminalFrame`: when
+  stacked, the panel (inventory, options, run button) comes before the
+  console and the console scrolls into view once a run starts. Never compute
+  `calc(100dvh - …)` by hand.
+- **Responsive**: phones (`< sm`), tablet portrait (`md`–`lg`: the section
+  sidebar starts as the icon rail), desktop (`lg`+). Collapse by the
+  container, not the viewport, wherever the sidebar changes the width
+  (`@container` on tables, fact rows). `FormDialog` is a bottom sheet below
+  `sm` (fixed header/footer, scrolling body). Touch pointers
+  (`pointer-coarse:`) get ≥ 40px controls, 16px input text (no iOS focus
+  zoom) and widened hit areas on checkboxes, switches and text links; the
+  visual size on mouse screens does not change. Long labels in a
+  `SegmentedPicker` give a `shortLabel` for phones instead of wrapping.
 - **Detail and form pages**: `DetailFrame` renders the back link (status
   role, `size-3` arrow) and the `PageHero`.
 - **Rhythm**: `gap-6` between hero and content, `gap-2.5` icon → title,

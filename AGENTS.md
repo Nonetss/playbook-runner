@@ -26,6 +26,7 @@ Package versions pinned via root `workspaces.catalog`; `better-auth`, `@better-a
 - Shared execution streams, run types, inventory-selection behavior, and execution console UI belong to `@/features/run`; `scripts`, `commands`, and `inventory` must not import execution primitives from `playbooks`.
 - Generic reusable UI stays under `apps/frontend/src/components/ui/`, and cross-feature resource primitives stay under `apps/frontend/src/components/shared/`.
 - Cross-feature and cross-component imports use the `@/` absolute alias, not relative paths.
+- PWA (installable on mobile): `src/layouts/pwa-head.astro` (manifest, theme-color, apple-touch-icon, service-worker registration) is included by `Layout.astro`; assets in `public/manifest.webmanifest`, `public/sw.js` (network-first shell cache, never touches `/rpc`, `/api`, `/scalar`, `/openapi.json`; bump `CACHE` to invalidate) and `public/pwa/` (icons generated from `logo.svg`). The middleware treats them as public paths.
 - Any React component mounted from an `.astro` file uses `client:only="react"`, never `client:load` (or other `client:*` directives) — this repo skips SSR-then-hydrate for React islands entirely.
 
 ## Frontend design system
