@@ -7,6 +7,6 @@ const { locale } = Astro.locals
 const t = await getServerT(locale, "inventory")
 ---
 
-<WithSidebar title={t("page.devices_title")} section="/inventory">
+<WithSidebar title={t("page.devices_title")}>
   <InventoryDevicesPage client:only="react" />
 </WithSidebar>

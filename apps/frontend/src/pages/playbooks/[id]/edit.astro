@@ -1,6 +1,6 @@
 ---
 import { PlaybookFormPage } from "@/features/playbooks/components/playbook-form-page"
-import Layout from "@/layouts/Layout.astro"
+import WithSidebar from "@/layouts/WithSidebar.astro"
 import { getServerT } from "@/lib/i18n/server"
 
 const { id } = Astro.params
@@ -8,6 +8,6 @@ const { locale } = Astro.locals
 const t = await getServerT(locale, "playbooks")
 ---
 
-<Layout title={t("form.edit_title")}>
+<WithSidebar title={t("form.edit_title")} locked>
   <PlaybookFormPage client:only="react" id={id} />
-</Layout>
+</WithSidebar>

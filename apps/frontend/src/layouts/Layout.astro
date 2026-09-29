@@ -4,13 +4,26 @@ import { ClientRouter, fade } from "astro:transitions"
 import { Toaster } from "@/components/ui/sonner"
 import { NavbarAuthenticated } from "@/features/app-shell/components/navbar-authenticated"
 import { NavbarGuest } from "@/features/app-shell/components/navbar-guest"
+import FontPreload from "@/layouts/font-preload.astro"
 
 interface Props {
   title: string
   guestNavbar?: boolean
+  /**
+   * `page` (default): the layout owns `<main>` and the single page padding.
+   * `bare`: the slot renders its own frame (login, `WithSidebar`).
+   */
+  frame?: "page" | "bare"
+  /** Viewport-height shell: the document never scrolls; a page region does. */
+  locked?: boolean
 }
 
-const { title, guestNavbar = false } = Astro.props
+const {
+  title,
+  guestNavbar = false,
+  frame = "page",
+  locked = false,
+} = Astro.props
 
 const { user, session, locale } = Astro.locals
 const hasSession = !!user && !!session
@@ -24,6 +37,7 @@ const hasSession = !!user && !!session
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     >
     <title>{title}</title>
+    <FontPreload />
     <ClientRouter />
     <script is:inline>
     function applyTheme(doc) {
@@ -41,13 +55,24 @@ const hasSession = !!user && !!session
     </script>
     <link rel="icon" href="/logo.svg" type="image/svg+xml">
   </head>
-  <body class="flex min-h-screen flex-col">
+  <body
+    class:list={[
+      "flex flex-col",
+      locked ? "h-dvh overflow-hidden" : "min-h-dvh",
+    ]}
+    data-layout={locked ? "locked" : undefined}
+  >
     {guestNavbar || !hasSession ? (
-        <NavbarGuest client:only="react" transition:persist nameApp="Playbook Runner" locale={locale} />
+        <NavbarGuest
+          client:only="react"
+          transition:persist="navbar-guest"
+          nameApp="Playbook Runner"
+          locale={locale}
+        />
       ) : (
         <NavbarAuthenticated
           client:only="react"
-          transition:persist
+          transition:persist="navbar-auth"
           user={user}
           session={session}
           nameApp="Playbook Runner"
@@ -55,12 +80,21 @@ const hasSession = !!user && !!session
           locale={locale}
         />
       )}
-    <div
-      class="flex min-h-0 flex-1 flex-col"
-      transition:animate={fade({ duration: "0.2s" })}
-    >
-      <slot />
-    </div>
+    {frame === "bare" ? (
+        <div class="flex min-h-0 flex-1 flex-col">
+          <slot />
+        </div>
+      ) : (
+        <main
+          class:list={[
+            "flex min-h-0 min-w-0 flex-1 flex-col px-4 py-6 sm:px-6",
+            locked && "overflow-hidden",
+          ]}
+          transition:animate={fade({ duration: "0.2s" })}
+        >
+          <slot />
+        </main>
+      )}
     <Toaster client:only="react" />
   </body>
 </html>

@@ -1,6 +1,6 @@
 ---
 import { JobDetailPage } from "@/features/jobs"
-import Layout from "@/layouts/Layout.astro"
+import WithSidebar from "@/layouts/WithSidebar.astro"
 import { getServerT } from "@/lib/i18n/server"
 
 const { id } = Astro.params
@@ -8,6 +8,6 @@ const { locale } = Astro.locals
 const t = await getServerT(locale, "jobs")
 ---
 
-<Layout title={t("detail.title")}>
+<WithSidebar title={t("detail.title")} locked>
   <JobDetailPage client:only="react" id={id} locale={locale} />
-</Layout>
+</WithSidebar>

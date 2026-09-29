@@ -16,6 +16,7 @@ const navigationIcons = {
   forward: Lucide.ArrowRight,
   next: Lucide.ChevronRight,
   previous: Lucide.ChevronLeft,
+  scrollToTop: Lucide.ArrowUp,
 } as const
 
 const actionsIcons = {
@@ -81,6 +82,7 @@ const resourceIcons = {
   terminal: Lucide.Terminal,
   terminalSquare: Lucide.TerminalSquare,
   users: Lucide.Users,
+  workflow: Lucide.Workflow,
 } as const
 
 const statusIcons = {

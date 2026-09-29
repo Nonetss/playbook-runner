@@ -1,6 +1,6 @@
 ---
 import { GroupDetailPage } from "@/features/inventory/components/group-detail-page"
-import Layout from "@/layouts/Layout.astro"
+import WithSidebar from "@/layouts/WithSidebar.astro"
 import { getServerT } from "@/lib/i18n/server"
 
 const { id } = Astro.params
@@ -8,6 +8,6 @@ const { locale } = Astro.locals
 const t = await getServerT(locale, "inventory")
 ---
 
-<Layout title={t("group.document_title")}>
+<WithSidebar title={t("group.document_title")}>
   <GroupDetailPage client:only="react" id={id} />
-</Layout>
+</WithSidebar>

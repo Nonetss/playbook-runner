@@ -1,12 +1,12 @@
 ---
 import { ScriptsPage } from "@/features/scripts"
-import Layout from "@/layouts/Layout.astro"
+import WithSidebar from "@/layouts/WithSidebar.astro"
 import { getServerT } from "@/lib/i18n/server"
 
 const { locale } = Astro.locals
 const t = await getServerT(locale, "scripts")
 ---
 
-<Layout title={t("page.title")}>
+<WithSidebar title={t("page.title")}>
   <ScriptsPage client:only="react" />
-</Layout>
+</WithSidebar>

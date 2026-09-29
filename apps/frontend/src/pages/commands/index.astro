@@ -1,12 +1,12 @@
 ---
 import { CommandsPage } from "@/features/commands/components/commands-page"
-import Layout from "@/layouts/Layout.astro"
+import WithSidebar from "@/layouts/WithSidebar.astro"
 import { getServerT } from "@/lib/i18n/server"
 
 const { locale } = Astro.locals
 const t = await getServerT(locale, "commands")
 ---
 
-<Layout title={t("page.title")}>
+<WithSidebar title={t("page.title")} locked>
   <CommandsPage client:only="react" />
-</Layout>
+</WithSidebar>

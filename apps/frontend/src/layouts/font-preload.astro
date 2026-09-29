@@ -1,0 +1,23 @@
+---
+// Fonts are declared in global.css, so the browser only discovers them after
+// the stylesheet is parsed. Preloading the latin subsets starts them in
+// parallel with the CSS. Space Mono ships static weights; only 400 is
+// used above the fold.
+import spaceMonoLatin from "@fontsource/space-mono/files/space-mono-latin-400-normal.woff2?url"
+import spaceGroteskLatin from "@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2?url"
+---
+
+<link
+  rel="preload"
+  href={spaceGroteskLatin}
+  as="font"
+  type="font/woff2"
+  crossorigin
+>
+<link
+  rel="preload"
+  href={spaceMonoLatin}
+  as="font"
+  type="font/woff2"
+  crossorigin
+>

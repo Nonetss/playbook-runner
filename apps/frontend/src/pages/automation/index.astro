@@ -1,12 +1,13 @@
 ---
 import { SectionNavOverview } from "@/features/app-shell/components/section-nav-overview"
 import WithSidebar from "@/layouts/WithSidebar.astro"
+import { appSurfaces } from "@/lib/app-surfaces"
 import { getServerT } from "@/lib/i18n/server"
 
 const { locale } = Astro.locals
 const t = await getServerT(locale, "nav")
 ---
 
-<WithSidebar title={t("links.inventory")}>
-  <SectionNavOverview client:only="react" section="inventory" />
+<WithSidebar title={t(appSurfaces.automation.titleKey)}>
+  <SectionNavOverview client:only="react" section="automation" />
 </WithSidebar>

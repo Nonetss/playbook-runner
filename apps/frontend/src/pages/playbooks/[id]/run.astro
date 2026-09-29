@@ -1,6 +1,6 @@
 ---
 import { RunPlaybookPage } from "@/features/playbooks/components/run-playbook-page"
-import Layout from "@/layouts/Layout.astro"
+import WithSidebar from "@/layouts/WithSidebar.astro"
 import { getServerT } from "@/lib/i18n/server"
 
 const { id } = Astro.params
@@ -8,6 +8,6 @@ const { locale } = Astro.locals
 const t = await getServerT(locale, "playbooks")
 ---
 
-<Layout title={t("run.document_title")}>
+<WithSidebar title={t("run.document_title")} locked>
   <RunPlaybookPage client:only="react" id={id} />
-</Layout>
+</WithSidebar>

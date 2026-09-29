@@ -1,24 +1,54 @@
 ---
-import { WithSidebarShell } from "@/features/app-shell/components/with-sidebar-shell"
+import { fade } from "astro:transitions"
+import { SectionSidebar } from "@/features/app-shell/components/section-sidebar"
+import { SectionSidebarTrigger } from "@/features/app-shell/components/section-sidebar-trigger"
 import Layout from "@/layouts/Layout.astro"
 
 interface Props {
   title: string
-  /** Section href in `siteNavItems`; it must declare navigation sub-items. */
-  section: string
+  /**
+   * Full-height page (editors, run consoles): the scroller stops scrolling
+   * and the page fills the remaining height with `flex-1 min-h-0`.
+   */
+  locked?: boolean
 }
 
-const { title, section } = Astro.props
+const { title, locked = false } = Astro.props
 const sidebarOpen = Astro.cookies.get("sidebar_state")?.value !== "false"
+const currentPath = Astro.url.pathname
 ---
 
-<Layout title={title}>
-  <WithSidebarShell
-    client:only="react"
-    section={section}
-    currentPath={Astro.url.pathname}
-    defaultOpen={sidebarOpen}
-  >
-    <slot />
-  </WithSidebarShell>
+<Layout title={title} frame="bare" locked>
+  <div class="flex min-h-0 w-full min-w-0 flex-1">
+    <div class="flex min-h-0 shrink-0" transition:persist="section-sidebar">
+      <SectionSidebar
+        client:only="react"
+        currentPath={currentPath}
+        defaultOpen={sidebarOpen}
+      />
+    </div>
+    <main
+      data-app-scroller=""
+      class:list={[
+        "flex min-h-0 min-w-0 flex-1 flex-col",
+        locked ? "overflow-hidden" : "overflow-y-auto",
+      ]}
+    >
+      <div
+        class="shrink-0 px-4 pt-2 md:hidden"
+        transition:persist="section-trigger"
+      >
+        <SectionSidebarTrigger client:only="react" currentPath={currentPath} />
+      </div>
+      <div
+        class:list={[
+          "flex min-h-0 min-w-0 flex-1 flex-col px-4 py-6 sm:px-6",
+          locked && "overflow-hidden max-md:pt-2",
+        ]}
+        transition:animate={fade({ duration: "0.2s" })}
+      >
+        <slot />
+      </div>
+    </main>
+  </div>
 </Layout>

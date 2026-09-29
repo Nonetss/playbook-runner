@@ -1,12 +1,12 @@
 ---
 import { PlaybooksPage } from "@/features/playbooks"
-import Layout from "@/layouts/Layout.astro"
+import WithSidebar from "@/layouts/WithSidebar.astro"
 import { getServerT } from "@/lib/i18n/server"
 
 const { locale } = Astro.locals
 const t = await getServerT(locale, "playbooks")
 ---
 
-<Layout title={t("page.title")}>
+<WithSidebar title={t("page.title")}>
   <PlaybooksPage client:only="react" />
-</Layout>
+</WithSidebar>
