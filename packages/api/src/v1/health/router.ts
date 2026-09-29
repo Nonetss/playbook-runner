@@ -11,5 +11,5 @@ export const healthRouter = {
       method: "GET",
     })
     .output(healthOutput.check)
-    .handler(() => healthHandler.check()),
+    .handler(({ context }) => healthHandler.check({ context })),
 }

@@ -1,3 +1,5 @@
+import type { Context } from "#context"
+
 export const healthHandler = {
-  check: async () => "OK" as const,
+  check: async (_: { context: Context }) => "OK" as const,
 }
