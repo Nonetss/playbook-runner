@@ -8,6 +8,6 @@ const { locale } = Astro.locals
 const t = await getServerT(locale, "account")
 ---
 
-<Layout title={t("admin_users.title")}>
+<Layout title={t("admin_users.title")} scrollToTop>
   <UsersPage client:only="react" />
 </Layout>

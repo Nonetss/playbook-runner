@@ -7,6 +7,6 @@ const { locale } = Astro.locals
 const t = await getServerT(locale, "jobs")
 ---
 
-<WithSidebar title={t("page.title")}>
+<WithSidebar title={t("page.title")} scrollToTop>
   <JobsPage client:only="react" />
 </WithSidebar>

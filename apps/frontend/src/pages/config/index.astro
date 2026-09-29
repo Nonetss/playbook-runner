@@ -7,6 +7,6 @@ const { locale } = Astro.locals
 const t = await getServerT(locale, "config")
 ---
 
-<Layout title={t("page.title")}>
+<Layout title={t("page.title")} scrollToTop>
   <ConfigPage client:only="react" />
 </Layout>

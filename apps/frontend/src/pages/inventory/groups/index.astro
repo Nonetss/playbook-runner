@@ -7,6 +7,6 @@ const { locale } = Astro.locals
 const t = await getServerT(locale, "inventory")
 ---
 
-<WithSidebar title={t("page.groups_title")}>
+<WithSidebar title={t("page.groups_title")} scrollToTop>
   <InventoryGroupsPage client:only="react" />
 </WithSidebar>

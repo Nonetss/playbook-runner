@@ -7,15 +7,46 @@ import Layout from "@/layouts/Layout.astro"
 interface Props {
   title: string
   /**
-   * Full-height page (editors, run consoles): the scroller stops scrolling
-   * and the page fills the remaining height with `flex-1 min-h-0`.
+   * Full-height page (editors, run consoles): the scroller never scrolls and
+   * the page fills the remaining height with `flex-1 min-h-0`.
    */
   locked?: boolean
+  /**
+   * Caps the content to the remaining viewport height from `sm` up, for a
+   * page that owns its own internal scroll region (e.g. a table with
+   * `min-h-0 flex-1 overflow-y-auto`). Other pages keep page-level scroll.
+   */
+  boundedContent?: boolean
+  /** `compact` tightens the page padding for dense tables. */
+  padding?: "page" | "compact"
+  /**
+   * Persist the scroller offset across View Transitions (default). `false`
+   * snaps to the top; `"owned"` skips restoration for a page whose own list
+   * restores its position. Stamped on `<main>` and read by the persisted
+   * sidebar island, never passed as a frozen island prop.
+   */
+  persistScroll?: boolean | "owned"
+  /** Shows the floating "back to top" button once the page scrolls. */
+  scrollToTop?: boolean
 }
 
-const { title, locked = false } = Astro.props
+const {
+  title,
+  locked = false,
+  boundedContent = false,
+  padding = "page",
+  persistScroll = true,
+  scrollToTop = false,
+} = Astro.props
+
+// Mirrors what SidebarProvider writes on toggle, so the sidebar opens in the
+// state the user left it instead of flashing open before collapsing.
 const sidebarOpen = Astro.cookies.get("sidebar_state")?.value !== "false"
 const currentPath = Astro.url.pathname
+const paddingClass = {
+  page: "px-4 py-6 sm:px-6",
+  compact: "px-3 py-3 sm:px-6 sm:py-6",
+}[padding]
 ---
 
 <Layout title={title} frame="bare" locked>
@@ -29,8 +60,14 @@ const currentPath = Astro.url.pathname
     </div>
     <main
       data-app-scroller=""
+      data-scroll-to-top={scrollToTop ? "" : undefined}
+      data-persist-scroll={persistScroll === "owned"
+        ? "owned"
+        : persistScroll
+          ? undefined
+          : "false"}
       class:list={[
-        "flex min-h-0 min-w-0 flex-1 flex-col",
+        "flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-anchor-none",
         locked ? "overflow-hidden" : "overflow-y-auto",
       ]}
     >
@@ -42,8 +79,13 @@ const currentPath = Astro.url.pathname
       </div>
       <div
         class:list={[
-          "flex min-h-0 min-w-0 flex-1 flex-col px-4 py-6 sm:px-6",
+          "flex min-w-0 flex-1 flex-col [--page-max-width:100%] lg:[--page-max-width:80%]",
+          paddingClass,
+          (locked || boundedContent) && "min-h-0",
           locked && "overflow-hidden max-md:pt-2",
+          boundedContent &&
+            !locked &&
+            "sm:overflow-hidden",
         ]}
         transition:animate={fade({ duration: "0.2s" })}
       >

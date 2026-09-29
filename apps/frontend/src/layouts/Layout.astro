@@ -1,6 +1,7 @@
 ---
 import "@/styles/global.css"
 import { ClientRouter, fade } from "astro:transitions"
+import { ScrollToTopButton } from "@/components/shared/layout/scroll-to-top-button"
 import { Toaster } from "@/components/ui/sonner"
 import { NavbarAuthenticated } from "@/features/app-shell/components/navbar-authenticated"
 import { NavbarGuest } from "@/features/app-shell/components/navbar-guest"
@@ -16,6 +17,10 @@ interface Props {
   frame?: "page" | "bare"
   /** Viewport-height shell: the document never scrolls; a page region does. */
   locked?: boolean
+  /** `compact` tightens the page padding for dense tables. */
+  padding?: "page" | "compact"
+  /** Shows the floating "back to top" button once the page scrolls. */
+  scrollToTop?: boolean
 }
 
 const {
@@ -23,7 +28,14 @@ const {
   guestNavbar = false,
   frame = "page",
   locked = false,
+  padding = "page",
+  scrollToTop = false,
 } = Astro.props
+
+const paddingClass = {
+  page: "px-4 py-6 sm:px-6",
+  compact: "px-3 py-3 sm:px-6 sm:py-6",
+}[padding]
 
 const { user, session, locale } = Astro.locals
 const hasSession = !!user && !!session
@@ -87,14 +99,19 @@ const hasSession = !!user && !!session
       ) : (
         <main
           class:list={[
-            "flex min-h-0 min-w-0 flex-1 flex-col px-4 py-6 sm:px-6",
+            "flex min-h-0 min-w-0 flex-1 flex-col",
+            paddingClass,
             locked && "overflow-hidden",
           ]}
+          data-scroll-to-top={scrollToTop ? "" : undefined}
           transition:animate={fade({ duration: "0.2s" })}
         >
           <slot />
         </main>
       )}
     <Toaster client:only="react" />
+    <div class="scroll-to-top-root" transition:persist="scroll-to-top">
+      <ScrollToTopButton client:only="react" />
+    </div>
   </body>
 </html>

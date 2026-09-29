@@ -7,6 +7,6 @@ const { locale } = Astro.locals
 const t = await getServerT(locale, "playbooks")
 ---
 
-<WithSidebar title={t("page.title")}>
+<WithSidebar title={t("page.title")} scrollToTop>
   <PlaybooksPage client:only="react" />
 </WithSidebar>
