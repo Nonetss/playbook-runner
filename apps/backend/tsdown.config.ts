@@ -9,7 +9,12 @@ export default defineConfig({
   format: "esm",
   outDir: "./dist",
   clean: true,
-  // Bundle everything (workspace packages and npm deps alike) so the
-  // production image only needs the dist folder — no node_modules.
-  noExternal: [/.*/],
+  // Runtime image ships no node_modules, so every dependency must be
+  // inlined — not just @playbook-runner/* workspace packages. Otherwise
+  // deep subpaths like "better-auth/adapters/drizzle" are left as bare
+  // external imports and Bun tries to auto-install them from the
+  // registry at container start (wrong versions, no network in prod).
+  deps: {
+    alwaysBundle: () => true,
+  },
 })
