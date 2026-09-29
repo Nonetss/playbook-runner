@@ -6,6 +6,7 @@ const textVariants = cva("", {
   variants: {
     role: {
       display: "text-display font-semibold tracking-tight",
+      stat: "text-stat font-semibold tracking-tight tabular-nums",
       headline: "text-headline font-medium tracking-tight",
       body: "text-body",
       meta: "text-meta leading-relaxed",
@@ -69,5 +70,13 @@ export function Text({
     children
   )
 }
+
+/**
+ * Inputs and textareas that hold technical values (keys, cron, extra vars)
+ * use the data role. `md:text-xs` beats the control's own `md:text-sm`, so
+ * the value keeps one size on every mouse screen; touch pointers still get
+ * 16px from the control (no iOS focus zoom).
+ */
+export const dataFieldClass = "font-mono text-xs md:text-xs"
 
 export { textVariants }

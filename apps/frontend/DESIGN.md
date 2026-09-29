@@ -69,6 +69,11 @@ tracking by hand.
 
 11px is the legibility floor. Headings carry no implicit size.
 
+Inputs and textareas holding technical values (keys, cron, extra vars,
+commands) take `dataFieldClass` from the same module: the `data` size on
+every mouse screen, 16px on touch pointers. Dialog descriptions use `meta`,
+like hero descriptions; overview tile titles use `headline` unmodified.
+
 ## Layout
 
 - **Shell**: sticky full-width navbar (`--navbar-height: 3.6rem`) whose
