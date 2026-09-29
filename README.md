@@ -23,7 +23,8 @@ curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/main/script
 ```
 
 That runs `scripts/bootstrap.sh`, which asks you for the admin user/password and
-a few more things, generates secrets with `openssl`, writes a `.env` and a
+a few more things, generates every secret with `openssl` (including the
+`CREDENTIALS_ENCRYPTION_KEY` that encrypts stored SSH keys), writes a `.env` and a
 `compose.yml` **in the current directory** (the production overlay, saved under
 that name so a plain `docker compose up -d` picks it up), pulls the images from
 `ghcr.io`, and brings the stack up. You end up with everything running at
@@ -34,6 +35,46 @@ that name so a plain `docker compose up -d` picks it up), pulls the images from
 > `/dev/tty`. It writes into the directory you run it from — not into a clone —
 > so an empty folder is all you need. To pin a different version, prefix it with
 > `PB_REF=<tag>`.
+
+> [!IMPORTANT]
+> Back up the generated `.env`, and especially `CREDENTIALS_ENCRYPTION_KEY`.
+> Losing that key makes every SSH private key stored in the database
+> unrecoverable.
+
+## Upgrading from v0.7.x
+
+v0.8.0 added a **required** environment variable. The backend refuses to start
+without it:
+
+1. Generate a key and add it to your `.env` (next to `compose.yml`):
+
+   ```bash
+   echo "CREDENTIALS_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> .env
+   ```
+
+2. Back the key up.
+3. Refresh the compose file (volumes, ports and healthchecks changed), then
+   pull and restart:
+
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/main/compose.prod.yml -o compose.yml
+   docker compose pull && docker compose up -d
+   ```
+
+4. Encrypt the credentials that were stored in plaintext before the upgrade
+   (run once; `--decrypt` rolls it back):
+
+   ```bash
+   docker compose exec backend bun dist/encrypt-credentials.mjs
+   ```
+
+Other deployment changes in v0.8: the Ansible service keeps its state in the
+`ansible_state` volume (the old `./.data/ansible-runner:/app/playbook` mount and
+`ANSIBLE_PLAYBOOK_PATH` are gone), it no longer publishes port `8000` on the
+host, and the backend no longer runs a gRPC server (`BACKEND_GRPC_TARGET` and
+port `50052` were removed). See the
+[release notes](https://github.com/Nonetss/playbook-runner/releases) for
+details.
 
 ## Screenshots
 
@@ -73,15 +114,19 @@ codes, and ready-to-run `curl`/client snippets. The raw spec lives at
   can **import** an existing key or **generate** a fresh ed25519 pair right
   in the browser, and copy a ready-made **provisioning script** that creates
   the user, authorizes the public key, and grants passwordless sudo on a
-  target host.
+  target host. Private keys are encrypted at rest (AES-256-GCM) and are
+  never returned by the API.
 - **Playbooks** — write Ansible YAML in the browser, save it, version it in
   the database. No more `scp`ing `.yml` files around.
 - **Run on demand** — pick a playbook, pick a group (or a hand-picked set
-  of devices), click *Run*. Output streams into the browser via SSE
-  (Server-Sent Events), so you see `PLAY [...]` and `TASK [...]` lines as
-  ansible-runner emits them, with no polling.
+  of devices), review the confirmation step, click *Run*. Output streams
+  into the browser live, so you see `PLAY [...]` and `TASK [...]` lines as
+  ansible-runner emits them, with no polling. Closing the tab cancels the
+  run on the executor.
+- **Scripts** — save Bash or Python scripts and run them on a selection of
+  devices/groups, with the same live console as a playbook.
 - **Ad-hoc commands** — for quick one-offs that don't deserve a playbook,
-  the *Comandos* page runs an ad-hoc Ansible module (`shell` or `command`,
+  the *Commands* page runs an ad-hoc Ansible module (`shell` or `command`,
   with optional `become`) against a selection of devices/groups and streams
   the output live, same as a playbook run.
 - **Schedule jobs** — same thing but with a cron expression. The backend
@@ -90,10 +135,18 @@ codes, and ready-to-run `curl`/client snippets. The raw spec lives at
   multiple replicas and run the scheduler elsewhere.
 - **Dashboard** — at a glance: how many devices, credentials, playbooks,
   and recent job runs (with their status).
+- **Users & roles** — a closed team: there is no public sign-up. Admins
+  create accounts and assign roles (`admin`, `user`, `pending`) from
+  */admin/users*; `pending` users can sign in but can't use the app until
+  an admin approves them.
 - **Multi-user, with SSO** — sign in with email + password (default), or
   with a corporate OIDC provider (Keycloak, Authentik, Google, anything
   OIDC-compliant). The two can run side by side; SSO is opt-in via env
   vars and the app boots fine without it.
+- **API keys** — create personal API keys from the *Config* page to call
+  the API from scripts or CI (send them as `x-api-key`).
+- **Installable on mobile** — the frontend is a PWA, so you can add it to
+  your phone's home screen.
 
 ## Architecture
 
@@ -111,11 +164,15 @@ the ansible service over gRPC (`RunnerService`, see `proto/run.proto`) with
 the already-resolved payload. Ansible materializes a temp inventory + key
 files, hands them to `ansible-runner` (playbook mode or ad-hoc module
 mode), and streams `RunEvent` frames straight back over that same
-server-streaming RPC — no HTTP round trip and no SSE between the two
-services (the browser still gets its live output over SSE from the
+server-streaming RPC — no HTTP round trip between the two services (the
+browser still gets its live output as an oRPC event stream from the
 backend). Calls carry a shared `SERVICE_TOKEN` that the ansible
 service's gRPC interceptor checks. All business rules and authorization
 live in the backend.
+
+The executor runs at most `MAX_CONCURRENT_RUNS` (default 8) Ansible
+processes at once; extra requests are rejected immediately instead of
+queueing. A scheduled job never overlaps with itself.
 
 ## Stack
 
@@ -136,17 +193,19 @@ live in the backend.
 
 ```bash
 bun install
-cp .env.example .env          # fill in secrets
 cp apps/backend/.env.example apps/backend/.env
 cp apps/frontend/.env.example apps/frontend/.env
-bun run db:push               # apply schema to the database
-bun run db:seed               # create the default admin user
+# In apps/backend/.env, set at least:
+#   BETTER_AUTH_SECRET          openssl rand -base64 48
+#   CREDENTIALS_ENCRYPTION_KEY  openssl rand -base64 32
+#   SERVICE_TOKEN               openssl rand -base64 48 (same value in apps/ansible/.env)
 bun run dev
 ```
 
-Then open <http://localhost:4321> and sign in with
-`admin@playbook-runner.local` / `admin1234` (or whatever you set in
-`SEED_ADMIN_*`).
+On startup the backend applies the Drizzle migrations and creates the seed
+admin if it doesn't exist, so there is no separate migrate/seed step. Open
+<http://localhost:4321> and sign in with `admin@playbook-runner.local` /
+`admin1234` (or whatever you set in `SEED_ADMIN_*`).
 
 A PostgreSQL is the only external dependency. The easiest way:
 
@@ -164,11 +223,22 @@ Then point `DATABASE_URL` in `apps/backend/.env` at it.
 ## Quick start (production)
 
 ```bash
-cp .env.example .env            # set POSTGRES_PASSWORD, BETTER_AUTH_*, etc.
+cp .env.example .env            # replace every CHANGE_ME (see below)
 docker compose -f compose.prod.yml --env-file .env up -d
-docker compose -f compose.prod.yml --env-file .env exec backend bun run db:push
-docker compose -f compose.prod.yml --env-file .env exec backend bun run db:seed
 ```
+
+Secrets to generate before the first start:
+
+| Variable | Generate with |
+| --- | --- |
+| `POSTGRES_PASSWORD` | `openssl rand -hex 32` |
+| `BETTER_AUTH_SECRET` | `openssl rand -base64 48` |
+| `SERVICE_TOKEN` | `openssl rand -base64 48` |
+| `CREDENTIALS_ENCRYPTION_KEY` | `openssl rand -base64 32` (back it up!) |
+
+The backend applies the database migrations and creates the seed admin on
+every start (the seed is skipped if the admin already exists, and refuses the
+default password in production), so `up -d` is all you need.
 
 `compose.prod.yml` pulls three prebuilt multi-arch images
 (`linux/amd64,linux/arm64`) from `ghcr.io/nonetss/playbook-runner-*`,
@@ -203,9 +273,9 @@ Treat them as copy-paste starters — open one in the *Playbooks* page, hit
 
 ```txt
 playbook-runner/
-├── .data/           # Ignored local runtime state (inventory, keys, artifacts)
+├── .data/           # Ignored local runtime state (Ansible known_hosts)
 ├── apps/
-│   ├── frontend/    # Astro + React UI
+│   ├── frontend/    # Astro + React UI (PWA)
 │   ├── backend/     # Hono API + oRPC + cron loop + auth
 │   └── ansible/     # Python service wrapping ansible-runner
 ├── packages/
@@ -216,8 +286,10 @@ playbook-runner/
 │   ├── env/         # Zod-validated env vars (server + web)
 │   ├── grpc/        # Shared TypeScript gRPC infrastructure
 │   └── logger/      # Shared structured logging
+├── playbooks/       # Example playbooks
 ├── proto/           # Shared gRPC contracts
-└── python/          # Shared Python packages
+├── python/          # Shared Python packages
+└── scripts/         # bootstrap.sh installer
 ```
 
 Persistent Ansible runner state (currently the SSH `known_hosts` file) lives in
@@ -245,23 +317,39 @@ instead of failing in some weird place later.
 
 The two files to know:
 
-- **`.env`** (consumed by `compose.prod.yml`) — only the public-facing
-  variables: registry tag pins, the public URL, the DB password, the
-  Better Auth secret, the OAuth client credentials, the seed admin.
-- **`apps/backend/.env`** (consumed by the backend and by `drizzle-kit`)
-  — the full server-side schema: `DATABASE_URL`, `BETTER_AUTH_URL`,
-  `BETTER_AUTH_SECRET`, `GENERIC_OAUTH_*`, `SERVICE_TOKEN`,
-  `JOB_SCHEDULER_ENABLED`, `SEED_ADMIN_*`.
+- **`.env`** (consumed by `compose.prod.yml`) — everything a deployment
+  needs: registry tag pins, the public URL, the DB password, the Better
+  Auth secret, `SERVICE_TOKEN`, `CREDENTIALS_ENCRYPTION_KEY`, the OAuth
+  client credentials, the seed admin and `SSH_HOST_KEY_POLICY`.
+- **`apps/backend/.env`** (local dev; also read by `drizzle-kit`) — the
+  full server-side schema.
 
 Copy from `.env.example` and `apps/backend/.env.example` and fill in
 `CHANGE_ME` placeholders.
 
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `DATABASE_URL` | yes | PostgreSQL connection string. |
+| `BETTER_AUTH_SECRET` | yes | ≥ 32 chars. |
+| `BETTER_AUTH_URL` | yes | Public URL in production; `http://localhost:3000` in dev. |
+| `CORS_ORIGIN` | yes | Public frontend URL. |
+| `CREDENTIALS_ENCRYPTION_KEY` | yes | Base64 of exactly 32 bytes. Encrypts stored SSH private keys — back it up. |
+| `SERVICE_TOKEN` | recommended | ≥ 32 chars, same value on backend and ansible. Authenticates the gRPC link. |
+| `ANSIBLE_GRPC_TARGET` | no | Default `localhost:50051` (set by compose). |
+| `JOB_SCHEDULER_ENABLED` | no | `1` (default) runs the in-process cron; `0` disables it. |
+| `SEED_ADMIN_EMAIL` / `_PASSWORD` / `_NAME` | no | Admin created at startup if missing. |
+| `GENERIC_OAUTH_CLIENT_ID` / `_SECRET` / `_ISSUER` | no | All three enable SSO. |
+| `SSH_HOST_KEY_POLICY` | no | Ansible service: `accept-new` (default), `strict`, `off`. |
+| `MAX_CONCURRENT_RUNS` | no | Ansible service: default `8`. |
+| `LOG_LEVEL` | no | `info` by default. |
+
 ## Authentication
 
-The app ships with email/password sign-in enabled out of the box. The
-`SEED_ADMIN_*` env vars are used by `bun run db:seed` to create a
-default admin the first time you run it (idempotent — it skips if the
-user already exists).
+The app ships with email/password sign-in enabled out of the box, but
+public sign-up is disabled: accounts are created by an admin from
+*/admin/users* or provisioned on first SSO sign-in. The `SEED_ADMIN_*`
+env vars define the first admin, which the backend creates on startup if
+it doesn't exist yet (`bun run db:seed` does the same by hand).
 
 To add a corporate SSO, set the three `GENERIC_OAUTH_*` vars in
 `apps/backend/.env`:
@@ -286,7 +374,7 @@ PostgreSQL is required. Drizzle migrations live in
 ```bash
 bun run db:push          # apply schema directly (dev)
 bun run db:generate      # create a new migration from schema changes
-bun run db:migrate       # apply pending migrations (prod)
+bun run db:migrate       # apply pending migrations (the backend also does it on startup)
 bun run db:studio        # open Drizzle Studio in the browser
 bun run db:seed          # create the default admin user (idempotent)
 ```
@@ -295,9 +383,10 @@ bun run db:seed          # create the default admin user (idempotent)
 
 Two compose files:
 
-- **`compose.yml`** — dev workflow. Builds the three images from the
-  local sources, mounts the playbook directory, and exposes the dev
-  ports.
+- **`compose.yml`** — builds the three images from the local sources.
+  Only the frontend is published on the host; the Ansible state lives in
+  the `ansible_state` volume. Add `-f compose.debug.yml` to publish the
+  Ansible HTTP API on `:8000`.
 - **`compose.prod.yml`** — production overlay. Pulls prebuilt
   multi-arch images from `ghcr.io/nonetss/playbook-runner-*`, bundles
   PostgreSQL, and wires healthchecks.
@@ -328,6 +417,8 @@ docker compose -f compose.prod.yml --env-file .env up -d
 | `bun run db:studio` | Open Drizzle Studio |
 | `bun run db:seed` | Create the default admin user |
 | `bun run check` | Run Biome lint/format |
+| `bun run format` | Format TypeScript (Biome) and Python (Ruff) |
+| `bun run test:e2e` | Run the Playwright E2E suite |
 | `bun run docker:build` | Build Docker images from source |
 | `bun run docker:up` | Start the dev Docker stack |
 | `bun run docker:logs` | Tail Docker logs |

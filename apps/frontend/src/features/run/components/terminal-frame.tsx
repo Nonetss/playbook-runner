@@ -172,7 +172,7 @@ export function TerminalFrame({
       {panel ? (
         <aside
           className={cn(
-            "flex min-h-0 shrink-0 flex-col overflow-hidden border-t bg-background split:max-h-[46dvh] lg:max-h-none lg:w-72 lg:border-t-0 lg:border-l",
+            "flex min-h-0 shrink-0 flex-col overflow-hidden border-t bg-background max-lg:split:max-h-[46dvh] lg:w-72 lg:border-t-0 lg:border-l",
             setupFirst &&
               "stacked:order-first stacked:border-t-0 stacked:border-b"
           )}
