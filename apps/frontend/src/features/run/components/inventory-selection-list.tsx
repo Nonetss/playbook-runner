@@ -153,7 +153,7 @@ function SelectionSection({
   if (!collapsible) {
     return (
       <div className="space-y-1">
-        <p className="text-muted-foreground px-2 type-label tracking-wide">
+        <p className="text-muted-foreground px-2 font-medium text-label uppercase tracking-[0.12em] tracking-wide">
           {title}
         </p>
         {content}

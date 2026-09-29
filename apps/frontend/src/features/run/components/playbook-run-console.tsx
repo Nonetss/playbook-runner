@@ -5,34 +5,26 @@
 // action per host.
 import { getIcon } from "@/lib/icon-registry"
 
-const AlertTriangle = getIcon("status", "alert")
 const ArrowDown = getIcon("views", "scrollDown")
-const CheckCircle2 = getIcon("status", "success")
 const ClipboardList = getIcon("resources", "clipboard")
 const Loader2 = getIcon("status", "loading")
-const MinusCircle = getIcon("status", "minus")
 const Computer = getIcon("resources", "device")
 const Terminal = getIcon("resources", "terminal")
-const XCircle = getIcon("status", "error")
 
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { useFollowOutput } from "@/features/run/hooks/use-follow-output"
+import {
+  isFailedStatus,
+  RUN_HOST_STATUS,
+  type RunHostStatus,
+} from "@/features/run/status-tones"
 import { cn } from "@/lib/utils"
 
-// See RunHostConsole for why raw stdout/stderr get the native terminal font
-// stack instead of the branded monospace font.
-const TERMINAL_FONT_STACK =
-  'ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace'
+// Raw stdout/stderr use `font-terminal`; see RunHostConsole.
 
-type HostOutcome =
-  | "running"
-  | "ok"
-  | "changed"
-  | "failed"
-  | "unreachable"
-  | "skipped"
+type HostOutcome = RunHostStatus
 
 type TaskHostResult = {
   host: string
@@ -211,44 +203,22 @@ function parseEvents(raw: unknown[]): Parsed {
   return { plays: plays.filter((p) => p.name || p.tasks.length > 0), recap }
 }
 
-const STATUS_META: Record<
-  HostOutcome,
-  { icon: typeof Computer; textClass: string }
-> = {
-  running: { icon: Loader2, textClass: "text-primary" },
-  ok: {
-    icon: CheckCircle2,
-    textClass: "text-emerald-600 dark:text-emerald-400",
-  },
-  changed: {
-    icon: CheckCircle2,
-    textClass: "text-amber-600 dark:text-amber-400",
-  },
-  failed: { icon: XCircle, textClass: "text-red-600 dark:text-red-400" },
-  unreachable: {
-    icon: AlertTriangle,
-    textClass: "text-red-600 dark:text-red-400",
-  },
-  skipped: { icon: MinusCircle, textClass: "text-muted-foreground" },
-}
-
 function HostResultRow({ result }: { result: TaskHostResult }) {
   const { t } = useTranslation("common")
-  const meta = STATUS_META[result.status]
+  const meta = RUN_HOST_STATUS[result.status]
   const Icon = meta.icon
-  const stderrIsError =
-    result.status === "failed" || result.status === "unreachable"
+  const stderrIsError = isFailedStatus(result.status)
 
   return (
     <div className="px-3 py-2">
       <div className="flex items-center gap-2">
-        <Computer className="size-3 shrink-0 text-zinc-600" />
-        <span className="min-w-0 flex-1 truncate font-mono text-xs text-zinc-300">
+        <Computer className="size-3 shrink-0 text-terminal-subtle" />
+        <span className="min-w-0 flex-1 truncate font-mono text-xs text-terminal-fg">
           {result.host}
         </span>
         <span
           className={cn(
-            "flex shrink-0 items-center gap-1 type-console-meta font-medium",
+            "flex shrink-0 items-center gap-1 font-mono text-console-meta font-medium",
             meta.textClass
           )}
         >
@@ -261,7 +231,7 @@ function HostResultRow({ result }: { result: TaskHostResult }) {
           {t(`run_console.status.${result.status}`)}
         </span>
         {result.rc != null ? (
-          <span className="shrink-0 font-mono type-console-meta text-zinc-600">
+          <span className="shrink-0 font-mono text-console-meta text-terminal-subtle">
             rc={result.rc}
           </span>
         ) : null}
@@ -279,10 +249,7 @@ function HostResultRow({ result }: { result: TaskHostResult }) {
       ) : null}
 
       {result.stdout ? (
-        <pre
-          className="type-console-body mt-1 pl-5 whitespace-pre-wrap wrap-break-word text-zinc-400"
-          style={{ fontFamily: TERMINAL_FONT_STACK }}
-        >
+        <pre className="font-terminal text-console mt-1 pl-5 whitespace-pre-wrap wrap-break-word text-terminal-muted">
           {result.stdout}
         </pre>
       ) : null}
@@ -290,10 +257,9 @@ function HostResultRow({ result }: { result: TaskHostResult }) {
       {result.stderr ? (
         <pre
           className={cn(
-            "type-console-body mt-1 pl-5 whitespace-pre-wrap wrap-break-word",
-            stderrIsError ? "text-destructive" : "text-muted-foreground"
+            "font-terminal text-console mt-1 pl-5 whitespace-pre-wrap wrap-break-word",
+            stderrIsError ? "text-terminal-failed" : "text-terminal-subtle"
           )}
-          style={{ fontFamily: TERMINAL_FONT_STACK }}
         >
           {result.stderr}
         </pre>
@@ -303,32 +269,31 @@ function HostResultRow({ result }: { result: TaskHostResult }) {
 }
 
 function TaskCard({ task }: { task: TaskBlock }) {
-  const failCount = task.hosts.filter(
-    (h) => h.status === "failed" || h.status === "unreachable"
-  ).length
+  const { t } = useTranslation("common")
+  const failCount = task.hosts.filter((h) => isFailedStatus(h.status)).length
   const okCount = task.hosts.filter(
     (h) => h.status === "ok" || h.status === "changed"
   ).length
 
   return (
-    <div className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/40">
-      <div className="flex items-center gap-2 border-b border-zinc-800/80 bg-zinc-900/70 px-3 py-1.5">
-        <Terminal className="size-3.5 shrink-0 text-zinc-500" />
-        <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium text-zinc-200">
+    <div className="overflow-hidden rounded-lg border border-terminal-border bg-terminal-surface">
+      <div className="flex items-center gap-2 border-b border-terminal-border bg-terminal-raised px-3 py-1.5">
+        <Terminal className="size-3.5 shrink-0 text-terminal-subtle" />
+        <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium text-terminal-fg">
           {task.name || "—"}
         </span>
         {failCount > 0 ? (
-          <span className="shrink-0 font-mono type-console-meta text-destructive">
-            {failCount} fallo{failCount === 1 ? "" : "s"}
+          <span className="shrink-0 font-mono text-console-meta text-terminal-failed">
+            {t("run_console.failures", { count: failCount })}
           </span>
         ) : null}
         {okCount > 0 ? (
-          <span className="shrink-0 font-mono type-console-meta text-zinc-600">
+          <span className="shrink-0 font-mono text-console-meta text-terminal-subtle">
             {okCount} ok
           </span>
         ) : null}
       </div>
-      <div className="divide-y divide-zinc-800/60">
+      <div className="divide-y divide-terminal-border">
         {task.hosts.map((h, i) => (
           <HostResultRow key={`${h.host}-${i}`} result={h} />
         ))}
@@ -340,14 +305,14 @@ function TaskCard({ task }: { task: TaskBlock }) {
 function RecapCard({ rows }: { rows: RecapRow[] }) {
   const { t } = useTranslation("common")
   return (
-    <div className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/40">
-      <div className="flex items-center gap-2 border-b border-zinc-800/80 bg-zinc-900/70 px-3 py-1.5">
-        <ClipboardList className="size-3.5 shrink-0 text-zinc-500" />
-        <span className="font-mono text-xs font-medium text-zinc-200">
-          PLAY RECAP
+    <div className="overflow-hidden rounded-lg border border-terminal-border bg-terminal-surface">
+      <div className="flex items-center gap-2 border-b border-terminal-border bg-terminal-raised px-3 py-1.5">
+        <ClipboardList className="size-3.5 shrink-0 text-terminal-subtle" />
+        <span className="font-mono text-xs font-medium text-terminal-fg uppercase">
+          {t("run_console.recap")}
         </span>
       </div>
-      <div className="divide-y divide-zinc-800/60">
+      <div className="divide-y divide-terminal-border">
         {rows.map((row) => {
           const status =
             row.failed > 0 || row.unreachable > 0
@@ -357,28 +322,28 @@ function RecapCard({ rows }: { rows: RecapRow[] }) {
                 : row.ok > 0
                   ? "ok"
                   : "skipped"
-          const tone = STATUS_META[status].textClass
+          const tone = RUN_HOST_STATUS[status].textClass
           return (
             <div
               key={row.host}
-              className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 font-mono type-console-meta"
+              className="flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 font-mono text-console-meta"
             >
               <span className={cn("min-w-0 flex-1 truncate", tone)}>
                 {row.host}
               </span>
-              <span className="text-zinc-500">
+              <span className="text-terminal-muted">
                 {t("run_console.status.ok")}={row.ok}
               </span>
-              <span className="text-zinc-500">
+              <span className="text-terminal-muted">
                 {t("run_console.status.changed")}={row.changed}
               </span>
-              <span className="text-zinc-500">
+              <span className="text-terminal-muted">
                 {t("run_console.status.unreachable")}={row.unreachable}
               </span>
-              <span className="text-zinc-500">
+              <span className="text-terminal-muted">
                 {t("run_console.status.failed")}={row.failed}
               </span>
-              <span className="text-zinc-500">
+              <span className="text-terminal-muted">
                 {t("run_console.status.skipped")}={row.skipped}
               </span>
             </div>
@@ -408,14 +373,14 @@ export function PlaybookRunConsole({
   if (plays.length === 0 && !recap) {
     if (running) {
       return (
-        <p className="flex items-center gap-2 px-3 text-sm text-zinc-500 sm:px-5">
+        <p className="flex items-center gap-2 px-4 text-sm text-terminal-muted">
           <Loader2 className="size-3.5 animate-spin" />
           {t("run_console.starting")}
         </p>
       )
     }
     return (
-      <p className="px-3 text-sm text-zinc-600 select-none sm:px-5">
+      <p className="px-4 text-sm text-terminal-subtle select-none">
         {emptyHint ?? idlePrompt ?? t("run_console.no_output")}
       </p>
     )
@@ -428,13 +393,15 @@ export function PlaybookRunConsole({
         onScroll={handleScroll}
         className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain"
       >
-        <div className="space-y-4 p-3 sm:p-5">
+        <div className="space-y-4 px-4 pb-4">
           {plays.map((play) => (
             <div key={play.key} className="space-y-2">
               {play.name ? (
-                <p className="px-0.5 font-mono type-console-meta font-semibold tracking-wide text-zinc-500 uppercase">
-                  PLAY{" "}
-                  <span className="text-zinc-300 normal-case">{play.name}</span>
+                <p className="px-0.5 font-mono text-console-meta font-semibold tracking-wide text-terminal-subtle uppercase">
+                  {t("run_console.play")}{" "}
+                  <span className="text-terminal-fg normal-case">
+                    {play.name}
+                  </span>
                 </p>
               ) : null}
               <div className="space-y-2">
@@ -446,16 +413,18 @@ export function PlaybookRunConsole({
           ))}
           {recap ? <RecapCard rows={recap} /> : null}
           {running ? (
-            <span className="inline-block animate-pulse text-zinc-400">▋</span>
+            <span className="inline-block animate-pulse text-terminal-muted">
+              ▋
+            </span>
           ) : null}
         </div>
       </div>
       {following ? null : (
         <Button
           size="sm"
-          variant="secondary"
+          variant="terminal"
           onClick={jumpToLatest}
-          className="absolute right-3 bottom-3 shadow-md sm:right-5 sm:bottom-5"
+          className="absolute right-4 bottom-4"
         >
           <ArrowDown className="size-3.5" />
           {t("run_console.jump_to_latest")}

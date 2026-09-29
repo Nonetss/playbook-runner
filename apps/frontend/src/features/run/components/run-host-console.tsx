@@ -6,39 +6,26 @@
 // center instead of buried in dim ansible ceremony lines.
 import { getIcon } from "@/lib/icon-registry"
 
-const AlertTriangle = getIcon("status", "alert")
 const ArrowDown = getIcon("views", "scrollDown")
-const CheckCircle2 = getIcon("status", "success")
 const Loader2 = getIcon("status", "loading")
-const MinusCircle = getIcon("status", "minus")
 const Computer = getIcon("resources", "device")
-const XCircle = getIcon("status", "error")
 
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { useFollowOutput } from "@/features/run/hooks/use-follow-output"
+import {
+  isFailedStatus,
+  RUN_HOST_STATUS,
+  type RunHostStatus,
+} from "@/features/run/status-tones"
 import type { RunEvent, RunPhase } from "@/features/run/types"
 import { cn } from "@/lib/utils"
 
-// Raw stdout/stderr can contain box-drawing characters (═, ─, │…) that
-// scripts commonly use as section separators. Geist Mono (this app's
-// branded --font-mono) doesn't ship glyphs for that Unicode block, so the
-// browser falls back per-character to whatever's next in the stack — and
-// that substitute's advance width rarely matches Geist Mono's grid, which
-// makes the fallback glyphs collide with neighboring characters. Native OS
-// terminal fonts are built with full, correctly-metriced box-drawing
-// coverage, so raw output uses that stack instead of the branded one.
-const TERMINAL_FONT_STACK =
-  'ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace'
+// Raw stdout/stderr use `font-terminal` (native monospace stack) because
+// scripts print box-drawing separators (═ ─ │) the brand mono lacks.
 
-type HostStatus =
-  | "running"
-  | "ok"
-  | "changed"
-  | "failed"
-  | "unreachable"
-  | "skipped"
+type HostStatus = RunHostStatus
 
 type HostResult = {
   host: string
@@ -114,40 +101,27 @@ function buildHostResults(events: RunEvent[]): HostResult[] {
   return order.map((host) => byHost.get(host) as HostResult)
 }
 
-const STATUS_META: Record<
-  HostStatus,
-  { icon: typeof Computer; textClass: string }
-> = {
-  running: { icon: Loader2, textClass: "text-sky-400" },
-  ok: { icon: CheckCircle2, textClass: "text-emerald-400" },
-  changed: { icon: CheckCircle2, textClass: "text-amber-400" },
-  failed: { icon: XCircle, textClass: "text-red-400" },
-  unreachable: { icon: AlertTriangle, textClass: "text-red-400" },
-  skipped: { icon: MinusCircle, textClass: "text-zinc-500" },
-}
-
 function HostCard({ result }: { result: HostResult }) {
   const { t } = useTranslation("common")
-  const meta = STATUS_META[result.status]
+  const meta = RUN_HOST_STATUS[result.status]
   const Icon = meta.icon
   const hasStdout = !!result.stdout
   const hasStderr = !!result.stderr
   // SSH prints benign notices to stderr on every piped task (e.g. "Shared
   // connection to X closed."), so a non-empty stderr doesn't mean the host
   // failed — only flag it red when the run actually did.
-  const stderrIsError =
-    result.status === "failed" || result.status === "unreachable"
+  const stderrIsError = isFailedStatus(result.status)
 
   return (
-    <div className="overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/40">
-      <div className="flex items-center gap-2 border-b border-zinc-800/80 bg-zinc-900/70 px-3 py-1.5">
-        <Computer className="size-3.5 shrink-0 text-zinc-500" />
-        <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium text-zinc-200">
+    <div className="overflow-hidden rounded-lg border border-terminal-border bg-terminal-surface">
+      <div className="flex items-center gap-2 border-b border-terminal-border bg-terminal-raised px-3 py-1.5">
+        <Computer className="size-3.5 shrink-0 text-terminal-subtle" />
+        <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium text-terminal-fg">
           {result.host}
         </span>
         <span
           className={cn(
-            "flex shrink-0 items-center gap-1 type-console-meta font-medium",
+            "flex shrink-0 items-center gap-1 font-mono text-console-meta font-medium",
             meta.textClass
           )}
         >
@@ -160,7 +134,7 @@ function HostCard({ result }: { result: HostResult }) {
           {t(`run_console.status.${result.status}`)}
         </span>
         {result.rc != null ? (
-          <span className="shrink-0 font-mono type-console-meta text-zinc-600">
+          <span className="shrink-0 font-mono text-console-meta text-terminal-subtle">
             rc={result.rc}
           </span>
         ) : null}
@@ -168,7 +142,9 @@ function HostCard({ result }: { result: HostResult }) {
 
       <div className="px-3 py-2.5">
         {result.status === "running" ? (
-          <p className="text-xs text-zinc-500">{t("run_console.waiting")}</p>
+          <p className="text-xs text-terminal-muted">
+            {t("run_console.waiting")}
+          </p>
         ) : null}
 
         {result.msg ? (
@@ -183,10 +159,7 @@ function HostCard({ result }: { result: HostResult }) {
         ) : null}
 
         {hasStdout ? (
-          <pre
-            className="type-console-body whitespace-pre-wrap wrap-break-word text-zinc-100"
-            style={{ fontFamily: TERMINAL_FONT_STACK }}
-          >
+          <pre className="font-terminal text-console whitespace-pre-wrap wrap-break-word text-terminal-fg">
             {result.stdout}
           </pre>
         ) : null}
@@ -195,31 +168,32 @@ function HostCard({ result }: { result: HostResult }) {
         !hasStderr &&
         !result.msg &&
         result.status !== "running" ? (
-          <p className="text-xs text-zinc-600">{t("run_console.no_output")}</p>
+          <p className="text-xs text-terminal-subtle">
+            {t("run_console.no_output")}
+          </p>
         ) : null}
 
         {hasStderr ? (
           <div
             className={cn(
               "pt-2",
-              stderrIsError ? "border-red-900/30" : "border-zinc-800/60",
+              "border-terminal-border",
               hasStdout && "mt-2 border-t"
             )}
           >
             <p
               className={cn(
-                "mb-1 type-console-meta font-semibold tracking-wide uppercase",
-                stderrIsError ? "text-red-500/70" : "text-zinc-600"
+                "mb-1 font-mono text-console-meta font-semibold tracking-wide uppercase",
+                stderrIsError ? "text-terminal-failed" : "text-terminal-subtle"
               )}
             >
               {t("run_console.stderr")}
             </p>
             <pre
               className={cn(
-                "type-console-body whitespace-pre-wrap wrap-break-word",
-                stderrIsError ? "text-red-400" : "text-zinc-500"
+                "font-terminal text-console whitespace-pre-wrap wrap-break-word",
+                stderrIsError ? "text-terminal-failed" : "text-terminal-muted"
               )}
-              style={{ fontFamily: TERMINAL_FONT_STACK }}
             >
               {result.stderr}
             </pre>
@@ -248,7 +222,7 @@ export function RunHostConsole({
 
   if (phase === "idle") {
     return (
-      <p className="px-3 text-sm text-zinc-600 select-none sm:px-5">
+      <p className="px-4 text-sm text-terminal-subtle select-none">
         {idlePrompt}
       </p>
     )
@@ -257,7 +231,7 @@ export function RunHostConsole({
   if (results.length === 0) {
     if (phase === "running") {
       return (
-        <p className="flex items-center gap-2 px-3 text-sm text-zinc-500 sm:px-5">
+        <p className="flex items-center gap-2 px-4 text-sm text-terminal-muted">
           <Loader2 className="size-3.5 animate-spin" />
           {t("run_console.starting")}
         </p>
@@ -266,7 +240,7 @@ export function RunHostConsole({
     // A separate banner already reports the error; avoid a redundant line.
     if (phase === "error") return null
     return (
-      <p className="px-3 text-sm text-zinc-600 select-none sm:px-5">
+      <p className="px-4 text-sm text-terminal-subtle select-none">
         {emptyHint ?? t("run_console.no_output")}
       </p>
     )
@@ -279,21 +253,23 @@ export function RunHostConsole({
         onScroll={handleScroll}
         className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain"
       >
-        <div className="space-y-3 p-3 sm:p-5">
+        <div className="space-y-3 px-4 pb-4">
           {results.map((result) => (
             <HostCard key={result.host} result={result} />
           ))}
           {phase === "running" ? (
-            <span className="inline-block animate-pulse text-zinc-400">▋</span>
+            <span className="inline-block animate-pulse text-terminal-muted">
+              ▋
+            </span>
           ) : null}
         </div>
       </div>
       {following ? null : (
         <Button
           size="sm"
-          variant="secondary"
+          variant="terminal"
           onClick={jumpToLatest}
-          className="absolute right-3 bottom-3 shadow-md sm:right-5 sm:bottom-5"
+          className="absolute right-4 bottom-4"
         >
           <ArrowDown className="size-3.5" />
           {t("run_console.jump_to_latest")}

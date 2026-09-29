@@ -1,16 +1,19 @@
 import { getIcon } from "@/lib/icon-registry"
 
-const ArrowLeft = getIcon("navigation", "back")
-const Loader2 = getIcon("status", "loading")
 const Play = getIcon("actions", "play")
 
 import * as React from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { CodeEditor } from "@/components/shared/code-editor"
+import { InlineAlert } from "@/components/shared/feedback/inline-alert"
+import { StateCard } from "@/components/shared/feedback/state-card"
+import { FieldLabel, FormField } from "@/components/shared/form/field-label"
+import { DetailFrame } from "@/components/shared/layout/detail-frame"
+import { PageHero } from "@/components/shared/layout/page-hero"
+import { AppLink } from "@/components/ui/app-link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -108,74 +111,53 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
     }
   }
 
+  const frame = (children: React.ReactNode) => (
+    <DetailFrame
+      backHref={returnHref}
+      backLabel={t("form.back_to_playbooks")}
+      maxWidth="full"
+    >
+      {children}
+    </DetailFrame>
+  )
+
   if (isEditing && isLoading) {
-    return (
-      <main className="flex w-full flex-1 items-center justify-center p-6 lg:px-8">
-        <div className="text-muted-foreground flex items-center gap-2 text-sm">
-          <Loader2 className="size-4 animate-spin" />
-          {t("form.loading")}
-        </div>
-      </main>
-    )
+    return frame(<StateCard spinner title={t("form.loading")} />)
   }
 
   if (isEditing && (isLoadError || !playbook)) {
-    return (
-      <main className="w-full flex-1 p-6 lg:px-8">
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          {t("form.load_error")}
-        </div>
-        <Button asChild variant="outline" className="mt-4">
-          <a href={returnHref}>
-            <ArrowLeft className="size-4" />
-            {t("form.back_to_playbooks")}
-          </a>
-        </Button>
-      </main>
-    )
+    return frame(<StateCard tone="destructive" title={t("form.load_error")} />)
   }
 
-  return (
-    <main className="flex h-[calc(100dvh-3.5rem)] min-h-0 w-full flex-col overflow-hidden p-6 lg:px-8">
-      <div className="mb-4 flex shrink-0 items-center gap-3">
-        <Button
-          asChild
-          variant="ghost"
-          size="icon-sm"
-          aria-label={t("run.back_aria")}
-        >
-          <a href={returnHref}>
-            <ArrowLeft className="size-4" />
-          </a>
-        </Button>
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-bold tracking-tight">
-            {isEditing ? t("form.edit_title") : t("form.create_title")}
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            {isEditing ? t("form.edit_subtitle") : t("form.create_subtitle")}
-          </p>
-        </div>
-        {isEditing && id ? (
-          <Button asChild variant="outline" size="sm" className="shrink-0">
-            <a href={`/playbooks/${id}/run`} aria-label={t("form.run_aria")}>
-              <Play className="size-4" />
-              {t("form.run")}
-            </a>
-          </Button>
-        ) : null}
-      </div>
+  return frame(
+    <>
+      <PageHero
+        surface="playbooks"
+        title={isEditing ? t("form.edit_title") : t("form.create_title")}
+        description={
+          isEditing ? t("form.edit_subtitle") : t("form.create_subtitle")
+        }
+        action={
+          isEditing && id ? (
+            <Button asChild variant="outline">
+              <AppLink
+                href={`/playbooks/${id}/run`}
+                aria-label={t("form.run_aria")}
+              >
+                <Play className="size-4" />
+                {t("form.run")}
+              </AppLink>
+            </Button>
+          ) : undefined
+        }
+      />
 
       <form
         onSubmit={handleSubmit}
-        className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-4 overflow-hidden"
+        className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-5 overflow-hidden"
       >
-        <div className="grid shrink-0 gap-5 lg:grid-cols-3">
-          <div className="space-y-2">
-            <Label htmlFor="name-field">
-              {t("form.name_label")}
-              <span aria-hidden> *</span>
-            </Label>
+        <div className="grid gap-5 lg:grid-cols-3">
+          <FormField label={t("form.name_label")} htmlFor="name-field" required>
             <Input
               id="name-field"
               required
@@ -184,11 +166,11 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
               value={values.name}
               onChange={(e) => updateField("name", e.target.value)}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description-field">
-              {t("form.description_label")}
-            </Label>
+          </FormField>
+          <FormField
+            label={t("form.description_label")}
+            htmlFor="description-field"
+          >
             <Input
               id="description-field"
               disabled={isSubmitting}
@@ -196,17 +178,21 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
               value={values.description}
               onChange={(e) => updateField("description", e.target.value)}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="folder-field">{t("form.folder_label")}</Label>
+          </FormField>
+          <FormField label={t("form.folder_label")} htmlFor="folder-field">
             <Select
               value={values.folderId ?? PLAYBOOK_ROOT_FOLDER_VALUE}
-              onValueChange={(value) =>
+              onValueChange={(value) => {
+                // Radix fires "" when the current value has no matching item
+                // yet (folders still loading). The root option is the
+                // sentinel, so "" is never a user choice: ignore it instead of
+                // silently moving the playbook to the root.
+                if (value === "") return
                 setValues((current) => ({
                   ...current,
                   folderId: toFolderId(value),
                 }))
-              }
+              }}
               disabled={isSubmitting}
             >
               <SelectTrigger id="folder-field" className="w-full">
@@ -225,25 +211,21 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
                 </SelectGroup>
               </SelectContent>
             </Select>
-          </div>
+          </FormField>
         </div>
 
         <div className="flex min-h-0 flex-col gap-2 overflow-hidden">
-          <Label
-            id="content-field-label"
-            htmlFor="content-field"
-            className="shrink-0"
-          >
-            {t("form.content_label")}
-            <span aria-hidden> *</span>
-          </Label>
-          <div
-            className="flex shrink-0 items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive"
-            // eslint-disable-next-line react/no-danger
-            dangerouslySetInnerHTML={{
-              __html: t("form.hosts_all_warning"),
-            }}
-          />
+          <FieldLabel htmlFor="content-field" required className="shrink-0">
+            <span id="content-field-label">{t("form.content_label")}</span>
+          </FieldLabel>
+          <InlineAlert tone="muted" className="shrink-0 text-xs">
+            <span
+              className="[&_code]:font-mono [&_code]:text-foreground"
+              dangerouslySetInnerHTML={{
+                __html: t("form.hosts_all_warning"),
+              }}
+            />
+          </InlineAlert>
           <div className="min-h-0 flex-1">
             <CodeEditor
               id="content-field"
@@ -259,32 +241,31 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
           </div>
         </div>
 
-        {error ? (
-          <p className="shrink-0 text-sm text-destructive">{error}</p>
-        ) : null}
-
-        <div className="flex shrink-0 justify-end gap-2 pb-2">
-          <Button
-            asChild
-            type="button"
-            variant="outline"
-            disabled={isSubmitting}
-          >
-            <a href={returnHref}>{t("form.cancel")}</a>
-          </Button>
-          <Button
-            type="submit"
-            disabled={isSubmitting || values.content.trim().length === 0}
-          >
-            {isSubmitting
-              ? t("form.saving")
-              : isEditing
-                ? t("form.save_changes")
-                : t("form.create")}
-          </Button>
+        <div className="flex flex-col gap-3">
+          {error ? <InlineAlert>{error}</InlineAlert> : null}
+          <div className="flex justify-end gap-2 border-t pt-4">
+            <Button
+              asChild
+              type="button"
+              variant="outline"
+              disabled={isSubmitting}
+            >
+              <AppLink href={returnHref}>{t("form.cancel")}</AppLink>
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting || values.content.trim().length === 0}
+            >
+              {isSubmitting
+                ? t("form.saving")
+                : isEditing
+                  ? t("form.save_changes")
+                  : t("form.create")}
+            </Button>
+          </div>
         </div>
       </form>
-    </main>
+    </>
   )
 }
 

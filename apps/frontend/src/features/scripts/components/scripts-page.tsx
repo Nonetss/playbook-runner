@@ -1,83 +1,89 @@
 import { getIcon } from "@/lib/icon-registry"
 
 const FileCode2 = getIcon("resources", "fileCode")
+const Plus = getIcon("actions", "add")
 
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
-import { ResourceListState } from "@/components/shared/resource-list-state"
-import { ResourcePage } from "@/components/shared/resource-page"
-import { ScriptList } from "@/features/scripts/components/script-list"
+import { HeroCount } from "@/components/shared/layout/page-hero"
+import { EntityCardGrid } from "@/components/shared/resource/entity-list"
+import { ResourceOverview } from "@/components/shared/resource/resource-overview"
+import { AppLink } from "@/components/ui/app-link"
+import { Button } from "@/components/ui/button"
+import { scriptDefinition } from "@/features/scripts/definitions/script.definition"
 import {
   useScriptDelete,
   useScriptsList,
 } from "@/features/scripts/hooks/use-scripts"
+import type { Script } from "@/features/scripts/types"
 import { useConfirm } from "@/hooks/use-confirm"
 
 function ScriptsPageInner() {
-  const { t } = useTranslation("scripts")
+  const { t, i18n } = useTranslation("scripts")
   const { t: tCommon } = useTranslation("common")
-  const { data: scripts = [], isPending, isError, refetch } = useScriptsList()
+  const query = useScriptsList()
   const deleteScript = useScriptDelete()
   const confirm = useConfirm()
 
-  async function handleDelete(id: string) {
-    const script = scripts.find((item) => item.id === id)
-    const label = script?.name ?? tCommon("labels.this_script")
+  async function handleDelete(script: Script) {
     const confirmed = await confirm({
-      title: t("delete.confirm_title", { label }),
+      title: t("delete.confirm_title", {
+        label: script.name || tCommon("labels.this_script"),
+      }),
       description: t("delete.confirm_description"),
       confirmLabel: t("card.delete"),
       cancelLabel: tCommon("actions.cancel"),
       variant: "destructive",
     })
-
     if (!confirmed) return
-
     // The mutation hook shows the error toast.
-    deleteScript.mutate({ id })
+    deleteScript.mutate({ id: script.id })
   }
 
+  const createButton = (
+    <Button asChild>
+      <AppLink href="/scripts/new">
+        <Plus className="size-4" />
+        {t("page.create")}
+      </AppLink>
+    </Button>
+  )
+
   return (
-    <ResourcePage
-      title={t("page.title")}
-      description={t("page.subtitle")}
-      createLabel={t("page.create")}
-      createHref="/scripts/new"
+    <ResourceOverview
+      surface="scripts"
+      heroMeta={
+        <HeroCount
+          segments={[
+            { count: query.data?.length ?? 0, label: tCommon("labels.total") },
+          ]}
+        />
+      }
+      heroAction={createButton}
+      query={query}
+      isEmpty={(scripts) => scripts.length === 0}
+      empty={{
+        icon: <FileCode2 />,
+        title: t("empty.title"),
+        description: t("empty.description"),
+        action: createButton,
+      }}
     >
-      <ResourceListState
-        isPending={isPending}
-        isError={isError}
-        onRetry={() => refetch()}
-        items={scripts}
-        empty={{
-          title: t("empty.title"),
-          description: t("empty.description"),
-          ctaLabel: t("page.create"),
-          ctaHref: "/scripts/new",
-          icon: <FileCode2 className="size-5" />,
-        }}
-      >
-        {(items) => (
-          <ScriptList
-            scripts={items}
-            onDelete={handleDelete}
-            locale={
-              (typeof window === "undefined"
-                ? "en"
-                : navigator.language
-              ).startsWith("en")
-                ? "en-US"
-                : "es-ES"
-            }
-            deletingId={
-              deleteScript.isPending
-                ? (deleteScript.variables?.id ?? null)
-                : null
-            }
-          />
-        )}
-      </ResourceListState>
-    </ResourcePage>
+      {(scripts) => (
+        <EntityCardGrid
+          items={scripts}
+          definition={scriptDefinition}
+          context={{
+            t,
+            language: i18n.language,
+            deletingId: deleteScript.isPending
+              ? (deleteScript.variables?.id ?? null)
+              : null,
+            onDelete: handleDelete,
+          }}
+        />
+      )}
+    </ResourceOverview>
   )
 }
 

@@ -1,14 +1,7 @@
 import * as React from "react"
 import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { FormField } from "@/components/shared/form/field-label"
+import { FormDialog } from "@/components/shared/form/form-dialog"
 import {
   Select,
   SelectContent,
@@ -49,31 +42,48 @@ export function MovePlaybookDialog({
     }
   }, [open, playbook?.folderId])
 
-  async function handleMove() {
+  async function handleMove(event: React.SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault()
     if (!playbook) return
-    await movePlaybook.mutateAsync({
-      id: playbook.id,
-      folderId: toFolderId(destination),
-    })
-    onOpenChange(false)
+    try {
+      await movePlaybook.mutateAsync({
+        id: playbook.id,
+        folderId: toFolderId(destination),
+      })
+      onOpenChange(false)
+    } catch {
+      // The shared mutation hook displays the localized error toast.
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t("move.title")}</DialogTitle>
-          <DialogDescription>
-            {t("move.description", { name: playbook?.name ?? "" })}
-          </DialogDescription>
-        </DialogHeader>
-
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t("move.title")}
+      description={t("move.description", { name: playbook?.name ?? "" })}
+      onSubmit={handleMove}
+      isPending={movePlaybook.isPending}
+      cancelLabel={t("move.cancel")}
+      submitLabel={
+        movePlaybook.isPending ? t("move.moving") : t("move.confirm")
+      }
+      submitDisabled={
+        !playbook ||
+        destination === (playbook.folderId ?? PLAYBOOK_ROOT_FOLDER_VALUE)
+      }
+      width="md"
+    >
+      <FormField label={t("move.destination")} htmlFor="move-destination">
         <Select
           value={destination}
-          onValueChange={setDestination}
+          onValueChange={(value) => {
+            // Radix emits "" while folders are still loading; ignore it.
+            if (value !== "") setDestination(value)
+          }}
           disabled={movePlaybook.isPending}
         >
-          <SelectTrigger className="w-full" aria-label={t("move.destination")}>
+          <SelectTrigger id="move-destination" className="w-full">
             <SelectValue placeholder={t("move.destination")} />
           </SelectTrigger>
           <SelectContent>
@@ -89,29 +99,7 @@ export function MovePlaybookDialog({
             </SelectGroup>
           </SelectContent>
         </Select>
-
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={movePlaybook.isPending}
-          >
-            {t("move.cancel")}
-          </Button>
-          <Button
-            type="button"
-            onClick={handleMove}
-            disabled={
-              movePlaybook.isPending ||
-              !playbook ||
-              destination === (playbook.folderId ?? PLAYBOOK_ROOT_FOLDER_VALUE)
-            }
-          >
-            {movePlaybook.isPending ? t("move.moving") : t("move.confirm")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </FormField>
+    </FormDialog>
   )
 }

@@ -1,23 +1,26 @@
 import { getIcon } from "@/lib/icon-registry"
 
-const ArrowLeft = getIcon("navigation", "back")
-const Loader2 = getIcon("status", "loading")
 const TerminalSquare = getIcon("resources", "terminalSquare")
 
 import * as React from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { CodeEditor } from "@/components/shared/code-editor"
+import { InlineAlert } from "@/components/shared/feedback/inline-alert"
+import { StateCard } from "@/components/shared/feedback/state-card"
+import { FieldLabel, FormField } from "@/components/shared/form/field-label"
+import { SegmentedPicker } from "@/components/shared/form/segmented-picker"
+import { DetailFrame } from "@/components/shared/layout/detail-frame"
+import { PageHero } from "@/components/shared/layout/page-hero"
+import { AppLink } from "@/components/ui/app-link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   useScriptCreate,
   useScriptGet,
   useScriptUpdate,
 } from "@/features/scripts/hooks/use-scripts"
 import { navigate } from "@/lib/navigate"
-import { cn } from "@/lib/utils"
 
 type ScriptLanguage = "bash" | "python"
 
@@ -33,46 +36,6 @@ const EMPTY_VALUES: FormValues = {
   description: "",
   content: "",
   language: "bash",
-}
-
-function LanguagePicker({
-  value,
-  onChange,
-  disabled,
-  labels,
-  hints,
-}: {
-  value: ScriptLanguage
-  onChange: (next: ScriptLanguage) => void
-  disabled?: boolean
-  labels: Record<ScriptLanguage, string>
-  hints: Record<ScriptLanguage, string>
-}) {
-  const active = value
-  return (
-    <div className="space-y-1.5">
-      <div className="grid grid-cols-2 gap-1.5">
-        {(["bash", "python"] as ScriptLanguage[]).map((lang) => (
-          <button
-            key={lang}
-            type="button"
-            onClick={() => onChange(lang)}
-            disabled={disabled}
-            className={cn(
-              "flex items-center justify-center gap-1.5 rounded-md border px-2.5 py-1.5 font-mono text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
-              value === lang
-                ? "border-primary bg-primary/10 text-foreground"
-                : "border-input text-muted-foreground hover:bg-accent"
-            )}
-          >
-            <TerminalSquare className="size-3.5" />
-            {labels[lang]}
-          </button>
-        ))}
-      </div>
-      <p className="type-meta text-muted-foreground">{hints[active]}</p>
-    </div>
-  )
 }
 
 export type ScriptFormPageProps = {
@@ -143,124 +106,92 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
     }
   }
 
+  const title = isEditing ? t("form.edit_title") : t("form.create_title")
+  const frame = (children: React.ReactNode) => (
+    <DetailFrame
+      backHref="/scripts"
+      backLabel={t("form.back_to_scripts")}
+      maxWidth="full"
+    >
+      {children}
+    </DetailFrame>
+  )
+
   if (isEditing && isLoading) {
-    return (
-      <main className="flex w-full flex-1 items-center justify-center p-6 lg:px-8">
-        <div className="text-muted-foreground flex items-center gap-2 text-sm">
-          <Loader2 className="size-4 animate-spin" />
-          {t("form.loading")}
-        </div>
-      </main>
-    )
+    return frame(<StateCard spinner title={t("form.loading")} />)
   }
 
   if (isEditing && (isLoadError || !script)) {
-    return (
-      <main className="w-full flex-1 p-6 lg:px-8">
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-          {t("form.load_error")}
-        </div>
-        <Button asChild variant="outline" className="mt-4">
-          <a href="/scripts">
-            <ArrowLeft className="size-4" />
-            {t("form.back_to_scripts")}
-          </a>
-        </Button>
-      </main>
-    )
+    return frame(<StateCard tone="destructive" title={t("form.load_error")} />)
   }
 
-  return (
-    <main className="flex h-[calc(100dvh-3.5rem)] min-h-0 w-full flex-col overflow-hidden p-6 lg:px-8">
-      <div className="mb-4 flex shrink-0 items-center gap-3">
-        <Button
-          asChild
-          variant="ghost"
-          size="icon-sm"
-          aria-label={t("form.back_aria")}
-        >
-          <a href="/scripts">
-            <ArrowLeft className="size-4" />
-          </a>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {isEditing ? t("form.edit_title") : t("form.create_title")}
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            {isEditing ? t("form.edit_subtitle") : t("form.create_subtitle")}
-          </p>
-        </div>
-      </div>
+  return frame(
+    <>
+      <PageHero
+        surface="scripts"
+        title={title}
+        description={
+          isEditing ? t("form.edit_subtitle") : t("form.create_subtitle")
+        }
+      />
 
       <form
         onSubmit={handleSubmit}
-        className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-4 overflow-hidden"
+        className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-5 overflow-hidden"
       >
-        <div className="shrink-0 space-y-5">
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="name-field">
-                {t("form.name_label")}
-                <span aria-hidden> *</span>
-              </Label>
-              <Input
-                id="name-field"
-                required
-                disabled={isSubmitting}
-                placeholder={t("form.name_placeholder")}
-                value={values.name}
-                onBlur={() => setTouched(true)}
-                onChange={(e) => updateField("name", e.target.value)}
-                aria-invalid={nameMissing}
-              />
-              {nameMissing ? (
-                <p className="text-destructive text-xs">
-                  {t("form.name_required")}
-                </p>
-              ) : null}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description-field">
-                {t("form.description_label")}
-              </Label>
-              <Input
-                id="description-field"
-                disabled={isSubmitting}
-                placeholder={t("form.description_placeholder")}
-                value={values.description}
-                onChange={(e) => updateField("description", e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>{t("form.language_label")}</Label>
-            <LanguagePicker
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,16rem)]">
+          <FormField
+            label={t("form.name_label")}
+            htmlFor="name-field"
+            required
+            error={nameMissing ? t("form.name_required") : undefined}
+          >
+            <Input
+              id="name-field"
+              required
+              disabled={isSubmitting}
+              placeholder={t("form.name_placeholder")}
+              value={values.name}
+              onBlur={() => setTouched(true)}
+              onChange={(e) => updateField("name", e.target.value)}
+              aria-invalid={nameMissing}
+            />
+          </FormField>
+          <FormField
+            label={t("form.description_label")}
+            htmlFor="description-field"
+          >
+            <Input
+              id="description-field"
+              disabled={isSubmitting}
+              placeholder={t("form.description_placeholder")}
+              value={values.description}
+              onChange={(e) => updateField("description", e.target.value)}
+            />
+          </FormField>
+          <FormField
+            label={t("form.language_label")}
+            hint={t(`form.language.${values.language}_hint`)}
+          >
+            <SegmentedPicker
+              mono
+              ariaLabel={t("form.language_label")}
               value={values.language}
               onChange={(next) => updateField("language", next)}
               disabled={isSubmitting}
-              labels={{
-                bash: t("form.language.bash"),
-                python: t("form.language.python"),
-              }}
-              hints={{
-                bash: t("form.language.bash_hint"),
-                python: t("form.language.python_hint"),
-              }}
+              options={(["bash", "python"] as const).map((lang) => ({
+                value: lang,
+                label: t(`form.language.${lang}`),
+                icon: <TerminalSquare />,
+              }))}
             />
-          </div>
+          </FormField>
         </div>
 
         <div className="flex min-h-0 flex-col gap-2 overflow-hidden">
-          <Label
-            id="content-field-label"
-            htmlFor="content-field"
-            className="shrink-0"
-          >
-            {t("form.content_label")}
-            <span aria-hidden> *</span>
-          </Label>
+          <FieldLabel htmlFor="content-field" required className="shrink-0">
+            <span id="content-field-label">{t("form.content_label")}</span>
+          </FieldLabel>
           <div className="min-h-0 flex-1">
             <CodeEditor
               id="content-field"
@@ -277,42 +208,41 @@ function ScriptFormPageInner({ id }: ScriptFormPageProps) {
             />
           </div>
           {contentMissing ? (
-            <p className="text-destructive shrink-0 text-xs">
+            <p className="shrink-0 text-xs text-destructive">
               {t("form.content_required")}
             </p>
           ) : null}
         </div>
 
-        {error ? (
-          <p className="shrink-0 text-sm text-destructive">{error}</p>
-        ) : null}
-
-        <div className="flex shrink-0 justify-end gap-2 pb-2">
-          <Button
-            asChild
-            type="button"
-            variant="outline"
-            disabled={isSubmitting}
-          >
-            <a href="/scripts">{t("form.cancel")}</a>
-          </Button>
-          <Button
-            type="submit"
-            disabled={
-              isSubmitting ||
-              trimmedName.length === 0 ||
-              trimmedContent.length === 0
-            }
-          >
-            {isSubmitting
-              ? t("form.saving")
-              : isEditing
-                ? t("form.save_changes")
-                : t("form.create")}
-          </Button>
+        <div className="flex flex-col gap-3">
+          {error ? <InlineAlert>{error}</InlineAlert> : null}
+          <div className="flex justify-end gap-2 border-t pt-4">
+            <Button
+              asChild
+              type="button"
+              variant="outline"
+              disabled={isSubmitting}
+            >
+              <AppLink href="/scripts">{t("form.cancel")}</AppLink>
+            </Button>
+            <Button
+              type="submit"
+              disabled={
+                isSubmitting ||
+                trimmedName.length === 0 ||
+                trimmedContent.length === 0
+              }
+            >
+              {isSubmitting
+                ? t("form.saving")
+                : isEditing
+                  ? t("form.save_changes")
+                  : t("form.create")}
+            </Button>
+          </div>
         </div>
       </form>
-    </main>
+    </>
   )
 }
 
