@@ -1,6 +1,6 @@
 # ── Build stage ──────────────────────────────────────────────────────────────
 FROM node:24-slim AS build
-COPY --from=oven/bun:1 /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=oven/bun:1.3.14 /usr/local/bin/bun /usr/local/bin/bun
 WORKDIR /app
 ENV SKIP_ENV_VALIDATION=1
 
@@ -20,7 +20,11 @@ COPY packages/grpc/package.json packages/grpc/
 COPY packages/logger/package.json packages/logger/
 RUN --mount=type=cache,target=/root/.bun/install/cache bun install --frozen-lockfile
 
-COPY . .
+# Only what the backend build reads, so a change elsewhere in the repo (the
+# Python app, the frontend, docs) leaves this layer and the build cached.
+COPY packages packages
+COPY proto proto
+COPY apps/backend apps/backend
 
 ENV NODE_ENV=production
 # packages/grpc/src/gen is gitignored, so the TS stubs must be regenerated from
@@ -32,10 +36,11 @@ RUN cd packages/grpc && bun run generate-grpc
 RUN cd apps/backend && bun run build
 
 # ── Runtime stage ─────────────────────────────────────────────────────────────
-# node:24-slim keeps the `node -e` compose healthchecks working; bun is the
-# actual runtime (the app uses Bun.cron and Bun's `export default` serving).
-FROM node:24-slim AS runtime
-COPY --from=oven/bun:1 /usr/local/bin/bun /usr/local/bin/bun
+# Bun is the only runtime here (the app uses Bun.cron and Bun's `export default`
+# serving), so the official Bun image carries no Node.js; the compose
+# healthchecks run with `bun -e`. The build stage above stays on node:24-slim
+# because tsdown runs under Node through its shebang.
+FROM oven/bun:1.3.14-slim AS runtime
 ENV NODE_ENV=production
 
 # bootstrap() resolves the migrations folder relative to the bundle:
@@ -46,4 +51,5 @@ COPY --from=build /app/packages/db/src/migrations /app/packages/db/src/migration
 EXPOSE 3000
 
 WORKDIR /app/apps/backend
+USER bun
 CMD ["bun", "dist/index.mjs"]

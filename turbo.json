@@ -1,17 +1,26 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "futureFlags": {
+    "watchUsingTaskInputs": true
+  },
   "tasks": {
     "build": {
       "dependsOn": ["^build", "^generate-grpc"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**", ".astro/**"]
-    },
-    "lint": {
-      "dependsOn": ["^lint"]
+      "outputs": ["dist/**", ".astro/**"],
+      "env": ["PUBLIC_SERVER_URL", "NODE_ENV", "SKIP_ENV_VALIDATION"]
     },
     "check-types": {
-      "dependsOn": ["^check-types", "^generate-grpc"]
+      "dependsOn": ["^check-types", "^generate-grpc"],
+      "outputs": ["dist/**", "*.tsbuildinfo", ".astro/**"]
+    },
+    "ansible#check-types": {
+      "dependsOn": ["generate-grpc"],
+      "outputs": []
+    },
+    "@playbook-runner/env#check-types": {
+      "outputs": []
     },
     "@playbook-runner/api#build": {
       "outputs": []
@@ -36,12 +45,23 @@
       "outputs": []
     },
     "dev": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "^generate-grpc"],
       "cache": false,
       "persistent": true,
-      "interruptible": true
+      "interruptible": false,
+      "inputs": ["package.json", ".env*"]
     },
     "generate-grpc": {
+      "cache": false,
+      "inputs": ["$TURBO_DEFAULT$", "../../proto/**/*.proto"],
+      "outputs": []
+    },
+    "@playbook-runner/grpc#generate-grpc": {
+      "cache": false,
+      "inputs": ["$TURBO_DEFAULT$", "../../proto/**/*.proto"],
+      "outputs": ["src/gen/**"]
+    },
+    "ansible#generate-grpc": {
       "cache": false,
       "inputs": ["$TURBO_DEFAULT$", "../../proto/**/*.proto"],
       "outputs": ["app/grpc/gen/**"]

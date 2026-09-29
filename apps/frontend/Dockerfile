@@ -1,6 +1,6 @@
 # ── Build stage ──────────────────────────────────────────────────────────────
 FROM node:24-slim AS build
-COPY --from=oven/bun:1 /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=oven/bun:1.3.14 /usr/local/bin/bun /usr/local/bin/bun
 WORKDIR /app
 ENV SKIP_ENV_VALIDATION=1
 
@@ -20,9 +20,17 @@ COPY packages/grpc/package.json packages/grpc/
 COPY packages/logger/package.json packages/logger/
 RUN --mount=type=cache,target=/root/.bun/install/cache bun install --frozen-lockfile
 
-COPY . .
+# Only what the frontend build reads, so a change elsewhere in the repo (the
+# backend app, the Python app, proto, docs) leaves this layer and the build
+# cached.
+COPY packages packages
+COPY apps/frontend apps/frontend
 
 ENV NODE_ENV=production
+# Build-time public values: Vite inlines PUBLIC_* into the bundle. Optional;
+# unset (as in CI) it stays empty and SKIP_ENV_VALIDATION keeps the build green.
+ARG PUBLIC_SERVER_URL
+ENV PUBLIC_SERVER_URL=$PUBLIC_SERVER_URL
 # vite.ssr.noExternal (astro.config.mjs) bundles every dependency into
 # dist/server, so the runtime stage needs no node_modules.
 RUN cd apps/frontend && bun run build
@@ -42,4 +50,7 @@ ENV HOST=127.0.0.1
 ENV PORT=4321
 
 EXPOSE 80
+# Unprivileged: Caddy can still bind :80 because Docker sets
+# net.ipv4.ip_unprivileged_port_start=0 in containers (Docker >= 20.10).
+USER node
 CMD ["/start.sh"]
