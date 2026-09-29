@@ -1,3 +1,6 @@
+from typing import Literal
+
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -11,20 +14,28 @@ class Settings(BaseSettings):
 
     environment: str = "development"
     log_level: str = "info"
-    ansible_playbook_path: str = ""
     ansible_user: str = "ansible"
     ansible_become_user: str = "root"
-    ansible_ssh_key: str = ""
 
     run_scratch_dir: str = "/tmp/ansible-runs"
+    # State that must outlive a single run (currently ``known_hosts``).
+    # Relative to apps/ansible in local dev; a named volume in Docker.
+    state_dir: str = "../../.data/ansible-runner"
+    # SSH host key verification applied to every run. ``accept-new`` trusts a
+    # host on first contact and rejects changed keys afterwards.
+    ssh_host_key_policy: Literal["accept-new", "strict", "off"] = "accept-new"
+    # Upper bound on concurrent ansible-runner processes (runs, commands,
+    # scripts and pings). Extra requests fail fast with RESOURCE_EXHAUSTED.
+    max_concurrent_runs: int = Field(default=8, ge=1)
+    # Seconds in-flight RPCs get to cancel and clean up on shutdown. Keep it
+    # below Docker's 10 s stop timeout.
+    grpc_shutdown_grace_s: float = Field(default=8, gt=0)
 
     # Shared secret guarding gRPC in both directions (backend <-> ansible).
     # Must match the backend's SERVICE_TOKEN. When empty the gRPC server here
     # still starts (grpc.aio has no "don't start" mode), but every call is
     # rejected since no token will ever match "".
     service_token: str = ""
-    # gRPC target for the backend's PingService, dialled from this service.
-    backend_grpc_target: str = "localhost:50052"
 
 
 settings = Settings()

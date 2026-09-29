@@ -1,8 +1,8 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from pathlib import Path
 from time import perf_counter
 
-import grpc
 from fastapi import FastAPI, Request
 from loguru import logger
 from scalar_fastapi import get_scalar_api_reference
@@ -21,11 +21,12 @@ configure_logging(
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
+    Path(settings.state_dir).mkdir(parents=True, exist_ok=True)
+    if settings.ssh_host_key_policy == "off":
+        logger.warning("SSH host key checking is disabled (SSH_HOST_KEY_POLICY=off)")
     grpc_server = await start_grpc_server()
-    app.state.backend_channel = grpc.aio.insecure_channel(settings.backend_grpc_target)
     yield
-    await app.state.backend_channel.close()
-    await grpc_server.stop(grace=1)
+    await grpc_server.stop(grace=settings.grpc_shutdown_grace_s)
 
 
 app = FastAPI(title="Playbook Runner Ansible API", lifespan=lifespan)
@@ -52,7 +53,7 @@ async def request_logger(request: Request, call_next):
     return response
 
 
-app.include_router(routes.router, prefix="/ansible")
+app.include_router(routes.router)
 
 
 @app.get("/scalar", include_in_schema=False)

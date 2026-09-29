@@ -1,21 +1,17 @@
-"""Helpers para emitir mensajes Server-Sent Events (SSE).
-
-Compartidos por ``/api/v0/ping`` y ``/api/v0/run``.
-"""
+"""Reduce ansible-runner events to the payload sent in gRPC ``TaskEvent``s."""
 
 from __future__ import annotations
 
 import json
-from collections.abc import AsyncGenerator
 
 from app.services.ansible.events import AnsibleEvent
-from app.services.ansible.runner import AnsibleRunner
 
 
-def sse(data: dict[str, object], event: str | None = None) -> str:
-    """Formatea un mensaje Server-Sent Events."""
-    prefix = f"event: {event}\n" if event else ""
-    return f"{prefix}data: {json.dumps(data)}\n\n"
+def _as_text(value: object) -> str | None:
+    """Proto text fields only take strings; modules may return lists/dicts."""
+    if value is None or isinstance(value, str):
+        return value
+    return json.dumps(value, default=str, ensure_ascii=False)
 
 
 def event_payload(event: AnsibleEvent) -> dict[str, object]:
@@ -31,9 +27,9 @@ def event_payload(event: AnsibleEvent) -> dict[str, object]:
         "task": data.get("task"),
         "task_action": data.get("task_action"),
         "changed": res.get("changed"),
-        "msg": res.get("msg"),
-        "stdout": res.get("stdout"),
-        "stderr": res.get("stderr"),
+        "msg": _as_text(res.get("msg")),
+        "stdout": _as_text(res.get("stdout")),
+        "stderr": _as_text(res.get("stderr")),
         "rc": res.get("rc"),
     }
 
@@ -48,30 +44,3 @@ def event_payload(event: AnsibleEvent) -> dict[str, object]:
         }
 
     return payload
-
-
-async def stream_runner_events(
-    runner: AnsibleRunner,
-) -> AsyncGenerator[str, None]:
-    """Genera mensajes SSE para un runner + terminal ``done``.
-
-    Envuelve la iteración de ``AnsibleRunner.stream()`` y emite:
-    - un evento por cada evento ansible (``event: <tipo>``);
-    - un evento terminal ``done`` con ``status``/``rc``/``ok``;
-    - un evento ``error`` si la ejecución levanta una excepción.
-    """
-    try:
-        async for event in runner.stream():
-            yield sse(event_payload(event))
-    except Exception as exc:  # noqa: BLE001 - se reporta al cliente vía SSE
-        yield sse({"error": str(exc)}, event="error")
-        return
-
-    yield sse(
-        {
-            "status": runner.status,
-            "rc": runner.rc,
-            "ok": runner.rc == 0,
-        },
-        event="done",
-    )

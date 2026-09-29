@@ -16,7 +16,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     UV_COMPILE_BYTECODE=1 \
     UV_PYTHON_DOWNLOADS=never
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.11.23 /uv /usr/local/bin/uv
 
 WORKDIR /app/apps/ansible
 
@@ -51,8 +51,7 @@ FROM python:3.12-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/app/apps/ansible/.venv/bin:${PATH}" \
-    ANSIBLE_PLAYBOOK_PATH=/app/playbook \
-    ANSIBLE_HOST_KEY_CHECKING=False \
+    STATE_DIR=/app/state \
     RUN_SCRATCH_DIR=/tmp/ansible-runs
 
 RUN apt-get update \
@@ -60,6 +59,12 @@ RUN apt-get update \
         openssh-client \
         ca-certificates \
  && rm -rf /var/lib/apt/lists/*
+
+# Non-root runtime user. The home dir is needed for Ansible's SSH ControlPath
+# (~/.ansible/cp); /app/state is pre-owned so a fresh named volume inherits it.
+RUN useradd --system --uid 10001 --create-home app \
+ && mkdir -p /app/state \
+ && chown app:app /app/state
 
 # Copy the venv with everything baked in + the app source (including the
 # regenerated app/grpc/gen stubs). No uv, no pyproject, no uv.lock, no .cache.
@@ -69,6 +74,8 @@ COPY --from=deps /app/apps/ansible/app /app/app
 
 WORKDIR /app
 
-EXPOSE 8000
+USER app
+
+EXPOSE 8000 50051
 
 CMD ["fastapi", "run", "app/main.py", "--host", "0.0.0.0", "--port", "8000"]

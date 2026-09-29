@@ -1,3 +1,5 @@
+import hmac
+
 import grpc
 from loguru import logger
 
@@ -19,7 +21,12 @@ class TokenAuthInterceptor(grpc.aio.ServerInterceptor):
             return handler
 
         metadata = dict(handler_call_details.invocation_metadata or [])
-        if metadata.get("authorization") == self._expected_token:
+        received = metadata.get("authorization")
+        if (
+            self._expected_token
+            and isinstance(received, str)
+            and hmac.compare_digest(received.encode(), self._expected_token.encode())
+        ):
             return handler
 
         logger.bind(method=handler_call_details.method).warning(

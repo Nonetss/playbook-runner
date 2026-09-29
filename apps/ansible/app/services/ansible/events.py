@@ -111,8 +111,3 @@ def log_event_handler(event: AnsibleEvent) -> None:
         logger.error("  [UNREACHABLE] %s: %s", data.get("host", ""), res.get("msg", ""))
     elif event_type == "playbook_on_stats":
         logger.info("[STATS] Playbook finalizado")
-
-
-def log_finished_callback(runner: RunnerHandle) -> None:
-    """Callback por defecto al terminar la ejecución."""
-    logger.info("Ejecución finalizada: status=%s rc=%s", runner.status, runner.rc)

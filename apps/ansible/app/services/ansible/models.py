@@ -25,19 +25,8 @@ class ResolvedPlaybook(BaseModel):
     content: str
 
 
-class ResolvedScript(BaseModel):
-    name: str
-    content: str
-    language: str = "bash"
-
-
 class ResolvedRunBundle(BaseModel):
     playbook: ResolvedPlaybook
-    hosts: list[ResolvedHost]
-
-
-class ResolvedScriptBundle(BaseModel):
-    script: ResolvedScript
     hosts: list[ResolvedHost]
 
 

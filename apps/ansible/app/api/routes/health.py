@@ -1,4 +1,4 @@
-"""Current-user route.
+"""Health route.
 
 GET /api/health — returns the health of the application.
 """

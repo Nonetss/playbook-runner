@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+import re
 import tempfile
 import uuid
 from collections.abc import Iterable
@@ -63,10 +64,17 @@ def _short_hash(s: str) -> str:
     return hashlib.sha256(s.encode("utf-8")).hexdigest()[:12]
 
 
+def _safe_prefix(name: str) -> str:
+    """Filename-safe prefix: device names are user input (no ``/`` or ``..``)."""
+    return re.sub(r"[^A-Za-z0-9._-]", "_", name)[:48].strip(".") or "host"
+
+
 def _write_key_file(key_dir: Path, host_name: str, private_key: str) -> Path:
     """Escribe la clave privada en un fichero ``0600`` y devuelve su ruta."""
     key_dir.mkdir(parents=True, exist_ok=True)
-    fd, raw_path = tempfile.mkstemp(prefix=f"{host_name}-", suffix=".key", dir=key_dir)
+    fd, raw_path = tempfile.mkstemp(
+        prefix=f"{_safe_prefix(host_name)}-", suffix=".key", dir=key_dir
+    )
     try:
         # OpenSSH exige que el fichero de clave privada termine en salto de
         # línea; sin él, ``ssh`` falla al cargarla con "error in libcrypto".
@@ -90,7 +98,8 @@ def _build_inventory(hosts: Iterable[Any], keys: dict[str, Path]) -> Inventory:
     for host in hosts:
         vars_for_host: HostVars = {
             "ansible_host": host.address,
-            "ansible_user": host.username,
+            # Per-host SSH user from the credential; the setting is a fallback.
+            "ansible_user": host.username or settings.ansible_user,
             "ansible_connection": host.connection,
             "ansible_ssh_private_key_file": str(keys[host.name]),
         }
