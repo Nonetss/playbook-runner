@@ -11,8 +11,9 @@ Ansible Tower.
 
 If you've ever SSH'd into a box, run `ansible-playbook site.yml` and tailed
 the output in another terminal, this app gives you a browser tab and a database
-for all of that: playbooks, ad-hoc commands, SSH credentials, devices, groups,
-scheduled runs, and a live log of every execution.
+for all of that: playbooks (written in the browser or synced from a Git
+repository), ad-hoc commands, SSH credentials, devices, groups, scheduled runs,
+and a live log of every execution.
 
 ## TL;DR — install on a server
 
@@ -40,6 +41,19 @@ that name so a plain `docker compose up -d` picks it up), pulls the images from
 > Back up the generated `.env`, and especially `CREDENTIALS_ENCRYPTION_KEY`.
 > Losing that key makes every SSH private key stored in the database
 > unrecoverable.
+
+## Upgrading to v0.9.0
+
+No new required environment variables. Update the backend **and** Ansible
+images together (the gRPC contract gained the Git repository RPCs and the
+Ansible image now ships `git`); the backend applies the new database migration
+on startup:
+
+```bash
+docker compose pull && docker compose up -d
+```
+
+Coming from v0.7.x, follow the steps below first.
 
 ## Upgrading from v0.7.x
 
@@ -98,6 +112,13 @@ it. The inventory panel on the right shows which hosts are in scope.
 
 ![Playbook execution](img/playbooks.png)
 
+**Git repositories** — add a repository (public HTTPS, or SSH with a stored
+credential), pick a branch from the list the remote reports and, optionally, a
+subdirectory. Its playbooks sync in as read-only cards you can run and
+schedule, next to your folders and inline playbooks.
+
+![Adding a Git repository](img/git.png)
+
 **API reference** — every endpoint is documented in an interactive OpenAPI
 reference (Scalar) served at `/scalar`, with request/response schemas, error
 codes, and ready-to-run `curl`/client snippets. The raw spec lives at
@@ -118,14 +139,19 @@ codes, and ready-to-run `curl`/client snippets. The raw spec lives at
   never returned by the API.
 - **Playbooks** — write Ansible YAML in the browser, save it, version it in
   the database. No more `scp`ing `.yml` files around.
-- **Git repositories** — prefer to keep playbooks in Git? Register a
-  repository (public HTTPS, or SSH with a stored credential as deploy key)
-  and press *Sync*: every playbook file on the branch shows up as a
-  read-only playbook you can run and schedule. Runs execute from a checkout
-  of the synced commit, so roles, templates, `group_vars` and `files/` next
-  to the playbook just work, and job history records the commit. Galaxy
-  `requirements.yml` is not installed, and the repository's `ansible.cfg`
-  is ignored.
+- **Git repositories** — prefer to keep playbooks in Git? Add a repository
+  (public HTTPS, or SSH with a stored credential as deploy key), pick the
+  branch from the list of the remote's branches and, optionally, a
+  subdirectory. It syncs on save and again whenever you press *Sync*: every
+  playbook file on the branch shows up as a read-only playbook you can run
+  and schedule. Runs execute from a checkout of the synced commit, so roles,
+  templates, `group_vars` and `files/` next to the playbook just work, and job
+  history records the commit. *Copy to Playbook Runner* turns one into a
+  regular editable playbook (only that file is copied). Galaxy
+  `requirements.yml` is not installed, and the repository's `ansible.cfg` is
+  ignored.
+- **Folders** — group inline playbooks in folders; folders and repositories
+  can be collapsed in the playbooks browser.
 - **Run on demand** — pick a playbook, pick a group (or a hand-picked set
   of devices), review the confirmation step, click *Run*. Output streams
   into the browser live, so you see `PLAY [...]` and `TASK [...]` lines as
@@ -166,17 +192,20 @@ executor.
 ![Architecture: browser → Astro frontend → Hono backend → PostgreSQL + Ansible executor](img/architecture.svg)
 
 The Python service is deliberately dumb: it has no database connection.
-The backend resolves a run (playbook content or an ad-hoc command + the
-deduped hosts and their private keys) against its own database, then calls
+The backend resolves a run (playbook content, a Git source pinned to a
+commit, or an ad-hoc command + the deduped hosts and their private keys) against its own database, then calls
 the ansible service over gRPC (`RunnerService`, see `proto/run.proto`) with
 the already-resolved payload. Ansible materializes a temp inventory + key
-files, hands them to `ansible-runner` (playbook mode or ad-hoc module
+files (plus, for Git playbooks, the repository tree exported from its mirror
+cache), hands them to `ansible-runner` (playbook mode or ad-hoc module
 mode), and streams `RunEvent` frames straight back over that same
 server-streaming RPC — no HTTP round trip between the two services (the
 browser still gets its live output as an oRPC event stream from the
 backend). Calls carry a shared `SERVICE_TOKEN` that the ansible
 service's gRPC interceptor checks. All business rules and authorization
-live in the backend.
+live in the backend. Git repository syncs and branch listing go through the
+same service (`SyncRepository`, `ListBranches`), which keeps one mirror per
+repository in its state directory.
 
 The executor runs at most `MAX_CONCURRENT_RUNS` (default 8) Ansible
 processes at once; extra requests are rejected immediately instead of
@@ -275,13 +304,16 @@ have something to point a job at the first time you boot the app:
 | [`playbooks/fail2ban-status.yml`](./playbooks/fail2ban-status.yml) | Shows the global `fail2ban-client` status and per-jail banned IPs (override `f2b_jails`). |
 
 Treat them as copy-paste starters — open one in the *Playbooks* page, hit
-*Run*, pick a group, and you should see the output stream in.
+*Run*, pick a group, and you should see the output stream in. To try the Git
+integration instead, add this repository
+(`https://github.com/Nonetss/playbook-runner.git`, branch `main`, subdirectory
+`playbooks`) from *Add repository*.
 
 ## Project structure
 
 ```txt
 playbook-runner/
-├── .data/           # Ignored local runtime state (Ansible known_hosts)
+├── .data/           # Ignored local runtime state (known_hosts, Git mirrors)
 ├── apps/
 │   ├── frontend/    # Astro + React UI (PWA)
 │   ├── backend/     # Hono API + oRPC + cron loop + auth
