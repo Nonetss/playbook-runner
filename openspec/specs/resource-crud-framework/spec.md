@@ -7,10 +7,14 @@ TBD
 
 ### Requirement: Primitivas de página de recurso compartidas
 El sistema SHALL ofrecer primitivas de UI compartidas y componibles para
-presentar un recurso: marco de página, cabecera, acción de crear, lista,
-estado de carga, estado vacío, estado de error y contenedor de filas. Todas
-las features SHALL reutilizarlas en lugar de reimplementar el patrón, sin
-cambiar sus operaciones ni sus rutas.
+presentar un recurso: marco de página, cabecera, acción de crear, filtros,
+lista de entidades, estado de carga, estado vacío, estado de error y estado
+vacío por filtros. Las colecciones de recursos SHALL presentarse como una
+rejilla de tarjetas planas compartida (borde fino, sin sombra, sin pozo de
+icono). Cada feature SHALL describir sus tarjetas mediante una definición
+(principal, secundario, metadatos, estado, acción rápida y acciones) en lugar
+de construir la tarjeta a mano. Todas las features SHALL reutilizarlas en lugar de
+reimplementar el patrón, sin cambiar sus operaciones ni sus rutas.
 
 #### Scenario: Estado de carga consistente
 - **WHEN** una lista o detalle de recursos se está cargando
@@ -31,12 +35,22 @@ cambiar sus operaciones ni sus rutas.
 - **THEN** usa la cabecera compartida
 - **AND** la acción se adapta sin solaparse en pantallas estrechas
 
+#### Scenario: Colección como tarjetas
+- **WHEN** el usuario abre playbooks, scripts, dispositivos, grupos,
+  credenciales, jobs, API keys o usuarios
+- **THEN** los recursos se muestran como tarjetas de la rejilla compartida
+- **AND** cada tarjeta muestra su nombre, un dato secundario, sus metadatos y
+  un menú de acciones con la misma estructura en todas las features
+
 ### Requirement: Formularios de recurso por definición
 El sistema SHALL permitir definir el formulario de crear/editar de un recurso
 mediante una definición de campos compartida, de modo que el modal de
 formulario, la validación básica y el estado de envío se comporten igual en
-todas las features. El marco visual del diálogo SHALL usar cabecera y pie con
-separadores coherentes y mantener la accesibilidad del diálogo base.
+todas las features. Todo diálogo de crear, editar o gestionar un recurso
+(incluidos credenciales, relaciones, ping, mover playbook, programación cron,
+clave de API creada y script de aprovisionamiento) SHALL usar el marco de
+diálogo compartido, con cabecera y pie con separadores coherentes, y mantener
+la accesibilidad del diálogo base.
 
 #### Scenario: Crear recurso
 - **WHEN** el usuario abre el formulario de creación de cualquier recurso
@@ -47,6 +61,11 @@ separadores coherentes y mantener la accesibilidad del diálogo base.
 - **WHEN** el usuario abre el formulario de edición de un recurso existente
 - **THEN** el formulario se precarga con los valores actuales del recurso
 - **AND** al guardar se actualiza el recurso y se notifica el resultado
+
+#### Scenario: Diálogos coherentes en una misma sección
+- **WHEN** el usuario abre el diálogo de crear dispositivo y después el de
+  crear credencial
+- **THEN** ambos diálogos tienen la misma cabecera, espaciado y pie
 
 ### Requirement: Comportamiento CRUD uniforme entre features
 El sistema SHALL garantizar que inventario, credenciales, playbooks, scripts,

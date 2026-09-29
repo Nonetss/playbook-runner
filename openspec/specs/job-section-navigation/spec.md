@@ -7,14 +7,15 @@ Expose the Jobs section as a parent overview plus dedicated Scheduler and Histor
 
 ### Requirement: Jobs section pages
 The frontend SHALL expose Scheduler at `/jobs/scheduler` and execution History
-at `/jobs/history` as separate pages within the Jobs section. The parent
-`/jobs` route SHALL present direct paths to both pages rather than rendering a
-scheduler list itself.
+at `/jobs/history` as separate pages within the Ansible navigation section,
+next to Playbooks. The former `/jobs` overview route SHALL redirect to the
+Ansible section overview at `/ansible`, which presents direct paths to
+Playbooks, Scheduler and History.
 
 #### Scenario: Open Jobs overview
 - **WHEN** a user navigates to `/jobs`
-- **THEN** the page SHALL present Scheduler and History entry points
-- **AND** SHALL NOT render the scheduler list or history feed directly
+- **THEN** the application SHALL redirect to `/ansible`
+- **AND** the Ansible overview SHALL present Scheduler and History entry points
 
 #### Scenario: Open Scheduler
 - **WHEN** a user navigates to `/jobs/scheduler`
@@ -26,12 +27,14 @@ scheduler list itself.
 - **THEN** the page SHALL render existing cross-job run history behaviour
 
 ### Requirement: Jobs section navigation
-Jobs section pages SHALL use the shared sidebar layout and identify Scheduler
-and History as Jobs sub-items.
+Jobs pages SHALL use the shared sidebar layout of the Ansible section, which
+lists Playbooks, Scheduler and History and identifies the active child route.
+Job detail and form routes under `/jobs/*` SHALL keep the Ansible section
+active.
 
 #### Scenario: Navigate Jobs sub-pages
-- **WHEN** a user opens a Jobs section page
-- **THEN** the sidebar SHALL offer Scheduler and History links
+- **WHEN** a user opens a Jobs page
+- **THEN** the sidebar SHALL offer Playbooks, Scheduler and History links
 - **AND** identify the active child route
 
 ### Requirement: Legacy History route compatibility
