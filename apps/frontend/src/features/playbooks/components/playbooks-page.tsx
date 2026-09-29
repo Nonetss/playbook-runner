@@ -5,6 +5,7 @@ const BookText = getIcon("resources", "book")
 const Folder = getIcon("resources", "folder")
 const FolderOpen = getIcon("resources", "folderOpen")
 const FolderPlus = getIcon("resources", "folderAdd")
+const GitBranch = getIcon("resources", "repository")
 const Pencil = getIcon("actions", "edit")
 const Plus = getIcon("actions", "add")
 const Search = getIcon("views", "search")
@@ -32,10 +33,17 @@ import {
 } from "@/components/ui/select"
 import { MovePlaybookDialog } from "@/features/playbooks/components/move-playbook-dialog"
 import { PlaybookFolderFormModal } from "@/features/playbooks/components/playbook-folder-form-modal"
+import { RepositoryFormModal } from "@/features/playbooks/components/repository-form-modal"
+import {
+  type RepositoryGroup,
+  RepositorySection,
+} from "@/features/playbooks/components/repository-section"
+import { SectionToggle } from "@/features/playbooks/components/section-toggle"
 import {
   type PlaybookRowContext,
   playbookDefinition,
 } from "@/features/playbooks/definitions/playbook.definition"
+import { useCollapsedSections } from "@/features/playbooks/hooks/use-collapsed-sections"
 import {
   usePlaybookFolderDelete,
   usePlaybookFoldersList,
@@ -44,16 +52,26 @@ import {
   usePlaybookDelete,
   usePlaybooksList,
 } from "@/features/playbooks/hooks/use-playbooks"
-import type { Playbook, PlaybookFolder } from "@/features/playbooks/types"
+import {
+  useRepositoriesList,
+  useRepositoryDelete,
+  useRepositorySync,
+} from "@/features/playbooks/hooks/use-repositories"
+import type {
+  Playbook,
+  PlaybookFolder,
+  PlaybookRepository,
+} from "@/features/playbooks/types"
 import { useConfirm } from "@/hooks/use-confirm"
 import { cn } from "@/lib/utils"
 
-type ResourceFilter = "all" | "folders" | "playbooks"
+type ResourceFilter = "all" | "folders" | "repositories" | "playbooks"
 
 type FolderGroup = { folder: PlaybookFolder; playbooks: Playbook[] }
 
 type PlaybooksView = {
   groups: FolderGroup[]
+  repositories: RepositoryGroup[]
   loose: Playbook[]
 }
 
@@ -75,12 +93,16 @@ function playbookMatches(playbook: Playbook, search: string) {
 function FolderSection({
   group,
   rowContext,
+  collapsed,
+  onToggleCollapsed,
   isDeleting,
   onEdit,
   onDelete,
 }: {
   group: FolderGroup
   rowContext: PlaybookRowContext
+  collapsed: boolean
+  onToggleCollapsed: () => void
   isDeleting: boolean
   onEdit: (folder: PlaybookFolder) => void
   onDelete: (folder: PlaybookFolder) => void
@@ -98,6 +120,12 @@ function FolderSection({
       )}
     >
       <header className="flex items-center gap-3">
+        <SectionToggle
+          name={folder.name}
+          collapsed={collapsed}
+          controls={`section-${folder.id}`}
+          onToggle={onToggleCollapsed}
+        />
         <Folder className="size-4 shrink-0 text-muted-foreground" aria-hidden />
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-baseline gap-2">
@@ -141,22 +169,24 @@ function FolderSection({
           </DropdownMenuItem>
         </RowActionsMenu>
       </header>
-      {playbooks.length > 0 ? (
-        <EntityCardGrid
-          items={playbooks}
-          definition={playbookDefinition}
-          context={rowContext}
-        />
-      ) : (
-        <Text
-          as="p"
-          variant="meta"
-          tone="muted"
-          className="rounded-xl border border-dashed bg-card/40 px-4 py-3"
-        >
-          {t("folder.empty_group")}
-        </Text>
-      )}
+      <div id={`section-${folder.id}`} hidden={collapsed}>
+        {playbooks.length > 0 ? (
+          <EntityCardGrid
+            items={playbooks}
+            definition={playbookDefinition}
+            context={rowContext}
+          />
+        ) : (
+          <Text
+            as="p"
+            variant="meta"
+            tone="muted"
+            className="rounded-xl border border-dashed bg-card/40 px-4 py-3"
+          >
+            {t("folder.empty_group")}
+          </Text>
+        )}
+      </div>
     </section>
   )
 }
@@ -166,12 +196,19 @@ function PlaybooksPageInner() {
   const { t: tCommon } = useTranslation("common")
   const playbooksQuery = usePlaybooksList()
   const foldersQuery = usePlaybookFoldersList()
+  const repositoriesQuery = useRepositoriesList()
   const deletePlaybook = usePlaybookDelete()
   const deleteFolder = usePlaybookFolderDelete()
+  const deleteRepository = useRepositoryDelete()
+  const syncRepository = useRepositorySync()
+  const { collapsed, toggle: toggleCollapsed } = useCollapsedSections()
   const confirm = useConfirm()
   const [folderFormOpen, setFolderFormOpen] = React.useState(false)
   const [editingFolder, setEditingFolder] =
     React.useState<PlaybookFolder | null>(null)
+  const [repositoryFormOpen, setRepositoryFormOpen] = React.useState(false)
+  const [editingRepository, setEditingRepository] =
+    React.useState<PlaybookRepository | null>(null)
   const [movingPlaybook, setMovingPlaybook] = React.useState<Playbook | null>(
     null
   )
@@ -181,6 +218,7 @@ function PlaybooksPageInner() {
 
   const playbooks = playbooksQuery.data ?? []
   const folders = foldersQuery.data ?? []
+  const repositories = repositoriesQuery.data ?? []
   const folderId =
     typeof window === "undefined"
       ? null
@@ -191,10 +229,13 @@ function PlaybooksPageInner() {
     normalizedSearch.length > 0 || resourceFilter !== "all"
 
   const view = React.useMemo<PlaybooksView>(() => {
+    // Git-sourced playbooks are only browsed through their repository.
+    const inline = playbooks.filter((playbook) => playbook.source === "inline")
     if (folderId) {
       return {
         groups: [],
-        loose: playbooks.filter(
+        repositories: [],
+        loose: inline.filter(
           (playbook) =>
             playbook.folderId === folderId &&
             playbookMatches(playbook, normalizedSearch)
@@ -202,12 +243,12 @@ function PlaybooksPageInner() {
       }
     }
     const groups =
-      resourceFilter === "playbooks"
+      resourceFilter === "playbooks" || resourceFilter === "repositories"
         ? []
         : folders
             .map((folder) => ({
               folder,
-              playbooks: playbooks.filter(
+              playbooks: inline.filter(
                 (playbook) =>
                   playbook.folderId === folder.id &&
                   playbookMatches(playbook, normalizedSearch)
@@ -222,16 +263,44 @@ function PlaybooksPageInner() {
                   normalizedSearch
                 )
             )
+    const repositoryGroups =
+      resourceFilter === "all" || resourceFilter === "repositories"
+        ? repositories
+            .map((repository) => ({
+              repository,
+              playbooks: playbooks.filter(
+                (playbook) =>
+                  playbook.repositoryId === repository.id &&
+                  playbookMatches(playbook, normalizedSearch)
+              ),
+            }))
+            .filter(
+              ({ repository, playbooks: repositoryPlaybooks }) =>
+                !normalizedSearch ||
+                repositoryPlaybooks.length > 0 ||
+                matches(
+                  `${repository.name} ${repository.url}`,
+                  normalizedSearch
+                )
+            )
+        : []
     const loose =
-      resourceFilter === "folders"
+      resourceFilter === "folders" || resourceFilter === "repositories"
         ? []
-        : playbooks.filter(
+        : inline.filter(
             (playbook) =>
               playbook.folderId === null &&
               playbookMatches(playbook, normalizedSearch)
           )
-    return { groups, loose }
-  }, [folderId, folders, normalizedSearch, playbooks, resourceFilter])
+    return { groups, repositories: repositoryGroups, loose }
+  }, [
+    folderId,
+    folders,
+    normalizedSearch,
+    playbooks,
+    repositories,
+    resourceFilter,
+  ])
 
   function openFolderCreate() {
     setEditingFolder(null)
@@ -274,6 +343,32 @@ function PlaybooksPageInner() {
     }
   }
 
+  function openRepositoryCreate() {
+    setEditingRepository(null)
+    setRepositoryFormOpen(true)
+  }
+
+  function openRepositoryEdit(repository: PlaybookRepository) {
+    setEditingRepository(repository)
+    setRepositoryFormOpen(true)
+  }
+
+  async function handleRepositoryDelete(repository: PlaybookRepository) {
+    const confirmed = await confirm({
+      title: t("repository.delete_title", { name: repository.name }),
+      description: t("repository.delete_description"),
+      confirmLabel: t("repository.delete"),
+      cancelLabel: tCommon("actions.cancel"),
+      variant: "destructive",
+    })
+    if (!confirmed) return
+    try {
+      await deleteRepository.mutateAsync({ id: repository.id })
+    } catch {
+      // The shared mutation hook displays the localized error toast.
+    }
+  }
+
   const rowContext: PlaybookRowContext = {
     t,
     language: i18n.language,
@@ -285,6 +380,12 @@ function PlaybooksPageInner() {
   }
   const deletingFolderId = deleteFolder.isPending
     ? (deleteFolder.variables?.id ?? null)
+    : null
+  const deletingRepositoryId = deleteRepository.isPending
+    ? (deleteRepository.variables?.id ?? null)
+    : null
+  const syncingRepositoryId = syncRepository.isPending
+    ? (syncRepository.variables?.id ?? null)
     : null
 
   const createHref = activeFolder
@@ -306,10 +407,16 @@ function PlaybooksPageInner() {
       </AppLink>
     </Button>
   ) : (
-    <Button variant="outline" onClick={openFolderCreate}>
-      <FolderPlus className="size-4" />
-      {t("folder.create")}
-    </Button>
+    <>
+      <Button variant="outline" onClick={openRepositoryCreate}>
+        <GitBranch className="size-4" />
+        {t("repository.create")}
+      </Button>
+      <Button variant="outline" onClick={openFolderCreate}>
+        <FolderPlus className="size-4" />
+        {t("folder.create")}
+      </Button>
+    </>
   )
 
   const filters = (
@@ -343,6 +450,9 @@ function PlaybooksPageInner() {
               <SelectGroup>
                 <SelectItem value="all">{t("filters.all")}</SelectItem>
                 <SelectItem value="folders">{t("filters.folders")}</SelectItem>
+                <SelectItem value="repositories">
+                  {t("filters.repositories")}
+                </SelectItem>
                 <SelectItem value="playbooks">
                   {t("filters.playbooks")}
                 </SelectItem>
@@ -361,7 +471,8 @@ function PlaybooksPageInner() {
     </div>
   )
 
-  const bothReady = playbooksQuery.data && foldersQuery.data
+  const allReady =
+    playbooksQuery.data && foldersQuery.data && repositoriesQuery.data
 
   return (
     <>
@@ -386,6 +497,10 @@ function PlaybooksPageInner() {
                       count: folders.length,
                       label: t("filters.folders").toLocaleLowerCase(),
                     },
+                    {
+                      count: repositories.length,
+                      label: t("filters.repositories").toLocaleLowerCase(),
+                    },
                     { count: playbooks.length, label: tCommon("labels.total") },
                   ]
             }
@@ -399,15 +514,26 @@ function PlaybooksPageInner() {
         }
         filters={filters}
         query={{
-          data: bothReady ? view : undefined,
-          isPending: playbooksQuery.isPending || foldersQuery.isPending,
-          isError: playbooksQuery.isError || foldersQuery.isError,
+          data: allReady ? view : undefined,
+          isPending:
+            playbooksQuery.isPending ||
+            foldersQuery.isPending ||
+            repositoriesQuery.isPending,
+          isError:
+            playbooksQuery.isError ||
+            foldersQuery.isError ||
+            repositoriesQuery.isError,
           refetch: () => {
             playbooksQuery.refetch()
             foldersQuery.refetch()
+            repositoriesQuery.refetch()
           },
         }}
-        isEmpty={(data) => data.groups.length === 0 && data.loose.length === 0}
+        isEmpty={(data) =>
+          data.groups.length === 0 &&
+          data.repositories.length === 0 &&
+          data.loose.length === 0
+        }
         hasActiveFilters={hasActiveFilters}
         filteredEmpty={{
           title: t("filters.no_results"),
@@ -430,7 +556,7 @@ function PlaybooksPageInner() {
           <div className="flex flex-col gap-8">
             {data.loose.length > 0 ? (
               <section className="flex flex-col gap-3">
-                {data.groups.length > 0 ? (
+                {data.groups.length + data.repositories.length > 0 ? (
                   <Text as="h2" variant="label" tone="muted">
                     {t("folder.root")}
                   </Text>
@@ -448,8 +574,29 @@ function PlaybooksPageInner() {
                 group={group}
                 rowContext={rowContext}
                 isDeleting={deletingFolderId === group.folder.id}
+                // A search shows its matches even inside collapsed sections.
+                collapsed={!normalizedSearch && collapsed.has(group.folder.id)}
+                onToggleCollapsed={() => toggleCollapsed(group.folder.id)}
                 onEdit={openFolderEdit}
                 onDelete={handleFolderDelete}
+              />
+            ))}
+            {data.repositories.map((group) => (
+              <RepositorySection
+                key={group.repository.id}
+                group={group}
+                rowContext={rowContext}
+                isDeleting={deletingRepositoryId === group.repository.id}
+                collapsed={
+                  !normalizedSearch && collapsed.has(group.repository.id)
+                }
+                onToggleCollapsed={() => toggleCollapsed(group.repository.id)}
+                isSyncing={syncingRepositoryId === group.repository.id}
+                onEdit={openRepositoryEdit}
+                onDelete={handleRepositoryDelete}
+                onSync={(repository) =>
+                  syncRepository.mutate({ id: repository.id })
+                }
               />
             ))}
           </div>
@@ -460,6 +607,12 @@ function PlaybooksPageInner() {
         open={folderFormOpen}
         onOpenChange={setFolderFormOpen}
         folder={editingFolder}
+      />
+      <RepositoryFormModal
+        open={repositoryFormOpen}
+        onOpenChange={setRepositoryFormOpen}
+        repository={editingRepository}
+        onCreated={(repository) => syncRepository.mutate({ id: repository.id })}
       />
       <MovePlaybookDialog
         open={!!movingPlaybook}

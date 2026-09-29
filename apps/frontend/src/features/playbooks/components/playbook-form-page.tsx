@@ -32,6 +32,7 @@ import {
   usePlaybookGet,
   usePlaybookUpdate,
 } from "@/features/playbooks/hooks/use-playbooks"
+import { useRepositoriesList } from "@/features/playbooks/hooks/use-repositories"
 import { navigate } from "@/lib/navigate"
 
 type FormValues = {
@@ -66,6 +67,13 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
     isError: isLoadError,
   } = usePlaybookGet(id ?? "", { enabled: isEditing })
 
+  // Git-sourced playbooks are owned by their repository sync: view only.
+  const isGit = isEditing && playbook?.source === "git"
+  const { data: repositories = [] } = useRepositoriesList()
+  const repository = isGit
+    ? repositories.find((item) => item.id === playbook?.repositoryId)
+    : undefined
+
   const [values, setValues] = React.useState<FormValues>(getInitialValues)
   const [error, setError] = React.useState<string | null>(null)
 
@@ -81,9 +89,12 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
   }, [isEditing, playbook])
 
   const isSubmitting = createPlaybook.isPending || updatePlaybook.isPending
-  const returnHref = values.folderId
-    ? `/playbooks?folder=${encodeURIComponent(values.folderId)}`
-    : "/playbooks"
+  const isLocked = isSubmitting || isGit
+  const returnHref = isGit
+    ? "/playbooks"
+    : values.folderId
+      ? `/playbooks?folder=${encodeURIComponent(values.folderId)}`
+      : "/playbooks"
 
   function updateField(key: keyof FormValues, value: string) {
     setValues((current) => ({ ...current, [key]: value }))
@@ -133,12 +144,22 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
     <>
       <PageHero
         surface="playbooks"
-        title={isEditing ? t("form.edit_title") : t("form.create_title")}
+        title={
+          isGit
+            ? t("form.view_title")
+            : isEditing
+              ? t("form.edit_title")
+              : t("form.create_title")
+        }
         description={
-          isEditing ? t("form.edit_subtitle") : t("form.create_subtitle")
+          isGit
+            ? t("form.git_subtitle")
+            : isEditing
+              ? t("form.edit_subtitle")
+              : t("form.create_subtitle")
         }
         action={
-          isEditing && id ? (
+          isEditing && id && !playbook?.missing ? (
             <Button asChild variant="outline">
               <AppLink
                 href={`/playbooks/${id}/run`}
@@ -161,7 +182,7 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
             <Input
               id="name-field"
               required
-              disabled={isSubmitting}
+              disabled={isLocked}
               placeholder={t("form.name_placeholder")}
               value={values.name}
               onChange={(e) => updateField("name", e.target.value)}
@@ -173,51 +194,77 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
           >
             <Input
               id="description-field"
-              disabled={isSubmitting}
+              disabled={isLocked}
               placeholder={t("form.description_placeholder")}
               value={values.description}
               onChange={(e) => updateField("description", e.target.value)}
             />
           </FormField>
-          <FormField label={t("form.folder_label")} htmlFor="folder-field">
-            <Select
-              value={values.folderId ?? PLAYBOOK_ROOT_FOLDER_VALUE}
-              onValueChange={(value) => {
-                // Radix fires "" when the current value has no matching item
-                // yet (folders still loading). The root option is the
-                // sentinel, so "" is never a user choice: ignore it instead of
-                // silently moving the playbook to the root.
-                if (value === "") return
-                setValues((current) => ({
-                  ...current,
-                  folderId: toFolderId(value),
-                }))
-              }}
-              disabled={isSubmitting}
+          {isGit ? (
+            <FormField
+              label={t("repository.source_label")}
+              htmlFor="source-field"
             >
-              <SelectTrigger id="folder-field" className="w-full">
-                <SelectValue placeholder={t("form.folder_placeholder")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value={PLAYBOOK_ROOT_FOLDER_VALUE}>
-                    {t("folder.root")}
-                  </SelectItem>
-                  {folders.map((folder) => (
-                    <SelectItem key={folder.id} value={folder.id}>
-                      {folder.name}
+              <Input
+                id="source-field"
+                disabled
+                className="font-mono"
+                value={`${repository?.name ?? "—"} · ${playbook?.path ?? ""}`}
+              />
+            </FormField>
+          ) : (
+            <FormField label={t("form.folder_label")} htmlFor="folder-field">
+              <Select
+                value={values.folderId ?? PLAYBOOK_ROOT_FOLDER_VALUE}
+                onValueChange={(value) => {
+                  // Radix fires "" when the current value has no matching item
+                  // yet (folders still loading). The root option is the
+                  // sentinel, so "" is never a user choice: ignore it instead of
+                  // silently moving the playbook to the root.
+                  if (value === "") return
+                  setValues((current) => ({
+                    ...current,
+                    folderId: toFolderId(value),
+                  }))
+                }}
+                disabled={isSubmitting}
+              >
+                <SelectTrigger id="folder-field" className="w-full">
+                  <SelectValue placeholder={t("form.folder_placeholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value={PLAYBOOK_ROOT_FOLDER_VALUE}>
+                      {t("folder.root")}
                     </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </FormField>
+                    {folders.map((folder) => (
+                      <SelectItem key={folder.id} value={folder.id}>
+                        {folder.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </FormField>
+          )}
         </div>
 
         <div className="flex min-h-0 flex-col gap-2 split:overflow-hidden">
           <FieldLabel htmlFor="content-field" required className="shrink-0">
             <span id="content-field-label">{t("form.content_label")}</span>
           </FieldLabel>
+          {isGit ? (
+            <InlineAlert
+              tone={playbook?.missing ? "destructive" : "muted"}
+              className="shrink-0 text-xs"
+            >
+              {playbook?.missing
+                ? t("repository.missing_notice")
+                : t("repository.read_only_notice", {
+                    commit: repository?.lastCommitSha?.slice(0, 7) ?? "—",
+                  })}
+            </InlineAlert>
+          ) : null}
           <InlineAlert tone="muted" className="shrink-0 text-xs">
             <span
               className="[&_code]:font-mono [&_code]:text-foreground"
@@ -231,7 +278,7 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
               id="content-field"
               ariaLabelledBy="content-field-label"
               required
-              disabled={isSubmitting}
+              disabled={isLocked}
               placeholder={t("form.content_placeholder")}
               value={values.content}
               language="yaml"
@@ -250,18 +297,22 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
               variant="outline"
               disabled={isSubmitting}
             >
-              <AppLink href={returnHref}>{t("form.cancel")}</AppLink>
+              <AppLink href={returnHref}>
+                {isGit ? t("form.back_to_playbooks") : t("form.cancel")}
+              </AppLink>
             </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting || values.content.trim().length === 0}
-            >
-              {isSubmitting
-                ? t("form.saving")
-                : isEditing
-                  ? t("form.save_changes")
-                  : t("form.create")}
-            </Button>
+            {isGit ? null : (
+              <Button
+                type="submit"
+                disabled={isSubmitting || values.content.trim().length === 0}
+              >
+                {isSubmitting
+                  ? t("form.saving")
+                  : isEditing
+                    ? t("form.save_changes")
+                    : t("form.create")}
+              </Button>
+            )}
           </div>
         </div>
       </form>
