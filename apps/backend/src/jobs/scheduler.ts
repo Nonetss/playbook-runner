@@ -1,5 +1,6 @@
+import { isValidCron } from "@playbook-runner/api/v1/jobs/cron"
 import { executeJob } from "@playbook-runner/api/v1/jobs/executor"
-import { jobsHandler } from "@playbook-runner/api/v1/jobs/handler"
+import { listScheduledJobs } from "@playbook-runner/api/v1/jobs/schedule"
 import { db } from "@playbook-runner/db"
 import { jobRuns } from "@playbook-runner/db/schema/jobs"
 import { env } from "@playbook-runner/env/server"
@@ -13,14 +14,6 @@ type ScheduledEntry = { job: Bun.CronJob; pattern: string }
 
 const scheduled = new Map<string, ScheduledEntry>()
 let reconcileTimer: ReturnType<typeof setInterval> | null = null
-
-function isValidPattern(pattern: string): boolean {
-  try {
-    return Bun.cron.parse(pattern) !== null
-  } catch {
-    return false
-  }
-}
 
 function schedule(jobId: string, pattern: string) {
   // Bun.cron computes the next fire only after the handler settles, so a slow
@@ -49,12 +42,12 @@ function unschedule(jobId: string) {
  * expression changed. Cheap enough to run every minute.
  */
 async function reconcile() {
-  const rows = await jobsHandler.listScheduled()
+  const rows = await listScheduledJobs()
   const seen = new Set<string>()
 
   for (const row of rows) {
     const pattern = row.cronExpression?.trim()
-    if (!pattern || !isValidPattern(pattern)) continue
+    if (!pattern || !isValidCron(pattern)) continue
     seen.add(row.id)
 
     const existing = scheduled.get(row.id)

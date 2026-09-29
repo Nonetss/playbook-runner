@@ -4,8 +4,12 @@ import { createContext } from "@playbook-runner/api/context"
 import { appRouter } from "@playbook-runner/api/router"
 import { logger } from "@playbook-runner/logger"
 import { Hono } from "hono"
+import { csrfPlugin } from "#lib/csrf"
+import { inputValidationMessages } from "#lib/validation-errors"
 
 const handler = new RPCHandler(appRouter, {
+  plugins: [csrfPlugin()],
+  clientInterceptors: [inputValidationMessages],
   interceptors: [onError((error) => logger.error({ err: error }, "rpc error"))],
 })
 

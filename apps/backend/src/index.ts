@@ -2,16 +2,11 @@ import { dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { db } from "@playbook-runner/db"
 import { env } from "@playbook-runner/env/server"
-import {
-  closeClients,
-  type GrpcServer,
-  stopGrpcServer,
-} from "@playbook-runner/grpc"
+import { closeClients } from "@playbook-runner/grpc"
 import { logger } from "@playbook-runner/logger"
 import { migrate } from "drizzle-orm/node-postgres/migrator"
 import { Hono } from "hono"
 import { cors } from "hono/cors"
-import { startGrpcServer } from "#grpc/server"
 import {
   recoverOrphanedRuns,
   startJobScheduler,
@@ -54,7 +49,12 @@ app.use(
   cors({
     origin: env.CORS_ORIGIN,
     allowMethods: ["GET", "POST", "OPTIONS", "DELETE", "PUT", "PATCH"],
-    allowHeaders: ["Content-Type", "Authorization", "x-api-key"],
+    allowHeaders: [
+      "Content-Type",
+      "Authorization",
+      "x-api-key",
+      "x-csrf-token",
+    ],
     credentials: true,
   })
 )
@@ -82,24 +82,12 @@ if (!globalThis.__backendBootstrapped) {
     process.exit(1)
   })
 
-  let grpcServer: GrpcServer | null = null
-  startGrpcServer()
-    .then((server) => {
-      grpcServer = server
-    })
-    .catch((err) => {
-      logger.error({ err }, "grpc bootstrap failed")
-    })
-
   for (const signal of ["SIGINT", "SIGTERM"] as const) {
     process.on(signal, () => {
       logger.info({ signal }, "shutting down")
       stopJobScheduler()
-      void (async () => {
-        closeClients()
-        if (grpcServer) await stopGrpcServer(grpcServer)
-        process.exit(0)
-      })()
+      closeClients()
+      process.exit(0)
     })
   }
 }

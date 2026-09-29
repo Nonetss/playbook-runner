@@ -5,6 +5,8 @@ import { env } from "@playbook-runner/env/server"
 import { logger } from "@playbook-runner/logger"
 import { eq } from "drizzle-orm"
 
+const DEFAULT_SEED_PASSWORD = "admin1234"
+
 export async function seed() {
   logger.info("seeding database")
 
@@ -24,17 +26,24 @@ export async function seed() {
     return
   }
 
-  await auth.api.signUpEmail({
-    body: { email, password, name },
+  // Runs on every backend start, so refuse (without crashing) to create a
+  // production admin with the publicly known default password.
+  if (env.NODE_ENV === "production" && password === DEFAULT_SEED_PASSWORD) {
+    logger.error(
+      { email },
+      "seed skipped: set SEED_ADMIN_PASSWORD to a non-default value to create the first admin"
+    )
+    return
+  }
+
+  // Public sign-up is disabled, so create the account through the admin API
+  // (server-side call, no session required).
+  await auth.api.createUser({
+    body: { email, password, name, role: "admin" },
   })
 
-  console.log("")
-  console.log("✓ Created admin user:")
-  console.log(`    email:    ${email}`)
-  console.log(`    password: ${password}`)
-  console.log("")
-  console.log("⚠ Change the password after first login.")
-  console.log(
-    "  Set SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD in .env to override."
+  logger.info(
+    { email },
+    "created admin user; change its password after first login"
   )
 }

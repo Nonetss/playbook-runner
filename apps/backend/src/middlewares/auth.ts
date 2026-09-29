@@ -1,4 +1,4 @@
-import { auth } from "@playbook-runner/auth"
+import { APIError, auth } from "@playbook-runner/auth"
 import { createMiddleware } from "hono/factory"
 
 export type AuthVariables = {
@@ -8,21 +8,16 @@ export type AuthVariables = {
 
 export const sessionMiddleware = createMiddleware<{ Variables: AuthVariables }>(
   async (c, next) => {
-    const session = await auth.api.getSession({
-      headers: c.req.raw.headers,
-    })
+    // An invalid/expired `x-api-key` makes getSession throw; treat it as an
+    // anonymous request so protected procedures answer 401 instead of 500.
+    const session = await auth.api
+      .getSession({ headers: c.req.raw.headers })
+      .catch((error: unknown) => {
+        if (error instanceof APIError) return null
+        throw error
+      })
     c.set("user", session?.user ?? null)
     c.set("session", session?.session ?? null)
-    await next()
-  }
-)
-
-export const requireAuth = createMiddleware<{ Variables: AuthVariables }>(
-  async (c, next) => {
-    const user = c.get("user")
-    if (!user) {
-      return c.json({ error: "Unauthorized" }, 401)
-    }
     await next()
   }
 )
