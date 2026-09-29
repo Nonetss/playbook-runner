@@ -9,15 +9,15 @@ import {
 } from "@playbook-runner/grpc"
 import { RunnerServiceClient } from "@playbook-runner/grpc/stubs"
 import { logger } from "@playbook-runner/logger"
-import { eq } from "drizzle-orm"
+import { and, eq, sql } from "drizzle-orm"
 import { beginLiveRun, finishLiveRun, publishRunEvent } from "#v1/jobs/live"
-import { type RunInventorySelection, runHandler } from "#v1/run/handler"
 import {
   RUN_TIMEOUT_MS,
   type RunEventRecord,
   taskEventToRecord,
   toProtoHost,
 } from "#v1/run/proto"
+import { type RunInventorySelection, resolveRun } from "#v1/run/resolve"
 
 type RunOutcome = {
   events: RunEventRecord[]
@@ -100,9 +100,9 @@ async function streamRun(
     }
   }
 
-  let bundle: Awaited<ReturnType<typeof runHandler.resolveRun>>
+  let bundle: Awaited<ReturnType<typeof resolveRun>>
   try {
-    bundle = await runHandler.resolveRun(job.playbookId, inventory)
+    bundle = await resolveRun(job.playbookId, inventory)
   } catch (err) {
     return {
       events: [],
@@ -182,65 +182,108 @@ async function completeRun(
   }
 
   const { hostsOk, hostsFailed } = countHostOutcomes(outcome.events)
+  let status: "ok" | "failed" = outcome.ok ? "ok" : "failed"
 
-  await db
-    .update(jobRuns)
-    .set({
-      status: outcome.ok ? "ok" : "failed",
-      eventsJson: outcome.events,
-      error: outcome.error,
-      hostsOk,
-      hostsFailed,
-      finishedAt: new Date(),
-    })
-    .where(eq(jobRuns.id, runId))
-
-  finishLiveRun(runId, {
-    runId,
-    status: outcome.ok ? "ok" : "failed",
-    ok: outcome.ok,
-  })
+  try {
+    await db
+      .update(jobRuns)
+      .set({
+        status,
+        eventsJson: outcome.events,
+        error: outcome.error,
+        hostsOk,
+        hostsFailed,
+        finishedAt: new Date(),
+      })
+      .where(eq(jobRuns.id, runId))
+  } catch (err) {
+    // Never leave the row `running` (it also acts as the job's run lock):
+    // retry with the smallest possible update. `recoverOrphanedRuns` at the
+    // next boot is the last resort.
+    logger.error({ runId, err }, "failed to persist run result")
+    status = "failed"
+    await db
+      .update(jobRuns)
+      .set({
+        status,
+        error: outcome.error ?? "Could not persist the run result",
+        finishedAt: new Date(),
+      })
+      .where(eq(jobRuns.id, runId))
+      .catch((retryErr) =>
+        logger.error({ runId, err: retryErr }, "failed to mark run as failed")
+      )
+  } finally {
+    // Always release live watchers, even when persisting failed.
+    finishLiveRun(runId, { runId, status, ok: status === "ok" })
+  }
 }
 
-/** Load the job and open a `running` run row. Returns null if the job is gone. */
+type OpenRunResult =
+  | { status: "opened"; job: typeof jobs.$inferSelect; runId: string }
+  | { status: "not_found" }
+  | { status: "conflict" }
+
+/**
+ * Load the job and open a `running` run row, unless the job already has one.
+ *
+ * The check-then-insert runs under a transaction-scoped advisory lock keyed by
+ * the job id, so a manual run and a scheduled run of the same job can't both
+ * pass the check. Once committed, the `running` row itself is the lock until
+ * `completeRun` (or `recoverOrphanedRuns`) finishes it.
+ */
 async function openRun(
   jobId: string,
   trigger: "manual" | "schedule"
-): Promise<{ job: typeof jobs.$inferSelect; runId: string } | null> {
-  const job = await db
-    .select()
-    .from(jobs)
-    .where(eq(jobs.id, jobId))
-    .then((rows) => rows[0] ?? null)
+): Promise<OpenRunResult> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${jobId}))`)
 
-  if (!job) return null
+    const job = await tx
+      .select()
+      .from(jobs)
+      .where(eq(jobs.id, jobId))
+      .then((rows) => rows[0] ?? null)
+    if (!job) return { status: "not_found" as const }
 
-  const run = await db
-    .insert(jobRuns)
-    .values({
-      jobId: job.id,
-      status: "running",
-      trigger,
-      startedAt: new Date(),
-    })
-    .returning()
-    .then((rows) => rows[0] ?? null)
+    const running = await tx
+      .select({ id: jobRuns.id })
+      .from(jobRuns)
+      .where(and(eq(jobRuns.jobId, jobId), eq(jobRuns.status, "running")))
+      .limit(1)
+    if (running.length > 0) return { status: "conflict" as const }
 
-  if (!run) return null
-  return { job, runId: run.id }
+    const run = await tx
+      .insert(jobRuns)
+      .values({
+        jobId: job.id,
+        status: "running",
+        trigger,
+        startedAt: new Date(),
+      })
+      .returning({ id: jobRuns.id })
+      .then((rows) => rows[0])
+    if (!run) throw new Error("Could not create the job run")
+    return { status: "opened" as const, job, runId: run.id }
+  })
 }
 
 /**
  * Execute a job end-to-end and wait for it to finish: record a `running` run,
  * stream the playbook, then persist the captured events + terminal status.
  * Used by the scheduler. Never throws — failures are stored on the run row.
+ * Returns null when the job is gone or already running.
  */
 export async function executeJob(
   jobId: string,
   trigger: "manual" | "schedule" = "manual"
 ): Promise<string | null> {
   const opened = await openRun(jobId, trigger)
-  if (!opened) return null
+  if (opened.status === "conflict") {
+    logger.warn({ jobId, trigger }, "job is already running, skipping")
+    return null
+  }
+  if (opened.status !== "opened") return null
   await completeRun(opened.job, opened.runId)
   return opened.runId
 }
@@ -255,11 +298,15 @@ export async function executeJob(
 export async function startJobRun(
   jobId: string,
   trigger: "manual" | "schedule" = "manual"
-): Promise<string | null> {
+): Promise<
+  | { status: "opened"; runId: string }
+  | { status: "not_found" }
+  | { status: "conflict" }
+> {
   const opened = await openRun(jobId, trigger)
-  if (!opened) return null
+  if (opened.status !== "opened") return opened
   void completeRun(opened.job, opened.runId).catch((err) => {
     logger.error({ runId: opened.runId, err }, "run failed")
   })
-  return opened.runId
+  return { status: "opened", runId: opened.runId }
 }

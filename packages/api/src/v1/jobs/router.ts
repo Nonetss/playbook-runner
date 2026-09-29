@@ -1,145 +1,16 @@
-import { eventIterator } from "@orpc/server"
-import { z } from "zod"
 import { protectedProcedure } from "#index"
-import { startJobRun } from "#v1/jobs/executor"
 import { jobRunsHandler, jobsHandler } from "#v1/jobs/handler"
-import { watchLiveRun } from "#v1/jobs/live"
-import { taskEventSchema } from "#v1/run/router"
+import { jobRunsInput, jobsInput } from "#v1/jobs/input"
+import { jobRunsOutput, jobsOutput } from "#v1/jobs/output"
 
-// ---------- Response schemas (colocated) -------------------------------------
-
-// A job as stored on disk.
-const jobSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string().nullable(),
-  playbookId: z.string().nullable(),
-  inventoryJson: z
-    .array(z.object({ id: z.string(), type: z.enum(["group", "device"]) }))
-    .nullable(),
-  extravarsJson: z.record(z.string(), z.string()).nullable(),
-  forks: z.number().int(),
-  cronExpression: z.string().nullable(),
-  enabled: z.boolean(),
-  createdAt: z.coerce.date().nullable(),
-  updatedAt: z.coerce.date().nullable(),
-})
-
-// A single execution row; this is also part of the scheduler's source-of-truth
-// for "what ran against which playbook when".
-const jobRunSchema = z.object({
-  id: z.string(),
-  jobId: z.string().nullable(),
-  status: z.enum(["pending", "running", "ok", "failed"]),
-  trigger: z.string(),
-  eventsJson: z.array(z.record(z.string(), z.unknown())).nullable(),
-  error: z.string().nullable(),
-  // Per-host recap counts; null when the run produced no `playbook_on_stats`
-  // (still in flight, or it failed before Ansible reported).
-  hostsOk: z.number().int().nullable(),
-  hostsFailed: z.number().int().nullable(),
-  startedAt: z.coerce.date().nullable(),
-  finishedAt: z.coerce.date().nullable(),
-  createdAt: z.coerce.date().nullable(),
-})
-
-// `run` only returns the new run id — keep it a tight, focused schema.
-// `runId` may be null when `startJobRun` cannot acquire a job (job deleted
-// between request read and lock acquire); the frontend treats this as a
-// failure and surfaces the corresponding error.
-const startRunResultSchema = z.object({
-  runId: z.string().nullable(),
-})
-
-// Terminal value of `runs.watch`'s event iterator. `null` means the run
-// wasn't (or is no longer) live — the caller should fall back to whatever
-// `runs.list`/`runs.get` already has persisted for it.
-const jobRunWatchResultSchema = z
-  .object({
-    runId: z.string(),
-    status: z.enum(["ok", "failed"]),
-    ok: z.boolean(),
-  })
-  .nullable()
-
-// ---------- Run feed / metrics output schemas ---------------------------------
-
-/**
- * One row in the global run feed. Slimmer than the full `jobRunSchema`
- * because the feed never needs the captured SSE events; it omits
- * `eventsJson` and `error` (those live on the per-run detail endpoint).
- * `jobName` is null when the parent job was deleted; the API surface keeps
- * it nullable here and the frontend renders a placeholder rather than
- * coercing on the wire.
- */
-const jobRunFeedRowSchema = z.object({
-  id: z.string(),
-  jobId: z.string().nullable(),
-  jobName: z.string().nullable(),
-  status: z.enum(["pending", "running", "ok", "failed"]),
-  trigger: z.string(),
-  startedAt: z.coerce.date().nullable(),
-  finishedAt: z.coerce.date().nullable(),
-  createdAt: z.coerce.date().nullable(),
-  durationMs: z.number().int().nullable(),
-  // Per-host recap counts. A `failed` run with `hostsOk > 0` is a partial
-  // failure — the feed renders it amber with the split instead of flat red.
-  hostsOk: z.number().int().nullable(),
-  hostsFailed: z.number().int().nullable(),
-})
-
-const jobRunFeedPageSchema = z.object({
-  runs: z.array(jobRunFeedRowSchema),
-  nextCursor: z.string().nullable(),
-})
-
-const jobRunMetricsSchema = z.object({
-  window: z.enum(["24h", "7d", "30d"]),
-  total: z.number().int(),
-  okCount: z.number().int(),
-  failedCount: z.number().int(),
-  // Always present; 0 means "no runs in window" (well-defined, not NaN).
-  successRate: z.number().min(0).max(1),
-  avgDurationMs: z.number().min(0),
-})
-
-const jobRollupSchema = z.object({
-  jobId: z.string(),
-  jobName: z.string(),
-  latestRunId: z.string().nullable(),
-  latestStatus: z.enum(["pending", "running", "ok", "failed"]).nullable(),
-  latestCreatedAt: z.coerce.date().nullable(),
-  latestDurationMs: z.number().int().nullable(),
-  recentSuccessRatio: z.number().min(0).max(1),
-  recentRunCount: z.number().int(),
-})
-
-export type Job = z.infer<typeof jobSchema>
-export type JobRun = z.infer<typeof jobRunSchema>
-export type JobRunFeedRow = z.infer<typeof jobRunFeedRowSchema>
-export type JobRunFeedPage = z.infer<typeof jobRunFeedPageSchema>
-export type JobRunMetrics = z.infer<typeof jobRunMetricsSchema>
-export type JobRollup = z.infer<typeof jobRollupSchema>
-
-// ---------- Inputs ----------------------------------------------------------
-
-const inventoryItemSchema = z.object({
-  id: z.string(),
-  type: z.enum(["group", "device"]),
-})
-
-const jobInputSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().nullable().optional(),
-  playbookId: z.string().nullable().optional(),
-  inventoryJson: z.array(inventoryItemSchema).default([]),
-  extravarsJson: z.record(z.string(), z.string()).default({}),
-  forks: z.number().int().min(1).default(1),
-  cronExpression: z.string().nullable().optional(),
-  enabled: z.boolean().default(true),
-})
-
-// ---------- Router ----------------------------------------------------------
+export type {
+  Job,
+  JobRollup,
+  JobRun,
+  JobRunFeedPage,
+  JobRunFeedRow,
+  JobRunMetrics,
+} from "#v1/jobs/output"
 
 export const jobsRouter = {
   list: protectedProcedure
@@ -149,24 +20,19 @@ export const jobsRouter = {
       tags: ["Jobs"],
       method: "GET",
     })
-    .output(z.array(jobSchema))
-    .handler(async () => {
-      return jobsHandler.list()
-    }),
-
+    .output(jobsOutput.list)
+    .handler(({ context }) => jobsHandler.list({ context })),
   get: protectedProcedure
     .route({
       summary: "Get a job",
-      description: "Returns a single job by id, or null when no row matches.",
+      description:
+        "Returns a single job by id. Throws NOT_FOUND when no row matches.",
       tags: ["Jobs"],
       method: "GET",
     })
-    .input(z.object({ id: z.string() }))
-    .output(jobSchema.nullable())
-    .handler(async ({ input }) => {
-      return jobsHandler.get(input.id)
-    }),
-
+    .input(jobsInput.get)
+    .output(jobsOutput.get)
+    .handler(({ context, input }) => jobsHandler.get({ context, input })),
   create: protectedProcedure
     .route({
       summary: "Create a job",
@@ -175,21 +41,9 @@ export const jobsRouter = {
       tags: ["Jobs"],
       method: "POST",
     })
-    .input(jobInputSchema)
-    .output(jobSchema.nullable())
-    .handler(async ({ input }) => {
-      return jobsHandler.create({
-        name: input.name,
-        description: input.description ?? null,
-        playbookId: input.playbookId ?? null,
-        inventoryJson: input.inventoryJson,
-        extravarsJson: input.extravarsJson as Record<string, string>,
-        forks: input.forks,
-        cronExpression: input.cronExpression ?? null,
-        enabled: input.enabled,
-      })
-    }),
-
+    .input(jobsInput.create)
+    .output(jobsOutput.create)
+    .handler(({ context, input }) => jobsHandler.create({ context, input })),
   update: protectedProcedure
     .route({
       summary: "Update a job",
@@ -197,37 +51,20 @@ export const jobsRouter = {
       tags: ["Jobs"],
       method: "PUT",
     })
-    .input(jobInputSchema.extend({ id: z.string() }))
-    .output(jobSchema.nullable())
-    .handler(async ({ input }) => {
-      const { id, ...rest } = input
-      return jobsHandler.update(id, {
-        name: rest.name,
-        // `null` clears; a string keeps/sets. Optional+omitted still clears
-        // because this endpoint is a full replace — clients must send fields.
-        description: rest.description ?? null,
-        playbookId: rest.playbookId ?? null,
-        inventoryJson: rest.inventoryJson,
-        extravarsJson: rest.extravarsJson as Record<string, string>,
-        forks: rest.forks,
-        cronExpression: rest.cronExpression ?? null,
-        enabled: rest.enabled,
-      })
-    }),
-
+    .input(jobsInput.update)
+    .output(jobsOutput.update)
+    .handler(({ context, input }) => jobsHandler.update({ context, input })),
   delete: protectedProcedure
     .route({
       summary: "Delete a job",
-      description: "Deletes a job by id. Returns the deleted row, or null.",
+      description:
+        "Deletes a job by id and returns the deleted row. Throws NOT_FOUND when no row matches.",
       tags: ["Jobs"],
       method: "DELETE",
     })
-    .input(z.object({ id: z.string() }))
-    .output(jobSchema.nullable())
-    .handler(async ({ input }) => {
-      return jobsHandler.delete(input.id)
-    }),
-
+    .input(jobsInput.delete)
+    .output(jobsOutput.delete)
+    .handler(({ context, input }) => jobsHandler.delete({ context, input })),
   toggleEnabled: protectedProcedure
     .route({
       summary: "Toggle job enabled state",
@@ -236,27 +73,22 @@ export const jobsRouter = {
       tags: ["Jobs"],
       method: "PUT",
     })
-    .input(z.object({ id: z.string(), enabled: z.boolean() }))
-    .output(jobSchema.nullable())
-    .handler(async ({ input }) => {
-      return jobsHandler.update(input.id, { enabled: input.enabled })
-    }),
-
+    .input(jobsInput.toggleEnabled)
+    .output(jobsOutput.toggleEnabled)
+    .handler(({ context, input }) =>
+      jobsHandler.toggleEnabled({ context, input })
+    ),
   run: protectedProcedure
     .route({
       summary: "Run a job now",
       description:
-        "Triggers an immediate execution of the job's playbook against its inventory and records the run with its captured output.",
+        "Triggers an immediate execution of the job's playbook against its inventory and records the run with its captured output. Returns CONFLICT while the job already has a running run.",
       tags: ["Jobs"],
       method: "POST",
     })
-    .input(z.object({ id: z.string() }))
-    .output(startRunResultSchema)
-    .handler(async ({ input }) => {
-      const runId = await startJobRun(input.id, "manual")
-      return { runId }
-    }),
-
+    .input(jobsInput.run)
+    .output(jobsOutput.run)
+    .handler(({ context, input }) => jobsHandler.run({ context, input })),
   runs: {
     watch: protectedProcedure
       .route({
@@ -266,10 +98,11 @@ export const jobsRouter = {
         tags: ["Jobs"],
         method: "POST",
       })
-      .input(z.object({ runId: z.string() }))
-      .output(eventIterator(taskEventSchema, jobRunWatchResultSchema))
-      .handler(({ input }) => watchLiveRun(input.runId)),
-
+      .input(jobRunsInput.watch)
+      .output(jobRunsOutput.watch)
+      .handler(({ context, input }) =>
+        jobRunsHandler.watch({ context, input })
+      ),
     list: protectedProcedure
       .route({
         summary: "List runs for a job",
@@ -277,26 +110,20 @@ export const jobsRouter = {
         tags: ["Jobs"],
         method: "GET",
       })
-      .input(z.object({ jobId: z.string() }))
-      .output(z.array(jobRunSchema))
-      .handler(async ({ input }) => {
-        return jobRunsHandler.listByJob(input.jobId)
-      }),
-
+      .input(jobRunsInput.list)
+      .output(jobRunsOutput.list)
+      .handler(({ context, input }) => jobRunsHandler.list({ context, input })),
     get: protectedProcedure
       .route({
         summary: "Get a job run",
         description:
-          "Returns a single job run by id, or null when no row matches.",
+          "Returns a single job run by id. Throws NOT_FOUND when no row matches.",
         tags: ["Jobs"],
         method: "GET",
       })
-      .input(z.object({ id: z.string() }))
-      .output(jobRunSchema.nullable())
-      .handler(async ({ input }) => {
-        return jobRunsHandler.get(input.id)
-      }),
-
+      .input(jobRunsInput.get)
+      .output(jobRunsOutput.get)
+      .handler(({ context, input }) => jobRunsHandler.get({ context, input })),
     listAll: protectedProcedure
       .route({
         summary: "List runs across all jobs",
@@ -305,20 +132,11 @@ export const jobsRouter = {
         tags: ["Jobs"],
         method: "GET",
       })
-      .input(
-        z.object({
-          limit: z.number().int().min(1).max(100).default(25),
-          cursor: z.string().optional(),
-        })
-      )
-      .output(jobRunFeedPageSchema)
-      .handler(async ({ input }) => {
-        return jobRunsHandler.listAll({
-          limit: input.limit,
-          cursor: input.cursor,
-        })
-      }),
-
+      .input(jobRunsInput.listAll)
+      .output(jobRunsOutput.listAll)
+      .handler(({ context, input }) =>
+        jobRunsHandler.listAll({ context, input })
+      ),
     metrics: protectedProcedure
       .route({
         summary: "Aggregate run metrics over a window",
@@ -327,16 +145,11 @@ export const jobsRouter = {
         tags: ["Jobs"],
         method: "GET",
       })
-      .input(
-        z.object({
-          window: z.enum(["24h", "7d", "30d"]),
-        })
-      )
-      .output(jobRunMetricsSchema)
-      .handler(async ({ input }) => {
-        return jobRunsHandler.metrics({ window: input.window })
-      }),
-
+      .input(jobRunsInput.metrics)
+      .output(jobRunsOutput.metrics)
+      .handler(({ context, input }) =>
+        jobRunsHandler.metrics({ context, input })
+      ),
     rollups: protectedProcedure
       .route({
         summary: "Per-job run rollups",
@@ -345,10 +158,10 @@ export const jobsRouter = {
         tags: ["Jobs"],
         method: "GET",
       })
-      .input(z.object({}).default({}))
-      .output(z.array(jobRollupSchema))
-      .handler(async () => {
-        return jobRunsHandler.perJobRollups()
-      }),
+      .input(jobRunsInput.rollups)
+      .output(jobRunsOutput.rollups)
+      .handler(({ context, input }) =>
+        jobRunsHandler.rollups({ context, input })
+      ),
   },
 }

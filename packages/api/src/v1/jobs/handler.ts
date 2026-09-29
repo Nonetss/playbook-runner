@@ -1,50 +1,112 @@
 import { db } from "@playbook-runner/db"
-import {
-  jobRuns,
-  jobs,
-  type NewJob,
-  type NewJobRun,
-} from "@playbook-runner/db/schema/jobs"
-import { and, asc, desc, eq, gt, lt, or, sql } from "drizzle-orm"
+import { jobRuns, jobs } from "@playbook-runner/db/schema/jobs"
+import { and, asc, desc, eq, lt, or, sql } from "drizzle-orm"
+import type { z } from "zod"
+import type { Context } from "#context"
+import { errors } from "#errors"
+import { startJobRun } from "#v1/jobs/executor"
+import type { jobRunsInput, jobsInput } from "#v1/jobs/input"
+import { watchLiveRun } from "#v1/jobs/live"
+
+type JobInput = z.infer<typeof jobsInput.create>
+
+/** Normalizes a validated job payload into the columns we persist. */
+function toJobColumns(input: JobInput) {
+  return {
+    name: input.name,
+    // `null` clears; a string keeps/sets. Optional+omitted still clears
+    // because create/update are full writes — clients must send fields.
+    description: input.description ?? null,
+    playbookId: input.playbookId ?? null,
+    inventoryJson: input.inventoryJson,
+    extravarsJson: input.extravarsJson as Record<string, string>,
+    forks: input.forks,
+    cronExpression: input.cronExpression ?? null,
+    enabled: input.enabled,
+  }
+}
 
 export const jobsHandler = {
-  create: async (job: Omit<NewJob, "id" | "createdAt" | "updatedAt">) => {
-    const j = await db.insert(jobs).values(job).returning()
-    return j[0] ?? null
-  },
-
-  list: async () => {
+  list: async (_: { context: Context }) => {
     return db.select().from(jobs).orderBy(asc(jobs.createdAt))
   },
 
-  /** Enabled jobs that carry a cron expression — the scheduler's source set. */
-  listScheduled: async () => {
-    return db
-      .select({ id: jobs.id, cronExpression: jobs.cronExpression })
-      .from(jobs)
-      .where(eq(jobs.enabled, true))
+  get: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof jobsInput.get>
+  }) => {
+    const [row] = await db.select().from(jobs).where(eq(jobs.id, input.id))
+    if (!row) throw errors.NOT_FOUND()
+    return row
   },
 
-  get: async (id: string) => {
-    const j = await db.select().from(jobs).where(eq(jobs.id, id))
-    return j[0] ?? null
+  create: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof jobsInput.create>
+  }) => {
+    const [row] = await db.insert(jobs).values(toJobColumns(input)).returning()
+    if (!row) throw errors.INTERNAL_SERVER_ERROR()
+    return row
   },
 
-  update: async (
-    id: string,
-    job: Partial<Omit<NewJob, "id" | "createdAt" | "updatedAt">>
-  ) => {
-    const j = await db
+  update: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof jobsInput.update>
+  }) => {
+    const { id, ...rest } = input
+    const [row] = await db
       .update(jobs)
-      .set({ ...job, updatedAt: new Date() })
+      .set({ ...toJobColumns(rest), updatedAt: new Date() })
       .where(eq(jobs.id, id))
       .returning()
-    return j[0] ?? null
+    if (!row) throw errors.NOT_FOUND()
+    return row
   },
 
-  delete: async (id: string) => {
-    const j = await db.delete(jobs).where(eq(jobs.id, id)).returning()
-    return j[0] ?? null
+  delete: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof jobsInput.delete>
+  }) => {
+    const [row] = await db.delete(jobs).where(eq(jobs.id, input.id)).returning()
+    if (!row) throw errors.NOT_FOUND()
+    return row
+  },
+
+  toggleEnabled: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof jobsInput.toggleEnabled>
+  }) => {
+    const [row] = await db
+      .update(jobs)
+      .set({ enabled: input.enabled, updatedAt: new Date() })
+      .where(eq(jobs.id, input.id))
+      .returning()
+    if (!row) throw errors.NOT_FOUND()
+    return row
+  },
+
+  run: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof jobsInput.run>
+  }) => {
+    const result = await startJobRun(input.id, "manual")
+    if (result.status === "not_found") throw errors.NOT_FOUND()
+    if (result.status === "conflict") {
+      throw errors.CONFLICT({ message: "This job is already running" })
+    }
+    return { runId: result.runId }
   },
 }
 
@@ -139,34 +201,38 @@ function shapeRun<
 }
 
 export const jobRunsHandler = {
-  create: async (run: Omit<NewJobRun, "id" | "createdAt">) => {
-    const r = await db.insert(jobRuns).values(run).returning()
-    return r[0] ?? null
-  },
+  watch: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof jobRunsInput.watch>
+  }) => watchLiveRun(input.runId),
 
-  listByJob: async (jobId: string) => {
+  list: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof jobRunsInput.list>
+  }) => {
     return db
       .select()
       .from(jobRuns)
-      .where(eq(jobRuns.jobId, jobId))
+      .where(eq(jobRuns.jobId, input.jobId))
       .orderBy(desc(jobRuns.createdAt))
   },
 
-  get: async (id: string) => {
-    const r = await db.select().from(jobRuns).where(eq(jobRuns.id, id))
-    return r[0] ?? null
-  },
-
-  update: async (
-    id: string,
-    run: Partial<Omit<NewJobRun, "id" | "createdAt">>
-  ) => {
-    const r = await db
-      .update(jobRuns)
-      .set(run)
-      .where(eq(jobRuns.id, id))
-      .returning()
-    return r[0] ?? null
+  get: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof jobRunsInput.get>
+  }) => {
+    const [row] = await db
+      .select()
+      .from(jobRuns)
+      .where(eq(jobRuns.id, input.id))
+    if (!row) throw errors.NOT_FOUND()
+    return row
   },
 
   /**
@@ -174,7 +240,13 @@ export const jobRunsHandler = {
    * `LEFT JOIN jobs` so runs whose parent job was deleted still appear (with a
    * `null` `jobName` that the API layer maps to a placeholder string).
    */
-  listAll: async ({ limit, cursor }: { limit: number; cursor?: string }) => {
+  listAll: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof jobRunsInput.listAll>
+  }) => {
+    const { limit, cursor } = input
     const decoded = cursor ? decodeCursor(cursor) : null
 
     // ORDER BY (created_at DESC, id DESC); keyset pagination over the same
@@ -218,7 +290,13 @@ export const jobRunsHandler = {
    * `created_at`). Returns a zeroed result for an empty window rather than
    * blowing up on division-by-zero.
    */
-  metrics: async ({ window }: { window: MetricsWindow }) => {
+  metrics: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof jobRunsInput.metrics>
+  }) => {
+    const { window } = input
     const hours = WINDOW_HOURS[window]
     const since = sql`now() - (${sql.raw(String(hours))} || ' hours')::interval`
 
@@ -257,7 +335,10 @@ export const jobRunsHandler = {
    * a `null` latest status and zero success ratio, so the UI can render
    * empty states without dropping rows.
    */
-  perJobRollups: async () => {
+  rollups: async (_: {
+    context: Context
+    input: z.infer<typeof jobRunsInput.rollups>
+  }) => {
     // "Last 10" recent run ids per job, ranked by (created_at desc, id desc),
     // which we'll use to compute a per-job success ratio.
     const recent = db
@@ -333,19 +414,4 @@ export const jobRunsHandler = {
       }
     })
   },
-
-  /**
-   * Lightweight per-job latest status only — used by the dashboard "Recent
-   * activity" panel when the full `listAll` payload isn't yet needed (kept
-   * here so handlers stay the single source for run queries).
-   */
-  gt,
 }
-
-/**
- * Suppress unused-import linting for symbols that are type-exported from this
- * module (drizzle's `gt` is re-exported via `jobRunsHandler` only when callers
- * extend the handlers). We re-export it explicitly so the symbol is used and
- * the file's surface matches what's documented in the spec/design.
- */
-export { gt }
