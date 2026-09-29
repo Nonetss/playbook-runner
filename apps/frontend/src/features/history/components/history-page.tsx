@@ -48,19 +48,19 @@ function RunsTable({ runs }: { runs: JobRunFeedRow[] }) {
   const { t, i18n } = useTranslation("jobs")
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-card/40">
+    <div className="@container overflow-hidden rounded-xl border bg-card/40">
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead>{t("history.headers.job")}</TableHead>
             <TableHead>{t("history.headers.status")}</TableHead>
-            <TableHead className="hidden md:table-cell">
+            <TableHead className="hidden @xl:table-cell">
               {t("history.headers.hosts")}
             </TableHead>
-            <TableHead className="hidden lg:table-cell">
+            <TableHead className="hidden @3xl:table-cell">
               {t("history.headers.trigger")}
             </TableHead>
-            <TableHead className="hidden sm:table-cell">
+            <TableHead className="hidden @md:table-cell">
               {t("history.headers.duration")}
             </TableHead>
             <TableHead>{t("history.headers.timestamp")}</TableHead>
@@ -96,18 +96,18 @@ function RunsTable({ runs }: { runs: JobRunFeedRow[] }) {
                     hostsFailed={run.hostsFailed}
                   />
                 </TableCell>
-                <TableCell className="hidden md:table-cell">
+                <TableCell className="hidden @xl:table-cell">
                   <RunHostSummary
                     hostsOk={run.hostsOk}
                     hostsFailed={run.hostsFailed}
                   />
                 </TableCell>
-                <TableCell className="hidden text-muted-foreground lg:table-cell">
+                <TableCell className="hidden text-muted-foreground @3xl:table-cell">
                   {run.trigger === "schedule"
                     ? t("history.trigger_schedule")
                     : t("history.trigger_manual")}
                 </TableCell>
-                <TableCell className="hidden sm:table-cell">
+                <TableCell className="hidden @md:table-cell">
                   <Text variant="data">
                     {formatRunDurationMs(run.durationMs)}
                   </Text>

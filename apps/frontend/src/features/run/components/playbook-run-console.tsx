@@ -391,7 +391,11 @@ export function PlaybookRunConsole({
       <div
         ref={containerRef}
         onScroll={handleScroll}
-        className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain"
+        // Own scroll region only when the page splits the height; stacked
+        // (phones) the console grows and the page scrolls (`overflow-x-clip`, not
+        // `hidden`, which would turn Y into a scroller), so a finger on the
+        // output never lands on a scroll container that swallows the swipe.
+        className="min-h-0 flex-1 overflow-x-clip split:overflow-x-hidden split:overflow-y-auto split:overscroll-contain"
       >
         <div className="space-y-4 px-4 pb-4">
           {plays.map((play) => (

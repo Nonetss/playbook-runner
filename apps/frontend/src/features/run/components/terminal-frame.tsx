@@ -4,7 +4,7 @@ const AlertTriangle = getIcon("status", "alert")
 const CheckCircle2 = getIcon("status", "success")
 const XCircle = getIcon("status", "error")
 
-import type { ReactNode } from "react"
+import { type ReactNode, useEffect, useRef } from "react"
 import { Text } from "@/components/shared/brand/typography"
 import { cn } from "@/lib/utils"
 
@@ -86,12 +86,21 @@ export function TerminalPanelSection({
   )
 }
 
+/** Same condition as the `stacked` variant in `global.css`. */
+const STACKED_QUERY = "not all and (min-width: 48rem) and (min-height: 34rem)"
+
 /**
  * The shared frame of every execution screen (commands, script run,
  * playbook run, job detail): a terminal column with a title bar showing the
  * prompt, the console body, stream/result banners, and an optional side
  * panel. The terminal is dark in both themes and uses only `--terminal-*`
  * tokens; the side panel uses the page theme.
+ *
+ * On `stacked` viewports (phones, landscape phones) the page scrolls
+ * instead of splitting the height.
+ * With `setupFirst` the panel (what to run, where) comes before the console
+ * there, and once `active` turns on the console scrolls into view so the
+ * output follows the tap on the run button.
  */
 export function TerminalFrame({
   context,
@@ -101,6 +110,8 @@ export function TerminalFrame({
   banners,
   panel,
   panelFooter,
+  setupFirst = false,
+  active = false,
   className,
 }: {
   /** Prompt context, e.g. "playbook", "script" or the Ansible module. */
@@ -116,8 +127,24 @@ export function TerminalFrame({
   panel?: ReactNode
   /** Sticky footer of the side panel (the run button). */
   panelFooter?: ReactNode
+  /** Phones: render the panel above the console (configure, then run). */
+  setupFirst?: boolean
+  /** A run is streaming; on phones with `setupFirst` it reveals the console. */
+  active?: boolean
   className?: string
 }) {
+  const consoleRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!setupFirst || !active) return
+    if (!window.matchMedia(STACKED_QUERY).matches) return
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)")
+    consoleRef.current?.scrollIntoView({
+      block: "start",
+      behavior: reduce.matches ? "auto" : "smooth",
+    })
+  }, [active, setupFirst])
+
   return (
     <div
       className={cn(
@@ -125,7 +152,10 @@ export function TerminalFrame({
         className
       )}
     >
-      <div className="flex min-h-[65dvh] flex-1 flex-col overflow-hidden bg-terminal-bg text-terminal-fg md:min-h-0">
+      <div
+        ref={consoleRef}
+        className="flex min-h-[65dvh] flex-1 scroll-mt-4 flex-col overflow-hidden bg-terminal-bg text-terminal-fg split:min-h-0"
+      >
         <div className="flex shrink-0 items-center border-b border-terminal-border bg-terminal-raised px-4 py-2">
           <span className="truncate font-mono text-console-meta">
             <span className="text-terminal-subtle">{context}</span>
@@ -140,7 +170,13 @@ export function TerminalFrame({
       </div>
 
       {panel ? (
-        <aside className="flex min-h-0 shrink-0 flex-col overflow-hidden border-t bg-background md:max-h-[46dvh] lg:max-h-none lg:w-72 lg:border-t-0 lg:border-l">
+        <aside
+          className={cn(
+            "flex min-h-0 shrink-0 flex-col overflow-hidden border-t bg-background split:max-h-[46dvh] lg:max-h-none lg:w-72 lg:border-t-0 lg:border-l",
+            setupFirst &&
+              "stacked:order-first stacked:border-t-0 stacked:border-b"
+          )}
+        >
           <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
             {panel}
           </div>

@@ -43,7 +43,7 @@ function SectionHeader({
   action?: ReactNode
 }) {
   return (
-    <div className="flex min-h-8 items-center justify-between gap-3">
+    <div className="flex min-h-8 flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <Text as="h2" variant="label" tone="muted">
         {title}
       </Text>
@@ -62,7 +62,7 @@ function SectionLink({
   return (
     <AppLink
       href={href}
-      className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+      className="-my-2 inline-flex items-center gap-1 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground pointer-coarse:-my-3 pointer-coarse:py-3"
     >
       {children}
       <ChevronRight className="size-3.5" />

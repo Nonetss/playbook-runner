@@ -128,6 +128,8 @@ function CommandsPageInner() {
       />
 
       <TerminalFrame
+        setupFirst
+        active={phase !== "idle"}
         context={module}
         privileged={become}
         command={trimmedCommand || "—"}

@@ -166,7 +166,7 @@ export function SegmentedPicker<T extends string>({
             title={option.title}
             onClick={() => onChange(option.value)}
             className={cn(
-              "flex h-8 items-center justify-center rounded-md border text-xs outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50",
+              "flex h-8 items-center justify-center rounded-md border text-xs outline-none pointer-coarse:h-10 transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50",
               mono && "font-mono tabular-nums",
               selected
                 ? "border-foreground bg-foreground text-background"

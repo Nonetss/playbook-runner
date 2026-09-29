@@ -148,6 +148,8 @@ function RunPlaybookPageInner({ id }: { id: string }) {
       />
 
       <TerminalFrame
+        setupFirst
+        active={phase !== "idle"}
         context="playbook"
         command={playbook.name}
         banners={

@@ -108,9 +108,15 @@ export function RunWindowPicker({
   return (
     <SegmentedPicker
       mono
+      // Phones: the picker takes its own full-width row under the title.
+      className="max-sm:w-full"
       value={value}
       onChange={onChange}
-      options={WINDOWS.map((w) => ({ value: w, label: t(`runs_window.${w}`) }))}
+      options={WINDOWS.map((w) => ({
+        value: w,
+        label: t(`runs_window.${w}`),
+        shortLabel: t(`runs_window_short.${w}`),
+      }))}
     />
   )
 }

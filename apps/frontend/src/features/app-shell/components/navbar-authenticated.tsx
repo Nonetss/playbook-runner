@@ -205,7 +205,7 @@ function NavbarAuthenticatedInner({
       <nav className="flex h-navbar items-center justify-between gap-3 px-4 sm:px-6 md:gap-4">
         <AppLink
           href="/"
-          className="group flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground"
+          className="group flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground pointer-coarse:min-h-10 pointer-coarse:min-w-10"
         >
           <AppLogo
             alt={nameApp}

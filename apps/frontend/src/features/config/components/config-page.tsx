@@ -49,7 +49,7 @@ function ApiDocsNote() {
         target="_blank"
         rel="noopener noreferrer"
         aria-label={t("api_keys.docs_open_aria")}
-        className="shrink-0 text-muted-foreground transition-colors hover:text-foreground"
+        className="-m-2 shrink-0 p-2 text-muted-foreground transition-colors hover:text-foreground pointer-coarse:-m-3 pointer-coarse:p-3"
       >
         <ExternalLink className="size-3.5" />
       </a>

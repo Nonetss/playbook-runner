@@ -136,6 +136,8 @@ function RunScriptPageInner({ id }: { id: string }) {
       />
 
       <TerminalFrame
+        setupFirst
+        active={phase !== "idle"}
         context="script"
         privileged={become}
         command={script.name}

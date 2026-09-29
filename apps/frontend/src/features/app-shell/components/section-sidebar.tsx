@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { AppLink } from "@/components/ui/app-link"
@@ -21,6 +21,7 @@ import { ScrollerRestoration } from "@/features/app-shell/components/scroller-re
 import { SIDEBAR_TOGGLE_EVENT } from "@/features/app-shell/sidebar-events"
 import { isNavLinkActive } from "@/features/app-shell/site-nav"
 import { useCurrentPath } from "@/hooks/use-current-path"
+import { useIsTablet } from "@/hooks/use-mobile"
 import { appSections, appSurfaces, getSectionForPath } from "@/lib/app-surfaces"
 
 function SidebarToggleBridge() {
@@ -122,9 +123,16 @@ function SectionSidebarInner({
   defaultOpen: boolean
 }) {
   const currentPath = useCurrentPath(initialPath)
+  // Tablet portrait cannot spare 16rem of a 768px screen: the sidebar starts
+  // as the icon rail there and keeps its own open state, while larger
+  // screens restore the one the user left.
+  const isTablet = useIsTablet()
+  const [open, setOpen] = useState(defaultOpen)
+  const [tabletOpen, setTabletOpen] = useState(false)
   return (
     <SidebarProvider
-      defaultOpen={defaultOpen}
+      open={isTablet ? tabletOpen : open}
+      onOpenChange={isTablet ? setTabletOpen : setOpen}
       className="flex min-h-0 w-auto shrink-0"
     >
       <SidebarToggleBridge />
