@@ -347,7 +347,9 @@ export const jobRunsHandler = {
         id: jobRuns.id,
         createdAt: jobRuns.createdAt,
         status: jobRuns.status,
-        rn: sql<number>`row_number() over (partition by ${jobRuns.jobId} order by ${jobRuns.createdAt} desc, ${jobRuns.id} desc)`,
+        rn: sql<number>`row_number() over (partition by ${jobRuns.jobId} order by ${jobRuns.createdAt} desc, ${jobRuns.id} desc)`.as(
+          "rn"
+        ),
       })
       .from(jobRuns)
       .as("recent")
@@ -358,7 +360,6 @@ export const jobRunsHandler = {
         latestId: recent.id,
         latestCreatedAt: recent.createdAt,
         latestStatus: recent.status,
-        rn: sql<number>`row_number() over (partition by ${recent.jobId} order by ${recent.createdAt} desc, ${recent.id} desc)`,
       })
       .from(recent)
       .where(eq(recent.rn, 1))
@@ -367,8 +368,11 @@ export const jobRunsHandler = {
     const ratios = db
       .select({
         jobId: recent.jobId,
-        okCount: sql<number>`count(*) filter (where ${recent.status} = 'ok')::int`,
-        total: sql<number>`count(*)::int`,
+        okCount:
+          sql<number>`count(*) filter (where ${recent.status} = 'ok')::int`.as(
+            "ok_count"
+          ),
+        total: sql<number>`count(*)::int`.as("total"),
       })
       .from(recent)
       .where(lt(recent.rn, 11))
@@ -398,7 +402,9 @@ export const jobRunsHandler = {
       const ok = Number(r.successOkCount ?? 0)
       const total = Number(r.successTotal ?? 0)
       const durationMs =
-        r.latestDurationMs == null ? null : Number(r.latestDurationMs)
+        r.latestDurationMs == null
+          ? null
+          : Math.round(Number(r.latestDurationMs))
       return {
         jobId: r.jobId,
         jobName: r.jobName,

@@ -1,4 +1,4 @@
-import { adminProcedure, protectedProcedure } from "#index"
+import { protectedProcedure } from "#index"
 import { credentialsHandler } from "#v1/credentials/handler"
 import { credentialsInput } from "#v1/credentials/input"
 import { credentialsOutput } from "#v1/credentials/output"
@@ -6,7 +6,7 @@ import { credentialsOutput } from "#v1/credentials/output"
 export type { Credential, SshKeyPair } from "#v1/credentials/output"
 
 export const credentialsRouter = {
-  generate: adminProcedure
+  generate: protectedProcedure
     .route({
       summary: "Generate an SSH key pair",
       description:
@@ -20,7 +20,7 @@ export const credentialsRouter = {
       credentialsHandler.generate({ context, input })
     ),
 
-  create: adminProcedure
+  create: protectedProcedure
     .route({
       summary: "Create a credential",
       description:
@@ -60,7 +60,7 @@ export const credentialsRouter = {
       credentialsHandler.get({ context, input })
     ),
 
-  update: adminProcedure
+  update: protectedProcedure
     .route({
       summary: "Update a credential",
       description:
@@ -74,7 +74,7 @@ export const credentialsRouter = {
       credentialsHandler.update({ context, input })
     ),
 
-  delete: adminProcedure
+  delete: protectedProcedure
     .route({
       summary: "Delete a credential",
       description:
