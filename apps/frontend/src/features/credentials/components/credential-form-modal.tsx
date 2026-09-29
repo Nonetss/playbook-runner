@@ -38,7 +38,8 @@ function valuesFromEntity(credential: Credential): CredentialFormValues {
   return {
     name: credential.name,
     username: credential.username,
-    privateKey: credential.privateKey,
+    // The API never returns the private key; empty means "keep current".
+    privateKey: "",
     publicKey: credential.publicKey,
   }
 }
@@ -112,7 +113,12 @@ export function CredentialFormModal({
     setError(null)
     try {
       if (isEditing && credential) {
-        await updateCredential.mutateAsync({ id: credential.id, ...values })
+        const { privateKey, ...rest } = values
+        await updateCredential.mutateAsync({
+          id: credential.id,
+          ...rest,
+          ...(privateKey.trim() ? { privateKey } : {}),
+        })
       } else {
         await createCredential.mutateAsync(values)
       }
@@ -208,11 +214,14 @@ export function CredentialFormModal({
               <div className="space-y-2">
                 <Label htmlFor="privateKey-field">
                   {t("form.private_key_label")}
-                  <span aria-hidden> *</span>
+                  {isEditing ? null : <span aria-hidden> *</span>}
                 </Label>
                 <textarea
                   id="privateKey-field"
-                  required
+                  required={!isEditing}
+                  aria-describedby={
+                    isEditing ? "privateKey-keep-hint" : undefined
+                  }
                   disabled={isSubmitting}
                   placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"
                   value={values.privateKey}
@@ -220,6 +229,14 @@ export function CredentialFormModal({
                   onChange={(e) => updateField("privateKey", e.target.value)}
                   className={cn(TEXTAREA_BASE_CLASS)}
                 />
+                {isEditing ? (
+                  <p
+                    id="privateKey-keep-hint"
+                    className="text-xs text-muted-foreground"
+                  >
+                    {t("form.private_key_keep_hint")}
+                  </p>
+                ) : null}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="publicKey-field">

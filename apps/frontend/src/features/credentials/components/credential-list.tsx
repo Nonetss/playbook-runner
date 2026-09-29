@@ -3,8 +3,8 @@ import type { Credential } from "@/features/credentials/types"
 
 type CredentialListProps = {
   credentials: Credential[]
-  onEdit: (credential: Credential) => void
-  onDelete: (id: string) => void
+  onEdit?: (credential: Credential) => void
+  onDelete?: (id: string) => void
   deletingId?: string | null
 }
 

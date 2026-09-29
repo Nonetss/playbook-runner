@@ -45,7 +45,8 @@ function ConfigPageInner() {
 
     if (!confirmed) return
 
-    await deleteApiKey.mutateAsync({ id })
+    // The mutation hook shows the error toast.
+    deleteApiKey.mutate({ id })
   }
 
   return (

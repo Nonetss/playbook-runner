@@ -16,8 +16,9 @@ import type { Credential } from "@/features/credentials/types"
 
 type CredentialCardProps = {
   credential: Credential
-  onEdit: (credential: Credential) => void
-  onDelete: (id: string) => void
+  // Omitted for non-admins, who can only view credentials.
+  onEdit?: (credential: Credential) => void
+  onDelete?: (id: string) => void
   isDeleting?: boolean
 }
 
@@ -50,21 +51,25 @@ export function CredentialCard({
           label={tCredentials("card.actions_for", { name: credential.name })}
           disabled={isDeleting}
         >
-          <DropdownMenuItem onClick={() => onEdit(credential)}>
-            <Pencil className="size-4" />
-            {t("actions.edit")}
-          </DropdownMenuItem>
+          {onEdit ? (
+            <DropdownMenuItem onClick={() => onEdit(credential)}>
+              <Pencil className="size-4" />
+              {t("actions.edit")}
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuItem onClick={() => setScriptOpen(true)}>
             <Terminal className="size-4" />
             {t("actions.provision_script")}
           </DropdownMenuItem>
-          <DropdownMenuItem
-            variant="destructive"
-            onClick={() => onDelete(credential.id)}
-          >
-            <Trash2 className="size-4" />
-            {t("actions.delete")}
-          </DropdownMenuItem>
+          {onDelete ? (
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => onDelete(credential.id)}
+            >
+              <Trash2 className="size-4" />
+              {t("actions.delete")}
+            </DropdownMenuItem>
+          ) : null}
         </RowActionsMenu>
       }
     >

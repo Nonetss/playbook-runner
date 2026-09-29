@@ -5,10 +5,10 @@ import { useResourceMutation } from "@/hooks/use-resource-mutation"
 import { orpc } from "@/lib/orpc"
 
 export const useApiKeysList = () => {
-  return useHydratedQuery(orpc.config.apiKeys.list.queryOptions())
+  return useHydratedQuery(orpc.apiKeys.list.queryOptions())
 }
 
-const listKey = orpc.config.apiKeys.list.queryKey()
+const listKey = orpc.apiKeys.list.queryKey()
 
 type ApiKeyCreateInput = {
   name?: string
@@ -48,7 +48,7 @@ function applyDeleteOptimistic(
 export const useApiKeyCreate = () => {
   const { t } = useTranslation("config")
   return useResourceMutation<ApiKeyCreateInput, ApiKey, ApiKeyListItem[]>({
-    mutationFn: (input) => orpc.config.apiKeys.create.call(input),
+    mutationFn: (input) => orpc.apiKeys.create.call(input),
     listKey,
     applyOptimistic: applyCreateOptimistic,
     messages: {
@@ -66,7 +66,7 @@ export const useApiKeyDelete = () => {
     ApiKeyListItem[]
   >({
     mutationFn: (input) =>
-      orpc.config.apiKeys.delete.call(input) as Promise<ApiKeyDeleteOutput>,
+      orpc.apiKeys.delete.call(input) as Promise<ApiKeyDeleteOutput>,
     listKey,
     applyOptimistic: applyDeleteOptimistic,
     messages: {

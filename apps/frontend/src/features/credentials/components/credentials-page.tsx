@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { ResourceListState } from "@/components/shared/resource-list-state"
 import { ResourcePage } from "@/components/shared/resource-page"
+import { useIsAdmin } from "@/features/auth"
 import { CredentialFormModal } from "@/features/credentials/components/credential-form-modal"
 import { CredentialList } from "@/features/credentials/components/credential-list"
 import {
@@ -15,7 +16,6 @@ import {
 } from "@/features/credentials/hooks/use-credentials"
 import type { Credential } from "@/features/credentials/types"
 import { useConfirm } from "@/hooks/use-confirm"
-import { notifyError } from "@/lib/toast"
 
 function CredentialsPageInner() {
   const { t } = useTranslation("credentials")
@@ -28,6 +28,7 @@ function CredentialsPageInner() {
   } = useCredentialsList()
   const deleteCredential = useCredentialDelete()
   const confirm = useConfirm()
+  const isAdmin = useIsAdmin()
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editingCredential, setEditingCredential] = useState<Credential | null>(
@@ -53,7 +54,7 @@ function CredentialsPageInner() {
 
   async function handleDelete(id: string) {
     const credential = credentials.find((item) => item.id === id)
-    const label = credential?.name ?? "esta credencial"
+    const label = credential?.name ?? t("delete.fallback_label")
     const confirmed = await confirm({
       title: t("delete.confirm_title", { label }),
       description: t("delete.confirm_description"),
@@ -64,14 +65,8 @@ function CredentialsPageInner() {
 
     if (!confirmed) return
 
-    try {
-      await deleteCredential.mutateAsync({ id })
-    } catch (err) {
-      notifyError(
-        t("delete.error"),
-        err instanceof Error ? err.message : undefined
-      )
-    }
+    // The mutation hook shows the error toast.
+    deleteCredential.mutate({ id })
   }
 
   return (
@@ -80,6 +75,7 @@ function CredentialsPageInner() {
       description={t("page.subtitle")}
       createLabel={t("page.create")}
       onCreate={openCreateModal}
+      hideCreate={!isAdmin}
     >
       <CredentialFormModal
         open={modalOpen}
@@ -95,16 +91,17 @@ function CredentialsPageInner() {
         empty={{
           title: t("empty.title"),
           description: t("empty.description"),
-          ctaLabel: t("page.create"),
-          onCta: openCreateModal,
+          ...(isAdmin
+            ? { ctaLabel: t("page.create"), onCta: openCreateModal }
+            : {}),
           icon: <KeyRound className="size-5" />,
         }}
       >
         {(items) => (
           <CredentialList
             credentials={items}
-            onEdit={openEditModal}
-            onDelete={handleDelete}
+            onEdit={isAdmin ? openEditModal : undefined}
+            onDelete={isAdmin ? handleDelete : undefined}
             deletingId={
               deleteCredential.isPending
                 ? (deleteCredential.variables?.id ?? null)

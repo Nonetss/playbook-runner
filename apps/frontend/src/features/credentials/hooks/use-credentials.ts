@@ -23,6 +23,9 @@ export const useCredentialGet = (
 
 const listKey = orpc.credentials.list.queryKey()
 
+const detailKey = (input: { id: string }) =>
+  orpc.credentials.get.queryKey({ input: { id: input.id } })
+
 function applyCreateOptimistic(
   current: Credential[] | undefined,
   input: {
@@ -37,7 +40,6 @@ function applyCreateOptimistic(
     id: `optimistic-${Date.now()}`,
     name: input.name,
     username: input.username,
-    privateKey: input.privateKey,
     publicKey: input.publicKey,
   } as unknown as Credential
   return [...current, optimistic]
@@ -49,7 +51,7 @@ function applyUpdateOptimistic(
     id: string
     name: string
     username: string
-    privateKey: string
+    privateKey?: string
     publicKey: string
   }
 ) {
@@ -60,7 +62,6 @@ function applyUpdateOptimistic(
           ...credential,
           name: input.name,
           username: input.username,
-          privateKey: input.privateKey,
           publicKey: input.publicKey,
         }
       : credential
@@ -99,7 +100,8 @@ export const useCredentialUpdate = () => {
       id: string
       name: string
       username: string
-      privateKey: string
+      // Omitted: keep the stored private key.
+      privateKey?: string
       publicKey: string
     },
     Credential,
@@ -108,6 +110,7 @@ export const useCredentialUpdate = () => {
     mutationFn: (input) =>
       orpc.credentials.update.call(input) as Promise<Credential>,
     listKey,
+    detailKey,
     applyOptimistic: applyUpdateOptimistic,
     messages: { success: t("toast.updated"), error: t("toast.update_error") },
   })
@@ -122,6 +125,8 @@ export const useCredentialDelete = () => {
     mutationFn: (input) =>
       orpc.credentials.delete.call(input) as Promise<Credential>,
     listKey,
+    detailKey,
+    removeDetail: true,
     applyOptimistic: applyDeleteOptimistic,
     messages: { success: t("toast.deleted"), error: t("toast.delete_error") },
   })
