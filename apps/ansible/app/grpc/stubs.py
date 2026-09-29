@@ -7,6 +7,8 @@ import run_pb2_grpc
 Host = run_pb2.Host
 Playbook = run_pb2.Playbook
 Script = run_pb2.Script
+GitSource = run_pb2.GitSource
+PlaybookFile = run_pb2.PlaybookFile
 
 RunBundleRequest = run_pb2.RunBundleRequest
 RunBundleResponse = run_pb2.RunBundleResponse
@@ -16,6 +18,10 @@ RunCommandRequest = run_pb2.RunCommandRequest
 RunCommandResponse = run_pb2.RunCommandResponse
 RunScriptRequest = run_pb2.RunScriptRequest
 RunScriptResponse = run_pb2.RunScriptResponse
+SyncRepositoryRequest = run_pb2.SyncRepositoryRequest
+SyncRepositoryResponse = run_pb2.SyncRepositoryResponse
+DeleteRepositoryRequest = run_pb2.DeleteRepositoryRequest
+DeleteRepositoryResponse = run_pb2.DeleteRepositoryResponse
 TaskEvent = run_pb2.TaskEvent
 Stats = run_pb2.Stats
 Done = run_pb2.Done

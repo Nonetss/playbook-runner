@@ -1,7 +1,11 @@
 export {
+  DeleteRepositoryRequest,
+  DeleteRepositoryResponse,
   Done,
+  GitSource,
   Host,
   Playbook,
+  PlaybookFile,
   RunBundleRequest,
   RunBundleResponse,
   RunCommandRequest,
@@ -15,5 +19,7 @@ export {
   RunScriptResponse,
   Script,
   Stats,
+  SyncRepositoryRequest,
+  SyncRepositoryResponse,
   TaskEvent,
 } from "#gen/run"
