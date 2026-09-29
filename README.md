@@ -113,10 +113,9 @@ files, hands them to `ansible-runner` (playbook mode or ad-hoc module
 mode), and streams `RunEvent` frames straight back over that same
 server-streaming RPC — no HTTP round trip and no SSE between the two
 services (the browser still gets its live output over SSE from the
-backend). Both directions authenticate with a shared `SERVICE_TOKEN`
-checked by a gRPC interceptor; ansible also opens a channel back to the
-backend's small `PingService` (`:50052`) purely as a health/diagnostic
-round-trip. All business rules and authorization live in the backend.
+backend). Calls carry a shared `SERVICE_TOKEN` that the ansible
+service's gRPC interceptor checks. All business rules and authorization
+live in the backend.
 
 ## Stack
 
@@ -221,11 +220,21 @@ playbook-runner/
 └── python/          # Shared Python packages
 ```
 
-Local Ansible runner state lives under `.data/ansible-runner`. Docker Compose
-bind-mounts that directory at `/app/playbook`; it is intentionally excluded from
-Git and Docker build contexts because it can contain inventory and SSH keys. Local
-development sets `ANSIBLE_PLAYBOOK_PATH=../../.data/ansible-runner` in
-`apps/ansible/.env`.
+Persistent Ansible runner state (currently the SSH `known_hosts` file) lives in
+`STATE_DIR`: `.data/ansible-runner` in local development (the default, excluded
+from Git and Docker build contexts) and the `ansible_state` named volume mounted
+at `/app/state` in Docker. Per-run inventories and SSH keys are written to
+`RUN_SCRATCH_DIR` and deleted after each run.
+
+SSH host keys are verified according to `SSH_HOST_KEY_POLICY`:
+`accept-new` (default, trust on first use and reject changed keys), `strict`
+(only hosts already in `known_hosts`) or `off` (no verification, logs a
+warning). If a host is legitimately reinstalled, remove its line from
+`known_hosts` in the state directory.
+
+The Ansible service is internal-only in `compose.yml`. To reach its HTTP API
+(`/docs`, `/scalar`) from the host, add the debug overlay:
+`docker compose -f compose.yml -f compose.debug.yml up`.
 
 ## Configuration
 

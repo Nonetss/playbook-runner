@@ -2,8 +2,8 @@
 # Production compose overlay.
 #
 # - Services talk to each other over the docker network via service-name DNS
-#   (no localhost): backend and ansible reach each other only over gRPC (see
-#   BACKEND_GRPC_TARGET / ANSIBLE_GRPC_TARGET below); see BETTER_AUTH_URL too.
+#   (no localhost): the backend reaches ansible only over gRPC (see
+#   ANSIBLE_GRPC_TARGET below); see BETTER_AUTH_URL too.
 # - Only the frontend publishes a host port; backend, ansible, and postgres
 #   stay internal (reachable on the network as `backend:3000`, `ansible:8000`,
 #   `postgres:5432`).
@@ -58,19 +58,21 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      BACKEND_GRPC_TARGET: backend:50052
       # Same secret again, this time guarding gRPC in both directions. Without
       # it the ansible service boots but its gRPC server rejects every call.
       SERVICE_TOKEN: ${SERVICE_TOKEN}
+    volumes:
+      - ansible_state:/app/state
     expose:
       - "8000"
       - "50051"
     healthcheck:
+      # HTTP health plus a TCP connect to gRPC: the backend only talks gRPC.
       test:
         - CMD
-        - python
+        - python3
         - -c
-        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health').read()"
+        - "import socket, urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=3).read(); socket.create_connection(('localhost', 50051), 2).close()"
       interval: 30s
       timeout: 5s
       retries: 3
@@ -93,7 +95,6 @@ services:
       SERVICE_TOKEN: ${SERVICE_TOKEN}
     expose:
       - "3000"
-      - "50052"
     depends_on:
       postgres:
         condition: service_healthy
@@ -132,3 +133,4 @@ services:
 
 volumes:
   postgres_data:
+  ansible_state:

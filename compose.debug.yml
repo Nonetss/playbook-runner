@@ -1,0 +1,8 @@
+# Opt-in debug overlay: publishes the Ansible runner's HTTP API (/docs,
+# /scalar, /api/health) on the host. Not loaded automatically.
+#
+#   docker compose -f compose.yml -f compose.debug.yml up
+services:
+  ansible:
+    ports:
+      - "8000:8000"

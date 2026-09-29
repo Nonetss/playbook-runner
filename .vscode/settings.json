@@ -42,7 +42,6 @@
     "**/.pytest_cache": true,
     "**/.ruff_cache": true,
     "**/.venv": true,
-    ".claude": true,
     "**/.agents": true,
     "**/node_modules": true,
     "**/.astro": true,

@@ -10,17 +10,19 @@ services:
     env_file:
       - path: apps/ansible/.env
         required: false
-    environment:
-      ANSIBLE_PLAYBOOK_PATH: /app/playbook
-      BACKEND_GRPC_TARGET: backend:50052
     volumes:
-      - ./.data/ansible-runner:/app/playbook
-    ports:
-      - "8000:8000"
+      - ansible_state:/app/state
+    # Internal-only. Use compose.debug.yml to publish 8000 on the host.
     expose:
+      - "8000"
       - "50051"
     healthcheck:
-      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      # HTTP health plus a TCP connect to gRPC: the backend only talks gRPC.
+      test:
+        - CMD
+        - python3
+        - -c
+        - "import socket, urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=3).read(); socket.create_connection(('localhost', 50051), 2).close()"
       interval: 10s
       timeout: 5s
       retries: 5
@@ -53,7 +55,6 @@ services:
     init: true
     expose:
       - "3000"
-      - "50052"
     env_file:
       - path: apps/backend/.env
         required: false
@@ -70,3 +71,6 @@ services:
       retries: 5
       start_period: 10s
     restart: unless-stopped
+
+volumes:
+  ansible_state:

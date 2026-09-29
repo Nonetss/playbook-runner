@@ -1,16 +1,19 @@
 # AGENTS.md
 
-Monorepo `playbook-runner` (Astro + Hono + oRPC + Better Auth + Drizzle/PostgreSQL + Biome + Turborepo, on Bun).
+Monorepo `playbook-runner` (Astro + Hono + oRPC + Better Auth + Drizzle/PostgreSQL + Biome + Turborepo, on Bun), plus a Python FastAPI/gRPC service that runs Ansible.
 
 ## Workspaces & entrypoints
 
 - `apps/frontend` — Astro 7 SSR (`@astrojs/node` standalone), React, Tailwind v4 via Vite plugin, shadcn/ui (new-york, neutral, lucide icons). Runs on `:4321` (Astro); Caddy fronts `:80` in Docker.
-- `apps/backend` — Hono 4 + oRPC. Runs on `:3000`. Built with `tsdown` (not tsc) → `dist/index.mjs`. `noExternal: [/.*/]` bundles workspace packages and npm deps so the production image only needs `dist/`.
-- `packages/api` — oRPC contract: `o`, `publicProcedure`, `protectedProcedure`, `createContext`, `appRouter` (`packages/api/src/index.ts`, `context.ts`, `router.ts`). The root router exposes versions (`v1` today); `routers/index.ts` is the version-one router. Subpath exports for `"./*"`. Per-feature layering documented under "Backend API layering" below.
-- `packages/auth` — Better Auth factory (`createAuth()`), exports `auth`. Plugins: `admin()`, `apiKey({ enableSessionForAPIKeys: true })`. Cookies: sameSite=none, secure, httpOnly.
-- `packages/db` — Drizzle (`createDb()`, schema in `src/schema/auth.ts`). Drizzle CLI scripts here only.
+- `apps/backend` — Hono 4 + oRPC. Runs on `:3000`. Built with `tsdown` (not tsc) → `dist/index.mjs` (plus `dist/encrypt-credentials.mjs`). `noExternal: [/.*/]` bundles workspace packages and npm deps so the production image only needs `dist/`. It is a gRPC *client* only (no gRPC server).
+- `apps/ansible` — Python 3.12 FastAPI (`:8000`, only `GET /api/health` + docs) that starts the gRPC `RunnerService` (`:50051`) in its lifespan and runs Ansible through `ansible-runner`. Managed with `uv`; type-checked with BasedPyright, formatted/linted with Ruff. Shared Python code lives in `python/grpc-toolkit` (token interceptor).
+- `packages/api` — oRPC contract: `o`, `publicProcedure`, `protectedProcedure`, `adminProcedure`, `createContext`, `appRouter` (`packages/api/src/index.ts`, `context.ts`, `router.ts`). The root router exposes versions (`v1` today); `src/v1/router.ts` is the version-one router. Subpath exports for `"./*"`. Per-feature layering documented under "Backend API layering" below.
+- `packages/auth` — Better Auth factory (`createAuth()`), exports `auth`. Plugins: `admin()`, `apiKey({ enableSessionForAPIKeys: true })`, optional `genericOAuth`. Public email/password sign-up is disabled (`disableSignUp`): accounts are created by admins (`/admin/users`, `auth.api.createUser`) or auto-provisioned by SSO. Cookies: sameSite=lax, secure, httpOnly (frontend and backend must be same-site).
+- `packages/db` — Drizzle (`createDb()`, schema in `src/schema/*.ts`). Drizzle CLI scripts here only.
+- `packages/grpc` — TypeScript gRPC client helpers (`getClient`, `unary`, `serverStream` which cancels the call when the consumer stops, `isGrpcError`, `grpcStatus`, `authMetadata`) and the ts-proto stubs generated from the root `proto/*.proto` into the gitignored `src/gen/` (`bun run generate-grpc`, run by `check-types`/`build`). The Python stubs are generated into `apps/ansible/app/grpc/gen/` the same way.
+- `packages/logger` — shared pino logger (`logger`), level from `LOG_LEVEL`; pretty output in development.
 - `packages/env` — `@t3-oss/env-core`. Two entrypoints:
-  - `@playbook-runner/env/server` — validates `DATABASE_URL`, `BETTER_AUTH_SECRET` (min 32), `BETTER_AUTH_URL` (url), `CORS_ORIGIN` (url), `NODE_ENV`.
+  - `@playbook-runner/env/server` — validates `DATABASE_URL`, `BETTER_AUTH_SECRET` (min 32), `BETTER_AUTH_URL` (url), `CORS_ORIGIN` (url), `NODE_ENV`, `CREDENTIALS_ENCRYPTION_KEY` (required), `SERVICE_TOKEN` (≥ 32, shared with the Ansible service), `ANSIBLE_GRPC_TARGET` (default `localhost:50051`), `LOG_LEVEL`, `JOB_SCHEDULER_ENABLED`, the optional `GENERIC_OAUTH_*` trio (SSO), and `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`/`SEED_ADMIN_NAME` (the seed runs at every backend start and creates that admin only if missing; in production it refuses the default password).
   - `@playbook-runner/env/web` — validates `PUBLIC_SERVER_URL` (Astro client prefix).
 - `packages/config` — shared `tsconfig.base.json` (strict, noUncheckedIndexedAccess, verbatimModuleSyntax, `types: ["bun"]`).
 
@@ -31,16 +34,18 @@ The package root holds infrastructure shared by every API version:
 
 - `context.ts` builds the oRPC `Context` (`{ user, session, headers }`) from the Hono context set by the auth session middleware.
 - `errors.ts` defines one `errorMap` (every standard oRPC code, `BAD_REQUEST` … `GATEWAY_TIMEOUT`) wired once via `os.$context<Context>().errors(errorMap)` in `index.ts`, plus one `errors` constructor map (`createORPCErrorConstructorMap(errorMap)`). Throw with `errors.UNAUTHORIZED()` etc. — never `new ORPCError(...)` directly.
-- `index.ts` exports `publicProcedure` (no auth) and `protectedProcedure` (`publicProcedure.use(requireAuth)`), which throws `errors.UNAUTHORIZED()` when `context.user` is missing.
+- `index.ts` exports `publicProcedure` (no auth), `protectedProcedure` (`publicProcedure.use(requireAuth)`), which throws `errors.UNAUTHORIZED()` when `context.user` is missing and `errors.FORBIDDEN()` for role `pending`, and `adminProcedure` (`protectedProcedure.use(requireAdmin)`, role `admin` only — used for credential writes).
+- Both handlers (`apps/backend/src/routers/rpc.ts`, `docs.ts`) use oRPC's `SimpleCsrfProtectionHandlerPlugin`: cookie-authenticated calls must send `x-csrf-token: orpc` (the frontend `RPCLink` does via `SimpleCsrfProtectionLinkPlugin`); requests with `x-api-key` or `authorization` are exempt. In Scalar, authenticate with an API key. Input validation errors carry the zod messages in `message`.
 - `router.ts` at the package root assembles the top-level `appRouter` by nesting each API version's router under its own key (`v1: v1Router`) — this is the only place a new version gets wired in.
 
-Everything version-specific lives under `src/<version>/` (currently only `src/v1/`). Every procedure belongs to a **feature** (`api-key`, `credentials`, `health`, `inventory`, `jobs`, `playbooks`, `private`, `run`, `scripts`), colocated under `packages/api/src/<version>/<feature>/`, one file per concern:
+Everything version-specific lives under `src/<version>/` (currently only `src/v1/`). Every procedure belongs to a **feature** (`api-key` — mounted as `apiKeys`, `credentials`, `health`, `inventory`, `jobs`, `playbooks`, `run`, `scripts`), colocated under `packages/api/src/<version>/<feature>/`, one file per concern:
 
 - `<feature>/input.ts` — zod request schemas, exported as `<feature>Input` keyed by method (e.g. `apiKeyInput.create`). Only present when a procedure takes input.
 - `<feature>/output.ts` — zod response schemas, exported as `<feature>Output` keyed by method (e.g. `apiKeyOutput.create`). Only present when a procedure returns a typed body.
 - `<feature>/handler.ts` — business logic, exported as `<feature>Handler` keyed by method. Each method is `async ({ context, input }: { context: Context; input?: z.infer<typeof <feature>Input.<method>> }) => ...` — no other param shapes. Calls into `@playbook-runner/auth` / `@playbook-runner/db` etc. live here, never in the router.
 - `<feature>/router.ts` — oRPC wiring only, exported as `<feature>Router`: `publicProcedure`/`protectedProcedure` → `.route({ summary, description, tags, method, successStatus? })` → `.input(...)` (if any) → `.output(...)` → `.handler(({ context, input }) => featureHandler.method({ context, input }))`.
-- Extra feature-specific modules (e.g. `jobs/executor.ts`, `credentials/ssh-key.ts`, `playbooks/folders.ts`) live alongside the four files above when a feature needs helpers beyond the standard layers.
+- Extra feature-specific modules (e.g. `jobs/executor.ts`, `credentials/ssh-key.ts`, `playbooks/folders.ts`) live alongside the four files above when a feature needs helpers beyond the standard layers. Logic that also runs **outside a request** (no `context`) goes in such a module as plain functions, never on `<feature>Handler`: e.g. `run/resolve.ts` (`resolveRun`, `resolveScript`, `resolveDevice`, `resolveHosts`, used by the run stream handler and the job executor) and `jobs/schedule.ts` (`listScheduledJobs`, used by the backend scheduler).
+- Ids in inputs use the shared `idSchema` (`#v1/schemas`, `z.uuid()`), so malformed ids fail with `BAD_REQUEST`. Single-row handlers throw `errors.NOT_FOUND()` instead of returning `null`; updates set `updatedAt` and never pass `id` into `.set()`.
 
 Wiring rules:
 
@@ -51,7 +56,8 @@ Wiring rules:
 
 Two aliasing schemes, by package kind:
 
-- **Apps** use `@/` → their own `./src/*` (tsconfig `paths` in `apps/backend`; tsconfig `paths` + Vite alias in `apps/frontend`). App-internal only — never used cross-package.
+- **`apps/frontend`** uses `@/` → `./src/*` (tsconfig `paths` + Vite alias). App-internal only — never used cross-package.
+- **`apps/backend`** uses Node subpath imports like the packages: `"#*": "./src/*.ts"` in its `package.json` (e.g. `#routers/rpc`, `#lib/csrf`), not `@/`.
 - **Shared packages** (`packages/api`, `packages/db`) use Node **subpath imports** (`#` prefix) declared in their own `package.json` `imports` field. These resolve per-package everywhere (tsc, Bun, Vite, rolldown) with no plugins, because these packages export raw TS source consumed by other workspaces — a shared `@/` alias would collide across tsconfig contexts.
 - `packages/auth` uses neither (plain relative imports).
 
@@ -68,19 +74,25 @@ All scripts go through Turbo:
 - `bun run format` — formats TypeScript with Biome and Python with Ruff.
 - `bun run db:push | db:generate | db:migrate | db:studio` — filtered to `@playbook-runner/db`.
 - `bun run docker:build | docker:up | docker:down | docker:logs` — uses root `compose.yml`.
+- `bun run test:e2e` (and `test:e2e:headed`, `test:e2e:ui`) — Playwright in `apps/frontend` (see Misc).
 
 Per-package dev: `apps/backend` runs `bun run --hot src/index.ts`; `apps/frontend` runs `astro dev` (which proxies `/rpc`, `/api`, `/scalar`, `/openapi.json` → `http://localhost:3000`).
 
 ## Env & runtime gotchas
 
-- Mutable Ansible runner state lives under the ignored root directory `.data/ansible-runner/`, never inside `apps/ansible/`. Local `apps/ansible/.env` points `ANSIBLE_PLAYBOOK_PATH` to `../../.data/ansible-runner`; Compose bind-mounts the same directory at `/app/playbook`.
+- Persistent Ansible runner state (the SSH `known_hosts`) lives in `STATE_DIR`: the ignored root directory `.data/ansible-runner/` in local dev (default, never inside `apps/ansible/`), the `ansible_state` named volume at `/app/state` in Docker. Per-run inventories/keys go to `RUN_SCRATCH_DIR` (`/tmp/ansible-runs`) and are deleted after each run. `ANSIBLE_PLAYBOOK_PATH` no longer exists.
+- SSH host keys are verified per `SSH_HOST_KEY_POLICY` (`accept-new` default, `strict`, `off` — `off` logs a warning), applied by the Ansible service in dev and Docker alike. Each host connects as its credential's username (`ANSIBLE_USER` is only a fallback).
+- Ansible runner concurrency: at most `MAX_CONCURRENT_RUNS` (default 8) ansible-runner processes at once (runs, commands, scripts, pings); extra requests fail fast with gRPC `RESOURCE_EXHAUSTED`, which the backend maps to `TOO_MANY_REQUESTS`. `GRPC_SHUTDOWN_GRACE_S` (default 8) bounds how long in-flight runs get to cancel on shutdown. Closing the browser/stream cancels the gRPC call (`serverStream` cancels in `finally`) and the runner stops Ansible, kills leftover worker processes, and only then deletes the run's key files.
+- A job never runs concurrently with itself: `openRun` takes `pg_advisory_xact_lock(hashtext(jobId))` and refuses while a `running` row exists (`jobs.run` → `CONFLICT`, scheduler skips). Job `forks` and run `forks` are capped at 50; cron expressions are validated with `isValidCron` (`packages/api/src/v1/jobs/cron.ts`).
 - `DATABASE_URL` is read from **`apps/backend/.env`** — `packages/db/drizzle.config.ts` calls `dotenv.config({ path: "../../apps/backend/.env" })` explicitly. There is no `packages/db/.env`.
 - Frontend `PUBLIC_SERVER_URL` defaults to `http://localhost:3000` in `astro.config.mjs`. In Docker it's a build arg (compose sets `http://localhost:4321`).
 - `BETTER_AUTH_URL` must differ between local dev (`http://localhost:3000`) and Docker (`http://backend:3000`, set in `compose.yml`).
 - `BETTER_AUTH_SECRET` must be ≥ 32 chars. Generate with `openssl rand -base64 48`.
+- `CREDENTIALS_ENCRYPTION_KEY` (required, base64 of exactly 32 bytes, `openssl rand -base64 32`) encrypts SSH private keys at rest (AES-256-GCM, `v1:` prefix; see `packages/api/src/v1/credentials/crypto.ts`). Private keys are never returned by the API; they are decrypted only in `run/resolve.ts` when building a run. Legacy plaintext rows are re-encrypted by the user with `bun run --filter backend credentials:encrypt` (in the image: `bun dist/encrypt-credentials.mjs`, `--decrypt` to roll back) — the agent never runs it.
+- User extra vars must not start with `ansible_` (`run/extravars.ts`, re-checked by the runner), and device/group names match `^[A-Za-z0-9._-]{1,64}$` (`inventory/name.ts`).
 - Set `SKIP_ENV_VALIDATION=1` to bypass `@playbook-runner/env` during builds/CLI tasks. Dockerfiles set it for `bun install` + build, then unset it before `CMD`.
 - Frontend oRPC link is same-origin (`${window.location.origin}/rpc`) — it intentionally does not hit `PUBLIC_SERVER_URL` directly. Caddy (prod) / Vite (dev) proxy `/rpc` to backend, keeping the browser CORS-free.
-- Frontend uses two Better Auth clients: `lib/auth-client.ts` (browser, baseURL from `PUBLIC_SERVER_URL`) and `lib/auth-server.ts` (SSR, baseURL from `process.env.BETTER_AUTH_URL`). The Astro middleware in `src/middleware.ts` gates everything except `/login`, `/signup`, `/scalar`, `/openapi.json`.
+- Frontend uses two Better Auth clients: `lib/auth-client.ts` (browser, baseURL from `PUBLIC_SERVER_URL`) and `lib/auth-server.ts` (SSR, baseURL from `process.env.BETTER_AUTH_URL`). The Astro middleware in `src/middleware.ts` gates everything except `/login`, `/scalar`, `/openapi.json`; it sends `pending` users to `/me` and non-admins away from `/admin/*`. `/signup` only redirects to `/login`.
 
 ## Lint / format
 
@@ -90,9 +102,9 @@ No ESLint, no Prettier, no Husky.
 
 ## Docker
 
-- `compose.yml`: services `frontend` (port 4321 → container 80), `backend` (internal 3000), and `ansible` (port 8000). Each has a healthcheck: backend hits `http://localhost:3000/`, frontend hits `http://localhost/login` through Caddy, and Ansible hits `http://localhost:8000/api/health`. Backend waits for the Ansible healthcheck, while Ansible starts independently because its health endpoint has no backend dependency. Frontend `start.sh` runs Astro SSR (127.0.0.1:4321) and Caddy as background jobs under `wait -n`, so the container dies (and restarts) if either process exits; Caddy reverse-proxies `/rpc/*`, `/api/*`, `/scalar*`, `/openapi.json` to `${BACKEND_UPSTREAM:backend:3000}`.
+- `compose.yml`: services `frontend` (port 4321 → container 80), `backend` (internal 3000), and `ansible` (internal 8000/50051 — add `-f compose.debug.yml` to publish 8000 on the host). `compose.prod.yml` adds `postgres` and pulls images from GHCR. Each has a healthcheck: backend hits `http://localhost:3000/`, frontend hits `http://localhost/login` through Caddy, and Ansible GETs `http://localhost:8000/api/health` **and** opens a TCP connection to gRPC `:50051` (same probe in both compose files). Backend waits for the Ansible healthcheck, while Ansible starts independently. The Ansible image runs as non-root UID 10001 and pins the `uv` build image. Frontend `start.sh` runs Astro SSR (127.0.0.1:4321) and Caddy as background jobs under `wait -n`, so the container dies (and restarts) if either process exits; Caddy reverse-proxies `/rpc/*`, `/api/*`, `/scalar*`, `/openapi.json` to `${BACKEND_UPSTREAM:backend:3000}`.
 - Both Dockerfiles use `node:24-slim` + `oven/bun:1`, copy the workspace manifests first, `bun install --frozen-lockfile` (with `/root/.bun/install/cache` cache mount), then `COPY . .` + `bun run build` — dependency changes are the only thing that busts the install layer. **When adding a workspace, add its `package.json` COPY line to both Dockerfiles.**
-- CI: `.github/workflows/docker-build.yml` triggers on `v*` and `main`, builds + pushes `…-backend` / `…-frontend` images to the Gitea container registry using `MY_PASSWORD` PAT and optional `DOCKER_USERNAME` secret. Image tags: `latest`, branch/ref, and `<ref>-<sha8>`.
+- CI: `.github/workflows/docker-build.yml` triggers on `v*` and `main`, builds `…-backend`, `…-ansible` and `…-frontend` (amd64 + arm64) and pushes them to GHCR (`ghcr.io`) with `GITHUB_TOKEN`. Image tags: `latest`, branch/ref, and `<ref>-<sha8>`.
 
 ## OpenSpec workflow
 
@@ -116,7 +128,7 @@ If a task seems to require a migration, stop and tell the user — propose the c
 
 ## Misc
 
-- No test framework or `test` script is configured anywhere — don't try `bun test`. Validation relies on `check-types` + Biome + manual API calls (`/scalar`, `/openapi.json`, `/rpc`).
+- No unit-test framework — don't try `bun test`. Validation relies on `check-types` + Biome + manual API calls (`/scalar`, `/openapi.json`, `/rpc`) and the Playwright E2E suite in `apps/frontend/tests` (`playwright.config.ts`; projects `setup`, `chromium-guest`, `chromium-auth`, `chromium-mobile`). E2E prerequisites: the backend running with a seeded admin (`admin@playbook-runner.local` / `admin1234` by default); Playwright reuses a running `astro dev` on `:4321` or starts one. `test:e2e`/`test:e2e:headed` finish on their own; only `test:e2e:ui` is a persistent turbo task.
 - `apps/backend` exposes `GET /` returning `OK` for the compose healthcheck.
 - Drizzle migrations live in `packages/db/src/migrations/` in drizzle-kit ≥ 0.31 folder format (`<timestamp>_<name>/migration.sql` + `snapshot.json`). The old `meta/` + `0000_*.sql` layout is gone.
 - `.gitignore` excludes `.agents/` and `.claude/` directories.
