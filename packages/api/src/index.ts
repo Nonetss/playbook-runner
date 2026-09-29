@@ -28,6 +28,10 @@ const requireAuth = o.middleware(async ({ context, next }) => {
   if (!context.user) {
     throw errors.UNAUTHORIZED()
   }
+  // `pending` accounts exist but have not been granted access yet.
+  if (context.user.role === "pending") {
+    throw errors.FORBIDDEN()
+  }
   return next({
     context: {
       ...context,
@@ -40,3 +44,13 @@ const requireAuth = o.middleware(async ({ context, next }) => {
 // Errors common to every authenticated endpoint. Endpoints must NOT re-declare
 // these in their own `.errors(...)`.
 export const protectedProcedure = publicProcedure.use(requireAuth)
+
+const requireAdmin = o.middleware(async ({ context, next }) => {
+  if (context.user?.role !== "admin") {
+    throw errors.FORBIDDEN()
+  }
+  return next()
+})
+
+// Authenticated endpoints restricted to users with the `admin` role.
+export const adminProcedure = protectedProcedure.use(requireAdmin)

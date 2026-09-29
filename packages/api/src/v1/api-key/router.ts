@@ -1,23 +1,23 @@
 import z from "zod"
 import { protectedProcedure } from "#index"
-import { configHandler } from "#v1/api-key/handler"
+import { apiKeyHandler } from "#v1/api-key/handler"
 import { apiKeyInput } from "#v1/api-key/input"
 import { apiKeyOutput } from "#v1/api-key/output"
 
-const apiKeysRouter = {
+export const apiKeysRouter = {
   list: protectedProcedure
     .route({
       summary: "List API keys",
       description:
         "Lists all API keys owned by the authenticated user. The full key value is never returned; only metadata. Inherits UNAUTHORIZED / FORBIDDEN / INTERNAL_SERVER_ERROR from `protectedProcedure`.",
-      tags: ["Config"],
+      tags: ["API Keys"],
       method: "GET",
     })
     .output(apiKeyOutput.list)
     .handler(async ({ context }) => {
       return z
         .array(apiKeyOutput.list.element)
-        .parse(await configHandler.listApiKeys({ context }))
+        .parse(await apiKeyHandler.list({ context }))
     }),
 
   create: protectedProcedure
@@ -25,7 +25,7 @@ const apiKeysRouter = {
       summary: "Create an API key",
       description:
         "Creates a new API key for the authenticated user. Returns the full key value once — store it safely, it won't be shown again.",
-      tags: ["Config"],
+      tags: ["API Keys"],
       method: "POST",
     })
     .input(apiKeyInput.create)
@@ -38,7 +38,7 @@ const apiKeysRouter = {
     })
     .handler(async ({ context, input }) => {
       return apiKeyOutput.create.parse(
-        await configHandler.createApiKey({ context, input })
+        await apiKeyHandler.create({ context, input })
       )
     }),
 
@@ -46,7 +46,7 @@ const apiKeysRouter = {
     .route({
       summary: "Delete an API key",
       description: "Deletes an API key by id for the authenticated user.",
-      tags: ["Config"],
+      tags: ["API Keys"],
       method: "DELETE",
     })
     .input(apiKeyInput.remove)
@@ -58,10 +58,6 @@ const apiKeysRouter = {
       },
     })
     .handler(async ({ context, input }) => {
-      return configHandler.deleteApiKey({ context, input })
+      return apiKeyHandler.delete({ context, input })
     }),
-}
-
-export const apiKeyRouter = {
-  apiKeys: apiKeysRouter,
 }

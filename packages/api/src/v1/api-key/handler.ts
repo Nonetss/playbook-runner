@@ -1,13 +1,13 @@
 import { auth } from "@playbook-runner/auth"
 import type { Context } from "#context"
 
-export const configHandler = {
-  async listApiKeys({ context }: { context: Context }) {
+export const apiKeyHandler = {
+  async list({ context }: { context: Context }) {
     const result = await auth.api.listApiKeys({ headers: context.headers })
     return result?.apiKeys ?? []
   },
 
-  async createApiKey({
+  async create({
     context,
     input,
   }: {
@@ -24,7 +24,7 @@ export const configHandler = {
     })
   },
 
-  async deleteApiKey({
+  async delete({
     context,
     input,
   }: {
