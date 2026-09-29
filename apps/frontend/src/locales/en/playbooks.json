@@ -258,7 +258,13 @@
     "toast_deleted": "Repository deleted",
     "toast_delete_error": "Could not delete the repository",
     "toast_synced": "Repository synced",
-    "toast_sync_error": "Could not sync the repository"
+    "toast_sync_error": "Could not sync the repository",
+    "credential_hint": "Needed for private repositories over SSH; also used to list the branches.",
+    "branches_hint": "Enter the URL to list its branches.",
+    "branches_loading": "Listing branches…",
+    "branches_error": "Could not list the branches ({{message}}). Type the branch name.",
+    "branches_empty": "The repository has no branches yet.",
+    "default_branch": "default"
   },
   "section": {
     "collapse": "Collapse {{name}}",

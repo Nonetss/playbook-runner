@@ -258,7 +258,13 @@
     "toast_deleted": "Repositorio eliminado",
     "toast_delete_error": "No se pudo eliminar el repositorio",
     "toast_synced": "Repositorio sincronizado",
-    "toast_sync_error": "No se pudo sincronizar el repositorio"
+    "toast_sync_error": "No se pudo sincronizar el repositorio",
+    "credential_hint": "Necesaria para repositorios privados por SSH; también se usa para listar las ramas.",
+    "branches_hint": "Introduce la URL para listar sus ramas.",
+    "branches_loading": "Listando ramas…",
+    "branches_error": "No se pudieron listar las ramas ({{message}}). Escribe el nombre de la rama.",
+    "branches_empty": "El repositorio todavía no tiene ramas.",
+    "default_branch": "por defecto"
   },
   "section": {
     "collapse": "Contraer {{name}}",
