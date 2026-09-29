@@ -46,7 +46,7 @@ The locale resolved on the server SHALL be passed into the client so that the fi
 - **THEN** the `<html>` element has `lang="es"`
 
 ### Requirement: Translation API for components and pages
-User-facing text SHALL be rendered through a translation function keyed by namespaced identifiers (`namespace:key`) rather than hardcoded literals. React components SHALL access translations through the react-i18next hook, and `.astro` pages SHALL render text in the resolved locale. Missing keys SHALL fall back to the English value rather than displaying a raw key.
+User-facing text SHALL be rendered through a translation function keyed by namespaced identifiers (`namespace:key`) rather than hardcoded literals. This includes fallback labels interpolated into other translated strings (e.g. a generic "this group" used when a resource name is unavailable). React components SHALL access translations through the react-i18next hook, and `.astro` pages SHALL render text in the resolved locale. Missing keys SHALL fall back to the English value rather than displaying a raw key.
 
 #### Scenario: Component renders localized string
 - **WHEN** a React component calls the translation function with a key that exists in the active locale
@@ -55,6 +55,10 @@ User-facing text SHALL be rendered through a translation function keyed by names
 #### Scenario: Missing key falls back
 - **WHEN** a translation key is missing in the active locale but present in English
 - **THEN** the English value is rendered instead of the raw key
+
+#### Scenario: Interpolated fallback label is localized
+- **WHEN** a delete confirmation is opened for a group, device, or credential whose name is not available and the active locale is English
+- **THEN** the confirmation title uses the English fallback label (e.g. "this group") and contains no Spanish text
 
 ### Requirement: Language switcher
 The UI SHALL provide a language switcher that lists the available locales, indicates the active one, and changes the active locale live without a full navigation. The chosen locale SHALL persist across page loads and sessions.

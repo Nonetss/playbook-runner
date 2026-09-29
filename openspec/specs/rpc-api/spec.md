@@ -20,22 +20,19 @@ The system SHALL provide a public procedure builder that requires no authenticat
 - **THEN** the system SHALL return `"OK"` without requiring authentication
 
 ### Requirement: Protected procedures
-The system SHALL provide a protected procedure builder that rejects requests lacking an authenticated user with an `UNAUTHORIZED` error.
+The system SHALL provide a protected procedure builder that rejects requests lacking an authenticated user with an `UNAUTHORIZED` error, and rejects authenticated users whose role is `pending` with a `FORBIDDEN` error.
 
 #### Scenario: Protected procedure without authentication
 - **WHEN** a request without an authenticated user calls a protected procedure
 - **THEN** the system SHALL throw an `UNAUTHORIZED` error and not execute the handler
 
 #### Scenario: Protected procedure with authentication
-- **WHEN** a request with an authenticated user calls a protected procedure
+- **WHEN** a request with an authenticated user whose role is not `pending` calls a protected procedure
 - **THEN** the handler SHALL execute with the user available on the context
 
-### Requirement: Private data endpoint
-The system SHALL provide a protected `v1.private.data` procedure that returns the authenticated user together with a message.
-
-#### Scenario: Authenticated user reads version-one private data
-- **WHEN** an authenticated user calls `v1.private.data`
-- **THEN** the system SHALL return the user and a private message
+#### Scenario: Pending user is blocked
+- **WHEN** an authenticated user with role `pending` calls a protected procedure
+- **THEN** the system SHALL throw a `FORBIDDEN` error and not execute the handler
 
 ### Requirement: RPC handler mounting
 The system SHALL serve all procedures through an RPC handler mounted under
@@ -45,21 +42,61 @@ The system SHALL serve all procedures through an RPC handler mounted under
 - **WHEN** a request is sent to `/rpc/v1/<feature>/<procedure>`
 - **THEN** the corresponding version-one procedure SHALL be invoked
 
-### Requirement: Resolve run procedure
-The system SHALL provide a protected procedure that resolves a playbook run request into an executable bundle. Given `{ playbookId, inventory: [{ id, type: "group" | "device" }] }`, it SHALL return the playbook's `name` and `content` together with a de-duplicated list of target hosts, each carrying its address, username, SSH port (when set), and the credential's private key. Group selections SHALL be expanded to their member devices via the device-group relations, and the result merged with directly-selected devices and de-duplicated by device id.
+### Requirement: Admin procedures
+The system SHALL provide an admin procedure builder, derived from the protected procedure builder, that rejects authenticated users whose role is not `admin` with a `FORBIDDEN` error.
 
-#### Scenario: Authenticated resolve returns the bundle
-- **WHEN** an authenticated client calls the resolve procedure with a valid `playbookId` and inventory selection
-- **THEN** the system SHALL return the playbook content and the resolved, de-duplicated host list with each host's credential
+#### Scenario: Admin calls an admin procedure
+- **WHEN** an authenticated user with role `admin` calls an admin procedure
+- **THEN** the handler SHALL execute
 
-#### Scenario: Group selection is expanded
-- **WHEN** the inventory selection contains an entry with `type: "group"`
-- **THEN** the returned hosts SHALL include all devices belonging to that group
+#### Scenario: Operator calls an admin procedure
+- **WHEN** an authenticated user with role `user` calls an admin procedure
+- **THEN** the system SHALL throw a `FORBIDDEN` error and not execute the handler
 
-#### Scenario: Unknown playbook
-- **WHEN** the `playbookId` does not match an existing playbook
-- **THEN** the system SHALL return a not-found error and SHALL NOT return a bundle
+### Requirement: CSRF protection for cookie-authenticated calls
+The RPC handler (`/rpc`) and the OpenAPI handler (`/api`) SHALL reject state-changing requests that rely on the session cookie unless they carry the CSRF header (`x-csrf-token: orpc`). Requests authenticated with an `x-api-key` or `Authorization` header SHALL be exempt, since they carry no ambient credentials.
 
-#### Scenario: Unauthenticated request is rejected
-- **WHEN** a request without an authenticated user calls the resolve procedure
-- **THEN** the system SHALL throw an `UNAUTHORIZED` error and SHALL NOT execute the handler
+#### Scenario: Frontend RPC call succeeds
+- **WHEN** the frontend oRPC client calls a procedure with the CSRF header and a session cookie
+- **THEN** the procedure SHALL execute normally
+
+#### Scenario: Form-encoded cross-site request is rejected
+- **WHEN** a request to `/api/v1/jobs/run` carries a session cookie but no CSRF header and no API key
+- **THEN** the system SHALL respond with `403` and SHALL NOT execute the procedure
+
+#### Scenario: API key client is unaffected
+- **WHEN** a script calls `/api/v1/...` with a valid `x-api-key` header and no CSRF header
+- **THEN** the procedure SHALL execute normally
+
+### Requirement: Resource identifier validation
+Procedures that address a stored resource by identifier (credentials, scripts, playbooks, playbook folders, jobs, job runs, inventory devices and groups) SHALL validate each identifier input as a UUID before any database access, and SHALL reject malformed identifiers with a `BAD_REQUEST` error.
+
+#### Scenario: Malformed identifier is rejected
+- **WHEN** an authenticated client calls `v1.scripts.get` with `id: "not-a-uuid"`
+- **THEN** the system SHALL respond with `BAD_REQUEST` and SHALL NOT query the database
+
+#### Scenario: Well-formed identifier is accepted
+- **WHEN** an authenticated client calls `v1.scripts.get` with the UUID of an existing script
+- **THEN** the system SHALL return that script
+
+### Requirement: Missing resources return NOT_FOUND
+Procedures that read, update, or delete a single stored resource by identifier SHALL throw a `NOT_FOUND` error when no row matches the identifier, instead of returning `null` or surfacing a database error.
+
+#### Scenario: Get of a missing resource
+- **WHEN** an authenticated client calls `v1.credentials.get` with a UUID that matches no credential
+- **THEN** the system SHALL respond with `NOT_FOUND`
+
+#### Scenario: Update of a missing resource
+- **WHEN** an authenticated client calls `v1.jobs.update` with a UUID that matches no job
+- **THEN** the system SHALL respond with `NOT_FOUND` and SHALL NOT create a row
+
+#### Scenario: Delete of a missing resource
+- **WHEN** an authenticated client calls `v1.inventory.devices.delete` with a UUID that matches no device
+- **THEN** the system SHALL respond with `NOT_FOUND`
+
+### Requirement: Update timestamps
+Procedures that update a stored resource SHALL set the resource's `updatedAt` to the time of the update and SHALL NOT allow the resource identifier to be changed by the update payload.
+
+#### Scenario: Updating a script refreshes updatedAt
+- **WHEN** an authenticated client updates an existing script
+- **THEN** the returned script SHALL have an `updatedAt` later than its previous value and the same `id`
