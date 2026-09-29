@@ -1,0 +1,13 @@
+---
+import { UsersPage } from "@/features/admin/components/users-page"
+import Layout from "@/layouts/Layout.astro"
+import { getServerT } from "@/lib/i18n/server"
+
+// Admin-only: src/middleware.ts redirects other roles away from /admin/*.
+const { locale } = Astro.locals
+const t = await getServerT(locale, "account")
+---
+
+<Layout title={t("admin_users.title")}>
+  <UsersPage client:only="react" />
+</Layout>
