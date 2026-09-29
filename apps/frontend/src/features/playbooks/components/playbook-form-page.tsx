@@ -154,7 +154,7 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
 
       <form
         onSubmit={handleSubmit}
-        className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-5 overflow-hidden"
+        className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-5 md:overflow-hidden"
       >
         <div className="grid gap-5 lg:grid-cols-3">
           <FormField label={t("form.name_label")} htmlFor="name-field" required>
@@ -214,7 +214,7 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
           </FormField>
         </div>
 
-        <div className="flex min-h-0 flex-col gap-2 overflow-hidden">
+        <div className="flex min-h-0 flex-col gap-2 md:overflow-hidden">
           <FieldLabel htmlFor="content-field" required className="shrink-0">
             <span id="content-field-label">{t("form.content_label")}</span>
           </FieldLabel>
@@ -226,7 +226,7 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
               }}
             />
           </InlineAlert>
-          <div className="min-h-0 flex-1">
+          <div className="min-h-[60dvh] flex-1 md:min-h-0">
             <CodeEditor
               id="content-field"
               ariaLabelledBy="content-field-label"

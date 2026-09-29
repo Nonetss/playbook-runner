@@ -7,8 +7,9 @@ import Layout from "@/layouts/Layout.astro"
 interface Props {
   title: string
   /**
-   * Full-height page (editors, run consoles): the scroller never scrolls and
-   * the page fills the remaining height with `flex-1 min-h-0`.
+   * Full-height page (editors, run consoles) from `md` up: the scroller stops
+   * scrolling and the page fills the remaining height with `flex-1 min-h-0`.
+   * Below `md` the page scrolls; editors and consoles keep a minimum height.
    */
   locked?: boolean
   /**
@@ -68,7 +69,9 @@ const paddingClass = {
           : "false"}
       class:list={[
         "flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-anchor-none",
-        locked ? "overflow-hidden" : "overflow-y-auto",
+        // `locked` fixes the height from `md` up only: on phones the stacked
+        // fields and the editor/console need page scroll.
+        locked ? "overflow-y-auto md:overflow-hidden" : "overflow-y-auto",
       ]}
     >
       <div
@@ -81,8 +84,9 @@ const paddingClass = {
         class:list={[
           "flex min-w-0 flex-1 flex-col [--page-max-width:100%]",
           paddingClass,
-          (locked || boundedContent) && "min-h-0",
-          locked && "overflow-hidden max-md:pt-2",
+          locked && "md:min-h-0",
+          boundedContent && "min-h-0",
+          locked && "max-md:pt-2 md:overflow-hidden",
           boundedContent &&
             !locked &&
             "sm:overflow-hidden",

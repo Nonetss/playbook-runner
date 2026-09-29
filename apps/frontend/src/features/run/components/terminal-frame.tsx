@@ -125,7 +125,7 @@ export function TerminalFrame({
         className
       )}
     >
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-terminal-bg text-terminal-fg">
+      <div className="flex min-h-[65dvh] flex-1 flex-col overflow-hidden bg-terminal-bg text-terminal-fg md:min-h-0">
         <div className="flex shrink-0 items-center border-b border-terminal-border bg-terminal-raised px-4 py-2">
           <span className="truncate font-mono text-console-meta">
             <span className="text-terminal-subtle">{context}</span>
@@ -140,7 +140,7 @@ export function TerminalFrame({
       </div>
 
       {panel ? (
-        <aside className="flex max-h-[46dvh] min-h-0 shrink-0 flex-col overflow-hidden border-t bg-background lg:max-h-none lg:w-72 lg:border-t-0 lg:border-l">
+        <aside className="flex min-h-0 shrink-0 flex-col overflow-hidden border-t bg-background md:max-h-[46dvh] lg:max-h-none lg:w-72 lg:border-t-0 lg:border-l">
           <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
             {panel}
           </div>

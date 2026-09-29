@@ -89,9 +89,11 @@ tracking by hand.
   scroll region from `sm` up), `persistScroll` (restore the inset offset
   across navigations; `false` snaps to top, `"owned"` leaves it to the page)
   and `locked`.
-- **Locked pages**: editors and run consoles pass `locked` to the layout; the
-  scroller becomes `overflow-hidden` and the page fills the remaining height
-  with `flex-1 min-h-0`. Never compute `calc(100dvh - …)` by hand.
+- **Locked pages**: editors and run consoles pass `locked` to the layout;
+  from `md` up the scroller becomes `overflow-hidden` and the page fills the
+  remaining height with `flex-1 min-h-0`. Below `md` the page scrolls
+  normally and the editor/terminal keep a minimum height (`60dvh`/`65dvh`),
+  so stacked fields and side panels stay reachable on phones. Never compute `calc(100dvh - …)` by hand.
 - **Detail and form pages**: `DetailFrame` renders the back link (status
   role, `size-3` arrow) and the `PageHero`.
 - **Rhythm**: `gap-6` between hero and content, `gap-2.5` icon → title,
