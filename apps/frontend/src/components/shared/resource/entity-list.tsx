@@ -399,7 +399,7 @@ function EntityCard<TItem, TContext>({
       ) : null}
 
       {status || trailing ? (
-        <div className="pointer-events-none relative z-10 mt-auto flex items-center justify-between gap-3 pt-4 [&_a]:pointer-events-auto [&_button]:pointer-events-auto [&_[role=switch]]:pointer-events-auto [&_[role=combobox]]:pointer-events-auto">
+        <div className="pointer-events-none relative z-10 mt-auto flex items-center justify-between gap-3 pt-4 [&_a]:pointer-events-auto [&_button]:pointer-events-auto **:[[role=switch]]:pointer-events-auto **:[[role=combobox]]:pointer-events-auto">
           {status ? (
             <StatusTag title={status.title}>{status.label}</StatusTag>
           ) : (

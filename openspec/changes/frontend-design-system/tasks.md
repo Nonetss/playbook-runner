@@ -68,5 +68,5 @@
 - [x] 8.1 Grep `src/features` and `src/components` for raw palette classes (`zinc|emerald|red|amber|sky|gray|slate|black|white`) and hand-built `calc(100dvh` / `text-2xl` titles; expect zero
 - [x] 8.2 Update Playwright selectors affected by list/heading changes and run `bun run test:e2e`
 - [x] 8.3 Run `bun run check-types` and `bun run check`
-- [ ] 8.4 Manual visual pass of every route in light and dark, mobile and desktop; record findings
+- [x] 8.4 Manual visual pass of every route in light and dark, mobile and desktop; record findings
 - [x] 8.5 Update `AGENTS.md` frontend section (DESIGN.md, app-surfaces registry, layouts, primitives)
