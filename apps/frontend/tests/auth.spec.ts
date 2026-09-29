@@ -6,7 +6,7 @@ test.describe("Navbar autenticada (escritorio)", () => {
     await pinLocaleTo(context, TEST_LOCALE)
   })
 
-  test("muestra logo y los cinco links de navegación", async ({ page }) => {
+  test("muestra logo y las tres secciones de navegación", async ({ page }) => {
     await page.goto("/")
     const banner = page.getByRole("banner")
     await expect(banner).toBeVisible()
@@ -16,34 +16,55 @@ test.describe("Navbar autenticada (escritorio)", () => {
     ).toBeVisible()
 
     const nav = banner.locator("ul").first()
-    for (const label of [
-      "Inicio",
-      "Credenciales",
-      "Inventario",
-      "Playbooks",
-      "Jobs",
-    ]) {
+    for (const label of ["Inventario", "Automatización", "Jobs"]) {
       await expect(
-        nav.getByRole("link", { name: label, exact: true })
+        nav.getByRole("button", { name: label, exact: true })
       ).toBeVisible()
     }
   })
 
-  test("marca como activo el link correspondiente al path actual", async ({
+  test("el desplegable de una sección enlaza a sus páginas", async ({
     page,
   }) => {
-    await page.goto("/playbooks")
-    const banner = page.getByRole("banner")
-    const activeLink = banner
-      .locator("ul")
-      .first()
-      .getByRole("link", { name: "Playbooks", exact: true })
+    await page.goto("/")
+    const trigger = page
+      .getByRole("banner")
+      .getByRole("button", { name: "Automatización", exact: true })
+    await waitForHydration(trigger)
+    await trigger.click()
 
-    // The desktop nav uses SlidingPillNav: the active link is marked with the
-    // `text-secondary-foreground` text color (the pill provides the background),
-    // not `bg-secondary` (which is the mobile menu's active class).
-    await expect(activeLink).toHaveClass(/text-secondary-foreground/)
-    await expect(activeLink).toHaveAttribute("href", "/playbooks")
+    const menu = page.getByRole("menu")
+    for (const label of [/playbooks/i, /scripts/i, /comandos/i]) {
+      await expect(
+        menu.getByRole("menuitem", { name: label }).first()
+      ).toBeVisible()
+    }
+  })
+
+  test("marca como activa la sección del path actual", async ({ page }) => {
+    await page.goto("/playbooks")
+    const nav = page.getByRole("banner").locator("ul").first()
+
+    await expect(
+      nav.getByRole("button", { name: "Automatización", exact: true })
+    ).toHaveAttribute("aria-current", "page")
+    await expect(
+      nav.getByRole("button", { name: "Inventario", exact: true })
+    ).not.toHaveAttribute("aria-current", "page")
+  })
+
+  test("las páginas de sección muestran la barra lateral", async ({ page }) => {
+    await page.goto("/inventory/devices")
+    const sidebarLink = page
+      .locator("[data-sidebar=sidebar]")
+      .getByRole("link", { name: "Credenciales", exact: true })
+    await waitForHydration(sidebarLink)
+    await expect(sidebarLink).toBeVisible()
+    await expect(
+      page
+        .locator("[data-sidebar=sidebar]")
+        .getByRole("link", { name: "Dispositivos", exact: true })
+    ).toHaveAttribute("data-active", "true")
   })
 
   test("user nav muestra email del usuario autenticado", async ({ page }) => {

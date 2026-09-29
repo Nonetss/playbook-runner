@@ -69,7 +69,7 @@ test.describe("Formulario de login", () => {
     await fillSignInForm(page, "nope@example.com", "wrongpass1")
     await page.getByRole("button", { name: /^iniciar sesión$/i }).click()
 
-    const error = page.locator("p.text-destructive")
+    const error = page.getByRole("alert")
     await expect(error).toBeVisible({ timeout: 10_000 })
     await expect(page).toHaveURL(/\/login$/)
   })

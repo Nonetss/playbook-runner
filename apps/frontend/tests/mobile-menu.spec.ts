@@ -32,7 +32,13 @@ test.describe("NavbarMobileMenu", () => {
     })
     await expect(menuNav).toBeVisible()
 
-    for (const label of ["Inicio", "Inventario", "Playbooks", "Jobs"]) {
+    for (const label of [
+      "Inicio",
+      "Inventario",
+      "Automatización",
+      "Playbooks",
+      "Jobs",
+    ]) {
       await expect(
         menuNav.getByRole("link", { name: label, exact: true })
       ).toBeVisible()
@@ -55,7 +61,7 @@ test.describe("NavbarMobileMenu", () => {
       .getByRole("navigation", { name: /enlaces principales/i })
       .getByRole("link", { name: "Inventario", exact: true })
 
-    await expect(activeLink).toHaveClass(/bg-secondary/)
+    await expect(activeLink).toHaveAttribute("aria-current", "page")
     await expect(activeLink).toHaveAttribute("href", "/inventory")
   })
 
@@ -92,7 +98,7 @@ test.describe("NavbarMobileMenu", () => {
         .getByRole("banner")
         .locator("ul")
         .first()
-        .getByRole("link", { name: "Playbooks", exact: true })
+        .getByRole("button", { name: "Automatización", exact: true })
     ).toBeVisible()
   })
 })
