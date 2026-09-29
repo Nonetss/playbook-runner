@@ -5,6 +5,7 @@ import { healthRouter } from "#v1/health/router"
 import { inventoryRouter } from "#v1/inventory/router"
 import { jobsRouter } from "#v1/jobs/router"
 import { playbooksRouter } from "#v1/playbooks/router"
+import { repositoriesRouter } from "#v1/repositories/router"
 import { runRouter } from "#v1/run/router"
 import { scriptsRouter } from "#v1/scripts/router"
 
@@ -15,6 +16,7 @@ export const appRouter = {
   inventory: inventoryRouter,
   jobs: jobsRouter,
   playbooks: playbooksRouter,
+  repositories: repositoriesRouter,
   run: runRouter,
   scripts: scriptsRouter,
 }
