@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import { textVariants } from "@/components/shared/brand/typography"
 import { cn } from "@/lib/utils"
 
 export type StatusDotTone =
@@ -54,7 +55,8 @@ export function StatusTag({
   return (
     <span
       className={cn(
-        "flex items-center gap-1.5 text-muted-foreground text-xs uppercase tracking-[0.08em] whitespace-nowrap",
+        textVariants({ role: "status", tone: "muted" }),
+        "flex items-center gap-1.5 whitespace-nowrap",
         className
       )}
       title={title}

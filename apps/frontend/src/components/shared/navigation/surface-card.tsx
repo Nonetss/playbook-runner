@@ -32,7 +32,7 @@ export function SurfaceCard({
     >
       <Icon className="size-5 shrink-0 text-primary" aria-hidden />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <Text as="h2" variant="headline" className="truncate text-sm">
+        <Text as="h2" variant="headline" className="truncate">
           {t(item.titleKey)}
         </Text>
         <Text

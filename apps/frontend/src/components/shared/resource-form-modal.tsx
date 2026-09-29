@@ -1,5 +1,6 @@
 import * as React from "react"
 import { useTranslation } from "react-i18next"
+import { dataFieldClass } from "@/components/shared/brand/typography"
 import { InlineAlert } from "@/components/shared/feedback/inline-alert"
 import { FormField } from "@/components/shared/form/field-label"
 import { FormDialog } from "@/components/shared/form/form-dialog"
@@ -164,7 +165,7 @@ function FieldRow({
           value={stringValue}
           rows={field.rows ?? 5}
           onChange={(e) => onChange(e.target.value)}
-          className={cn("font-mono text-xs", field.inputClassName)}
+          className={cn(dataFieldClass, field.inputClassName)}
         />
       ) : field.type === "select" ? (
         <Select

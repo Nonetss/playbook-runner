@@ -3,6 +3,7 @@ import { getIcon } from "@/lib/icon-registry"
 const Loader2 = getIcon("status", "loading")
 
 import type { ReactNode, SyntheticEvent } from "react"
+import { textVariants } from "@/components/shared/brand/typography"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -93,7 +94,7 @@ export function FormDialog({
         <DialogHeader className="shrink-0 gap-1.5 border-b px-6 py-5 pr-12 text-left max-sm:px-4 max-sm:pr-12">
           <DialogTitle className="tracking-tight">{title}</DialogTitle>
           {description ? (
-            <DialogDescription className="text-xs leading-relaxed">
+            <DialogDescription className={textVariants({ role: "meta" })}>
               {description}
             </DialogDescription>
           ) : null}
