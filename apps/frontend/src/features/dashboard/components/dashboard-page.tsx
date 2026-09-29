@@ -135,7 +135,7 @@ function DashboardPageInner() {
         />
         <StatTile
           title={t("stats.playbooks")}
-          value={isPending ? "—" : playbooks.length}
+          value={isPending ? "—" : playbooks.filter((p) => !p.missing).length}
           href="/playbooks"
         />
         <StatTile

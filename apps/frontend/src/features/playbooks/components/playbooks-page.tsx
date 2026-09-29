@@ -268,11 +268,17 @@ function PlaybooksPageInner() {
         ? repositories
             .map((repository) => ({
               repository,
-              playbooks: playbooks.filter(
-                (playbook) =>
-                  playbook.repositoryId === repository.id &&
-                  playbookMatches(playbook, normalizedSearch)
-              ),
+              // By path; files gone upstream are not shown.
+              playbooks: playbooks
+                .filter(
+                  (playbook) =>
+                    playbook.repositoryId === repository.id &&
+                    !playbook.missing &&
+                    playbookMatches(playbook, normalizedSearch)
+                )
+                .sort((a, b) =>
+                  (a.path ?? a.name).localeCompare(b.path ?? b.name)
+                ),
             }))
             .filter(
               ({ repository, playbooks: repositoryPlaybooks }) =>
@@ -501,7 +507,11 @@ function PlaybooksPageInner() {
                       count: repositories.length,
                       label: t("filters.repositories").toLocaleLowerCase(),
                     },
-                    { count: playbooks.length, label: tCommon("labels.total") },
+                    {
+                      count: playbooks.filter((playbook) => !playbook.missing)
+                        .length,
+                      label: tCommon("labels.total"),
+                    },
                   ]
             }
           />

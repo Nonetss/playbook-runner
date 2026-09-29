@@ -42,9 +42,12 @@ export function PlaybookSwitcher({
 
   const sortedPlaybooks = useMemo(
     () =>
-      [...playbooks].sort((a, b) =>
-        a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
-      ),
+      // Files gone from their repository can't be run: not offered.
+      playbooks
+        .filter((playbook) => !playbook.missing)
+        .sort((a, b) =>
+          a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+        ),
     [playbooks]
   )
 
