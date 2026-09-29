@@ -35,9 +35,9 @@ test.describe("NavbarMobileMenu", () => {
     for (const label of [
       "Inicio",
       "Inventario",
-      "Automatización",
+      "Ansible",
       "Playbooks",
-      "Jobs",
+      "Bash",
     ]) {
       await expect(
         menuNav.getByRole("link", { name: label, exact: true })
@@ -98,7 +98,7 @@ test.describe("NavbarMobileMenu", () => {
         .getByRole("banner")
         .locator("ul")
         .first()
-        .getByRole("button", { name: "Automatización", exact: true })
+        .getByRole("button", { name: "Ansible", exact: true })
     ).toBeVisible()
   })
 })

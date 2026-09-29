@@ -1,12 +1,5 @@
 ---
-import { SectionNavOverview } from "@/features/app-shell/components/section-nav-overview"
-import WithSidebar from "@/layouts/WithSidebar.astro"
-import { getServerT } from "@/lib/i18n/server"
-
-const { locale } = Astro.locals
-const t = await getServerT(locale, "nav")
+return Astro.redirect("/ansible", 301)
 ---
 
-<WithSidebar title={t("links.jobs")}>
-  <SectionNavOverview client:only="react" section="jobs" />
-</WithSidebar>
+<!-- Legacy route; the redirect is returned before this markup renders. -->

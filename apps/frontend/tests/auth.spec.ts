@@ -16,7 +16,7 @@ test.describe("Navbar autenticada (escritorio)", () => {
     ).toBeVisible()
 
     const nav = banner.locator("ul").first()
-    for (const label of ["Inventario", "Automatización", "Jobs"]) {
+    for (const label of ["Inventario", "Ansible", "Bash"]) {
       await expect(
         nav.getByRole("button", { name: label, exact: true })
       ).toBeVisible()
@@ -29,18 +29,29 @@ test.describe("Navbar autenticada (escritorio)", () => {
     await page.goto("/")
     const banner = page.getByRole("banner")
     const trigger = banner.getByRole("button", {
-      name: "Automatización",
+      name: "Ansible",
       exact: true,
     })
     await waitForHydration(trigger)
     await trigger.hover()
 
     await expect(trigger).toHaveAttribute("data-state", "open")
-    for (const label of [/^playbooks/i, /^scripts/i, /^comandos/i]) {
+    for (const label of [/^playbooks/i, /^scheduler/i, /^historial/i]) {
       await expect(
         banner.getByRole("link", { name: label }).first()
       ).toBeVisible()
     }
+  })
+
+  test("las rutas de job cuentan como sección Ansible", async ({ page }) => {
+    await page.goto("/jobs/new")
+    await expect(
+      page
+        .getByRole("banner")
+        .locator("ul")
+        .first()
+        .getByRole("button", { name: "Ansible", exact: true })
+    ).toHaveAttribute("aria-current", "page")
   })
 
   test("marca como activa la sección del path actual", async ({ page }) => {
@@ -48,7 +59,7 @@ test.describe("Navbar autenticada (escritorio)", () => {
     const nav = page.getByRole("banner").locator("ul").first()
 
     await expect(
-      nav.getByRole("button", { name: "Automatización", exact: true })
+      nav.getByRole("button", { name: "Ansible", exact: true })
     ).toHaveAttribute("aria-current", "page")
     await expect(
       nav.getByRole("button", { name: "Inventario", exact: true })
