@@ -33,7 +33,7 @@ export function DetailFrame({
     <PageShell maxWidth={maxWidth} className={cn("gap-0", className)}>
       <AppLink
         href={backHref}
-        className="inline-flex w-fit items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
+        className="-my-2 inline-flex w-fit items-center gap-1.5 py-2 text-muted-foreground transition-colors hover:text-foreground pointer-coarse:-my-3 pointer-coarse:py-3"
       >
         <ArrowLeft className="size-3" aria-hidden />
         <Text variant="status">{backLabel}</Text>

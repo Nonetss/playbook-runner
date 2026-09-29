@@ -371,7 +371,7 @@ function EntityCard<TItem, TContext>({
                 as="div"
                 variant="meta"
                 tone="muted"
-                className="mt-0.5 line-clamp-2"
+                className="mt-0.5 line-clamp-2 wrap-anywhere"
               >
                 {secondary}
               </Text>

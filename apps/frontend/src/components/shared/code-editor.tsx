@@ -32,7 +32,6 @@ const editorTheme = EditorView.theme({
   ".cm-scroller": {
     height: "100%",
     overflow: "auto !important",
-    overscrollBehavior: "contain",
     fontFamily: "var(--terminal-font)",
     lineHeight: "var(--line-height-console)",
   },
