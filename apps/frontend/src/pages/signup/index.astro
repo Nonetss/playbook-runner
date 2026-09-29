@@ -1,4 +1,6 @@
 ---
+// Public sign-up is disabled: accounts are created by an admin or via SSO.
 return Astro.redirect("/login", 301)
 ---
 
+<!-- Legacy route; the redirect is returned before this markup renders. -->

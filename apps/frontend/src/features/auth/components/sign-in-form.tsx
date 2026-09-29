@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authClient } from "@/lib/auth-client"
 import { navigate } from "@/lib/navigate"
+import { getQueryClient } from "@/lib/query-client"
 
 // The form is a standalone `client:only` island, so it must sit behind the i18n
 // provider (which gates rendering until i18next is ready). Without it the form
@@ -44,6 +45,8 @@ function SignInFormInner() {
         { email, password },
         {
           onSuccess: () => {
+            // Start the new session with an empty cache.
+            getQueryClient().clear()
             navigate("/")
           },
           onError: (ctx) => {
@@ -128,12 +131,9 @@ function SignInFormInner() {
             ? t("sign_in.sso_redirecting")
             : t("sign_in.sso_button")}
         </Button>
-        <a
-          href="/signup"
-          className="text-sm text-muted-foreground hover:text-primary"
-        >
-          {t("sign_in.no_account_prompt")}
-        </a>
+        <p className="text-sm text-muted-foreground">
+          {t("sign_in.no_account_hint")}
+        </p>
       </CardFooter>
     </Card>
   )
