@@ -253,7 +253,12 @@ function DashboardPageInner() {
 
       <section className="flex flex-col gap-3">
         <SectionHeader title={t("quick_links.title")} />
-        <SurfaceCardGrid surfaces={["playbooks", "devices", "credentials"]} />
+        {/* Three shortcuts share the full row instead of leaving the 4/5-column
+            grid's trailing tracks empty on desktop. */}
+        <SurfaceCardGrid
+          surfaces={["playbooks", "devices", "credentials"]}
+          className="sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 min-[120rem]:grid-cols-3"
+        />
       </section>
     </PageShell>
   )
