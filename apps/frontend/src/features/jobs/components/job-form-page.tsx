@@ -324,11 +324,13 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
               className={NATIVE_SELECT_CLASS}
             >
               <option value="">{t("form.playbook_placeholder")}</option>
-              {playbooks.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
+              {playbooks
+                .filter((p) => !p.missing || p.id === values.playbookId)
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
             </select>
           </FormField>
         </FormSection>
