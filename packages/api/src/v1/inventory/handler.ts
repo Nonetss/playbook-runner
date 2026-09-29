@@ -3,135 +3,196 @@ import {
   inventoryDeviceGroups,
   inventoryDevices,
   inventoryGroups,
-  type NewInventoryDevice,
-  type NewInventoryDeviceGroup,
-  type NewInventoryGroup,
 } from "@playbook-runner/db/schema/inventory"
 import { and, asc, eq } from "drizzle-orm"
+import type { z } from "zod"
+import type { Context } from "#context"
+import { errors } from "#errors"
+import type { inventoryInput } from "#v1/inventory/input"
+
+type GroupsInput = typeof inventoryInput.groups
+type DevicesInput = typeof inventoryInput.devices
+type DeviceGroupsInput = typeof inventoryInput.deviceGroups
+
+function found<T>(row: T | undefined): T {
+  if (!row) throw errors.NOT_FOUND()
+  return row
+}
+
+function inserted<T>(row: T | undefined): T {
+  if (!row) throw errors.INTERNAL_SERVER_ERROR()
+  return row
+}
 
 export const inventoryGroupHandler = {
-  createGroup: async (group: NewInventoryGroup) => {
-    const g = await db.insert(inventoryGroups).values(group).returning()
-    return g[0] ?? null
+  create: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<GroupsInput["create"]>
+  }) => {
+    const [row] = await db.insert(inventoryGroups).values(input).returning()
+    return inserted(row)
   },
 
-  listGroups: async () => {
-    const g = await db
+  list: async (_: { context: Context }) =>
+    db.select().from(inventoryGroups).orderBy(asc(inventoryGroups.createdAt)),
+
+  get: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<GroupsInput["get"]>
+  }) => {
+    const [row] = await db
       .select()
       .from(inventoryGroups)
-      .orderBy(asc(inventoryGroups.createdAt))
-    return g
+      .where(eq(inventoryGroups.id, input.id))
+    return found(row)
   },
 
-  getGroup: async (id: string) => {
-    const g = await db
-      .select()
-      .from(inventoryGroups)
-      .where(eq(inventoryGroups.id, id))
-    return g[0] ?? null
-  },
-
-  updateGroup: async (id: string, group: NewInventoryGroup) => {
-    const g = await db
+  update: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<GroupsInput["update"]>
+  }) => {
+    const { id, ...data } = input
+    const [row] = await db
       .update(inventoryGroups)
-      .set(group)
+      .set({ ...data, updatedAt: new Date() })
       .where(eq(inventoryGroups.id, id))
       .returning()
-    return g[0] ?? null
+    return found(row)
   },
 
-  deleteGroup: async (id: string) => {
-    const g = await db
+  delete: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<GroupsInput["delete"]>
+  }) => {
+    const [row] = await db
       .delete(inventoryGroups)
-      .where(eq(inventoryGroups.id, id))
+      .where(eq(inventoryGroups.id, input.id))
       .returning()
-    return g[0] ?? null
+    return found(row)
   },
 }
 
 export const inventoryDeviceHandler = {
-  createDevice: async (device: NewInventoryDevice) => {
-    const d = await db.insert(inventoryDevices).values(device).returning()
-    return d[0] ?? null
+  create: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<DevicesInput["create"]>
+  }) => {
+    const [row] = await db.insert(inventoryDevices).values(input).returning()
+    return inserted(row)
   },
 
-  listDevices: async () => {
-    const d = await db
+  list: async (_: { context: Context }) =>
+    db.select().from(inventoryDevices).orderBy(asc(inventoryDevices.ipAddress)),
+
+  get: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<DevicesInput["get"]>
+  }) => {
+    const [row] = await db
       .select()
       .from(inventoryDevices)
-      .orderBy(asc(inventoryDevices.ipAddress))
-    return d
+      .where(eq(inventoryDevices.id, input.id))
+    return found(row)
   },
 
-  getDevice: async (id: string) => {
-    const d = await db
-      .select()
-      .from(inventoryDevices)
-      .where(eq(inventoryDevices.id, id))
-    return d[0] ?? null
-  },
-
-  updateDevice: async (id: string, device: NewInventoryDevice) => {
-    const d = await db
+  update: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<DevicesInput["update"]>
+  }) => {
+    const { id, ...data } = input
+    const [row] = await db
       .update(inventoryDevices)
-      .set(device)
+      .set({ ...data, updatedAt: new Date() })
       .where(eq(inventoryDevices.id, id))
       .returning()
-    return d[0] ?? null
+    return found(row)
   },
 
-  deleteDevice: async (id: string) => {
-    const d = await db
+  delete: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<DevicesInput["delete"]>
+  }) => {
+    const [row] = await db
       .delete(inventoryDevices)
-      .where(eq(inventoryDevices.id, id))
+      .where(eq(inventoryDevices.id, input.id))
       .returning()
-    return d[0] ?? null
+    return found(row)
   },
 }
 
 export const inventoryDeviceGroupHandler = {
-  assign: async (relation: NewInventoryDeviceGroup) => {
-    const r = await db
+  assign: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<DeviceGroupsInput["assign"]>
+  }) => {
+    const [row] = await db
       .insert(inventoryDeviceGroups)
-      .values(relation)
+      .values(input)
       .returning()
-    return r[0] ?? null
+    return inserted(row)
   },
 
-  list: async () => {
-    const r = await db
+  list: async (_: { context: Context }) =>
+    db
       .select()
       .from(inventoryDeviceGroups)
-      .orderBy(asc(inventoryDeviceGroups.createdAt))
-    return r
-  },
+      .orderBy(asc(inventoryDeviceGroups.createdAt)),
 
-  listByDevice: async (deviceId: string) => {
-    const r = await db
+  listByDevice: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<DeviceGroupsInput["listByDevice"]>
+  }) =>
+    db
       .select()
       .from(inventoryDeviceGroups)
-      .where(eq(inventoryDeviceGroups.deviceId, deviceId))
-    return r
-  },
+      .where(eq(inventoryDeviceGroups.deviceId, input.deviceId)),
 
-  listByGroup: async (groupId: string) => {
-    const r = await db
+  listByGroup: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<DeviceGroupsInput["listByGroup"]>
+  }) =>
+    db
       .select()
       .from(inventoryDeviceGroups)
-      .where(eq(inventoryDeviceGroups.groupId, groupId))
-    return r
-  },
+      .where(eq(inventoryDeviceGroups.groupId, input.groupId)),
 
-  unassign: async (deviceId: string, groupId: string) => {
-    const r = await db
+  unassign: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<DeviceGroupsInput["unassign"]>
+  }) => {
+    const [row] = await db
       .delete(inventoryDeviceGroups)
       .where(
         and(
-          eq(inventoryDeviceGroups.deviceId, deviceId),
-          eq(inventoryDeviceGroups.groupId, groupId)
+          eq(inventoryDeviceGroups.deviceId, input.deviceId),
+          eq(inventoryDeviceGroups.groupId, input.groupId)
         )
       )
       .returning()
-    return r[0] ?? null
+    return found(row)
   },
 }

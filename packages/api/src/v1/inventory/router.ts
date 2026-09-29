@@ -1,61 +1,17 @@
-import z from "zod"
 import { protectedProcedure } from "#index"
 import {
   inventoryDeviceGroupHandler,
   inventoryDeviceHandler,
   inventoryGroupHandler,
 } from "#v1/inventory/handler"
+import { inventoryInput } from "#v1/inventory/input"
+import { inventoryOutput } from "#v1/inventory/output"
 
-// Inputs
-const uuidSchema = z.string().uuid()
-const groupInput = z.object({
-  name: z.string(),
-  description: z.string().optional(),
-})
-const deviceInput = z.object({
-  name: z.string(),
-  description: z.string().optional(),
-  ipAddress: z.string(),
-  portSSH: z.number().int().min(1).max(65535).optional(),
-  credentialId: uuidSchema.nullable().optional(),
-})
-const deviceGroupInput = z.object({
-  deviceId: z.string(),
-  groupId: z.string(),
-})
-
-// Response schemas — colocated so each handler and the `get`/`list` pair stay
-// in lock-step.
-const inventoryGroupSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string().nullable(),
-  createdAt: z.coerce.date().nullable(),
-  updatedAt: z.coerce.date().nullable(),
-})
-
-const inventoryDeviceSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string().nullable(),
-  ipAddress: z.string(),
-  portSSH: z.number().int(),
-  credentialId: uuidSchema.nullable(),
-  createdAt: z.coerce.date().nullable(),
-  updatedAt: z.coerce.date().nullable(),
-})
-
-const inventoryDeviceGroupSchema = z.object({
-  id: z.string(),
-  deviceId: z.string(),
-  groupId: z.string(),
-  createdAt: z.coerce.date().nullable(),
-  updatedAt: z.coerce.date().nullable(),
-})
-
-export type InventoryGroup = z.infer<typeof inventoryGroupSchema>
-export type InventoryDevice = z.infer<typeof inventoryDeviceSchema>
-export type InventoryDeviceGroup = z.infer<typeof inventoryDeviceGroupSchema>
+export type {
+  InventoryDevice,
+  InventoryDeviceGroup,
+  InventoryGroup,
+} from "#v1/inventory/output"
 
 export const inventoryRouter = {
   groups: {
@@ -66,12 +22,11 @@ export const inventoryRouter = {
         tags: ["Inventory"],
         method: "POST",
       })
-      .input(groupInput)
-      .output(inventoryGroupSchema.nullable())
-      .handler(async ({ input }) => {
-        const group = await inventoryGroupHandler.createGroup(input)
-        return group ?? null
-      }),
+      .input(inventoryInput.groups.create)
+      .output(inventoryOutput.groups.create)
+      .handler(({ context, input }) =>
+        inventoryGroupHandler.create({ context, input })
+      ),
 
     list: protectedProcedure
       .route({
@@ -80,57 +35,50 @@ export const inventoryRouter = {
         tags: ["Inventory"],
         method: "GET",
       })
-      .output(z.array(inventoryGroupSchema))
-      .handler(async () => {
-        const groups = await inventoryGroupHandler.listGroups()
-        return groups ?? []
-      }),
+      .output(inventoryOutput.groups.list)
+      .handler(({ context }) => inventoryGroupHandler.list({ context })),
 
     get: protectedProcedure
       .route({
         summary: "Get an inventory group",
         description:
-          "Returns an inventory group by id, or null when no row matches.",
+          "Returns an inventory group by id. Throws NOT_FOUND when no row matches.",
         tags: ["Inventory"],
         method: "GET",
       })
-      .input(z.object({ id: z.string() }))
-      .output(inventoryGroupSchema.nullable())
-      .handler(async ({ input }) => {
-        const group = await inventoryGroupHandler.getGroup(input.id)
-        return group ?? null
-      }),
+      .input(inventoryInput.groups.get)
+      .output(inventoryOutput.groups.get)
+      .handler(({ context, input }) =>
+        inventoryGroupHandler.get({ context, input })
+      ),
 
     update: protectedProcedure
       .route({
         summary: "Update an inventory group",
         description:
-          "Replaces the name and description of an existing inventory group.",
+          "Replaces the name and description of an existing inventory group. Throws NOT_FOUND when no row matches.",
         tags: ["Inventory"],
         method: "PUT",
       })
-      .input(groupInput.extend({ id: z.string() }))
-      .output(inventoryGroupSchema.nullable())
-      .handler(async ({ input }) => {
-        const { id, ...data } = input
-        const group = await inventoryGroupHandler.updateGroup(id, data)
-        return group ?? null
-      }),
+      .input(inventoryInput.groups.update)
+      .output(inventoryOutput.groups.update)
+      .handler(({ context, input }) =>
+        inventoryGroupHandler.update({ context, input })
+      ),
 
     delete: protectedProcedure
       .route({
         summary: "Delete an inventory group",
         description:
-          "Deletes an inventory group by id. Returns the deleted row, or null.",
+          "Deletes an inventory group by id and returns the deleted row. Throws NOT_FOUND when no row matches.",
         tags: ["Inventory"],
         method: "DELETE",
       })
-      .input(z.object({ id: z.string() }))
-      .output(inventoryGroupSchema.nullable())
-      .handler(async ({ input }) => {
-        const group = await inventoryGroupHandler.deleteGroup(input.id)
-        return group ?? null
-      }),
+      .input(inventoryInput.groups.delete)
+      .output(inventoryOutput.groups.delete)
+      .handler(({ context, input }) =>
+        inventoryGroupHandler.delete({ context, input })
+      ),
   },
 
   devices: {
@@ -142,12 +90,11 @@ export const inventoryRouter = {
         tags: ["Inventory"],
         method: "POST",
       })
-      .input(deviceInput)
-      .output(inventoryDeviceSchema.nullable())
-      .handler(async ({ input }) => {
-        const device = await inventoryDeviceHandler.createDevice(input)
-        return device ?? null
-      }),
+      .input(inventoryInput.devices.create)
+      .output(inventoryOutput.devices.create)
+      .handler(({ context, input }) =>
+        inventoryDeviceHandler.create({ context, input })
+      ),
 
     list: protectedProcedure
       .route({
@@ -156,57 +103,50 @@ export const inventoryRouter = {
         tags: ["Inventory"],
         method: "GET",
       })
-      .output(z.array(inventoryDeviceSchema))
-      .handler(async () => {
-        const devices = await inventoryDeviceHandler.listDevices()
-        return devices ?? []
-      }),
+      .output(inventoryOutput.devices.list)
+      .handler(({ context }) => inventoryDeviceHandler.list({ context })),
 
     get: protectedProcedure
       .route({
         summary: "Get an inventory device",
         description:
-          "Returns an inventory device by id, or null when no row matches.",
+          "Returns an inventory device by id. Throws NOT_FOUND when no row matches.",
         tags: ["Inventory"],
         method: "GET",
       })
-      .input(z.object({ id: z.string() }))
-      .output(inventoryDeviceSchema.nullable())
-      .handler(async ({ input }) => {
-        const device = await inventoryDeviceHandler.getDevice(input.id)
-        return device ?? null
-      }),
+      .input(inventoryInput.devices.get)
+      .output(inventoryOutput.devices.get)
+      .handler(({ context, input }) =>
+        inventoryDeviceHandler.get({ context, input })
+      ),
 
     update: protectedProcedure
       .route({
         summary: "Update an inventory device",
         description:
-          "Replaces all editable fields of an inventory device, including its credential link.",
+          "Replaces all editable fields of an inventory device, including its credential link. Throws NOT_FOUND when no row matches.",
         tags: ["Inventory"],
         method: "PUT",
       })
-      .input(deviceInput.extend({ id: z.string() }))
-      .output(inventoryDeviceSchema.nullable())
-      .handler(async ({ input }) => {
-        const { id, ...data } = input
-        const device = await inventoryDeviceHandler.updateDevice(id, data)
-        return device ?? null
-      }),
+      .input(inventoryInput.devices.update)
+      .output(inventoryOutput.devices.update)
+      .handler(({ context, input }) =>
+        inventoryDeviceHandler.update({ context, input })
+      ),
 
     delete: protectedProcedure
       .route({
         summary: "Delete an inventory device",
         description:
-          "Deletes an inventory device by id. Returns the deleted row, or null.",
+          "Deletes an inventory device by id and returns the deleted row. Throws NOT_FOUND when no row matches.",
         tags: ["Inventory"],
         method: "DELETE",
       })
-      .input(z.object({ id: z.string() }))
-      .output(inventoryDeviceSchema.nullable())
-      .handler(async ({ input }) => {
-        const device = await inventoryDeviceHandler.deleteDevice(input.id)
-        return device ?? null
-      }),
+      .input(inventoryInput.devices.delete)
+      .output(inventoryOutput.devices.delete)
+      .handler(({ context, input }) =>
+        inventoryDeviceHandler.delete({ context, input })
+      ),
   },
 
   deviceGroups: {
@@ -218,12 +158,11 @@ export const inventoryRouter = {
         tags: ["Inventory"],
         method: "POST",
       })
-      .input(deviceGroupInput)
-      .output(inventoryDeviceGroupSchema.nullable())
-      .handler(async ({ input }) => {
-        const relation = await inventoryDeviceGroupHandler.assign(input)
-        return relation ?? null
-      }),
+      .input(inventoryInput.deviceGroups.assign)
+      .output(inventoryOutput.deviceGroups.assign)
+      .handler(({ context, input }) =>
+        inventoryDeviceGroupHandler.assign({ context, input })
+      ),
 
     list: protectedProcedure
       .route({
@@ -232,11 +171,8 @@ export const inventoryRouter = {
         tags: ["Inventory"],
         method: "GET",
       })
-      .output(z.array(inventoryDeviceGroupSchema))
-      .handler(async () => {
-        const relations = await inventoryDeviceGroupHandler.list()
-        return relations ?? []
-      }),
+      .output(inventoryOutput.deviceGroups.list)
+      .handler(({ context }) => inventoryDeviceGroupHandler.list({ context })),
 
     listByDevice: protectedProcedure
       .route({
@@ -245,14 +181,11 @@ export const inventoryRouter = {
         tags: ["Inventory"],
         method: "GET",
       })
-      .input(z.object({ deviceId: z.string() }))
-      .output(z.array(inventoryDeviceGroupSchema))
-      .handler(async ({ input }) => {
-        const relations = await inventoryDeviceGroupHandler.listByDevice(
-          input.deviceId
-        )
-        return relations ?? []
-      }),
+      .input(inventoryInput.deviceGroups.listByDevice)
+      .output(inventoryOutput.deviceGroups.listByDevice)
+      .handler(({ context, input }) =>
+        inventoryDeviceGroupHandler.listByDevice({ context, input })
+      ),
 
     listByGroup: protectedProcedure
       .route({
@@ -261,31 +194,24 @@ export const inventoryRouter = {
         tags: ["Inventory"],
         method: "GET",
       })
-      .input(z.object({ groupId: z.string() }))
-      .output(z.array(inventoryDeviceGroupSchema))
-      .handler(async ({ input }) => {
-        const relations = await inventoryDeviceGroupHandler.listByGroup(
-          input.groupId
-        )
-        return relations ?? []
-      }),
+      .input(inventoryInput.deviceGroups.listByGroup)
+      .output(inventoryOutput.deviceGroups.listByGroup)
+      .handler(({ context, input }) =>
+        inventoryDeviceGroupHandler.listByGroup({ context, input })
+      ),
 
     unassign: protectedProcedure
       .route({
         summary: "Unassign a device from a group",
         description:
-          "Removes the relation between a device and a group. Returns the removed relation, or null.",
+          "Removes the relation between a device and a group and returns it. Throws NOT_FOUND when no relation matches.",
         tags: ["Inventory"],
         method: "DELETE",
       })
-      .input(deviceGroupInput)
-      .output(inventoryDeviceGroupSchema.nullable())
-      .handler(async ({ input }) => {
-        const relation = await inventoryDeviceGroupHandler.unassign(
-          input.deviceId,
-          input.groupId
-        )
-        return relation ?? null
-      }),
+      .input(inventoryInput.deviceGroups.unassign)
+      .output(inventoryOutput.deviceGroups.unassign)
+      .handler(({ context, input }) =>
+        inventoryDeviceGroupHandler.unassign({ context, input })
+      ),
   },
 }
