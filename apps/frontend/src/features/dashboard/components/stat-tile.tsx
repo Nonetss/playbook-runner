@@ -22,9 +22,9 @@ export function StatTile({
       <Text as="p" variant="label" tone="muted">
         {title}
       </Text>
-      <p className="text-stat font-semibold tracking-tight tabular-nums">
+      <Text as="p" variant="stat">
         {value}
-      </p>
+      </Text>
       {sub ? (
         <Text as="p" variant="meta" tone="muted" className="truncate">
           {sub}

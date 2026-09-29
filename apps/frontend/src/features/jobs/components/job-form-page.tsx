@@ -7,7 +7,7 @@ const Trash2 = getIcon("actions", "delete")
 import * as React from "react"
 import { Trans, useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
-import { Text } from "@/components/shared/brand/typography"
+import { dataFieldClass, Text } from "@/components/shared/brand/typography"
 import { InlineAlert } from "@/components/shared/feedback/inline-alert"
 import { StateCard } from "@/components/shared/feedback/state-card"
 import { FieldLabel, FormField } from "@/components/shared/form/field-label"
@@ -29,6 +29,7 @@ import type { InventoryItem, Job } from "@/features/jobs/types"
 import { PlaybookPicker } from "@/features/playbooks/components/playbook-picker"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { navigate } from "@/lib/navigate"
+import { cn } from "@/lib/utils"
 
 type ExtravarRow = { key: string; value: string }
 
@@ -469,7 +470,7 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
                       value={row.key}
                       onChange={(e) => updateExtravar(i, "key", e.target.value)}
                       disabled={isSubmitting}
-                      className="min-w-0 flex-1 font-mono text-xs"
+                      className={cn(dataFieldClass, "min-w-0 flex-1")}
                     />
                     <Input
                       placeholder={t("form.extravars_value_placeholder")}
@@ -478,7 +479,7 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
                         updateExtravar(i, "value", e.target.value)
                       }
                       disabled={isSubmitting}
-                      className="min-w-0 flex-1 font-mono text-xs"
+                      className={cn(dataFieldClass, "min-w-0 flex-1")}
                     />
                     <Button
                       type="button"

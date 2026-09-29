@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Text } from "@/components/shared/brand/typography"
+import { dataFieldClass, Text } from "@/components/shared/brand/typography"
 import { FieldLabel } from "@/components/shared/form/field-label"
 import { Input } from "@/components/ui/input"
 import {
@@ -267,7 +267,7 @@ export function CronScheduleBuilder({
               aria-label={t("form.schedule_builder.custom_label")}
               required
               placeholder="*/5 * * * *"
-              className="font-mono text-xs tracking-tight tabular-nums"
+              className={dataFieldClass}
               value={expression}
               onChange={(event) => onChange(event.target.value)}
             />
