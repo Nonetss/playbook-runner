@@ -42,7 +42,9 @@
     "run": "Ejecutar",
     "run_aria": "Ejecutar playbook",
     "saving": "Guardando...",
-    "save_error": "No se pudo guardar."
+    "save_error": "No se pudo guardar.",
+    "view_title": "Ver playbook",
+    "git_subtitle": "Playbook sincronizado desde un repositorio Git."
   },
   "folder": {
     "root": "Raíz (sin carpeta)",
@@ -95,7 +97,8 @@
     "folders": "Carpetas",
     "playbooks": "Playbooks",
     "no_results": "Sin resultados",
-    "no_results_description": "Prueba con otra búsqueda o cambia el filtro."
+    "no_results_description": "Prueba con otra búsqueda o cambia el filtro.",
+    "repositories": "Repositorios"
   },
   "toast": {
     "created": "Playbook creado",
@@ -215,5 +218,50 @@
       "task_default": "Tarea",
       "failed": "fallido"
     }
+  },
+  "repository": {
+    "create": "Añadir repositorio",
+    "create_title": "Añadir repositorio Git",
+    "edit_title": "Editar repositorio",
+    "form_subtitle": "Los playbooks se descubren en esta rama en cada sincronización y aquí son de solo lectura.",
+    "save": "Guardar cambios",
+    "name_label": "Nombre",
+    "name_placeholder": "infra-playbooks",
+    "url_label": "URL de clonado",
+    "url_placeholder": "git@github.com:acme/infra.git",
+    "branch_label": "Rama",
+    "subdir_label": "Subdirectorio",
+    "subdir_placeholder": "playbooks (vacío = raíz del repositorio)",
+    "credential_label": "Credencial SSH",
+    "credential_none": "Ninguna (repositorio HTTPS público)",
+    "sync": "Sincronizar",
+    "syncing": "Sincronizando…",
+    "synced_at": "Commit {{commit}} · sincronizado {{date}}",
+    "never_synced": "Sin sincronizar",
+    "sync_failed": "La última sincronización falló",
+    "sync_hint": "Sincroniza el repositorio para descubrir sus playbooks.",
+    "empty_group": "No se han encontrado playbooks en esta rama.",
+    "actions_aria": "Acciones del repositorio {{name}}",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "delete_title": "Eliminar \"{{name}}\"",
+    "delete_description": "Se eliminarán el repositorio y sus playbooks sincronizados. Los jobs que los usen se quedarán sin playbook.",
+    "source_label": "Origen",
+    "read_only": "Git · solo lectura",
+    "missing": "Ya no existe",
+    "read_only_notice": "Sincronizado desde Git en el commit {{commit}}. Solo lectura: modifícalo en el repositorio y vuelve a sincronizar.",
+    "missing_notice": "Este fichero ya no existe en la rama del repositorio, así que no se puede ejecutar.",
+    "toast_created": "Repositorio añadido",
+    "toast_create_error": "No se pudo añadir el repositorio",
+    "toast_updated": "Repositorio actualizado",
+    "toast_update_error": "No se pudo actualizar el repositorio",
+    "toast_deleted": "Repositorio eliminado",
+    "toast_delete_error": "No se pudo eliminar el repositorio",
+    "toast_synced": "Repositorio sincronizado",
+    "toast_sync_error": "No se pudo sincronizar el repositorio"
+  },
+  "section": {
+    "collapse": "Contraer {{name}}",
+    "expand": "Desplegar {{name}}"
   }
 }

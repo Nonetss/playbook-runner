@@ -42,7 +42,9 @@
     "run": "Run",
     "run_aria": "Run playbook",
     "saving": "Saving...",
-    "save_error": "Could not save."
+    "save_error": "Could not save.",
+    "view_title": "View playbook",
+    "git_subtitle": "Playbook synced from a Git repository."
   },
   "folder": {
     "root": "Root (no folder)",
@@ -95,7 +97,8 @@
     "folders": "Folders",
     "playbooks": "Playbooks",
     "no_results": "No results",
-    "no_results_description": "Try another search or change the filter."
+    "no_results_description": "Try another search or change the filter.",
+    "repositories": "Repositories"
   },
   "toast": {
     "created": "Playbook created",
@@ -215,5 +218,50 @@
       "task_default": "Task",
       "failed": "failed"
     }
+  },
+  "repository": {
+    "create": "Add repository",
+    "create_title": "Add Git repository",
+    "edit_title": "Edit repository",
+    "form_subtitle": "Playbooks are discovered from this branch on every sync and are read-only here.",
+    "save": "Save changes",
+    "name_label": "Name",
+    "name_placeholder": "infra-playbooks",
+    "url_label": "Clone URL",
+    "url_placeholder": "git@github.com:acme/infra.git",
+    "branch_label": "Branch",
+    "subdir_label": "Subdirectory",
+    "subdir_placeholder": "playbooks (empty = repository root)",
+    "credential_label": "SSH credential",
+    "credential_none": "None (public HTTPS repository)",
+    "sync": "Sync",
+    "syncing": "Syncing…",
+    "synced_at": "Commit {{commit}} · synced {{date}}",
+    "never_synced": "Never synced",
+    "sync_failed": "Last sync failed",
+    "sync_hint": "Sync the repository to discover its playbooks.",
+    "empty_group": "No playbooks found in this branch.",
+    "actions_aria": "Actions for repository {{name}}",
+    "edit": "Edit",
+    "delete": "Delete",
+    "delete_title": "Delete \"{{name}}\"",
+    "delete_description": "The repository and its synced playbooks will be deleted. Jobs using them will be left without a playbook.",
+    "source_label": "Source",
+    "read_only": "Git · read-only",
+    "missing": "Missing upstream",
+    "read_only_notice": "Synced from Git at commit {{commit}}. Read-only: change it in the repository and sync again.",
+    "missing_notice": "This file no longer exists in the repository branch, so it can't be run.",
+    "toast_created": "Repository added",
+    "toast_create_error": "Could not add the repository",
+    "toast_updated": "Repository updated",
+    "toast_update_error": "Could not update the repository",
+    "toast_deleted": "Repository deleted",
+    "toast_delete_error": "Could not delete the repository",
+    "toast_synced": "Repository synced",
+    "toast_sync_error": "Could not sync the repository"
+  },
+  "section": {
+    "collapse": "Collapse {{name}}",
+    "expand": "Expand {{name}}"
   }
 }
