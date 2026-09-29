@@ -208,7 +208,10 @@ function CommandsPageInner() {
               label={t("panel.command_section")}
               className="border-t pt-5"
             >
-              <FormField label={t("panel.command")} htmlFor="cmd-text">
+              <div>
+                <label htmlFor="cmd-text" className="sr-only">
+                  {t("panel.command")}
+                </label>
                 <div className="relative">
                   <span
                     className={cn(
@@ -229,7 +232,7 @@ function CommandsPageInner() {
                     placeholder={t("panel.command_placeholder")}
                   />
                 </div>
-              </FormField>
+              </div>
 
               <FormField label={t("panel.module")} hint={activeModule.hint}>
                 <SegmentedPicker
