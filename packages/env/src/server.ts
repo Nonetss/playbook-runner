@@ -37,6 +37,15 @@ export const env = createEnv({
     // it the backend starts normally, but its gRPC server stays down and gRPC
     // endpoints return 503.
     SERVICE_TOKEN: z.string().min(32).optional(),
+
+    // AES-256-GCM key for SSH private keys at rest: base64 of exactly 32
+    // bytes. Generate with `openssl rand -base64 32`. Losing it makes every
+    // stored private key unrecoverable — back it up like BETTER_AUTH_SECRET.
+    CREDENTIALS_ENCRYPTION_KEY: z
+      .string()
+      .refine((value) => Buffer.from(value, "base64").length === 32, {
+        message: "must be base64 of exactly 32 bytes",
+      }),
     ANSIBLE_GRPC_TARGET: z.string().min(1).default("localhost:50051"),
   },
   runtimeEnv: process.env,

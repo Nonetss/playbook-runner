@@ -48,6 +48,8 @@ export function createAuth() {
     trustedOrigins: [env.CORS_ORIGIN],
     emailAndPassword: {
       enabled: true,
+      // Closed team: accounts are created by admins (admin plugin) or SSO.
+      disableSignUp: true,
       autoSignIn: true,
       minPasswordLength: 8,
     },
@@ -69,7 +71,7 @@ export function createAuth() {
     baseURL: env.BETTER_AUTH_URL,
     advanced: {
       defaultCookieAttributes: {
-        sameSite: "none",
+        sameSite: "lax",
         secure: true,
         httpOnly: true,
       },
@@ -83,3 +85,5 @@ export function createAuth() {
 }
 
 export const auth = createAuth()
+
+export { APIError } from "better-auth/api"

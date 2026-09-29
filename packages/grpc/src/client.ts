@@ -86,8 +86,8 @@ export type ServerStreamOptions = {
 }
 
 /**
- * Promisifies a ts-proto/grpc-js server-streaming method and attaches the
- * auth metadata, mirroring `unary()`.
+ * Wraps a ts-proto/grpc-js server-streaming method as an async generator and
+ * attaches the auth metadata, mirroring `unary()`.
  *
  * ```ts
  * for await (const item of serverStream(client.scrape.bind(client), { query }, { token })) {
@@ -95,21 +95,30 @@ export type ServerStreamOptions = {
  * }
  * ```
  *
- * `ClientReadableStream` is a Node `Readable` under the hood, which is
- * natively async-iterable (`for await` correctly propagates the stream's
- * `error` event as a rejection and stops the loop on `end`) — `@types/node`
- * just doesn't type that iterator generically, hence the cast.
+ * `ClientReadableStream` is a Node `Readable`, so it is natively
+ * async-iterable (stream errors reject the loop, `end` stops it). When the
+ * consumer stops early (`break`, a throw, or `.return()` — e.g. oRPC closing
+ * a handler's iterator because the HTTP client went away), the `finally`
+ * cancels the call so the server stops the work too. Cancelling a call that
+ * already completed is a no-op.
  */
-export function serverStream<TRequest, TResponse>(
+export async function* serverStream<TRequest, TResponse>(
   call: ServerStreamCall<TRequest, TResponse>,
   request: TRequest,
   { token, timeoutMs = 60_000 }: ServerStreamOptions
-): AsyncIterable<TResponse> {
+): AsyncGenerator<TResponse, void, undefined> {
   const stream = call(request, authMetadata(token), {
     deadline: Date.now() + timeoutMs,
   })
-  return stream as unknown as AsyncIterable<TResponse>
+  try {
+    yield* stream as unknown as AsyncIterable<TResponse>
+  } finally {
+    stream.cancel()
+  }
 }
+
+/** gRPC status codes, so consumers never import `@grpc/grpc-js` directly. */
+export const grpcStatus = grpc.status
 
 /** Narrows an unknown catch value to a gRPC `ServiceError`. */
 export function isGrpcError(error: unknown): error is grpc.ServiceError {

@@ -1,7 +1,8 @@
-export { authMetadata, tokenAuthInterceptor } from "#auth"
+export { authMetadata } from "#auth"
 export {
   closeClients,
   getClient,
+  grpcStatus,
   grpcStatusName,
   isGrpcError,
   type ServerStreamOptions,
@@ -9,10 +10,3 @@ export {
   type UnaryOptions,
   unary,
 } from "#client"
-export type { GrpcServer, StartGrpcServerOptions } from "#server"
-export {
-  grpcError,
-  grpcStatus,
-  startGrpcServer,
-  stopGrpcServer,
-} from "#server"
