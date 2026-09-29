@@ -3,39 +3,32 @@ import { cn } from "@/lib/utils"
 
 const maxWidthClass = {
   "3xl": "max-w-3xl",
-  "4xl": "max-w-4xl",
-  "5xl": "max-w-5xl",
   "6xl": "max-w-6xl",
+  full: "max-w-none",
 } as const
 
-const paddingClass = {
-  page: "p-6 lg:px-8",
-  compact: "px-3 py-3 sm:px-6 sm:py-6",
-} as const
-
-/** Shared page frame. Providers stay at the Astro island entry point. */
+/**
+ * Width frame for a page. The layout's `<main>` owns the padding and the
+ * scroller, so this renders a plain block and never a second `<main>`.
+ */
 export function PageShell({
   maxWidth = "6xl",
-  padding = "page",
   className,
   children,
 }: {
   maxWidth?: keyof typeof maxWidthClass
-  padding?: keyof typeof paddingClass
   className?: string
   children: ReactNode
 }) {
   return (
-    <main className={cn("flex min-w-0 flex-1 flex-col", paddingClass[padding])}>
-      <div
-        className={cn(
-          "mx-auto flex w-full min-w-0 flex-1 flex-col",
-          maxWidthClass[maxWidth],
-          className
-        )}
-      >
-        {children}
-      </div>
-    </main>
+    <div
+      className={cn(
+        "mx-auto flex min-h-0 w-full min-w-0 flex-1 flex-col gap-6",
+        maxWidthClass[maxWidth],
+        className
+      )}
+    >
+      {children}
+    </div>
   )
 }

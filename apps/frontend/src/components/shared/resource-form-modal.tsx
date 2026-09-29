@@ -1,12 +1,13 @@
 import * as React from "react"
 import { useTranslation } from "react-i18next"
+import { InlineAlert } from "@/components/shared/feedback/inline-alert"
+import { FormField } from "@/components/shared/form/field-label"
 import { FormDialog } from "@/components/shared/form/form-dialog"
 import type {
   FieldDefinition,
   ResourceFormDefinition,
 } from "@/components/shared/resource-form-types"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
@@ -14,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import { useOnOpen } from "@/hooks/use-on-open"
 import { cn } from "@/lib/utils"
 
@@ -41,9 +43,6 @@ export interface ResourceFormModalProps<
   /** Optional id used to seed textarea / input elements for a11y tests. */
   formId?: string
 }
-
-export const TEXTAREA_BASE_CLASS =
-  "w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
 
 /**
  * Generic form modal driven by a `ResourceFormDefinition`. Manages local form
@@ -134,7 +133,7 @@ export function ResourceFormModal<TValues extends Record<string, unknown>>({
           }
         />
       ))}
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? <InlineAlert>{error}</InlineAlert> : null}
     </FormDialog>
   )
 }
@@ -155,13 +154,9 @@ function FieldRow({
     typeof value === "string" ? value : value == null ? "" : String(value)
 
   return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>
-        {field.label}
-        {field.required ? <span aria-hidden> *</span> : null}
-      </Label>
+    <FormField label={field.label} htmlFor={id} required={field.required}>
       {field.type === "textarea" ? (
-        <textarea
+        <Textarea
           id={id}
           required={field.required}
           disabled={disabled}
@@ -169,14 +164,17 @@ function FieldRow({
           value={stringValue}
           rows={field.rows ?? 5}
           onChange={(e) => onChange(e.target.value)}
-          className={cn(TEXTAREA_BASE_CLASS, field.inputClassName)}
+          className={cn("font-mono text-xs", field.inputClassName)}
         />
       ) : field.type === "select" ? (
         <Select
           value={stringValue || SELECT_EMPTY_VALUE}
-          onValueChange={(next) =>
+          onValueChange={(next) => {
+            // Radix emits "" while async options have not loaded yet; the
+            // empty choice is the sentinel, so "" is never a user choice.
+            if (next === "") return
             onChange(next === SELECT_EMPTY_VALUE ? "" : next)
-          }
+          }}
           disabled={disabled}
           required={field.required}
         >
@@ -215,6 +213,6 @@ function FieldRow({
           className={field.inputClassName}
         />
       )}
-    </div>
+    </FormField>
   )
 }

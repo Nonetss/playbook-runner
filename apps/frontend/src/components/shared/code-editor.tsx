@@ -18,16 +18,13 @@ const LANGUAGE_EXTENSIONS: Record<CodeEditorLanguage, Extension> = {
   yaml: yaml(),
 }
 
-const TERMINAL_FONT_STACK =
-  'ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace'
-
 const editorTheme = EditorView.theme({
   "&": {
     height: "100%",
     maxHeight: "100%",
     backgroundColor: "transparent",
     color: "var(--foreground)",
-    fontSize: "0.75rem",
+    fontSize: "var(--font-size-console)",
   },
   "&.cm-focused": {
     outline: "none",
@@ -36,8 +33,8 @@ const editorTheme = EditorView.theme({
     height: "100%",
     overflow: "auto !important",
     overscrollBehavior: "contain",
-    fontFamily: TERMINAL_FONT_STACK,
-    lineHeight: "1.625",
+    fontFamily: "var(--terminal-font)",
+    lineHeight: "var(--line-height-console)",
   },
   ".cm-content": {
     padding: "0.5rem 0",

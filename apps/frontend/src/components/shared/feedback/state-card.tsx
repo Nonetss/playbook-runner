@@ -3,6 +3,7 @@ import { getIcon } from "@/lib/icon-registry"
 const Loader2 = getIcon("status", "loading")
 
 import type { ReactNode } from "react"
+import { Text } from "@/components/shared/brand/typography"
 import { cn } from "@/lib/utils"
 
 /** Shared full-width state for loading, empty, errors, and completed actions. */
@@ -36,7 +37,7 @@ export function StateCard({
       ) : icon ? (
         <div
           className={cn(
-            "dash-pop flex size-10 items-center justify-center text-muted-foreground",
+            "dash-pop flex size-10 items-center justify-center text-muted-foreground [&_svg]:size-6",
             tone === "destructive" && "text-destructive",
             tone === "celebrate" && "text-primary"
           )}
@@ -45,19 +46,22 @@ export function StateCard({
         </div>
       ) : null}
       <div>
-        <p
-          className={cn(
-            "font-medium tracking-tight",
-            tone === "celebrate" ? "text-lg" : "text-base",
-            tone === "destructive" && "text-destructive"
-          )}
+        <Text
+          as="p"
+          variant={tone === "celebrate" ? "display" : "headline"}
+          tone={tone === "destructive" ? "destructive" : "default"}
         >
           {title}
-        </p>
+        </Text>
         {description ? (
-          <p className="mx-auto mt-1 max-w-sm text-sm leading-relaxed text-muted-foreground">
+          <Text
+            as="p"
+            variant="body"
+            tone="muted"
+            className="mx-auto mt-1 max-w-sm leading-relaxed"
+          >
             {description}
-          </p>
+          </Text>
         ) : null}
       </div>
       {action ? <div className="mt-1">{action}</div> : null}

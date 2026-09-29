@@ -54,7 +54,7 @@ export function StatusTag({
   return (
     <span
       className={cn(
-        "type-label flex items-center gap-1.5 text-muted-foreground",
+        "flex items-center gap-1.5 text-muted-foreground text-xs uppercase tracking-[0.08em] whitespace-nowrap",
         className
       )}
       title={title}

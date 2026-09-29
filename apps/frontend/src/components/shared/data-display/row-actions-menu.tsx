@@ -30,7 +30,7 @@ export function RowActionsMenu({
           size="icon"
           aria-label={label ?? t("labels.row_actions")}
           disabled={disabled}
-          className="size-10 opacity-60 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 md:size-9"
+          className="size-9 transition-opacity pointer-fine:opacity-60 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100 focus-visible:opacity-100"
         >
           <MoreHorizontal className="size-4" />
         </Button>
