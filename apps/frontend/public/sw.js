@@ -5,7 +5,7 @@
 // touches /rpc, /api, /scalar or /openapi.json — that's live
 // run/auth data (including the execution streams) and must always be
 // fetched fresh.
-const CACHE = "playbook-runner-shell-v1"
+const CACHE = "playbook-runner-shell-v2"
 const BYPASS = [/^\/rpc\//, /^\/api\//, /^\/scalar/, /^\/openapi\.json/]
 
 self.addEventListener("install", (event) => {

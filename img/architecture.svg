@@ -305,8 +305,8 @@
     width="256"
     height="116"
     rx="6"
-    fill="rgba(242,80,29,0.08)"
-    stroke="#f2501d"
+    fill="rgba(217,119,87,0.08)"
+    stroke="#d97757"
     stroke-width="1.2"
   />
   <rect
@@ -316,13 +316,13 @@
     height="12"
     rx="2"
     fill="transparent"
-    stroke="rgba(242,80,29,0.50)"
+    stroke="rgba(217,119,87,0.50)"
     stroke-width="0.8"
   />
   <text
     x="476"
     y="363"
-    fill="rgba(242,80,29,0.95)"
+    fill="rgba(217,119,87,0.95)"
     font-size="7"
     font-family="'Geist Mono', monospace"
     text-anchor="middle"
@@ -523,8 +523,8 @@
     width="20"
     height="14"
     rx="3"
-    fill="rgba(242,80,29,0.08)"
-    stroke="#f2501d"
+    fill="rgba(217,119,87,0.08)"
+    stroke="#d97757"
     stroke-width="1"
   />
   <text
