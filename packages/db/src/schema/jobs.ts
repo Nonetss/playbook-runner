@@ -66,6 +66,8 @@ export const jobRuns = pgTable(
     // succeeded even though the run as a whole is marked `failed`.
     hostsOk: integer("hosts_ok"),
     hostsFailed: integer("hosts_failed"),
+    // Commit a Git-sourced playbook ran at; null for inline playbooks.
+    commitSha: text("commit_sha"),
     startedAt: timestamp("started_at"),
     finishedAt: timestamp("finished_at"),
     createdAt: timestamp("created_at").default(sql`now()`),
