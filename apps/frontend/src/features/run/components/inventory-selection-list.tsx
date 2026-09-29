@@ -7,6 +7,7 @@ const Search = getIcon("views", "search")
 const Computer = getIcon("resources", "device")
 
 import { type ElementType, useMemo, useState } from "react"
+import { Text } from "@/components/shared/brand/typography"
 import { Input } from "@/components/ui/input"
 import type {
   InventoryDevice,
@@ -153,9 +154,9 @@ function SelectionSection({
   if (!collapsible) {
     return (
       <div className="space-y-1">
-        <p className="text-muted-foreground px-2 font-medium text-label uppercase tracking-wide">
+        <Text as="p" variant="label" tone="muted" className="px-2">
           {title}
-        </p>
+        </Text>
         {content}
       </div>
     )

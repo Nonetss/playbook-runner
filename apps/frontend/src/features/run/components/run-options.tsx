@@ -1,7 +1,9 @@
 import type { ReactNode } from "react"
+import { dataFieldClass } from "@/components/shared/brand/typography"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { cn } from "@/lib/utils"
 
 /** Inline switch row of the run side panel (e.g. sudo). */
 export function RunSwitchOption({
@@ -68,7 +70,7 @@ export function RunForksOption({
           onChange(Math.max(1, Number.parseInt(e.target.value, 10) || 1))
         }
         disabled={disabled}
-        className="h-9 w-20 font-mono text-xs tabular-nums"
+        className={cn(dataFieldClass, "h-9 w-20")}
       />
     </div>
   )

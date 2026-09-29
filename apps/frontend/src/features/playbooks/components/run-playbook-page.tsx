@@ -8,6 +8,7 @@ import type * as React from "react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
+import { dataFieldClass } from "@/components/shared/brand/typography"
 import { StateCard } from "@/components/shared/feedback/state-card"
 import { DetailFrame } from "@/components/shared/layout/detail-frame"
 import { PageHero } from "@/components/shared/layout/page-hero"
@@ -33,6 +34,7 @@ import { useRunPlaybook } from "@/features/run/hooks/use-run-playbook"
 import { toggleIn } from "@/features/run/hooks/use-selection-toggle"
 import type { RunSelection } from "@/features/run/types"
 import { useConfirm } from "@/hooks/use-confirm"
+import { cn } from "@/lib/utils"
 
 // ── RunPlaybookPageInner ──────────────────────────────────────────────────────
 
@@ -228,7 +230,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                           )
                         )
                       }
-                      className="h-9 min-w-0 flex-1 font-mono text-xs"
+                      className={cn(dataFieldClass, "h-9 min-w-0 flex-1")}
                     />
                     <Input
                       placeholder={t("run.panel.extravars_value_placeholder")}
@@ -240,7 +242,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                           )
                         )
                       }
-                      className="h-9 min-w-0 flex-1 font-mono text-xs"
+                      className={cn(dataFieldClass, "h-9 min-w-0 flex-1")}
                     />
                     <Button
                       type="button"
