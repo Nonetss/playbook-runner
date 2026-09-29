@@ -44,16 +44,6 @@ export const useJobRunsList = (
   )
 
 /** Fetch a single run; polls while it is still `running`. */
-export const useJobRunGet = (id: string, options?: { enabled?: boolean }) =>
-  useHydratedQuery(
-    orpc.jobs.runs.get.queryOptions({
-      input: { id },
-      enabled: !!id && (options?.enabled ?? true),
-      refetchInterval: (query) =>
-        query.state.data?.status === "running" ? 2000 : false,
-    })
-  )
-
 /**
  * Infinite query over the cross-job run feed (`jobs.runs.listAll`). Each
  * page carries `nextCursor`; we thread it through as the TanStack
@@ -105,6 +95,9 @@ export function useJobRunRollups(options?: { live?: boolean }) {
 // ── Mutation helpers ──────────────────────────────────────────────────────────
 
 const listKey = orpc.jobs.list.queryKey()
+
+const detailKey = (input: { id: string }) =>
+  orpc.jobs.get.queryKey({ input: { id: input.id } })
 
 type CreateInput = {
   name: string
@@ -202,8 +195,7 @@ export const useJobCreate = () => {
 
 export const useJobUpdate = () => {
   const { t } = useTranslation("jobs")
-  const queryClient = useQueryClient()
-  const mutation = useResourceMutation<UpdateInput, Job, Job[]>({
+  return useResourceMutation<UpdateInput, Job, Job[]>({
     mutationFn: (input) =>
       orpc.jobs.update.call({
         id: input.id,
@@ -217,20 +209,10 @@ export const useJobUpdate = () => {
         enabled: input.enabled ?? true,
       }) as Promise<Job>,
     listKey,
+    detailKey,
     applyOptimistic: applyUpdate,
     messages: { success: t("toast.updated"), error: t("toast.update_error") },
   })
-
-  return {
-    ...mutation,
-    mutateAsync: async (input: UpdateInput) => {
-      const result = await mutation.mutateAsync(input)
-      await queryClient.invalidateQueries({
-        queryKey: orpc.jobs.get.queryKey({ input: { id: input.id } }),
-      })
-      return result
-    },
-  }
 }
 
 export const useJobDelete = () => {
@@ -238,6 +220,8 @@ export const useJobDelete = () => {
   return useResourceMutation<{ id: string }, Job, Job[]>({
     mutationFn: (input) => orpc.jobs.delete.call(input) as Promise<Job>,
     listKey,
+    detailKey,
+    removeDetail: true,
     applyOptimistic: applyDelete,
     messages: { success: t("toast.deleted"), error: t("toast.delete_error") },
   })
@@ -248,6 +232,7 @@ export const useJobToggleEnabled = () => {
   return useResourceMutation<{ id: string; enabled: boolean }, Job, Job[]>({
     mutationFn: (input) => orpc.jobs.toggleEnabled.call(input) as Promise<Job>,
     listKey,
+    detailKey,
     applyOptimistic: applyToggle,
     messages: { success: t("toast.toggled"), error: t("toast.toggle_error") },
   })

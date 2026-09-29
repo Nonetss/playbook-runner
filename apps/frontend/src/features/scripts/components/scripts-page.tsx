@@ -12,7 +12,6 @@ import {
   useScriptsList,
 } from "@/features/scripts/hooks/use-scripts"
 import { useConfirm } from "@/hooks/use-confirm"
-import { notifyError } from "@/lib/toast"
 
 function ScriptsPageInner() {
   const { t } = useTranslation("scripts")
@@ -34,14 +33,8 @@ function ScriptsPageInner() {
 
     if (!confirmed) return
 
-    try {
-      await deleteScript.mutateAsync({ id })
-    } catch (err) {
-      notifyError(
-        t("delete.error"),
-        err instanceof Error ? err.message : undefined
-      )
-    }
+    // The mutation hook shows the error toast.
+    deleteScript.mutate({ id })
   }
 
   return (

@@ -153,7 +153,12 @@ function JobDetailPageInner({ id }: { id: string }) {
     })
     if (!confirmed) return
 
-    const { runId } = await runJob.mutateAsync({ id })
+    let runId: string | null
+    try {
+      ;({ runId } = await runJob.mutateAsync({ id }))
+    } catch {
+      return // useJobRun already showed the error toast (e.g. already running).
+    }
     if (runId) {
       focusRun(runId)
       watch.start(runId)

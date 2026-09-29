@@ -1,4 +1,3 @@
-import { useMutation } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import type {
   InventoryDevice,
@@ -12,16 +11,10 @@ export const useDevicesList = () => {
   return useHydratedQuery(orpc.inventory.devices.list.queryOptions())
 }
 
-export const useDeviceGet = (id: string, options?: { enabled?: boolean }) => {
-  return useHydratedQuery(
-    orpc.inventory.devices.get.queryOptions({
-      input: { id },
-      enabled: !!id && (options?.enabled ?? true),
-    })
-  )
-}
-
 const listKey = orpc.inventory.devices.list.queryKey()
+
+const detailKey = (input: { id: string }) =>
+  orpc.inventory.devices.get.queryKey({ input: { id: input.id } })
 
 type DeviceMutationInput = {
   name: string
@@ -105,6 +98,7 @@ export const useDeviceUpdate = () => {
     mutationFn: (input) =>
       orpc.inventory.devices.update.call(input) as Promise<InventoryDevice>,
     listKey,
+    detailKey,
     applyOptimistic: applyUpdateOptimistic,
     messages: {
       success: t("toast.device_updated"),
@@ -123,6 +117,8 @@ export const useDeviceDelete = () => {
     mutationFn: (input) =>
       orpc.inventory.devices.delete.call(input) as Promise<InventoryDevice>,
     listKey,
+    detailKey,
+    removeDetail: true,
     applyOptimistic: applyDeleteOptimistic,
     messages: {
       success: t("toast.device_deleted"),
@@ -135,10 +131,3 @@ export const useDeviceDelete = () => {
  * Plain mutation hook kept for relations and other actions that don't touch
  * the device list directly. Caller is responsible for toasts.
  */
-export function useDeviceAssign() {
-  return useMutation(orpc.inventory.deviceGroups.assign.mutationOptions())
-}
-
-export function useDeviceUnassign() {
-  return useMutation(orpc.inventory.deviceGroups.unassign.mutationOptions())
-}

@@ -30,7 +30,6 @@ import type {
   InventoryGroup,
 } from "@/features/inventory/types"
 import { useConfirm } from "@/hooks/use-confirm"
-import { notifyError } from "@/lib/toast"
 
 type InventorySection = "groups" | "devices"
 
@@ -164,7 +163,7 @@ function InventoryPageInner({ section }: { section: InventorySection }) {
 
   async function handleDeleteGroup(id: string) {
     const group = groups.find((item) => item.id === id)
-    const label = group?.name ?? "este grupo"
+    const label = group?.name ?? t("group.fallback_label")
     const confirmed = await confirm({
       title: t("group.delete_confirm_title", { label }),
       description: t("group.delete_confirm_description"),
@@ -174,19 +173,13 @@ function InventoryPageInner({ section }: { section: InventorySection }) {
     })
     if (!confirmed) return
 
-    try {
-      await deleteGroup.mutateAsync({ id })
-    } catch (err) {
-      notifyError(
-        t("group.delete_error"),
-        err instanceof Error ? err.message : undefined
-      )
-    }
+    // The mutation hook shows the error toast.
+    deleteGroup.mutate({ id })
   }
 
   async function handleDeleteDevice(id: string) {
     const device = devices.find((item) => item.id === id)
-    const label = device?.name ?? "este dispositivo"
+    const label = device?.name ?? t("device.fallback_label")
     const confirmed = await confirm({
       title: t("device.delete_confirm_title", { label }),
       description: t("device.delete_confirm_description"),
@@ -196,14 +189,8 @@ function InventoryPageInner({ section }: { section: InventorySection }) {
     })
     if (!confirmed) return
 
-    try {
-      await deleteDevice.mutateAsync({ id })
-    } catch (err) {
-      notifyError(
-        t("device.delete_error"),
-        err instanceof Error ? err.message : undefined
-      )
-    }
+    // The mutation hook shows the error toast.
+    deleteDevice.mutate({ id })
   }
 
   return (

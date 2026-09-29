@@ -92,11 +92,16 @@ export function PingDeviceModal({
     usePingDevice()
   const consoleRef = useRef<HTMLDivElement>(null)
 
+  const deviceId = device?.id
   useEffect(() => {
-    if (!open || !device) return
+    if (!open || !deviceId) return
     reset()
-    start(device.id)
-  }, [open, device?.id])
+    start(deviceId)
+    // Detach the stream when the modal closes or the device changes. `reset`
+    // (not `stopWatching`, which changes with `phase`) keeps this effect from
+    // restarting the ping on every phase change.
+    return reset
+  }, [open, deviceId, start, reset])
 
   useEffect(() => {
     const el = consoleRef.current

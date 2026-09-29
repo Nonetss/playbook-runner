@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/card"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import type { Playbook, PlaybookFolder } from "@/features/playbooks/types"
-import { navigate } from "@/lib/navigate"
 import { cn } from "@/lib/utils"
 
 type PlaybookFolderCardProps = {
@@ -40,37 +39,14 @@ export function PlaybookFolderCard({
   const { t } = useTranslation("playbooks")
   const openHref = `/playbooks?folder=${encodeURIComponent(folder.id)}`
 
-  function isInteractiveTarget(target: EventTarget | null) {
-    return (target as HTMLElement | null)?.closest(
-      '[data-slot="card-action"], [data-slot="dropdown-menu-item"], [role="menuitem"], a, button'
-    )
-  }
-
-  function openFolder() {
-    if (isDeleting) return
-    navigate(openHref)
-  }
-
+  // The title is a stretched link (its ::after covers the card), so the
+  // whole card is clickable without nesting the action buttons inside a link.
   return (
     <Card
-      role="link"
-      tabIndex={isDeleting ? undefined : 0}
-      aria-label={`${t("folder.open")} ${folder.name}`}
       className={cn(
         "relative h-full gap-4 py-4",
-        !isDeleting && "cursor-pointer"
+        !isDeleting && "hover:bg-accent/30 transition-colors"
       )}
-      onClick={(event) => {
-        if (isInteractiveTarget(event.target)) return
-        openFolder()
-      }}
-      onKeyDown={(event) => {
-        if (isDeleting) return
-        if (event.key !== "Enter" && event.key !== " ") return
-        if (isInteractiveTarget(event.target)) return
-        event.preventDefault()
-        openFolder()
-      }}
     >
       <CardHeader className="px-4">
         <div className="flex min-w-0 items-start gap-3 overflow-hidden pr-2 text-left">
@@ -78,7 +54,19 @@ export function PlaybookFolderCard({
             <Folder className="size-4" />
           </span>
           <span className="min-w-0 flex-1 overflow-hidden">
-            <CardTitle className="truncate text-base">{folder.name}</CardTitle>
+            <CardTitle className="truncate text-base">
+              {isDeleting ? (
+                folder.name
+              ) : (
+                <a
+                  href={openHref}
+                  aria-label={`${t("folder.open")} ${folder.name}`}
+                  className="rounded-sm outline-none after:absolute after:inset-0 after:rounded-xl after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-ring"
+                >
+                  {folder.name}
+                </a>
+              )}
+            </CardTitle>
             {folder.description ? (
               <CardDescription className="line-clamp-2 wrap-break-word">
                 {folder.description}
@@ -87,7 +75,7 @@ export function PlaybookFolderCard({
           </span>
         </div>
 
-        <CardAction>
+        <CardAction className="relative z-10">
           <RowActionsMenu
             label={t("folder.actions_aria", { name: folder.name })}
             disabled={isDeleting}
@@ -140,7 +128,7 @@ export function PlaybookFolderCard({
           asChild
           variant="outline"
           size="sm"
-          className="mt-auto w-full"
+          className="relative z-10 mt-auto w-full"
           disabled={isDeleting}
         >
           <a href={openHref}>

@@ -1,5 +1,7 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQueryClient } from "@tanstack/react-query"
+import { useTranslation } from "react-i18next"
 import { useHydratedQuery } from "@/hooks/use-hydrated-query"
+import { useOrpcMutation } from "@/hooks/use-orpc-mutation"
 import { orpc } from "@/lib/orpc"
 
 const useInvalidateDeviceGroups = () => {
@@ -72,24 +74,30 @@ export const useDeviceGroupsByGroup = (
   )
 }
 
+type DeviceGroupInput = { deviceId: string; groupId: string }
+
 export const useDeviceGroupAssign = () => {
+  const { t } = useTranslation("inventory")
   const invalidate = useInvalidateDeviceGroups()
 
-  return useMutation(
-    orpc.inventory.deviceGroups.assign.mutationOptions({
-      onSuccess: (_, { deviceId, groupId }) =>
-        invalidate.all(deviceId, groupId),
-    })
-  )
+  return useOrpcMutation({
+    mutationFn: (input: DeviceGroupInput) =>
+      orpc.inventory.deviceGroups.assign.call(input),
+    success: t("relations.created"),
+    error: t("relations.create_error"),
+    onSuccess: (_, { deviceId, groupId }) => invalidate.all(deviceId, groupId),
+  })
 }
 
 export const useDeviceGroupUnassign = () => {
+  const { t } = useTranslation("inventory")
   const invalidate = useInvalidateDeviceGroups()
 
-  return useMutation(
-    orpc.inventory.deviceGroups.unassign.mutationOptions({
-      onSuccess: (_, { deviceId, groupId }) =>
-        invalidate.all(deviceId, groupId),
-    })
-  )
+  return useOrpcMutation({
+    mutationFn: (input: DeviceGroupInput) =>
+      orpc.inventory.deviceGroups.unassign.call(input),
+    success: t("relations.removed"),
+    error: t("relations.remove_error"),
+    onSuccess: (_, { deviceId, groupId }) => invalidate.all(deviceId, groupId),
+  })
 }

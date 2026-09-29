@@ -20,6 +20,9 @@ export const usePlaybookGet = (id: string, options?: { enabled?: boolean }) => {
 
 const listKey = orpc.playbooks.list.queryKey()
 
+const detailKey = (input: { id: string }) =>
+  orpc.playbooks.get.queryKey({ input: { id: input.id } })
+
 function applyCreateOptimistic(
   current: Playbook[] | undefined,
   input: {
@@ -122,6 +125,7 @@ export function usePlaybookUpdate() {
         folderId: toFolderId(input.folderId),
       }) as Promise<Playbook>,
     listKey,
+    detailKey,
     applyOptimistic: applyUpdateOptimistic,
     messages: {
       success: t("toast.updated"),
@@ -136,6 +140,8 @@ export function usePlaybookDelete() {
     mutationFn: (input) =>
       orpc.playbooks.delete.call(input) as Promise<Playbook>,
     listKey,
+    detailKey,
+    removeDetail: true,
     applyOptimistic: applyDeleteOptimistic,
     messages: {
       success: t("toast.deleted"),

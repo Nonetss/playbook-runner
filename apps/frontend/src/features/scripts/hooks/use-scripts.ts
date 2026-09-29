@@ -19,6 +19,9 @@ export const useScriptGet = (id: string, options?: { enabled?: boolean }) => {
 
 const listKey = orpc.scripts.list.queryKey()
 
+const detailKey = (input: { id: string }) =>
+  orpc.scripts.get.queryKey({ input: { id: input.id } })
+
 function applyCreateOptimistic(
   current: Script[] | undefined,
   input: {
@@ -118,6 +121,7 @@ export const useScriptUpdate = () => {
         language: input.language,
       }) as Promise<Script>,
     listKey,
+    detailKey,
     applyOptimistic: applyUpdateOptimistic,
     messages: { success: t("toast.updated"), error: t("toast.update_error") },
   })
@@ -128,6 +132,8 @@ export const useScriptDelete = () => {
   return useResourceMutation<{ id: string }, Script, Script[]>({
     mutationFn: (input) => orpc.scripts.delete.call(input) as Promise<Script>,
     listKey,
+    detailKey,
+    removeDetail: true,
     applyOptimistic: applyDeleteOptimistic,
     messages: { success: t("toast.deleted"), error: t("toast.delete_error") },
   })

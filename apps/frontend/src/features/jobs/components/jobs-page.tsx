@@ -17,7 +17,6 @@ import type { Job } from "@/features/jobs/types"
 import { usePlaybooksList } from "@/features/playbooks/hooks/use-playbooks"
 import { useConfirm } from "@/hooks/use-confirm"
 import { navigate } from "@/lib/navigate"
-import { notifyError } from "@/lib/toast"
 
 function JobsPageInner() {
   const { t } = useTranslation("jobs")
@@ -44,7 +43,12 @@ function JobsPageInner() {
     })
     if (!confirmed) return
 
-    const { runId } = await runJob.mutateAsync({ id: job.id })
+    let runId: string | null
+    try {
+      ;({ runId } = await runJob.mutateAsync({ id: job.id }))
+    } catch {
+      return // useJobRun already showed the error toast (e.g. already running).
+    }
     navigate(runId ? `/jobs/${job.id}?run=${runId}` : `/jobs/${job.id}`)
   }
 
@@ -59,25 +63,13 @@ function JobsPageInner() {
       variant: "destructive",
     })
     if (!confirmed) return
-    try {
-      await deleteJob.mutateAsync({ id })
-    } catch (err) {
-      notifyError(
-        t("delete.error"),
-        err instanceof Error ? err.message : undefined
-      )
-    }
+    // The mutation hook shows the error toast.
+    deleteJob.mutate({ id })
   }
 
   async function handleToggleEnabled(id: string, enabled: boolean) {
-    try {
-      await toggleEnabled.mutateAsync({ id, enabled })
-    } catch (err) {
-      notifyError(
-        t("toggle_error"),
-        err instanceof Error ? err.message : undefined
-      )
-    }
+    // The mutation hook shows the error toast.
+    toggleEnabled.mutate({ id, enabled })
   }
 
   const isDeletingId = deleteJob.isPending

@@ -33,7 +33,6 @@ import {
 } from "@/features/playbooks/hooks/use-playbooks"
 import type { Playbook, PlaybookFolder } from "@/features/playbooks/types"
 import { useConfirm } from "@/hooks/use-confirm"
-import { notifyError } from "@/lib/toast"
 
 type ResourceFilter = "all" | "folders" | "playbooks"
 
@@ -116,14 +115,8 @@ function PlaybooksPageInner() {
 
     if (!confirmed) return
 
-    try {
-      await deletePlaybook.mutateAsync({ id })
-    } catch (err) {
-      notifyError(
-        t("delete.error"),
-        err instanceof Error ? err.message : undefined
-      )
-    }
+    // The mutation hook shows the error toast.
+    deletePlaybook.mutate({ id })
   }
 
   async function handleFolderDelete(folder: PlaybookFolder) {

@@ -1,4 +1,3 @@
-import { useMutation } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import type {
   InventoryGroup,
@@ -22,6 +21,9 @@ export const useGroupGet = (id: string, options?: { enabled?: boolean }) => {
 }
 
 const listKey = orpc.inventory.groups.list.queryKey()
+
+const detailKey = (input: { id: string }) =>
+  orpc.inventory.groups.get.queryKey({ input: { id: input.id } })
 
 function applyCreateOptimistic(
   current: InventoryGroupList | undefined,
@@ -88,6 +90,7 @@ export const useGroupUpdate = () => {
     mutationFn: (input) =>
       orpc.inventory.groups.update.call(input) as Promise<InventoryGroup>,
     listKey,
+    detailKey,
     applyOptimistic: applyUpdateOptimistic,
     messages: {
       success: t("toast.group_updated"),
@@ -106,6 +109,8 @@ export const useGroupDelete = () => {
     mutationFn: (input) =>
       orpc.inventory.groups.delete.call(input) as Promise<InventoryGroup>,
     listKey,
+    detailKey,
+    removeDetail: true,
     applyOptimistic: applyDeleteOptimistic,
     messages: {
       success: t("toast.group_deleted"),
@@ -115,11 +120,3 @@ export const useGroupDelete = () => {
 }
 
 /** Plain mutations for relations; toasts handled in the relations dialog. */
-export function useGroupRelations() {
-  return {
-    assign: useMutation(orpc.inventory.deviceGroups.assign.mutationOptions()),
-    unassign: useMutation(
-      orpc.inventory.deviceGroups.unassign.mutationOptions()
-    ),
-  }
-}

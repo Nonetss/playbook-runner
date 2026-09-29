@@ -22,7 +22,6 @@ import {
   useDeviceGroupsByGroup,
   useDeviceGroupUnassign,
 } from "@/features/inventory/hooks/use-device-groups"
-import { notifyError, notifySuccess } from "@/lib/toast"
 
 type Kind = "deviceGroups" | "groupDevices"
 
@@ -94,30 +93,13 @@ export function RelationsDialog({
 
   const isMutating = assign.isPending || unassign.isPending
 
-  async function handleToggle(option: Option) {
-    const isSelected = selectedIds.has(option.id)
-    try {
-      if (isSelected) {
-        await unassign.mutateAsync(
-          isDevice
-            ? { deviceId: entityId, groupId: option.id }
-            : { groupId: entityId, deviceId: option.id }
-        )
-        notifySuccess(t("relations.removed"))
-      } else {
-        await assign.mutateAsync(
-          isDevice
-            ? { deviceId: entityId, groupId: option.id }
-            : { groupId: entityId, deviceId: option.id }
-        )
-        notifySuccess(t("relations.created"))
-      }
-    } catch (err) {
-      notifyError(
-        isSelected ? t("relations.remove_error") : t("relations.create_error"),
-        err instanceof Error ? err.message : undefined
-      )
-    }
+  function handleToggle(option: Option) {
+    const input = isDevice
+      ? { deviceId: entityId, groupId: option.id }
+      : { groupId: entityId, deviceId: option.id }
+    // The hooks show the success/error toasts.
+    if (selectedIds.has(option.id)) unassign.mutate(input)
+    else assign.mutate(input)
   }
 
   const title = isDevice

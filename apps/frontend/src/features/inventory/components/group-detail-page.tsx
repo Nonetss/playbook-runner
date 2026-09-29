@@ -60,7 +60,8 @@ function GroupDetailPageInner({ id }: { id: string }) {
   async function handleSave(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!group) return
-    await updateGroup.mutateAsync({
+    // The mutation hook shows the error toast.
+    updateGroup.mutate({
       id: group.id,
       name,
       description: description || undefined,
@@ -77,18 +78,19 @@ function GroupDetailPageInner({ id }: { id: string }) {
       variant: "destructive",
     })
     if (!confirmed) return
-    await deleteGroup.mutateAsync({ id: group.id })
+    try {
+      await deleteGroup.mutateAsync({ id: group.id })
+    } catch {
+      return // The mutation hook already showed the error toast.
+    }
     navigate("/inventory")
   }
 
-  async function handleToggleDevice(deviceId: string) {
+  function handleToggleDevice(deviceId: string) {
     if (!group) return
-    const isAssigned = assignedIds.has(deviceId)
-    if (isAssigned) {
-      await unassign.mutateAsync({ groupId: group.id, deviceId })
-    } else {
-      await assign.mutateAsync({ groupId: group.id, deviceId })
-    }
+    const input = { groupId: group.id, deviceId }
+    if (assignedIds.has(deviceId)) unassign.mutate(input)
+    else assign.mutate(input)
   }
 
   if (isPending) {
