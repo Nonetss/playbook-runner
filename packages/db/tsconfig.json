@@ -1,9 +1,7 @@
 {
   "extends": "@playbook-runner/config/tsconfig.base.json",
   "compilerOptions": {
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
+    "noEmit": true,
     "outDir": "dist",
     "composite": true
   }
