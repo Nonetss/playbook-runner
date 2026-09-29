@@ -13,6 +13,10 @@ const Computer = getIcon("resources", "device")
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import {
+  TerminalPanel,
+  TerminalPanelMeta,
+} from "@/features/run/components/terminal-panel"
 import { useFollowOutput } from "@/features/run/hooks/use-follow-output"
 import {
   isFailedStatus,
@@ -113,33 +117,31 @@ function HostCard({ result }: { result: HostResult }) {
   const stderrIsError = isFailedStatus(result.status)
 
   return (
-    <div className="overflow-hidden rounded-lg border border-terminal-border bg-terminal-surface">
-      <div className="flex items-center gap-2 border-b border-terminal-border bg-terminal-raised px-3 py-1.5">
-        <Computer className="size-3.5 shrink-0 text-terminal-subtle" />
-        <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium text-terminal-fg">
-          {result.host}
-        </span>
-        <span
-          className={cn(
-            "flex shrink-0 items-center gap-1 font-mono text-console-meta font-medium",
-            meta.textClass
-          )}
-        >
-          <Icon
+    <TerminalPanel
+      icon={Computer}
+      title={result.host}
+      meta={
+        <>
+          <TerminalPanelMeta
             className={cn(
-              "size-3.5",
-              result.status === "running" && "animate-spin"
+              "flex items-center gap-1 font-medium",
+              meta.textClass
             )}
-          />
-          {t(`run_console.status.${result.status}`)}
-        </span>
-        {result.rc != null ? (
-          <span className="shrink-0 font-mono text-console-meta text-terminal-subtle">
-            rc={result.rc}
-          </span>
-        ) : null}
-      </div>
-
+          >
+            <Icon
+              className={cn(
+                "size-3.5",
+                result.status === "running" && "animate-spin"
+              )}
+            />
+            {t(`run_console.status.${result.status}`)}
+          </TerminalPanelMeta>
+          {result.rc != null ? (
+            <TerminalPanelMeta>rc={result.rc}</TerminalPanelMeta>
+          ) : null}
+        </>
+      }
+    >
       <div className="px-3 py-2.5">
         {result.status === "running" ? (
           <p className="text-xs text-terminal-muted">
@@ -200,7 +202,7 @@ function HostCard({ result }: { result: HostResult }) {
           </div>
         ) : null}
       </div>
-    </div>
+    </TerminalPanel>
   )
 }
 

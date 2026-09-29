@@ -14,6 +14,10 @@ const Terminal = getIcon("resources", "terminal")
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import {
+  TerminalPanel,
+  TerminalPanelMeta,
+} from "@/features/run/components/terminal-panel"
 import { useFollowOutput } from "@/features/run/hooks/use-follow-output"
 import {
   isFailedStatus,
@@ -276,42 +280,39 @@ function TaskCard({ task }: { task: TaskBlock }) {
   ).length
 
   return (
-    <div className="overflow-hidden rounded-lg border border-terminal-border bg-terminal-surface">
-      <div className="flex items-center gap-2 border-b border-terminal-border bg-terminal-raised px-3 py-1.5">
-        <Terminal className="size-3.5 shrink-0 text-terminal-subtle" />
-        <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium text-terminal-fg">
-          {task.name || "—"}
-        </span>
-        {failCount > 0 ? (
-          <span className="shrink-0 font-mono text-console-meta text-terminal-failed">
-            {t("run_console.failures", { count: failCount })}
-          </span>
-        ) : null}
-        {okCount > 0 ? (
-          <span className="shrink-0 font-mono text-console-meta text-terminal-subtle">
-            {okCount} ok
-          </span>
-        ) : null}
-      </div>
+    <TerminalPanel
+      icon={Terminal}
+      title={task.name || "—"}
+      meta={
+        <>
+          {failCount > 0 ? (
+            <TerminalPanelMeta className="text-terminal-failed">
+              {t("run_console.failures", { count: failCount })}
+            </TerminalPanelMeta>
+          ) : null}
+          {okCount > 0 ? (
+            <TerminalPanelMeta>{okCount} ok</TerminalPanelMeta>
+          ) : null}
+        </>
+      }
+    >
       <div className="divide-y divide-terminal-border">
         {task.hosts.map((h, i) => (
           <HostResultRow key={`${h.host}-${i}`} result={h} />
         ))}
       </div>
-    </div>
+    </TerminalPanel>
   )
 }
 
 function RecapCard({ rows }: { rows: RecapRow[] }) {
   const { t } = useTranslation("common")
   return (
-    <div className="overflow-hidden rounded-lg border border-terminal-border bg-terminal-surface">
-      <div className="flex items-center gap-2 border-b border-terminal-border bg-terminal-raised px-3 py-1.5">
-        <ClipboardList className="size-3.5 shrink-0 text-terminal-subtle" />
-        <span className="font-mono text-xs font-medium text-terminal-fg uppercase">
-          {t("run_console.recap")}
-        </span>
-      </div>
+    <TerminalPanel
+      icon={ClipboardList}
+      title={t("run_console.recap")}
+      titleClassName="uppercase"
+    >
       <div className="divide-y divide-terminal-border">
         {rows.map((row) => {
           const status =
@@ -350,7 +351,7 @@ function RecapCard({ rows }: { rows: RecapRow[] }) {
           )
         })}
       </div>
-    </div>
+    </TerminalPanel>
   )
 }
 
