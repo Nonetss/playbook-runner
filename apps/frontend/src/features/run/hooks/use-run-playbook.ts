@@ -10,17 +10,18 @@ import { client } from "@/lib/orpc"
  * Drives a playbook execution and keeps stream lifecycle, retry, and
  * stop-watching behavior consistent with the other run surfaces.
  */
-export function useRunPlaybook() {
-  const subscribe = (
-    request: {
-      playbookId: string
-      inventory: RunSelection[]
-      forks?: number
-      extravars?: Record<string, string>
-    },
-    callbacks: RunStreamCallbacks
-  ) => consumeEventIterator(client.v1.run.run(request), callbacks)
+// Module-level so `useRunStream`'s `start` keeps a stable identity.
+const subscribe = (
+  request: {
+    playbookId: string
+    inventory: RunSelection[]
+    forks?: number
+    extravars?: Record<string, string>
+  },
+  callbacks: RunStreamCallbacks
+) => consumeEventIterator(client.v1.run.run(request), callbacks)
 
+export function useRunPlaybook() {
   const stream = useRunStream(subscribe)
 
   return {

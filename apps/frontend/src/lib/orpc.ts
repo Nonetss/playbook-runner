@@ -1,5 +1,6 @@
 import { createORPCClient } from "@orpc/client"
 import { RPCLink } from "@orpc/client/fetch"
+import { SimpleCsrfProtectionLinkPlugin } from "@orpc/client/plugins"
 import { createTanstackQueryUtils } from "@orpc/tanstack-query"
 import type { AppRouterClient } from "@playbook-runner/api/router"
 
@@ -14,6 +15,8 @@ export const link = new RPCLink({
       credentials: "include",
     })
   },
+  // Sends `x-csrf-token: orpc`, required by the backend for cookie auth.
+  plugins: [new SimpleCsrfProtectionLinkPlugin()],
 })
 
 /** Plain oRPC client for direct, imperative calls. */

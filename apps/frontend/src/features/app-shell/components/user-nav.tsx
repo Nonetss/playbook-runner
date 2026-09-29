@@ -5,6 +5,7 @@ const LogIn = getIcon("auth", "login")
 const LogOut = getIcon("actions", "logout")
 const UserCircle2 = getIcon("identity", "userCircle")
 const UserIcon = getIcon("identity", "user")
+const Users = getIcon("resources", "users")
 
 import { useTranslation } from "react-i18next"
 import {
@@ -18,12 +19,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { authClient } from "@/lib/auth-client"
 import { navigate } from "@/lib/navigate"
+import { getQueryClient } from "@/lib/query-client"
 
 const triggerClass =
   "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground inline-flex size-9 items-center justify-center rounded-md border shadow-xs transition-colors outline-none data-[state=open]:bg-accent data-[state=open]:text-accent-foreground"
 
 export interface UserNavProps {
-  user: User | null
+  user: (User & { role?: string | null }) | null
 }
 
 export function UserNav({ user }: UserNavProps) {
@@ -78,13 +80,26 @@ export function UserNav({ user }: UserNavProps) {
             {tNav("links.me")}
           </a>
         </DropdownMenuItem>
+        {user.role === "admin" ? (
+          <DropdownMenuItem asChild>
+            <a href="/admin/users">
+              <Users className="size-4 shrink-0" aria-hidden />
+              {tNav("links.admin_users")}
+            </a>
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           variant="destructive"
           className="cursor-pointer gap-2"
           onClick={async () => {
-            await authClient.signOut()
-            navigate("/login")
+            try {
+              await authClient.signOut()
+            } finally {
+              // Drop the previous user's cached data before anyone else signs in.
+              getQueryClient().clear()
+              navigate("/login")
+            }
           }}
         >
           <LogOut className="size-4 shrink-0" aria-hidden />

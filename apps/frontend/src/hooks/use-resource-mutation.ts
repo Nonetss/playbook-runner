@@ -1,5 +1,4 @@
 import {
-  type QueryClient,
   type QueryKey,
   useMutation,
   useQueryClient,
@@ -22,7 +21,12 @@ export interface ResourceMutationContext<TList> {
  * - `applyOptimistic`: optional callback that receives the current list and the
  *   mutation input and returns the next optimistic list. When omitted the
  *   mutation simply invalidates the list on settle.
- * - `extraInvalidate`: extra query keys to invalidate after settle (e.g. detail queries).
+ * - `extraInvalidate`: extra static query keys to invalidate after settle.
+ * - `detailKey`: builds the single-item query key from the input (e.g.
+ *   `orpc.scripts.get.queryKey({ input: { id } })`). Invalidated after settle
+ *   so edit forms and detail pages never show stale data.
+ * - `removeDetail`: for deletes — remove the detail query on success instead
+ *   of invalidating it (a refetch would 404).
  * - `messages`: success / error messages for the toast notifications.
  */
 export interface UseResourceMutationOptions<TInput, TOutput, TList> {
@@ -33,6 +37,8 @@ export interface UseResourceMutationOptions<TInput, TOutput, TList> {
     input: TInput
   ) => TList | undefined
   extraInvalidate?: ReadonlyArray<QueryKey>
+  detailKey?: (input: TInput) => QueryKey
+  removeDetail?: boolean
   messages: {
     success: string
     error: string
@@ -55,8 +61,15 @@ export function useResourceMutation<TInput, TOutput, TList = unknown>(
   options: UseResourceMutationOptions<TInput, TOutput, TList>
 ) {
   const queryClient = useQueryClient()
-  const { mutationFn, listKey, applyOptimistic, extraInvalidate, messages } =
-    options
+  const {
+    mutationFn,
+    listKey,
+    applyOptimistic,
+    extraInvalidate,
+    detailKey,
+    removeDetail = false,
+    messages,
+  } = options
 
   return useMutation<TOutput, Error, TInput, ResourceMutationContext<TList>>({
     mutationFn,
@@ -80,22 +93,20 @@ export function useResourceMutation<TInput, TOutput, TList = unknown>(
       }
       notifyError(messages.error, error.message)
     },
-    onSuccess: () => {
+    onSuccess: (_output, input) => {
+      if (detailKey && removeDetail) {
+        queryClient.removeQueries({ queryKey: detailKey(input) })
+      }
       notifySuccess(messages.success)
     },
-    onSettled: () => {
+    onSettled: (_output, _error, input) => {
       queryClient.invalidateQueries({ queryKey: listKey })
+      if (detailKey && !removeDetail) {
+        queryClient.invalidateQueries({ queryKey: detailKey(input) })
+      }
       for (const key of extraInvalidate ?? []) {
         queryClient.invalidateQueries({ queryKey: key })
       }
     },
   })
-}
-
-/**
- * Helper used internally by resource hooks to obtain the `QueryClient` (used
- * by tests / external callers that need direct cache access).
- */
-export function getQueryClientForResource(): QueryClient {
-  return useQueryClient()
 }

@@ -16,10 +16,11 @@ export type CommandRequest = {
   forks?: number
 }
 
+// Module-level so `useRunStream`'s `start` keeps a stable identity.
+const subscribe = (body: CommandRequest, callbacks: RunStreamCallbacks) =>
+  consumeEventIterator(client.v1.run.command(body), callbacks)
+
 /** Drives an ad-hoc command stream with safe cleanup and retry support. */
 export function useRunCommand() {
-  const subscribe = (body: CommandRequest, callbacks: RunStreamCallbacks) =>
-    consumeEventIterator(client.v1.run.command(body), callbacks)
-
   return useRunStream(subscribe)
 }

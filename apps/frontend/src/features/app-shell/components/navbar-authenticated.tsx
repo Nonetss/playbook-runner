@@ -74,7 +74,7 @@ function prefetchForHref(
       )
       return
     case "/config":
-      queryClient.prefetchQuery(orpc.config.apiKeys.list.queryOptions())
+      queryClient.prefetchQuery(orpc.apiKeys.list.queryOptions())
   }
 }
 

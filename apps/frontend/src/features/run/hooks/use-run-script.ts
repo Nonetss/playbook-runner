@@ -13,10 +13,11 @@ export type ScriptRequest = {
   forks?: number
 }
 
+// Module-level so `useRunStream`'s `start` keeps a stable identity.
+const subscribe = (body: ScriptRequest, callbacks: RunStreamCallbacks) =>
+  consumeEventIterator(client.v1.run.script(body), callbacks)
+
 /** Drives a stored-script stream with safe cleanup and retry support. */
 export function useRunScript() {
-  const subscribe = (body: ScriptRequest, callbacks: RunStreamCallbacks) =>
-    consumeEventIterator(client.v1.run.script(body), callbacks)
-
   return useRunStream(subscribe)
 }

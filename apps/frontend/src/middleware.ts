@@ -3,7 +3,7 @@ import { authServer } from "@/lib/auth-server"
 import { LOCALE_COOKIE } from "@/lib/i18n/config"
 import { resolveLocaleFromHeaders } from "@/lib/i18n/resolve"
 
-const publicPaths = ["/login", "/signup", "/scalar", "/openapi.json"]
+const publicPaths = ["/login", "/scalar", "/openapi.json"]
 const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
 // Paths that never need an auth check. Anything matching is forwarded as-is
@@ -37,22 +37,38 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return response
   }
 
-  if (publicPaths.some((p) => path.startsWith(p))) {
+  // Exact match or a nested path: `/login-foo` must not count as `/login`.
+  const isPublic = publicPaths.some(
+    (p) => path === p || path.startsWith(`${p}/`)
+  )
+  // Every public path except the login page skips the session lookup.
+  if (isPublic && path !== "/login") {
     return withLocaleCookie(await next())
   }
 
   let refreshedCookie: string | null = null
 
-  const sessionResult = await authServer.getSession({
-    fetchOptions: {
-      headers: Object.fromEntries(context.request.headers.entries()),
-      onSuccess: (ctx) => {
-        refreshedCookie = ctx.response.headers.get("set-cookie")
+  // A backend outage must not break the login page, so a failed lookup
+  // counts as "no session".
+  const sessionResult = await authServer
+    .getSession({
+      fetchOptions: {
+        headers: Object.fromEntries(context.request.headers.entries()),
+        onSuccess: (ctx) => {
+          refreshedCookie = ctx.response.headers.get("set-cookie")
+        },
       },
-    },
-  })
+    })
+    .catch(() => ({ data: null, error: new Error("session lookup failed") }))
 
-  if (sessionResult.error || sessionResult.data === null) {
+  const hasSession = !sessionResult.error && sessionResult.data !== null
+
+  if (path === "/login") {
+    // Signed-in users have nothing to do on the login page.
+    return hasSession ? context.redirect("/") : withLocaleCookie(await next())
+  }
+
+  if (!hasSession || !sessionResult.data) {
     return context.redirect("/login")
   }
 
@@ -60,6 +76,15 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   context.locals.session = session
   context.locals.user = user
+
+  // Mirrors the API's access rules: `pending` accounts may only see their
+  // profile, and admin pages require the `admin` role.
+  if (user.role === "pending" && path !== "/me") {
+    return context.redirect("/me")
+  }
+  if (path.startsWith("/admin") && user.role !== "admin") {
+    return context.redirect("/")
+  }
 
   const response = await next()
 
