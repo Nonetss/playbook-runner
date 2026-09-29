@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils"
 export function DetailFrame({
   backHref,
   backLabel,
-  maxWidth = "6xl",
+  maxWidth = "layout",
   className,
   children,
 }: {

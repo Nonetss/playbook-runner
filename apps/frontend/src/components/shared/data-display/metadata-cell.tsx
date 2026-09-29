@@ -19,7 +19,7 @@ export function MetadataCell({
 }) {
   return (
     <div className={cn("min-w-0", className)}>
-      <Text as="p" variant="label" tone="muted">
+      <Text as="p" variant="label" tone="muted" className="truncate">
         {label}
       </Text>
       <Text

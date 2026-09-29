@@ -4,6 +4,7 @@ const ChevronRight = getIcon("controls", "right")
 
 import { useTranslation } from "react-i18next"
 import { Text } from "@/components/shared/brand/typography"
+import { cardGridClass } from "@/components/shared/layout/card-grid"
 import { AppLink } from "@/components/ui/app-link"
 import { getSurface, type SurfaceId } from "@/lib/app-surfaces"
 import { cn } from "@/lib/utils"
@@ -59,12 +60,7 @@ export function SurfaceCardGrid({
   className?: string
 }) {
   return (
-    <div
-      className={cn(
-        "grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3",
-        className
-      )}
-    >
+    <div className={cn(cardGridClass, className)}>
       {surfaces.map((surface) => (
         <SurfaceCard key={surface} surface={surface} />
       ))}

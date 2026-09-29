@@ -35,7 +35,7 @@ export function ResourceOverview<TData>({
   filteredEmpty,
   children,
   footer,
-  maxWidth = "6xl",
+  maxWidth = "layout",
 }: {
   surface: SurfaceId
   /** Overrides the surface icon (e.g. an open folder). */

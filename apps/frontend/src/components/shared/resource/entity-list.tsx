@@ -10,6 +10,7 @@ import {
   type StatusDotTone,
   StatusTag,
 } from "@/components/shared/data-display/status-dot"
+import { cardGridClass } from "@/components/shared/layout/card-grid"
 import { AppLink } from "@/components/ui/app-link"
 import {
   DropdownMenuItem,
@@ -327,7 +328,7 @@ function EntityCard<TItem, TContext>({
   return (
     <li
       className={cn(
-        "group dash-enter relative flex min-w-0 flex-col rounded-xl border bg-card/40 p-5",
+        "@container group dash-enter relative flex min-w-0 flex-col rounded-xl border bg-card/40 p-5",
         "transition-colors duration-200 hover:border-foreground/15 hover:bg-muted/40 has-focus-visible:border-foreground/15",
         muted && "opacity-60"
       )}
@@ -388,7 +389,7 @@ function EntityCard<TItem, TContext>({
       </div>
 
       {metadata.length > 0 ? (
-        <div className="pointer-events-none relative z-10 mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t pt-4 [&_a]:pointer-events-auto [&_button]:pointer-events-auto">
+        <div className="pointer-events-none relative z-10 mt-4 grid grid-cols-1 gap-x-4 gap-y-3 border-t pt-4 @[18rem]:grid-cols-2 [&_a]:pointer-events-auto [&_button]:pointer-events-auto">
           {metadata.map((field) => (
             <MetadataCell key={field.key} label={metadataLabel(field, context)}>
               {field.value(item, context)}
@@ -429,12 +430,7 @@ export function EntityCardGrid<TItem, TContext = void>({
   className?: string
 }) {
   return (
-    <ul
-      className={cn(
-        "grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3",
-        className
-      )}
-    >
+    <ul className={cn(cardGridClass, className)}>
       {items.map((item, index) => (
         <EntityCard
           key={definition.getKey(item)}
