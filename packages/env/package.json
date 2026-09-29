@@ -8,7 +8,8 @@
     "./web": "./src/web.ts"
   },
   "scripts": {
-    "build": "true"
+    "build": "true",
+    "check-types": "tsc --noEmit -p ."
   },
   "dependencies": {
     "@t3-oss/env-core": "^0.13.1",

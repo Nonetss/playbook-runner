@@ -13,7 +13,8 @@
     "#*": "./src/*.ts"
   },
   "scripts": {
-    "build": "true"
+    "build": "true",
+    "check-types": "tsc --noEmit -p ."
   },
   "dependencies": {
     "@playbook-runner/auth": "workspace:*",

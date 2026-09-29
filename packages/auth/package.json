@@ -10,7 +10,8 @@
     }
   },
   "scripts": {
-    "build": "true"
+    "build": "true",
+    "check-types": "tsc --noEmit -p ."
   },
   "dependencies": {
     "@better-auth/api-key": "catalog:",

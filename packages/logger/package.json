@@ -7,16 +7,17 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "build": "true"
+    "build": "true",
+    "check-types": "tsc -b"
   },
   "dependencies": {
     "@playbook-runner/env": "workspace:*",
-    "pino": "catalog:"
+    "pino": "catalog:",
+    "pino-pretty": "catalog:"
   },
   "devDependencies": {
     "@playbook-runner/config": "workspace:*",
     "@types/bun": "catalog:",
-    "pino-pretty": "catalog:",
     "typescript": "catalog:"
   }
 }

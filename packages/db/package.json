@@ -18,7 +18,8 @@
     "db:generate": "drizzle-kit generate",
     "db:pull": "drizzle-kit pull",
     "db:studio": "drizzle-kit studio",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "check-types": "tsc --noEmit -p ."
   },
   "dependencies": {
     "@playbook-runner/env": "workspace:*",
