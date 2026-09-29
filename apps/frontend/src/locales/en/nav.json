@@ -13,7 +13,8 @@
     "history": "History",
     "config": "Settings",
     "me": "My profile",
-    "admin_users": "Users"
+    "admin_users": "Users",
+    "automation": "Automation"
   },
   "descriptions": {
     "credentials": "Manage the keys and users used for access.",
@@ -25,7 +26,12 @@
     "commands": "Run one-off remote commands.",
     "jobs": "Schedule and monitor recurring tasks.",
     "scheduler": "Create and manage recurring automations.",
-    "history": "Review past runs and their outcomes."
+    "history": "Review past runs and their outcomes.",
+    "automation": "Playbooks, scripts and commands ready to run.",
+    "home": "Your automation at a glance.",
+    "config": "API keys and application settings.",
+    "admin_users": "Manage accounts and their roles.",
+    "me": "Your account and session."
   },
   "actions": {
     "sign_out": "Sign out",

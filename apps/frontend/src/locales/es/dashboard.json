@@ -57,7 +57,8 @@
     "no_playbook": "Sin playbook",
     "manual": "Manual",
     "active": "Activo",
-    "inactive": "Inactivo"
+    "inactive": "Inactivo",
+    "schedule": "Programación"
   },
   "quick_links": {
     "new_playbook_title": "Nuevo playbook",
@@ -65,6 +66,7 @@
     "manage_inventory_title": "Gestionar inventario",
     "manage_inventory_desc": "Dispositivos y grupos",
     "ssh_credentials_title": "Credenciales SSH",
-    "ssh_credentials_desc": "Claves para conectar a hosts"
+    "ssh_credentials_desc": "Claves para conectar a hosts",
+    "title": "Accesos directos"
   }
 }

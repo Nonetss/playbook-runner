@@ -26,7 +26,8 @@
     "edit": "Editar",
     "delete": "Eliminar",
     "updated_on": "Actualizado el {{date}}",
-    "default_language": "bash"
+    "default_language": "bash",
+    "updated_label": "Actualizado"
   },
   "form": {
     "create_title": "Nuevo script",

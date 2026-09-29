@@ -171,7 +171,8 @@
     "load_error": "No se pudo cargar el historial de ejecuciones.",
     "empty": "Aún no hay ejecuciones.",
     "loaded_count": "{{count}} ejecuciones cargadas",
-    "load_more": "Cargar más"
+    "load_more": "Cargar más",
+    "loaded_label": "cargadas"
   },
   "dashboard_activity": {
     "title": "Actividad reciente",
@@ -211,5 +212,16 @@
     "failed": "{{count}} fallo",
     "failed_other": "{{count}} fallos",
     "summary_title": "OK: {{ok}} · Fallidos: {{failed}} · Total: {{total}}"
+  },
+  "list": {
+    "schedule": "Programación",
+    "playbook": "Playbook",
+    "last_run": "Última ejecución",
+    "never_run": "Sin ejecuciones",
+    "active": "Activo",
+    "paused": "Pausado",
+    "run_now": "Ejecutar",
+    "enable": "Activar",
+    "disable": "Pausar"
   }
 }

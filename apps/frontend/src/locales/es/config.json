@@ -44,7 +44,9 @@
       "no_expiry": "Sin caducidad",
       "menu_aria": "Acciones para {{name}}",
       "delete_aria": "Eliminar API key",
-      "no_expiration": "Sin caducidad"
+      "no_expiration": "Sin caducidad",
+      "created_label": "Creada",
+      "expires_label": "Caducidad"
     },
     "delete": {
       "confirm_title": "Eliminar \"{{label}}\"",

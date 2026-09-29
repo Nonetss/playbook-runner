@@ -16,7 +16,8 @@
     "delete": "Eliminar",
     "updated_on": "Actualizado el {{date}}",
     "in_folder": "En {{name}}",
-    "yaml": "YAML"
+    "yaml": "YAML",
+    "updated_label": "Actualizado"
   },
   "form": {
     "create_title": "Nuevo playbook",
@@ -73,7 +74,8 @@
     "toast_updated": "Carpeta actualizada",
     "toast_update_error": "No se pudo actualizar la carpeta",
     "toast_deleted": "Carpeta eliminada",
-    "toast_delete_error": "No se pudo eliminar la carpeta"
+    "toast_delete_error": "No se pudo eliminar la carpeta",
+    "empty_group": "Sin playbooks en esta carpeta."
   },
   "move": {
     "title": "Mover playbook",

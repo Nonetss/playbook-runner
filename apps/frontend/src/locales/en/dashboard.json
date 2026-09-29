@@ -21,7 +21,6 @@
     "email": "Email",
     "server_message": "Server message"
   },
-
   "stats": {
     "jobs": "Jobs",
     "playbooks": "Playbooks",
@@ -58,7 +57,8 @@
     "no_playbook": "No playbook",
     "manual": "Manual",
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "schedule": "Schedule"
   },
   "quick_links": {
     "new_playbook_title": "New playbook",
@@ -66,6 +66,7 @@
     "manage_inventory_title": "Manage inventory",
     "manage_inventory_desc": "Devices and groups",
     "ssh_credentials_title": "SSH credentials",
-    "ssh_credentials_desc": "Keys to connect to hosts"
+    "ssh_credentials_desc": "Keys to connect to hosts",
+    "title": "Shortcuts"
   }
 }

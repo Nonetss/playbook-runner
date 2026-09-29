@@ -20,7 +20,9 @@
     "manage_devices": "Manage devices",
     "manage_groups": "Manage groups",
     "ping": "Ping",
-    "run_now": "Run now"
+    "run_now": "Run now",
+    "clear_filters": "Clear filters",
+    "open": "Open"
   },
   "labels": {
     "user_menu": "Account menu",
@@ -48,7 +50,12 @@
     "this_script": "this script",
     "this_job": "this job",
     "this_device": "this device",
-    "this_group": "this group"
+    "this_group": "this group",
+    "row_actions_for": "Actions for {{name}}",
+    "no_results": "No results",
+    "no_results_description": "No item matches the active filters.",
+    "total": "total",
+    "scroll_to_top": "Back to top"
   },
   "status": {
     "enabled": "Enabled",
@@ -86,6 +93,11 @@
       "failed": "Failed",
       "unreachable": "Unreachable",
       "skipped": "Skipped"
-    }
+    },
+    "play": "Play",
+    "recap": "Play recap",
+    "failures_one": "{{count}} failure",
+    "failures_other": "{{count}} failures",
+    "ok_count": "{{count}} ok"
   }
 }

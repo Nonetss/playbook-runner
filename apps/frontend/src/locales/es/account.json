@@ -29,7 +29,8 @@
     "role_for": "Rol de {{name}}",
     "empty": "Todavía no hay usuarios",
     "columns": {
-      "role": "Rol"
+      "role": "Rol",
+      "created": "Alta"
     },
     "create": {
       "open": "Nuevo usuario",

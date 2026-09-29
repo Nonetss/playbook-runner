@@ -51,7 +51,9 @@
     "common_saving": "Guardando…",
     "not_found": "Grupo no encontrado.",
     "actions_for": "Acciones para {{name}}",
-    "fallback_label": "este grupo"
+    "fallback_label": "este grupo",
+    "members": "Miembros",
+    "back_to_groups": "Grupos"
   },
   "device": {
     "empty_title": "Sin dispositivos",
@@ -61,7 +63,9 @@
     "groups": "Grupos",
     "assign_group": "Asignar a un grupo",
     "actions_for": "Acciones para {{name}}",
-    "fallback_label": "este dispositivo"
+    "fallback_label": "este dispositivo",
+    "address": "Dirección",
+    "no_groups": "Sin grupo"
   },
   "group_form": {
     "create_title": "Nuevo grupo",

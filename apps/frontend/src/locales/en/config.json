@@ -44,7 +44,9 @@
       "no_expiry": "No expiry",
       "menu_aria": "Actions for {{name}}",
       "delete_aria": "Delete API key",
-      "no_expiration": "No expiration"
+      "no_expiration": "No expiration",
+      "created_label": "Created",
+      "expires_label": "Expires"
     },
     "delete": {
       "confirm_title": "Delete \"{{label}}\"",

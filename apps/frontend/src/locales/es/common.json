@@ -20,7 +20,9 @@
     "manage_devices": "Gestionar dispositivos",
     "manage_groups": "Gestionar grupos",
     "ping": "Ping",
-    "run_now": "Ejecutar ahora"
+    "run_now": "Ejecutar ahora",
+    "clear_filters": "Limpiar filtros",
+    "open": "Abrir"
   },
   "labels": {
     "user_menu": "Menú de cuenta",
@@ -48,7 +50,12 @@
     "this_script": "este script",
     "this_job": "este job",
     "this_device": "este dispositivo",
-    "this_group": "este grupo"
+    "this_group": "este grupo",
+    "row_actions_for": "Acciones para {{name}}",
+    "no_results": "Sin resultados",
+    "no_results_description": "Ningún elemento coincide con los filtros aplicados.",
+    "total": "total",
+    "scroll_to_top": "Volver arriba"
   },
   "status": {
     "enabled": "Activa",
@@ -86,6 +93,11 @@
       "failed": "Fallido",
       "unreachable": "Inaccesible",
       "skipped": "Omitido"
-    }
+    },
+    "play": "Play",
+    "recap": "Resumen del play",
+    "failures_one": "{{count}} fallo",
+    "failures_other": "{{count}} fallos",
+    "ok_count": "{{count}} ok"
   }
 }

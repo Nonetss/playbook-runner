@@ -16,7 +16,8 @@
     "delete": "Delete",
     "updated_on": "Updated on {{date}}",
     "in_folder": "In {{name}}",
-    "yaml": "YAML"
+    "yaml": "YAML",
+    "updated_label": "Updated"
   },
   "form": {
     "create_title": "New playbook",
@@ -73,7 +74,8 @@
     "toast_updated": "Folder updated",
     "toast_update_error": "Could not update the folder",
     "toast_deleted": "Folder deleted",
-    "toast_delete_error": "Could not delete the folder"
+    "toast_delete_error": "Could not delete the folder",
+    "empty_group": "No playbooks in this folder."
   },
   "move": {
     "title": "Move playbook",

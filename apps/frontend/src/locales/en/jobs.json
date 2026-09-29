@@ -171,7 +171,8 @@
     "load_error": "Could not load the run history.",
     "empty": "No runs yet.",
     "loaded_count": "{{count}} runs loaded",
-    "load_more": "Load more"
+    "load_more": "Load more",
+    "loaded_label": "loaded"
   },
   "dashboard_activity": {
     "title": "Recent activity",
@@ -211,5 +212,16 @@
     "failed": "{{count}} failed",
     "failed_other": "{{count}} failed",
     "summary_title": "OK: {{ok}} · Failed: {{failed}} · Total: {{total}}"
+  },
+  "list": {
+    "schedule": "Schedule",
+    "playbook": "Playbook",
+    "last_run": "Last run",
+    "never_run": "No runs yet",
+    "active": "Active",
+    "paused": "Paused",
+    "run_now": "Run",
+    "enable": "Enable",
+    "disable": "Pause"
   }
 }

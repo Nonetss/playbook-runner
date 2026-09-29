@@ -29,7 +29,8 @@
     "role_for": "Role for {{name}}",
     "empty": "No users yet",
     "columns": {
-      "role": "Role"
+      "role": "Role",
+      "created": "Created"
     },
     "create": {
       "open": "New user",
