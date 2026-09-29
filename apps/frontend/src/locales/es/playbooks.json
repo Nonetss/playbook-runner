@@ -147,6 +147,8 @@
       "extravars": "Variables extra",
       "extravars_key_placeholder": "VARIABLE",
       "extravars_value_placeholder": "valor",
+      "extravars_key_aria": "Nombre de la variable {{n}}",
+      "extravars_value_aria": "Valor de la variable {{n}}",
       "extravars_remove_aria": "Eliminar variable",
       "extravars_add": "Añadir variable"
     },

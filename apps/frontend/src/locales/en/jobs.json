@@ -128,6 +128,8 @@
     "extravars_add": "Add",
     "extravars_key_placeholder": "VARIABLE",
     "extravars_value_placeholder": "value",
+    "extravars_key_aria": "Variable {{n}} name",
+    "extravars_value_aria": "Variable {{n}} value",
     "extravars_remove_aria": "Remove variable",
     "no_extravars": "No extra variables.",
     "cancel": "Cancel",
