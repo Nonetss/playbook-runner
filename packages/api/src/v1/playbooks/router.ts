@@ -104,7 +104,7 @@ export const playbooksRouter = {
     .route({
       summary: "List playbooks by folder",
       description:
-        "Returns playbooks in one folder, or root playbooks when folderId is null.",
+        "Returns the inline playbooks in one folder, or root inline playbooks when folderId is null. Git-sourced playbooks are listed per repository.",
       tags: ["Playbooks"],
       method: "GET",
     })
@@ -129,7 +129,7 @@ export const playbooksRouter = {
     .route({
       summary: "Update a playbook",
       description:
-        "Replaces the name, description, and YAML content of an existing playbook. NOT_FOUND when missing.",
+        "Replaces the name, description, and YAML content of an existing playbook. NOT_FOUND when missing, FORBIDDEN for Git-sourced playbooks.",
       tags: ["Playbooks"],
       method: "PUT",
     })
@@ -144,7 +144,7 @@ export const playbooksRouter = {
     .route({
       summary: "Move a playbook",
       description:
-        "Moves a playbook to a folder or to the root. NOT_FOUND when missing.",
+        "Moves a playbook to a folder or to the root. NOT_FOUND when missing, FORBIDDEN for Git-sourced playbooks.",
       tags: ["Playbooks"],
       method: "PUT",
     })
@@ -157,7 +157,7 @@ export const playbooksRouter = {
     .route({
       summary: "Delete a playbook",
       description:
-        "Deletes a playbook by id and returns the deleted row. NOT_FOUND when missing.",
+        "Deletes a playbook by id and returns the deleted row. NOT_FOUND when missing, FORBIDDEN for Git-sourced playbooks.",
       tags: ["Playbooks"],
       method: "DELETE",
     })

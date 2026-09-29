@@ -7,6 +7,11 @@ const playbook = z.object({
   description: z.string().nullable(),
   content: z.string(),
   folderId: idSchema.nullable(),
+  // `git` playbooks come from a repository sync and are read-only.
+  source: z.enum(["inline", "git"]),
+  repositoryId: idSchema.nullable(),
+  path: z.string().nullable(),
+  missing: z.boolean(),
   createdAt: z.coerce.date().nullable(),
   updatedAt: z.coerce.date().nullable(),
 })
