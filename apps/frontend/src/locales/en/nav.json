@@ -8,13 +8,13 @@
     "playbooks": "Playbooks",
     "scripts": "Scripts",
     "commands": "Commands",
-    "jobs": "Jobs",
     "scheduler": "Scheduler",
     "history": "History",
     "config": "Settings",
     "me": "My profile",
     "admin_users": "Users",
-    "automation": "Automation"
+    "ansible": "Ansible",
+    "bash": "Bash"
   },
   "descriptions": {
     "credentials": "Manage the keys and users used for access.",
@@ -24,14 +24,14 @@
     "playbooks": "Edit and run Ansible automations.",
     "scripts": "Keep reusable scripts ready to run.",
     "commands": "Run one-off remote commands.",
-    "jobs": "Schedule and monitor recurring tasks.",
     "scheduler": "Create and manage recurring automations.",
     "history": "Review past runs and their outcomes.",
-    "automation": "Playbooks, scripts and commands ready to run.",
     "home": "Your automation at a glance.",
     "config": "API keys and application settings.",
     "admin_users": "Manage accounts and their roles.",
-    "me": "Your account and session."
+    "me": "Your account and session.",
+    "ansible": "Playbooks, scheduled jobs and their run history.",
+    "bash": "Reusable scripts and one-off remote commands."
   },
   "actions": {
     "sign_out": "Sign out",
