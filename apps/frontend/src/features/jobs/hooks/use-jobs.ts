@@ -1,9 +1,5 @@
 import { consumeEventIterator } from "@orpc/client"
-import {
-  keepPreviousData,
-  useInfiniteQuery,
-  useQueryClient,
-} from "@tanstack/react-query"
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { InventoryItem, Job, JobRunEvent } from "@/features/jobs/types"
@@ -24,42 +20,46 @@ export const useJobGet = (id: string, options?: { enabled?: boolean }) =>
     })
   )
 
-/** Runs shown per page in a job's history panel. */
-export const JOB_RUNS_PAGE_SIZE = 15
+/** Runs fetched per scroll batch in a job's history panel. */
+const JOB_RUNS_PAGE_SIZE = 15
 
 /**
- * One page of a job's runs, newest first. Asks for one extra row so the
- * caller knows whether an older page exists without a separate count query.
- * While `live` is on, polls only as long as one of the listed runs is still
- * `running`, so a freshly-triggered run flips to its terminal status without
- * a manual refresh — then polling stops on its own.
+ * A job's runs, newest first, loaded in offset batches as the history panel
+ * scrolls. While `live` is on, polls only as long as one of the loaded runs
+ * is still `running`, so a freshly-triggered run flips to its terminal status
+ * without a manual refresh — then polling stops on its own.
+ *
+ * Like `useJobRunsAll`, not hydration-gated: the island mounts via
+ * `client:only`, so the first request fires post-hydration in practice.
  */
-export const useJobRunsList = (
+export function useJobRunsList(
   jobId: string,
-  page: number,
   options?: { enabled?: boolean; live?: boolean }
-) =>
-  useHydratedQuery(
-    orpc.jobs.runs.list.queryOptions({
-      input: {
+) {
+  return useInfiniteQuery(
+    orpc.jobs.runs.list.infiniteOptions({
+      input: (offset: number) => ({
         jobId,
-        limit: JOB_RUNS_PAGE_SIZE + 1,
-        offset: page * JOB_RUNS_PAGE_SIZE,
-      },
-      enabled: !!jobId && (options?.enabled ?? true),
-      placeholderData: keepPreviousData,
-      select: (runs) => ({
-        runs: runs.slice(0, JOB_RUNS_PAGE_SIZE),
-        hasNext: runs.length > JOB_RUNS_PAGE_SIZE,
+        limit: JOB_RUNS_PAGE_SIZE,
+        offset,
       }),
+      initialPageParam: 0,
+      getNextPageParam: (last, all) =>
+        last.length < JOB_RUNS_PAGE_SIZE
+          ? undefined
+          : all.length * JOB_RUNS_PAGE_SIZE,
+      enabled: !!jobId && (options?.enabled ?? true),
       refetchInterval: options?.live
         ? (query) =>
-            query.state.data?.some((run) => run.status === "running")
+            query.state.data?.pages.some((page) =>
+              page.some((run) => run.status === "running")
+            )
               ? 3000
               : false
         : false,
     })
   )
+}
 
 /** Fetch a single run; polls while it is still `running`. */
 export const useJobRunGet = (
@@ -284,7 +284,7 @@ export const useJobRun = () => {
     error: t("toast.run_error"),
     onSuccess: (_data, input) => {
       queryClient.invalidateQueries({
-        queryKey: orpc.jobs.runs.list.queryKey({ input: { jobId: input.id } }),
+        queryKey: orpc.jobs.runs.list.key({ input: { jobId: input.id } }),
       })
     },
   })

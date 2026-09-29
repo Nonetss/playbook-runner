@@ -1,15 +1,13 @@
 import { useQueryClient } from "@tanstack/react-query"
 import { getIcon } from "@/lib/icon-registry"
 
-const ChevronLeft = getIcon("navigation", "previous")
-const ChevronRight = getIcon("navigation", "next")
 const Clock = getIcon("scheduling", "time")
 const Loader2 = getIcon("status", "loading")
 const Pencil = getIcon("actions", "edit")
 const Play = getIcon("actions", "play")
 
 import type * as React from "react"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Text } from "@/components/shared/brand/typography"
@@ -63,17 +61,43 @@ function JobDetailPageInner({ id }: { id: string }) {
   const watch = useJobRunWatch()
   const confirm = useConfirm()
 
-  const [page, setPage] = useState(0)
   const {
-    data: runsPage,
+    data: runsData,
     isPending: runsLoading,
-    isPlaceholderData: runsPageChanging,
-  } = useJobRunsList(id, page, {
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useJobRunsList(id, {
     // Poll while anything is running so the status flips without a refresh.
     live: true,
   })
-  const runs = runsPage?.runs ?? []
-  const hasNextPage = runsPage?.hasNext ?? false
+  // Offset batches can overlap by a row when a new run lands between two
+  // fetches; keep the first occurrence.
+  const runs = useMemo(() => {
+    const seen = new Set<string>()
+    return (runsData?.pages.flat() ?? []).filter((run) => {
+      if (seen.has(run.id)) return false
+      seen.add(run.id)
+      return true
+    })
+  }, [runsData])
+
+  // Load the next batch as the end of the history list scrolls into view.
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const sentinel = loadMoreRef.current
+    if (!sentinel || !hasNextPage) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting) && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { rootMargin: "200px" }
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   // Pre-select the run referenced in `?run=...` so the history feed and
   // dashboard activity panel can deep-link straight to a run.
@@ -84,8 +108,8 @@ function JobDetailPageInner({ id }: { id: string }) {
 
   const [selectedId, setSelectedId] = useState<string | null>(initialRunId)
 
-  // The selected run may live on another page (a deep link to an old run,
-  // or the user paged away after picking one), or be a just-triggered run
+  // The selected run may not be loaded yet (a deep link to an old run
+  // beyond the first batch), or be a just-triggered run
   // whose row has not landed in the polled list yet: fetch it on its own.
   const listedRun = runs.find((r) => r.id === selectedId) ?? null
   const { data: fetchedRun, isError: selectedRunMissing } = useJobRunGet(
@@ -97,10 +121,10 @@ function JobDetailPageInner({ id }: { id: string }) {
 
   // Default selection: focus the newest run when nothing is selected yet.
   useEffect(() => {
-    if (selectedId || page !== 0) return
+    if (selectedId) return
     const newest = runs[0]
     if (newest) setSelectedId(newest.id)
-  }, [runs, selectedId, page])
+  }, [runs, selectedId])
 
   // A `?run=...` that does not exist (deleted, malformed) falls back to the
   // newest-run default.
@@ -108,15 +132,7 @@ function JobDetailPageInner({ id }: { id: string }) {
     if (!selectedRunMissing || listedRun) return
     if (watch.watchingRunId === selectedId) return
     setSelectedId(null)
-    setPage(0)
   }, [selectedRunMissing, listedRun, selectedId, watch.watchingRunId])
-
-  // A page emptied under us (runs deleted) steps back to the first one.
-  useEffect(() => {
-    if (page > 0 && !runsLoading && !runsPageChanging && runs.length === 0) {
-      setPage(0)
-    }
-  }, [page, runsLoading, runsPageChanging, runs.length])
 
   // Whenever the currently-selected run shows as `running` in the polled
   // list — whether it's cron-triggered, started from another tab, or just
@@ -135,7 +151,7 @@ function JobDetailPageInner({ id }: { id: string }) {
   useEffect(() => {
     if (watch.phase !== "done" && watch.phase !== "error") return
     queryClient.invalidateQueries({
-      queryKey: orpc.jobs.runs.list.queryKey({ input: { jobId: id } }),
+      queryKey: orpc.jobs.runs.list.key({ input: { jobId: id } }),
     })
     if (watch.watchingRunId) {
       queryClient.invalidateQueries({
@@ -177,7 +193,6 @@ function JobDetailPageInner({ id }: { id: string }) {
       return // useJobRun already showed the error toast (e.g. already running).
     }
     if (runId) {
-      setPage(0)
       focusRun(runId)
       watch.start(runId)
     }
@@ -293,40 +308,7 @@ function JobDetailPageInner({ id }: { id: string }) {
           </>
         }
         panel={
-          <TerminalPanelSection
-            label={t("detail.history")}
-            aside={
-              page > 0 || hasNextPage ? (
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-7"
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                    disabled={page === 0 || runsPageChanging}
-                    aria-label={t("detail.newer_runs")}
-                    title={t("detail.newer_runs")}
-                  >
-                    <ChevronLeft className="size-4" />
-                  </Button>
-                  <Text variant="data" tone="muted">
-                    {t("detail.page", { page: page + 1 })}
-                  </Text>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-7"
-                    onClick={() => setPage((p) => p + 1)}
-                    disabled={!hasNextPage || runsPageChanging}
-                    aria-label={t("detail.older_runs")}
-                    title={t("detail.older_runs")}
-                  >
-                    <ChevronRight className="size-4" />
-                  </Button>
-                </div>
-              ) : null
-            }
-          >
+          <TerminalPanelSection label={t("detail.history")}>
             {runsLoading ? (
               <p className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Loader2 className="size-3.5 animate-spin" />
@@ -341,12 +323,7 @@ function JobDetailPageInner({ id }: { id: string }) {
                 {t("detail.empty_runs_suffix")}
               </p>
             ) : (
-              <ul
-                className={cn(
-                  "-mx-2 space-y-0.5 transition-opacity",
-                  runsPageChanging && "opacity-60"
-                )}
-              >
+              <ul className="-mx-2 space-y-0.5">
                 {runs.map((run) => {
                   const active = run.id === selectedId
                   return (
@@ -410,6 +387,19 @@ function JobDetailPageInner({ id }: { id: string }) {
                 })}
               </ul>
             )}
+            {hasNextPage ? (
+              <div
+                ref={loadMoreRef}
+                className="flex min-h-8 items-center gap-2 text-xs text-muted-foreground"
+              >
+                {isFetchingNextPage ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" />
+                    {t("detail.loading_short")}
+                  </>
+                ) : null}
+              </div>
+            ) : null}
           </TerminalPanelSection>
         }
       >
