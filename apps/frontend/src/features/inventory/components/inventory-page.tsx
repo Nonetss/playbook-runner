@@ -2,19 +2,22 @@ import { getIcon } from "@/lib/icon-registry"
 
 const Computer = getIcon("resources", "device")
 const Folder = getIcon("resources", "folder")
+const Plus = getIcon("actions", "add")
 
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
-import { ResourceListState } from "@/components/shared/resource-list-state"
-import { ResourcePage } from "@/components/shared/resource-page"
+import { HeroCount } from "@/components/shared/layout/page-hero"
+import { EntityCardGrid } from "@/components/shared/resource/entity-list"
+import { ResourceOverview } from "@/components/shared/resource/resource-overview"
+import { Button } from "@/components/ui/button"
 import { useCredentialsList } from "@/features/credentials/hooks/use-credentials"
 import { DeviceFormModal } from "@/features/inventory/components/device-form-modal"
-import { DeviceList } from "@/features/inventory/components/device-list"
 import { GroupFormModal } from "@/features/inventory/components/group-form-modal"
-import { GroupList } from "@/features/inventory/components/group-list"
 import { PingDeviceModal } from "@/features/inventory/components/ping-device-modal"
 import { RelationsDialog } from "@/features/inventory/components/relations-dialog"
+import { deviceDefinition } from "@/features/inventory/definitions/device.definition"
+import { groupDefinition } from "@/features/inventory/definitions/group.definition"
 import { useDeviceGroupsList } from "@/features/inventory/hooks/use-device-groups"
 import {
   useDeviceDelete,
@@ -42,18 +45,10 @@ function InventoryPageInner({ section }: { section: InventorySection }) {
   const { t } = useTranslation("inventory")
   const { t: tCommon } = useTranslation("common")
 
-  const {
-    data: groups = [],
-    isPending: groupsPending,
-    isError: groupsError,
-    refetch: refetchGroups,
-  } = useGroupsList()
-  const {
-    data: devices = [],
-    isPending: devicesPending,
-    isError: devicesError,
-    refetch: refetchDevices,
-  } = useDevicesList()
+  const groupsQuery = useGroupsList()
+  const devicesQuery = useDevicesList()
+  const groups = groupsQuery.data ?? []
+  const devices = devicesQuery.data ?? []
   const { data: deviceGroups = [] } = useDeviceGroupsList()
   const { data: credentials = [] } = useCredentialsList()
   const deleteGroup = useGroupDelete()
@@ -161,9 +156,8 @@ function InventoryPageInner({ section }: { section: InventorySection }) {
     if (!open) setRelationsTarget(null)
   }
 
-  async function handleDeleteGroup(id: string) {
-    const group = groups.find((item) => item.id === id)
-    const label = group?.name ?? t("group.fallback_label")
+  async function handleDeleteGroup(group: InventoryGroup) {
+    const label = group.name || t("group.fallback_label")
     const confirmed = await confirm({
       title: t("group.delete_confirm_title", { label }),
       description: t("group.delete_confirm_description"),
@@ -174,12 +168,11 @@ function InventoryPageInner({ section }: { section: InventorySection }) {
     if (!confirmed) return
 
     // The mutation hook shows the error toast.
-    deleteGroup.mutate({ id })
+    deleteGroup.mutate({ id: group.id })
   }
 
-  async function handleDeleteDevice(id: string) {
-    const device = devices.find((item) => item.id === id)
-    const label = device?.name ?? t("device.fallback_label")
+  async function handleDeleteDevice(device: InventoryDevice) {
+    const label = device.name || t("device.fallback_label")
     const confirmed = await confirm({
       title: t("device.delete_confirm_title", { label }),
       description: t("device.delete_confirm_description"),
@@ -190,100 +183,117 @@ function InventoryPageInner({ section }: { section: InventorySection }) {
     if (!confirmed) return
 
     // The mutation hook shows the error toast.
-    deleteDevice.mutate({ id })
+    deleteDevice.mutate({ id: device.id })
   }
 
+  const isGroups = section === "groups"
+  const createLabel = isGroups
+    ? t("page.create.group")
+    : t("page.create.device")
+  const createButton = (
+    <Button onClick={isGroups ? openCreateGroup : openCreateDevice}>
+      <Plus className="size-4" />
+      {createLabel}
+    </Button>
+  )
+  const totalCount = (
+    <HeroCount
+      segments={[
+        {
+          count: isGroups ? groups.length : devices.length,
+          label: tCommon("labels.total"),
+        },
+      ]}
+    />
+  )
+
   return (
-    <ResourcePage
-      title={t(`page.${section}_title`)}
-      description={t(`page.${section}_subtitle`)}
-      createLabel={
-        section === "groups" ? t("page.create.group") : t("page.create.device")
-      }
-      onCreate={section === "groups" ? openCreateGroup : openCreateDevice}
-    >
-      {section === "groups" ? (
-        <>
-          <GroupFormModal
-            open={groupModalOpen}
-            onOpenChange={handleGroupModalOpenChange}
-            group={editingGroup}
-          />
-          <ResourceListState
-            isPending={groupsPending}
-            isError={groupsError}
-            onRetry={() => refetchGroups()}
-            items={groups}
-            empty={{
-              title: t("group.empty_title"),
-              description: t("group.empty_description"),
-              ctaLabel: t("page.create.group"),
-              onCta: openCreateGroup,
-              icon: <Folder className="size-5" />,
-            }}
-          >
-            {(items) => (
-              <GroupList
-                groups={items}
-                devicesByGroup={devicesByGroup}
-                onEdit={openEditGroup}
-                onDelete={handleDeleteGroup}
-                onManageDevices={openManageGroupDevices}
-                deletingId={
-                  deleteGroup.isPending
-                    ? (deleteGroup.variables?.id ?? null)
-                    : null
-                }
-              />
-            )}
-          </ResourceListState>
-        </>
+    <>
+      {isGroups ? (
+        <ResourceOverview
+          surface="groups"
+          heroMeta={totalCount}
+          heroAction={createButton}
+          query={groupsQuery}
+          isEmpty={(items) => items.length === 0}
+          empty={{
+            icon: <Folder />,
+            title: t("group.empty_title"),
+            description: t("group.empty_description"),
+            action: createButton,
+          }}
+        >
+          {(items) => (
+            <EntityCardGrid
+              items={items}
+              definition={groupDefinition}
+              context={{
+                t,
+                tCommon,
+                devicesByGroup,
+                deletingId: deleteGroup.isPending
+                  ? (deleteGroup.variables?.id ?? null)
+                  : null,
+                onEdit: openEditGroup,
+                onDelete: handleDeleteGroup,
+                onManageDevices: openManageGroupDevices,
+              }}
+            />
+          )}
+        </ResourceOverview>
       ) : (
-        <>
-          <DeviceFormModal
-            open={deviceModalOpen}
-            onOpenChange={handleDeviceModalOpenChange}
-            device={editingDevice}
-          />
-          <PingDeviceModal
-            open={!!pingDevice}
-            onOpenChange={(open) => {
-              if (!open) setPingDevice(null)
-            }}
-            device={pingDevice}
-          />
-          <ResourceListState
-            isPending={devicesPending}
-            isError={devicesError}
-            onRetry={() => refetchDevices()}
-            items={devices}
-            empty={{
-              title: t("device.empty_title"),
-              description: t("device.empty_description"),
-              ctaLabel: t("page.create.device"),
-              onCta: openCreateDevice,
-              icon: <Computer className="size-5" />,
-            }}
-          >
-            {(items) => (
-              <DeviceList
-                devices={items}
-                groupsByDevice={groupsByDevice}
-                credentialsById={credentialsById}
-                onEdit={openEditDevice}
-                onDelete={handleDeleteDevice}
-                onManageGroups={openManageDeviceGroups}
-                onPing={openPingDevice}
-                deletingId={
-                  deleteDevice.isPending
-                    ? (deleteDevice.variables?.id ?? null)
-                    : null
-                }
-              />
-            )}
-          </ResourceListState>
-        </>
+        <ResourceOverview
+          surface="devices"
+          heroMeta={totalCount}
+          heroAction={createButton}
+          query={devicesQuery}
+          isEmpty={(items) => items.length === 0}
+          empty={{
+            icon: <Computer />,
+            title: t("device.empty_title"),
+            description: t("device.empty_description"),
+            action: createButton,
+          }}
+        >
+          {(items) => (
+            <EntityCardGrid
+              items={items}
+              definition={deviceDefinition}
+              context={{
+                t,
+                tCommon,
+                groupsByDevice,
+                credentialsById,
+                deletingId: deleteDevice.isPending
+                  ? (deleteDevice.variables?.id ?? null)
+                  : null,
+                onEdit: openEditDevice,
+                onDelete: handleDeleteDevice,
+                onManageGroups: openManageDeviceGroups,
+                onPing: openPingDevice,
+              }}
+            />
+          )}
+        </ResourceOverview>
       )}
+
+      <GroupFormModal
+        open={groupModalOpen}
+        onOpenChange={handleGroupModalOpenChange}
+        group={editingGroup}
+      />
+      <DeviceFormModal
+        open={deviceModalOpen}
+        onOpenChange={handleDeviceModalOpenChange}
+        device={editingDevice}
+      />
+      <PingDeviceModal
+        open={!!pingDevice}
+        onOpenChange={(open) => {
+          if (!open) setPingDevice(null)
+        }}
+        device={pingDevice}
+      />
 
       {relationsTarget ? (
         <RelationsDialog
@@ -307,7 +317,7 @@ function InventoryPageInner({ section }: { section: InventorySection }) {
           }
         />
       ) : null}
-    </ResourcePage>
+    </>
   )
 }
 

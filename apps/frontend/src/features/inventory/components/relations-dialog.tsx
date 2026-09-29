@@ -1,21 +1,15 @@
 import { getIcon } from "@/lib/icon-registry"
 
-const Check = getIcon("controls", "check")
 const Folder = getIcon("resources", "folder")
-const Loader2 = getIcon("status", "loading")
 const Computer = getIcon("resources", "device")
 
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
+import { InlineAlert } from "@/components/shared/feedback/inline-alert"
+import { StateCard } from "@/components/shared/feedback/state-card"
+import { FormDialog } from "@/components/shared/form/form-dialog"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { SelectableList } from "@/features/inventory/components/selectable-list"
 import {
   useDeviceGroupAssign,
   useDeviceGroupsByDevice,
@@ -49,6 +43,7 @@ export function RelationsDialog({
   options,
 }: RelationsDialogProps) {
   const { t } = useTranslation("inventory")
+  const { t: tCommon } = useTranslation("common")
   const isDevice = kind === "deviceGroups"
 
   const byDevice = useDeviceGroupsByDevice(entityId, {
@@ -112,82 +107,40 @@ export function RelationsDialog({
   const OptionIcon = isDevice ? Folder : Computer
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
-
-        {relationsPending ? (
-          <div className="text-muted-foreground flex items-center gap-2 py-6 text-sm">
-            <Loader2 className="size-4 animate-spin" />
-            {t("relations.loading")}
-          </div>
-        ) : relationsError ? (
-          <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-            {t("relations.load_error")}
-          </div>
-        ) : options.length === 0 ? (
-          <div className="rounded-xl border border-dashed bg-card px-4 py-8 text-center text-sm">
-            <p className="text-muted-foreground">{empty}</p>
-          </div>
-        ) : (
-          <ul className="max-h-80 space-y-1 overflow-y-auto">
-            {options.map((option) => {
-              const isSelected = selectedIds.has(option.id)
-              const isRowPending = pendingId === option.id
-              return (
-                <li key={option.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleToggle(option)}
-                    disabled={isMutating && !isRowPending}
-                    className="hover:bg-accent flex w-full items-center gap-3 rounded-md border border-transparent px-3 py-2 text-left text-sm transition-colors disabled:opacity-60"
-                  >
-                    <span
-                      className={
-                        "flex size-4 shrink-0 items-center justify-center rounded-sm border " +
-                        (isSelected
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-input")
-                      }
-                    >
-                      {isRowPending ? (
-                        <Loader2 className="size-3 animate-spin" />
-                      ) : isSelected ? (
-                        <Check className="size-3" />
-                      ) : null}
-                    </span>
-                    <OptionIcon className="text-muted-foreground size-4 shrink-0" />
-                    <span className="min-w-0 flex-1 truncate">
-                      <span className="block truncate font-medium">
-                        {option.name}
-                      </span>
-                      {option.description ? (
-                        <span className="text-muted-foreground block truncate text-xs">
-                          {option.description}
-                        </span>
-                      ) : null}
-                    </span>
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isMutating}
-            onClick={() => onOpenChange(false)}
-          >
-            Cerrar
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      width="md"
+      title={title}
+      description={description}
+      cancelLabel={tCommon("actions.close")}
+      footer={
+        <Button
+          type="button"
+          variant="outline"
+          disabled={isMutating}
+          onClick={() => onOpenChange(false)}
+        >
+          {tCommon("actions.close")}
+        </Button>
+      }
+    >
+      {relationsPending ? (
+        <StateCard spinner title={t("relations.loading")} className="py-10" />
+      ) : relationsError ? (
+        <InlineAlert>{t("relations.load_error")}</InlineAlert>
+      ) : options.length === 0 ? (
+        <StateCard icon={<OptionIcon />} title={empty} className="py-10" />
+      ) : (
+        <SelectableList
+          className="max-h-80 overflow-y-auto"
+          items={options}
+          selectedIds={selectedIds}
+          pendingId={pendingId}
+          disabled={isMutating}
+          onToggle={handleToggle}
+        />
+      )}
+    </FormDialog>
   )
 }

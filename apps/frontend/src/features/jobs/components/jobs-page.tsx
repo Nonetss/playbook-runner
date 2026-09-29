@@ -1,34 +1,41 @@
 import { getIcon } from "@/lib/icon-registry"
 
 const BriefcaseIcon = getIcon("resources", "briefcase")
+const Plus = getIcon("actions", "add")
 
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
-import { ResourceListState } from "@/components/shared/resource-list-state"
-import { ResourcePage } from "@/components/shared/resource-page"
-import { JobCard } from "@/features/jobs/components/job-card"
+import { HeroCount } from "@/components/shared/layout/page-hero"
+import { EntityCardGrid } from "@/components/shared/resource/entity-list"
+import { ResourceOverview } from "@/components/shared/resource/resource-overview"
+import { AppLink } from "@/components/ui/app-link"
+import { Button } from "@/components/ui/button"
+import { jobDefinition } from "@/features/jobs/definitions/job.definition"
 import {
   useJobDelete,
   useJobRun,
+  useJobRunRollups,
   useJobsList,
   useJobToggleEnabled,
 } from "@/features/jobs/hooks/use-jobs"
-import type { Job } from "@/features/jobs/types"
+import type { Job, JobRollup } from "@/features/jobs/types"
 import { usePlaybooksList } from "@/features/playbooks/hooks/use-playbooks"
 import { useConfirm } from "@/hooks/use-confirm"
 import { navigate } from "@/lib/navigate"
 
 function JobsPageInner() {
-  const { t } = useTranslation("jobs")
+  const { t, i18n } = useTranslation("jobs")
   const { t: tCommon } = useTranslation("common")
-  const { data: jobs = [], isPending, isError, refetch } = useJobsList()
+  const query = useJobsList()
   const { data: playbooks = [] } = usePlaybooksList()
+  const { data: rollups = [] } = useJobRunRollups({ live: true })
   const deleteJob = useJobDelete()
   const toggleEnabled = useJobToggleEnabled()
   const runJob = useJobRun()
   const confirm = useConfirm()
 
-  const playbookMap = Object.fromEntries(playbooks.map((p) => [p.id, p.name]))
+  const jobs = query.data ?? []
+  const activeCount = jobs.filter((job) => job.enabled).length
 
   async function handleRunNow(job: Job) {
     if (!job.playbookId) return
@@ -52,11 +59,11 @@ function JobsPageInner() {
     navigate(runId ? `/jobs/${job.id}?run=${runId}` : `/jobs/${job.id}`)
   }
 
-  async function handleDelete(id: string) {
-    const job = jobs.find((j) => j.id === id)
-    const label = job?.name ?? tCommon("labels.this_job")
+  async function handleDelete(job: Job) {
     const confirmed = await confirm({
-      title: t("delete.confirm_title", { label }),
+      title: t("delete.confirm_title", {
+        label: job.name || tCommon("labels.this_job"),
+      }),
       description: t("delete.confirm_description"),
       confirmLabel: tCommon("actions.delete"),
       cancelLabel: tCommon("actions.cancel"),
@@ -64,61 +71,70 @@ function JobsPageInner() {
     })
     if (!confirmed) return
     // The mutation hook shows the error toast.
-    deleteJob.mutate({ id })
+    deleteJob.mutate({ id: job.id })
   }
 
-  async function handleToggleEnabled(id: string, enabled: boolean) {
-    // The mutation hook shows the error toast.
-    toggleEnabled.mutate({ id, enabled })
-  }
-
-  const isDeletingId = deleteJob.isPending
-    ? (deleteJob.variables as { id: string })?.id
-    : null
-  const isTogglingId = toggleEnabled.isPending
-    ? (toggleEnabled.variables as { id: string })?.id
-    : null
+  const createButton = (
+    <Button asChild>
+      <AppLink href="/jobs/new">
+        <Plus className="size-4" />
+        {t("page.create")}
+      </AppLink>
+    </Button>
+  )
 
   return (
-    <ResourcePage
-      title={t("page.title")}
-      description={t("page.subtitle")}
-      createLabel={t("page.create")}
-      createHref="/jobs/new"
+    <ResourceOverview
+      surface="scheduler"
+      heroMeta={
+        <HeroCount
+          segments={[
+            { count: activeCount, label: t("list.active").toLowerCase() },
+            { count: jobs.length, label: tCommon("labels.total") },
+          ]}
+        />
+      }
+      heroAction={createButton}
+      query={query}
+      isEmpty={(items) => items.length === 0}
+      empty={{
+        icon: <BriefcaseIcon />,
+        title: t("empty.title"),
+        description: t("empty.description"),
+        action: createButton,
+      }}
     >
-      <ResourceListState
-        isPending={isPending}
-        isError={isError}
-        onRetry={refetch}
-        items={jobs}
-        empty={{
-          icon: <BriefcaseIcon className="size-5" />,
-          title: t("empty.title"),
-          description: t("empty.description"),
-          ctaLabel: t("page.create"),
-          ctaHref: "/jobs/new",
-        }}
-      >
-        {(items) => (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((job) => (
-              <JobCard
-                key={job.id}
-                job={job}
-                playbookName={
-                  job.playbookId ? playbookMap[job.playbookId] : undefined
-                }
-                onDelete={handleDelete}
-                onRun={handleRunNow}
-                onToggleEnabled={handleToggleEnabled}
-                isDeleting={isDeletingId === job.id}
-                isTogglingEnabled={isTogglingId === job.id}
-              />
-            ))}
-          </div>
-        )}
-      </ResourceListState>
-    </ResourcePage>
+      {(items) => (
+        <EntityCardGrid
+          items={items}
+          definition={jobDefinition}
+          context={{
+            t,
+            tCommon,
+            language: i18n.language,
+            playbookNames: Object.fromEntries(
+              playbooks.map((playbook) => [playbook.id, playbook.name])
+            ),
+            rollups: Object.fromEntries(
+              (rollups as JobRollup[]).map((rollup) => [rollup.jobId, rollup])
+            ),
+            deletingId: deleteJob.isPending
+              ? ((deleteJob.variables as { id: string } | undefined)?.id ??
+                null)
+              : null,
+            togglingId: toggleEnabled.isPending
+              ? ((toggleEnabled.variables as { id: string } | undefined)?.id ??
+                null)
+              : null,
+            onRun: handleRunNow,
+            // The mutation hook shows the error toast.
+            onToggleEnabled: (job, enabled) =>
+              toggleEnabled.mutate({ id: job.id, enabled }),
+            onDelete: handleDelete,
+          }}
+        />
+      )}
+    </ResourceOverview>
   )
 }
 

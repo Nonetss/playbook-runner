@@ -1,5 +1,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { Text } from "@/components/shared/brand/typography"
+import { FieldLabel } from "@/components/shared/form/field-label"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -55,14 +57,6 @@ function defaultExpression(mode: ScheduleMode) {
     default:
       return "0 9 * * *"
   }
-}
-
-function FieldLabel({ children }: { children: string }) {
-  return (
-    <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-      {children}
-    </span>
-  )
 }
 
 /**
@@ -123,20 +117,18 @@ export function CronScheduleBuilder({
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
         <div>
-          <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+          <Text as="p" variant="label" tone="muted">
             {t("form.schedule_builder.heading")}
-          </p>
-          <p className="text-muted-foreground mt-1 text-xs">
+          </Text>
+          <Text as="p" variant="meta" tone="muted" className="mt-1">
             {t("form.schedule_builder.subtitle")}
-          </p>
+          </Text>
         </div>
-        <code className="font-mono text-xs tracking-tight tabular-nums">
-          {expression}
-        </code>
+        <Text variant="data">{expression}</Text>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="grid gap-1.5">
+        <div className="grid gap-2">
           <FieldLabel>{t("form.schedule_builder.frequency_label")}</FieldLabel>
           <Select
             value={mode}
@@ -176,7 +168,7 @@ export function CronScheduleBuilder({
         </div>
 
         {mode === "minutes" || mode === "hours" ? (
-          <div className="grid gap-1.5">
+          <div className="grid gap-2">
             <FieldLabel>{t("form.schedule_builder.interval_label")}</FieldLabel>
             <Select
               value={every}
@@ -214,7 +206,7 @@ export function CronScheduleBuilder({
 
         {mode === "daily" || mode === "weekly" || mode === "monthly" ? (
           <>
-            <div className="grid gap-1.5">
+            <div className="grid gap-2">
               <FieldLabel>{t("form.schedule_builder.hour_label")}</FieldLabel>
               <NumberStepper
                 label={t("form.schedule_builder.hour_label")}
@@ -226,7 +218,7 @@ export function CronScheduleBuilder({
                 increaseLabel={t("form.schedule_builder.stepper.increase")}
               />
             </div>
-            <div className="grid gap-1.5">
+            <div className="grid gap-2">
               <FieldLabel>{t("form.schedule_builder.minute_label")}</FieldLabel>
               <NumberStepper
                 label={t("form.schedule_builder.minute_label")}
@@ -242,7 +234,7 @@ export function CronScheduleBuilder({
         ) : null}
 
         {mode === "weekly" ? (
-          <div className="grid gap-1.5 sm:col-span-2">
+          <div className="grid gap-2 sm:col-span-2">
             <FieldLabel>{t("form.schedule_builder.weekday_label")}</FieldLabel>
             <SegmentedPicker
               label={t("form.schedule_builder.weekday_label")}
@@ -255,7 +247,7 @@ export function CronScheduleBuilder({
         ) : null}
 
         {mode === "monthly" ? (
-          <div className="grid gap-1.5 sm:col-span-2">
+          <div className="grid gap-2 sm:col-span-2">
             <FieldLabel>{t("form.schedule_builder.monthday_label")}</FieldLabel>
             <SegmentedPicker
               label={t("form.schedule_builder.monthday_label")}
@@ -269,7 +261,7 @@ export function CronScheduleBuilder({
         ) : null}
 
         {mode === "custom" ? (
-          <div className="grid gap-1.5 sm:col-span-2">
+          <div className="grid gap-2 sm:col-span-2">
             <FieldLabel>{t("form.schedule_builder.custom_label")}</FieldLabel>
             <Input
               aria-label={t("form.schedule_builder.custom_label")}

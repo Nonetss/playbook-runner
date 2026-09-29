@@ -1,14 +1,9 @@
-import { getIcon } from "@/lib/icon-registry"
-
-const AlertTriangle = getIcon("status", "alert")
-const CheckCircle2 = getIcon("status", "success")
-const Clock = getIcon("scheduling", "time")
-const Loader2 = getIcon("status", "loading")
-const XCircle = getIcon("status", "error")
-
-import type { ElementType } from "react"
 import { useTranslation } from "react-i18next"
-import { Badge } from "@/components/ui/badge"
+import {
+  type StatusDotTone,
+  StatusTag,
+} from "@/components/shared/data-display/status-dot"
+import { SegmentedPicker } from "@/components/shared/form/segmented-picker"
 import type { JobRunMetricsWindow, JobRunStatus } from "@/features/jobs/types"
 import { cn } from "@/lib/utils"
 
@@ -24,8 +19,7 @@ export type RunHostCounts = {
 /**
  * What the UI shows for a run. Adds `partial` on top of the stored statuses:
  * a run is stored as `failed` the moment a single host fails, but when other
- * hosts did succeed that's a partial failure, not a total one — worth amber
- * rather than red.
+ * hosts did succeed that's a partial failure, not a total one.
  */
 export type RunOutcome = JobRunStatus | "partial"
 
@@ -38,53 +32,39 @@ export function runOutcome(
   return ok > 0 && failed > 0 ? "partial" : "failed"
 }
 
-export const RUN_STATUS_META: Record<
-  RunOutcome,
-  { className: string; icon: ElementType }
-> = {
-  pending: {
-    className: "border-border/60 bg-muted/20 text-muted-foreground",
-    icon: Clock,
-  },
-  running: {
-    className: "border-primary/40 bg-primary/10 text-primary",
-    icon: Loader2,
-  },
-  ok: {
-    className:
-      "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-    icon: CheckCircle2,
-  },
-  partial: {
-    className:
-      "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400",
-    icon: AlertTriangle,
-  },
-  failed: {
-    className: "border-red-500/40 bg-red-500/10 text-red-600 dark:text-red-400",
-    icon: XCircle,
-  },
+/** Status language (DESIGN.md): dot tone per outcome, never a colour badge. */
+export const RUN_OUTCOME_TONE: Record<RunOutcome, StatusDotTone> = {
+  pending: "muted",
+  running: "primary",
+  ok: "foreground",
+  partial: "destructive",
+  failed: "destructive",
 }
 
-export function RunStatusBadge({
+export function RunStatusTag({
   status,
   hostsOk,
   hostsFailed,
-}: { status: JobRunStatus } & RunHostCounts) {
+  className,
+}: { status: JobRunStatus; className?: string } & RunHostCounts) {
   const { t } = useTranslation("jobs")
   const outcome = runOutcome({ status, hostsOk, hostsFailed })
-  const meta = RUN_STATUS_META[outcome]
-  const Icon = meta.icon
   return (
-    <Badge variant="outline" className={cn("gap-1", meta.className)}>
-      <Icon className={cn("size-3", status === "running" && "animate-spin")} />
+    <StatusTag
+      dotTone={RUN_OUTCOME_TONE[outcome]}
+      pulse={outcome === "running"}
+      className={cn(
+        (outcome === "failed" || outcome === "partial") && "text-destructive",
+        className
+      )}
+    >
       {t(`status.${outcome}`)}
-    </Badge>
+    </StatusTag>
   )
 }
 
 /**
- * "4 ok · 1 failed" summary of a run's hosts. Renders nothing when the run
+ * "1 failed · 4 ok" summary of a run's hosts. Renders nothing when the run
  * carries no recap, so in-flight rows stay clean.
  */
 export function RunHostSummary({
@@ -99,15 +79,15 @@ export function RunHostSummary({
   if (ok + failed === 0) return null
   return (
     <span
-      className={cn("text-muted-foreground text-xs", className)}
+      className={cn("text-muted-foreground text-xs tabular-nums", className)}
       title={t("hosts.summary_title", { ok, failed, total: ok + failed })}
     >
       {failed > 0 ? (
         <>
-          <span className="text-red-600 dark:text-red-400">
+          <span className="text-destructive">
             {t("hosts.failed", { count: failed })}
           </span>
-          {" · "}
+          <span className="mx-1.5 text-border">·</span>
         </>
       ) : null}
       {t("hosts.ok", { count: ok })}
@@ -126,24 +106,12 @@ export function RunWindowPicker({
 }) {
   const { t } = useTranslation("dashboard")
   return (
-    <div className="inline-flex items-center gap-1 rounded-lg border bg-card p-1 text-xs">
-      {WINDOWS.map((w) => (
-        <button
-          key={w}
-          type="button"
-          onClick={() => onChange(w)}
-          className={cn(
-            "rounded-md px-2.5 py-1 font-medium transition-colors",
-            value === w
-              ? "bg-accent text-foreground"
-              : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
-          )}
-          aria-pressed={value === w}
-        >
-          {t(`runs_window.${w}`)}
-        </button>
-      ))}
-    </div>
+    <SegmentedPicker
+      mono
+      value={value}
+      onChange={onChange}
+      options={WINDOWS.map((w) => ({ value: w, label: t(`runs_window.${w}`) }))}
+    />
   )
 }
 

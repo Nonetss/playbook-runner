@@ -112,7 +112,7 @@ export function NumberStepper({
           setDraft(null)
         }}
         onKeyDown={handleKeyDown}
-        className="w-full min-w-0 flex-1 rounded-sm border-0 bg-transparent text-center font-mono text-sm tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+        className="w-full min-w-0 flex-1 rounded-sm border-0 bg-transparent text-center font-mono text-sm tabular-nums outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
       />
       <button
         type="button"
@@ -166,7 +166,7 @@ export function SegmentedPicker<T extends string>({
             title={option.title}
             onClick={() => onChange(option.value)}
             className={cn(
-              "flex h-8 items-center justify-center rounded-md border text-xs outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/50",
+              "flex h-8 items-center justify-center rounded-md border text-xs outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50",
               mono && "font-mono tabular-nums",
               selected
                 ? "border-foreground bg-foreground text-background"

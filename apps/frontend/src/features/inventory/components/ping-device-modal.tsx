@@ -1,21 +1,13 @@
 import { getIcon } from "@/lib/icon-registry"
 
-const AlertTriangle = getIcon("status", "alert")
-const CheckCircle2 = getIcon("status", "success")
 const Loader2 = getIcon("status", "loading")
 const RefreshCw = getIcon("actions", "refresh")
 
 import { useEffect, useMemo, useRef } from "react"
 import { useTranslation } from "react-i18next"
+import { StatusDot } from "@/components/shared/data-display/status-dot"
+import { FormDialog } from "@/components/shared/form/form-dialog"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import type { InventoryDevice } from "@/features/inventory/types"
 import { RunStreamStatus } from "@/features/run/components/run-stream-status"
 import { usePingDevice } from "@/features/run/hooks/use-ping-device"
@@ -76,7 +68,7 @@ function describeEvent(
 
 const toneClass: Record<Tone, string> = {
   ok: "text-foreground",
-  changed: "text-destructive",
+  changed: "text-foreground",
   fail: "text-destructive",
   info: "text-foreground",
   muted: "text-muted-foreground",
@@ -129,75 +121,14 @@ export function PingDeviceModal({
   )
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{t("ping.title", { name: device?.name })}</DialogTitle>
-          <DialogDescription className="font-mono text-xs">
-            {device?.ipAddress}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-3">
-          <div
-            ref={consoleRef}
-            className="bg-muted/40 max-h-72 overflow-y-auto rounded-lg border p-3 font-mono text-xs"
-          >
-            {visibleEvents.length === 0 && isRunning ? (
-              <p className="text-muted-foreground flex items-center gap-2">
-                <Loader2 className="size-3 animate-spin" />
-                {t("ping.connecting_local")}
-              </p>
-            ) : (
-              visibleEvents.map((line, i) => (
-                <p
-                  key={i}
-                  className={cn("whitespace-pre-wrap", toneClass[line.tone])}
-                >
-                  {line.text}
-                </p>
-              ))
-            )}
-          </div>
-
-          <RunStreamStatus
-            phase={phase}
-            errorMessage={errorMessage}
-            onStopWatching={stopWatching}
-            labels={{
-              connecting: t("ping.connecting"),
-              stopWatching: t("ping.stop_watching"),
-              stoppedWatching: t("ping.stopped_watching"),
-              serverMayStillBeRunning: t("ping.server_may_still_be_running"),
-              connectionError: t("ping.connection_error"),
-            }}
-          />
-
-          {phase === "done" && result ? (
-            <div
-              className={cn(
-                "flex items-center gap-2 rounded-lg border px-3 py-2 text-sm",
-                result.ok
-                  ? "border-border bg-muted/20 text-foreground"
-                  : "border-destructive/40 bg-destructive/10 text-destructive"
-              )}
-            >
-              {result.ok ? (
-                <CheckCircle2 className="size-4 shrink-0" />
-              ) : (
-                <AlertTriangle className="size-4 shrink-0" />
-              )}
-              <span>
-                {result.ok ? t("ping.result_ok") : t("ping.result_failed")} —{" "}
-                {t("ping.result_status")}{" "}
-                <span className="font-medium">{result.status}</span> (rc=
-                {result.rc ?? "?"})
-              </span>
-            </div>
-          ) : null}
-        </div>
-
-        <DialogFooter>
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t("ping.title", { name: device?.name })}
+      description={<span className="font-mono">{device?.ipAddress}</span>}
+      cancelLabel={t("ping.close")}
+      footer={
+        <>
           {!isRunning && device ? (
             <Button
               type="button"
@@ -226,8 +157,60 @@ export function PingDeviceModal({
               t("ping.close")
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <div
+        ref={consoleRef}
+        className="max-h-72 overflow-y-auto rounded-lg border bg-card/40 p-3 font-mono text-xs"
+      >
+        {visibleEvents.length === 0 && isRunning ? (
+          <p className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="size-3 animate-spin" />
+            {t("ping.connecting_local")}
+          </p>
+        ) : (
+          visibleEvents.map((line, i) => (
+            <p
+              key={i}
+              className={cn("whitespace-pre-wrap", toneClass[line.tone])}
+            >
+              {line.text}
+            </p>
+          ))
+        )}
+      </div>
+
+      <RunStreamStatus
+        phase={phase}
+        errorMessage={errorMessage}
+        onStopWatching={stopWatching}
+        labels={{
+          connecting: t("ping.connecting"),
+          stopWatching: t("ping.stop_watching"),
+          stoppedWatching: t("ping.stopped_watching"),
+          serverMayStillBeRunning: t("ping.server_may_still_be_running"),
+          connectionError: t("ping.connection_error"),
+        }}
+      />
+
+      {phase === "done" && result ? (
+        <p
+          className={cn(
+            "flex items-center gap-2 border-t pt-4 text-sm",
+            result.ok ? "text-foreground" : "text-destructive"
+          )}
+        >
+          <StatusDot tone={result.ok ? "foreground" : "destructive"} />
+          <span>
+            {result.ok ? t("ping.result_ok") : t("ping.result_failed")}
+            <span className="mx-2 text-border">·</span>
+            <span className="font-mono text-xs text-muted-foreground">
+              {t("ping.result_status")} {result.status} (rc={result.rc ?? "?"})
+            </span>
+          </span>
+        </p>
+      ) : null}
+    </FormDialog>
   )
 }
