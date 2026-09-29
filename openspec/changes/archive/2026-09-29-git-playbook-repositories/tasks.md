@@ -2,7 +2,7 @@
 
 - [x] 1.1 Propose schema changes to the user: `playbook_repositories` table, `playbooks.source|repository_id|path|missing` + unique `(repository_id, path)`, `job_runs.commit_sha`
 - [x] 1.2 After explicit approval, add `packages/db/src/schema/playbook-repositories.ts`, update `playbooks.ts`, `jobs.ts` and the schema barrel
-- [ ] 1.3 Stop and ask the user to generate/apply the migration; `bun run check-types` passes
+- [x] 1.3 Stop and ask the user to generate/apply the migration; `bun run check-types` passes
 
 ## 2. gRPC contract
 
@@ -27,7 +27,7 @@
 - [x] 4.4 `playbooks` handlers: expose `source|repositoryId|path|missing` in outputs; `update|move|delete` throw `errors.FORBIDDEN()` for Git playbooks; create forces `inline`
 - [x] 4.5 `run/resolve.ts`: attach `GitSource` (url, last commit, path, decrypted key) for Git playbooks; reject missing ones with `PRECONDITION_FAILED`
 - [x] 4.6 `jobs/executor.ts`: persist `commit_sha` on the job run; expose it in job-run outputs
-- [ ] 4.7 Verify through `/scalar`: create, sync, list, run a Git playbook
+- [x] 4.7 Verify through `/scalar`: create, sync, list, run a Git playbook
 
 ## 5. Frontend
 

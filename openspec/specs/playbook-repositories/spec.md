@@ -1,5 +1,8 @@
-## ADDED Requirements
+# playbook-repositories Specification
 
+## Purpose
+TBD - created by archiving change git-playbook-repositories. Update Purpose after archive.
+## Requirements
 ### Requirement: Register Git playbook repositories
 The system SHALL let an authenticated user create, list, read, update and
 delete playbook repositories with a name, a clone URL, a branch (default
@@ -32,8 +35,12 @@ keyed by repository and path so playbook ids stay stable across syncs.
 - **THEN** the existing playbook SHALL keep its id and have its content updated
 
 #### Scenario: File removed upstream
-- **WHEN** a previously synced file no longer exists at the new commit
-- **THEN** its playbook SHALL be flagged as missing instead of deleted
+- **WHEN** a previously synced file no longer exists at the new commit and no job uses its playbook
+- **THEN** its playbook SHALL be deleted
+
+#### Scenario: File removed upstream but used by a job
+- **WHEN** a previously synced file no longer exists at the new commit and a job uses its playbook
+- **THEN** its playbook SHALL be kept and flagged as missing
 
 #### Scenario: Sync failure
 - **WHEN** the fetch fails (unreachable host, authentication, unknown branch)
@@ -79,3 +86,12 @@ Creating a repository from the UI SHALL start its first sync automatically.
 #### Scenario: Save a new repository
 - **WHEN** a user saves a new repository
 - **THEN** the UI SHALL sync it without a further action and show its progress
+
+### Requirement: Editable copy of a Git playbook
+The UI SHALL let a user copy a Git-sourced playbook into a new inline playbook
+with the same content, warning that only that file is copied.
+
+#### Scenario: Copy a Git playbook
+- **WHEN** a user confirms "make editable copy" on a Git-sourced playbook
+- **THEN** a new inline playbook with the same content SHALL be created at the root and opened for editing
+

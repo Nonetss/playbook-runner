@@ -73,8 +73,9 @@ playbook text without extra RPCs.
   `content` stays not-null (snapshot of the synced file).
 - `job_runs.commit_sha text` (nullable).
 Upsert by `(repository_id, path)` keeps playbook ids stable, so jobs survive
-syncs. Files that vanish are flagged `missing` rather than deleted; running a
-missing playbook fails with `PRECONDITION_FAILED`.
+syncs. Files that vanish are deleted, unless a job still references them:
+those are flagged `missing` (running one fails with `PRECONDITION_FAILED`)
+so the job's failure is explained.
 
 ### 6. API
 New `repositories` feature in `packages/api/src/v1/repositories/`
