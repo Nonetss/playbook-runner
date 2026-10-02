@@ -78,7 +78,7 @@ export function CronScheduleBuilder({
   // fields. Re-parsing on every edit can incorrectly reset weekly to daily.
   const [mode, setMode] = useState<ScheduleMode>(() => scheduleMode(expression))
 
-  const [minute = "0", hour = "9", dayOfMonth = "1", dayOfWeek = "1"] =
+  const [minute = "0", hour = "9", dayOfMonth = "1", , dayOfWeek = "1"] =
     expression.split(" ")
   const weekdays = ["1", "2", "3", "4", "5", "6", "0"].map((value) => ({
     value,
