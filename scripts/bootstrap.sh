@@ -144,8 +144,8 @@ if [[ ! "$PUBLIC_URL" =~ ^https?:// ]]; then
     exit 1
 fi
 
-FRONTEND_PORT=$(prompt "Frontend port on the host" "4321")
-if ! [[ "$FRONTEND_PORT" =~ ^[0-9]+$ ]] || (( FRONTEND_PORT < 1 || FRONTEND_PORT > 65535 )); then
+GATEWAY_PORT=$(prompt "Public port on the host" "4321")
+if ! [[ "$GATEWAY_PORT" =~ ^[0-9]+$ ]] || (( GATEWAY_PORT < 1 || GATEWAY_PORT > 65535 )); then
     err "Invalid port"
     exit 1
 fi
@@ -184,7 +184,7 @@ fi
 echo
 log "Configuration summary:"
 echo "  Public URL:        $PUBLIC_URL"
-echo "  Frontend port:     $FRONTEND_PORT"
+echo "  Public port:       $GATEWAY_PORT"
 echo "  Admin:             $ADMIN_NAME <$ADMIN_EMAIL>"
 echo "  SSO (OIDC):        ${OIDC_ID:+enabled (client_id=$OIDC_ID)}${OIDC_ID:-disabled}"
 echo
@@ -219,9 +219,10 @@ cat > "$ENV_FILE" <<EOF
 ANSIBLE_IMAGE_TAG=latest
 BACKEND_IMAGE_TAG=latest
 FRONTEND_IMAGE_TAG=latest
+GATEWAY_IMAGE_TAG=latest
 
 # ── Public host ──────────────────────────────────────────────────────────────
-FRONTEND_PORT=$FRONTEND_PORT
+GATEWAY_PORT=$GATEWAY_PORT
 CORS_ORIGIN=$PUBLIC_URL
 
 # ── PostgreSQL (only used with the postgres service in compose.yml) ──────────
