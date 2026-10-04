@@ -519,7 +519,7 @@ bun run --filter @playbook-runner/api test    # backend API only (bun test)
 bun run --filter ansible test                 # Ansible service only (pytest)
 ```
 
-Unit tests cover the security-sensitive pure logic: credential encryption, SSH key generation, extra-var and inventory-name validation, Git URL/path validation and playbook discovery, run materialisation (key files, inventory) and the gRPC service-token check. They need no database, running services or `.env` files; the Python suite only needs `git` on `PATH` and `uv sync` in `apps/ansible`. TypeScript tests live next to the code (`*.test.ts`), Python tests in `apps/ansible/tests/`.
+Unit tests cover the security-sensitive pure logic: credential encryption, SSH key generation, extra-var and inventory-name validation, Git URL/path validation and playbook discovery, run materialisation (key files, inventory) and the gRPC service-token check. They need no database, running services or `.env` files; the Python suite only needs `git` on `PATH` and `uv sync` in `apps/ansible`. TypeScript tests live in `packages/api/tests/` (mirroring `src/`), Python tests in `apps/ansible/tests/` and the Playwright suite in `apps/frontend/tests/e2e/`.
 
 The `Test` GitHub Actions workflow (`.github/workflows/test.yml`) runs Biome, `bun run check-types` and `bun run test` on every pull request and push to `main`. The Playwright E2E suite (`bun run test:e2e`) needs a running backend with a seeded admin and is run manually.
 
