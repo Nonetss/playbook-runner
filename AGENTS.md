@@ -85,6 +85,7 @@ All scripts go through Turbo:
 - `bun run format` — formats TypeScript with Biome and Python with Ruff.
 - `bun run db:push | db:generate | db:migrate | db:studio` — filtered to `@playbook-runner/db`.
 - `bun run docker:build | docker:up | docker:down | docker:logs` — uses root `compose.yml`.
+- `bun run test` — unit tests (`turbo test`, uncached): `bun test` in `packages/api` and `pytest` in `apps/ansible` (which regenerates its gRPC stubs first). Scope with `bun run --filter @playbook-runner/api test` or `bun run --filter ansible test`.
 - `bun run test:e2e` (and `test:e2e:headed`, `test:e2e:ui`) — Playwright in `apps/frontend` (see Misc).
 
 Per-package dev: `apps/backend` runs `bun run --hot src/index.ts`; `apps/frontend` runs `astro dev` (which proxies `/rpc`, `/api`, `/scalar`, `/openapi.json` → `http://localhost:3000`).
@@ -116,7 +117,7 @@ No ESLint, no Prettier, no Husky.
 
 - `compose.yml`: services `gateway` (the only published port: `${GATEWAY_PORT:-${FRONTEND_PORT:-4321}}` → container 80; internal gRPC `50050`), `frontend` (internal 4321), `backend` (internal 3000, `ANSIBLE_GRPC_TARGET=gateway:50050`), and `ansible` (internal 8000/50051 — add `-f compose.debug.yml` to publish 8000 on the host). `compose.prod.yml` adds `postgres` and pulls images from GHCR (`GATEWAY_IMAGE_TAG` etc.). Each has a healthcheck: backend hits `http://localhost:3000/` with `bun -e`, frontend hits `http://localhost:4321/login` with `node -e`, gateway `wget`s `http://localhost:50050/health`, and Ansible GETs `http://localhost:8000/api/health` **and** opens a TCP connection to gRPC `:50051` (same probes in both compose files). The gateway has no `depends_on`; the backend waits for the Ansible and gateway healthchecks, the frontend for the backend. The backend runs as `bun`, the frontend as `node` (only Astro SSR on `0.0.0.0:4321`, no reverse proxy), the Ansible image as non-root UID 10001 and pins the `uv` build image.
 - Both Dockerfiles build on `node:24-slim` + `oven/bun:1.3.14` (backend runtime: `oven/bun:1.3.14-slim`, no Node), copy the workspace manifests first, `bun install --frozen-lockfile` (with `/root/.bun/install/cache` cache mount), then only what the build reads (`packages`, plus `proto` + `apps/backend` or `apps/frontend`) + `bun run build` — dependency changes are the only thing that busts the install layer. **When adding a workspace, add its `package.json` COPY line to the backend and frontend `Dockerfile` and `Dockerfile.dev` (four files).**
-- CI: `.github/workflows/docker-build.yml` triggers on `v*` and `main`, builds `…-backend`, `…-ansible`, `…-frontend` and `…-gateway` (amd64 + arm64) and pushes them to GHCR (`ghcr.io`) with `GITHUB_TOKEN`. Image tags: `latest`, branch/ref, and `<ref>-<sha8>`.
+- CI: `.github/workflows/test.yml` runs on every pull request and push to `main` (`bunx biome ci .`, `bun run check-types`, `bun run test`; no secrets). `.github/workflows/docker-build.yml` triggers on `v*` and `main`, builds `…-backend`, `…-ansible`, `…-frontend` and `…-gateway` (amd64 + arm64) and pushes them to GHCR (`ghcr.io`) with `GITHUB_TOKEN`. Image tags: `latest`, branch/ref, and `<ref>-<sha8>`.
 
 ## OpenSpec workflow
 
@@ -140,7 +141,11 @@ If a task seems to require a migration, stop and tell the user — propose the c
 
 ## Misc
 
-- No unit-test framework — don't try `bun test`. Validation relies on `check-types` + Biome + manual API calls (`/scalar`, `/openapi.json`, `/rpc`) and the Playwright E2E suite in `apps/frontend/tests` (`playwright.config.ts`; projects `setup`, `chromium-guest`, `chromium-auth`, `chromium-mobile`). E2E prerequisites: the backend running with a seeded admin (`admin@playbook-runner.local` / `admin1234` by default); Playwright reuses a running `astro dev` on `:4321` or starts one. `test:e2e`/`test:e2e:headed` finish on their own; only `test:e2e:ui` is a persistent turbo task.
+- Unit tests (`bun run test`) cover pure logic only and need no database, gRPC service, Docker, network or `.env`:
+  - TypeScript: colocated `*.test.ts` next to the module under `packages/api/src/` (`bun:test`, imports through `#` subpath imports). `packages/api/test/setup.ts` is preloaded by the `test` script and sets a complete fake server env, so modules that import `@playbook-runner/env/server` load without a `.env`. Test files are type-checked by `check-types` and never bundled.
+  - Python: `apps/ansible/tests/` with `pytest` (dev group). `tests/conftest.py` points `settings` paths into `tmp_path` (autouse) and provides a `git_mirror` fixture (a real local bare mirror); async code is driven with `asyncio.run` and small fakes. Ruff formats the tests; BasedPyright only checks `app/`.
+  - Database integration tests are not set up yet; when they are, the setup applies the existing migrations to a throwaway database (never generating or editing migrations).
+- Beyond unit tests, validation relies on `check-types` + Biome + manual API calls (`/scalar`, `/openapi.json`, `/rpc`) and the Playwright E2E suite in `apps/frontend/tests` (`playwright.config.ts`; projects `setup`, `chromium-guest`, `chromium-auth`, `chromium-mobile`). E2E prerequisites: the backend running with a seeded admin (`admin@playbook-runner.local` / `admin1234` by default); Playwright reuses a running `astro dev` on `:4321` or starts one. `test:e2e`/`test:e2e:headed` finish on their own; only `test:e2e:ui` is a persistent turbo task.
 - `apps/backend` exposes `GET /` returning `OK` for the compose healthcheck.
 - Drizzle migrations live in `packages/db/src/migrations/` in drizzle-kit ≥ 0.31 folder format (`<timestamp>_<name>/migration.sql` + `snapshot.json`). The old `meta/` + `0000_*.sql` layout is gone.
 - `.gitignore` excludes `.agents/` and `.claude/` directories.

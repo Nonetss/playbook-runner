@@ -497,11 +497,24 @@ docker compose -f compose.prod.yml --env-file .env up -d
 | `bun run db:seed` | Create the default admin user |
 | `bun run check` | Run Biome lint/format |
 | `bun run format` | Format TypeScript (Biome) and Python (Ruff) |
+| `bun run test` | Run the unit tests (TypeScript and Python) |
 | `bun run test:e2e` | Run the Playwright E2E suite |
 | `bun run docker:build` | Build Docker images from source |
 | `bun run docker:up` | Build and start `compose.yml` |
 | `bun run docker:logs` | Tail Docker logs |
 | `bun run docker:down` | Stop `compose.yml` |
+
+## Testing
+
+```bash
+bun run test                                  # every unit test
+bun run --filter @playbook-runner/api test    # backend API only (bun test)
+bun run --filter ansible test                 # Ansible service only (pytest)
+```
+
+Unit tests cover the security-sensitive pure logic: credential encryption, SSH key generation, extra-var and inventory-name validation, Git URL/path validation and playbook discovery, run materialisation (key files, inventory) and the gRPC service-token check. They need no database, running services or `.env` files; the Python suite only needs `git` on `PATH` and `uv sync` in `apps/ansible`. TypeScript tests live next to the code (`*.test.ts`), Python tests in `apps/ansible/tests/`.
+
+The `Test` GitHub Actions workflow (`.github/workflows/test.yml`) runs Biome, `bun run check-types` and `bun run test` on every pull request and push to `main`. The Playwright E2E suite (`bun run test:e2e`) needs a running backend with a seeded admin and is run manually.
 
 ## License
 
