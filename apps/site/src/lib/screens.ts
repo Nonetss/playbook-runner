@@ -7,7 +7,7 @@ import git from "../../../../img/git.png"
 import home from "../../../../img/home.png"
 import inventory from "../../../../img/inventario.png"
 import run from "../../../../img/playbooks.png"
-import scalar from "../../../../img/scalar.webp"
+import scalar from "../../../../img/scalar.png"
 
 export interface Screen {
   id: "dashboard" | TourStopId

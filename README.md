@@ -141,7 +141,7 @@ reference (Scalar) served at `/scalar`, with request/response schemas, error
 codes, and ready-to-run `curl`/client snippets. The raw spec lives at
 `/openapi.json`.
 
-![API reference](img/scalar.webp)
+![API reference](img/scalar.png)
 
 ## What you can do with it
 
