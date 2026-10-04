@@ -5,6 +5,8 @@
 <h3 align="center">Playbook</h3>
 <p align="center">R U N N E R</p>
 
+<p align="center"><a href="https://nonetss.github.io/playbook-runner/">Website</a> · <a href="https://nonetss.github.io/playbook-runner/docs/">Documentation</a></p>
+
 A self-hosted web UI to manage and run [Ansible](https://www.ansible.com/)
 playbooks against your inventory — without the operational weight of AWX or
 Ansible Tower.
