@@ -1,0 +1,38 @@
+---
+import Check from "@lucide/astro/icons/check"
+import Copy from "@lucide/astro/icons/copy"
+import { type Lang, t } from "@/i18n/ui"
+
+interface Props {
+  lang: Lang
+  /** Text to copy; without it the button copies the `code` of its
+   *  `[data-copy-scope]` ancestor. */
+  text?: string
+  label?: string
+  class?: string
+}
+
+const { lang, text, label, class: className } = Astro.props
+const dict = t(lang)
+---
+
+<button
+  type="button"
+  data-copy-button
+  data-copy={text}
+  aria-label={label ?? dict.copy.code}
+  class:list={[
+    "focus-ring inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-terminal-border bg-terminal-raised px-2.5 text-[0.75rem] font-medium text-terminal-fg transition-colors hover:border-terminal-muted",
+    className,
+  ]}
+>
+  <Copy class="size-3.5" stroke-width={1.75} data-icon="idle" />
+  <Check
+    class="hidden size-3.5 text-primary"
+    stroke-width={2}
+    data-icon="done"
+  />
+  <span data-label data-idle={dict.copy.idle} data-done={dict.copy.done}
+    >{dict.copy.idle}</span
+  >
+</button>

@@ -3,6 +3,7 @@ import { render } from "astro:content"
 import ArrowLeft from "@lucide/astro/icons/arrow-left"
 import ArrowRight from "@lucide/astro/icons/arrow-right"
 import ChevronDown from "@lucide/astro/icons/chevron-down"
+import CopyButton from "@/components/CopyButton.astro"
 import { type Lang, t } from "@/i18n/ui"
 import Base from "@/layouts/Base.astro"
 import { type Doc, docPath } from "@/lib/docs"
@@ -93,6 +94,9 @@ const editUrl = `${REPO_URL}/edit/main/apps/site/${doc.filePath ?? ""}`
       <div class="prose mt-10">
         <Content />
       </div>
+      <template data-copy-template>
+        <CopyButton lang={lang} class="absolute top-2.5 right-2.5" />
+      </template>
 
       <footer class="mt-16 max-w-[72ch] border-t border-hairline pt-8">
         <div class="grid gap-4 sm:grid-cols-2">
@@ -158,6 +162,23 @@ const editUrl = `${REPO_URL}/edit/main/apps/site/${doc.filePath ?? ""}`
 </Base>
 
 <script>
+import { bindCopyButtons } from "@/lib/copy"
+
+// A copy button on every code block of the page.
+const template = document.querySelector<HTMLTemplateElement>(
+  "template[data-copy-template]"
+)
+if (template) {
+  for (const pre of document.querySelectorAll(".prose pre")) {
+    const block = document.createElement("div")
+    block.className = "code-block"
+    block.toggleAttribute("data-copy-scope", true)
+    pre.replaceWith(block)
+    block.append(pre, template.content.cloneNode(true))
+  }
+  bindCopyButtons()
+}
+
 // Highlight the section being read in the "On this page" list.
 const links = document.querySelectorAll<HTMLElement>("[data-toc]")
 if (links.length && "IntersectionObserver" in window) {

@@ -24,7 +24,12 @@ const en = {
     language: "Language",
     menu: "Menu",
   },
-  copy: { idle: "Copy", done: "Copied", label: "Copy the install command" },
+  copy: {
+    idle: "Copy",
+    done: "Copied",
+    label: "Copy the install command",
+    code: "Copy the code",
+  },
   hero: {
     title: "Run your playbooks from a browser tab.",
     lede: "Playbook Runner is a self-hosted web UI for Ansible: inventory, SSH credentials, playbooks, schedules and a live log of every run, without the weight of AWX or Tower.",
@@ -187,6 +192,7 @@ const es: Dictionary = {
     idle: "Copiar",
     done: "Copiado",
     label: "Copiar el comando de instalación",
+    code: "Copiar el código",
   },
   hero: {
     title: "Lanza tus playbooks desde una pestaña del navegador.",

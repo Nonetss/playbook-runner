@@ -245,6 +245,15 @@
     scrollbar-color: var(--terminal-border) transparent;
   }
 
+  /* Room on the right for the copy button DocPage adds to each block. */
+  & .code-block {
+    position: relative;
+  }
+
+  & .code-block pre {
+    padding-right: 6.5rem;
+  }
+
   & blockquote {
     padding: 0.875rem 1.125rem;
     border: 1px solid var(--border);

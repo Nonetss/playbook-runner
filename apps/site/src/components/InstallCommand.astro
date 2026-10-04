@@ -1,6 +1,5 @@
 ---
-import Check from "@lucide/astro/icons/check"
-import Copy from "@lucide/astro/icons/copy"
+import CopyButton from "@/components/CopyButton.astro"
 import { INSTALL_COMMAND, type Lang, t } from "@/i18n/ui"
 
 interface Props {
@@ -14,6 +13,7 @@ const dict = t(lang)
 
 <figure
   class="overflow-hidden rounded-[10px] border border-terminal-border bg-terminal-bg"
+  data-copy-scope
 >
   {label && (
       <figcaption class="flex items-center gap-2 border-b border-terminal-border bg-terminal-surface px-4 py-2 text-label-caps text-terminal-muted">
@@ -25,54 +25,12 @@ const dict = t(lang)
     <pre
       class="min-w-0 flex-1 py-1 text-data break-all whitespace-pre-wrap text-terminal-fg"
     ><code><span class="text-primary select-none" aria-hidden="true">$ </span>{INSTALL_COMMAND}</code></pre>
-    <button
-      type="button"
-      data-copy={INSTALL_COMMAND}
-      aria-label={dict.copy.label}
-      class="focus-ring inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-terminal-border bg-terminal-raised px-2.5 text-[0.75rem] font-medium text-terminal-fg transition-colors hover:border-terminal-muted"
-    >
-      <Copy class="size-3.5" stroke-width={1.75} data-icon="idle" />
-      <Check
-        class="hidden size-3.5 text-primary"
-        stroke-width={2}
-        data-icon="done"
-      />
-      <span data-label data-idle={dict.copy.idle} data-done={dict.copy.done}
-        >{dict.copy.idle}</span
-      >
-    </button>
+    <CopyButton lang={lang} text={INSTALL_COMMAND} label={dict.copy.label} />
   </div>
 </figure>
 
 <script>
-for (const button of document.querySelectorAll<HTMLButtonElement>(
-  "[data-copy]"
-)) {
-  let timer: ReturnType<typeof setTimeout> | undefined
-  button.addEventListener("click", async () => {
-    const text = button.dataset.copy ?? ""
-    try {
-      await navigator.clipboard.writeText(text)
-    } catch {
-      // Clipboard blocked (insecure context, permissions): select the text so
-      // the visitor can copy it by hand.
-      const code = button.parentElement?.querySelector("code")
-      if (code) getSelection()?.selectAllChildren(code)
-      return
-    }
-    const label = button.querySelector<HTMLElement>("[data-label]")
-    const idle = button.querySelector("[data-icon=idle]")
-    const done = button.querySelector("[data-icon=done]")
-    const set = (copied: boolean) => {
-      if (label)
-        label.textContent =
-          (copied ? label.dataset.done : label.dataset.idle) ?? ""
-      idle?.classList.toggle("hidden", copied)
-      done?.classList.toggle("hidden", !copied)
-    }
-    set(true)
-    clearTimeout(timer)
-    timer = setTimeout(() => set(false), 2000)
-  })
-}
+import { bindCopyButtons } from "@/lib/copy"
+
+bindCopyButtons()
 </script>
