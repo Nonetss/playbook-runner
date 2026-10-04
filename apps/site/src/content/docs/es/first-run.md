@@ -21,7 +21,7 @@ La clave privada se cifra antes de guardarse y la API nunca la devuelve. Solo se
 
 Abre **Inventario → Dispositivos** y añade el host: un nombre, su dirección IP y puerto SSH, y la credencial del paso anterior. Los nombres de dispositivos y grupos admiten letras, dígitos, `.`, `_` y `-`, hasta 64 caracteres.
 
-Agrupa dispositivos en **grupos** para apuntar a varios a la vez. Como cada dispositivo lleva su propia credencial, un grupo puede mezclar hosts con usuarios y claves distintos.
+Agrupa dispositivos en **grupos** para apuntar a varios a la vez. Como cada dispositivo lleva su propia credencial, un grupo puede mezclar hosts con usuarios y claves distintos. El grupo integrado **All** contiene siempre todos los dispositivos, también los que añadas después, así que un job programado contra él cubre todo el inventario; por eso `all` (en mayúsculas o minúsculas) no se puede usar como nombre de grupo.
 
 ## 3. Ejecuta un playbook
 
