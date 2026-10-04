@@ -48,7 +48,12 @@ function CommandDialog({
   return (
     <Dialog {...props}>
       <DialogContent
-        className={cn("gap-0 overflow-hidden p-0", className)}
+        className={cn(
+          // Phones: anchored to the top so the on-screen keyboard, which
+          // covers the bottom half, never hides the input or the results.
+          "gap-0 overflow-hidden p-0 max-sm:top-4 max-sm:translate-y-0",
+          className
+        )}
         showCloseButton={showCloseButton}
       >
         <DialogHeader className="sr-only">
@@ -99,7 +104,7 @@ function CommandList({
     <CommandPrimitive.List
       data-slot="command-list"
       className={cn(
-        "max-h-[min(24rem,60dvh)] scroll-py-1 overflow-x-hidden overflow-y-auto",
+        "max-h-[min(24rem,60dvh)] scroll-py-1 overflow-x-hidden overflow-y-auto max-sm:max-h-[40dvh]",
         className
       )}
       {...props}

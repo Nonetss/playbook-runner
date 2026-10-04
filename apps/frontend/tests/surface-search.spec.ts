@@ -166,8 +166,15 @@ test.describe("Buscador de la navbar (móvil)", () => {
       banner.locator('[data-slot="separator"][data-orientation="vertical"]')
     ).toBeHidden()
     await banner.getByRole("button", { name: "Buscar páginas" }).click()
-    await expect(
-      page.getByRole("dialog", { name: "Buscar páginas" })
-    ).toBeVisible()
+    const dialog = page.getByRole("dialog", { name: "Buscar páginas" })
+    await expect(dialog).toBeVisible()
+
+    // Anchored to the top, so the keyboard (bottom half) never covers it.
+    await expect(async () => {
+      const box = await dialog.boundingBox()
+      if (!box) throw new Error("dialog not laid out")
+      expect(box.y).toBeLessThan(32)
+      expect(box.y + box.height).toBeLessThan(844 / 2 + 64)
+    }).toPass()
   })
 })
