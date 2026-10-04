@@ -9,6 +9,10 @@ import type { z } from "zod"
 import type { Context } from "#context"
 import { errors } from "#errors"
 import type { inventoryInput } from "#v1/inventory/input"
+import {
+  isReservedGroupName,
+  reservedGroupNameMessage,
+} from "#v1/inventory/name"
 
 type GroupsInput = typeof inventoryInput.groups
 type DevicesInput = typeof inventoryInput.devices
@@ -58,6 +62,15 @@ export const inventoryGroupHandler = {
     input: z.infer<GroupsInput["update"]>
   }) => {
     const { id, ...data } = input
+    if (isReservedGroupName(data.name)) {
+      const [current] = await db
+        .select({ name: inventoryGroups.name })
+        .from(inventoryGroups)
+        .where(eq(inventoryGroups.id, id))
+      if (found(current).name !== data.name) {
+        throw errors.BAD_REQUEST({ message: reservedGroupNameMessage })
+      }
+    }
     const [row] = await db
       .update(inventoryGroups)
       .set({ ...data, updatedAt: new Date() })

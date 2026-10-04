@@ -11,3 +11,20 @@ export const inventoryName = z
     "Use 1-64 letters, digits, dots, underscores or hyphens"
   )
   .refine((name) => name !== "." && name !== "..", "Invalid name")
+
+/**
+ * `all` (any case) is the built-in All group, which targets every device,
+ * so user groups can't take that name.
+ */
+export function isReservedGroupName(name: string): boolean {
+  return name.toLowerCase() === "all"
+}
+
+export const reservedGroupNameMessage =
+  '"all" is reserved for the built-in All group'
+
+/** Group names: inventory names minus the reserved `all`. */
+export const groupName = inventoryName.refine(
+  (name) => !isReservedGroupName(name),
+  reservedGroupNameMessage
+)

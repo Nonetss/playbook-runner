@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { inventoryName } from "#v1/inventory/name"
+import { groupName, inventoryName } from "#v1/inventory/name"
 import { idSchema } from "#v1/schemas"
 
 /** Postgres `cidr` column: IPv4/IPv6 address with an optional /prefix. */
@@ -9,6 +9,8 @@ const group = z.object({
   name: inventoryName,
   description: z.string().optional(),
 })
+
+const newGroup = group.extend({ name: groupName })
 
 const device = z.object({
   name: inventoryName,
@@ -24,8 +26,10 @@ const deviceGroup = z.object({ deviceId: idSchema, groupId: idSchema })
 
 export const inventoryInput = {
   groups: {
-    create: group,
+    create: newGroup,
     get: byId,
+    // The reserved name is checked in the handler: a group that already has
+    // it stays editable as long as it keeps it.
     update: group.extend({ id: idSchema }),
     delete: byId,
   },
