@@ -36,21 +36,18 @@ ENV PUBLIC_SERVER_URL=$PUBLIC_SERVER_URL
 RUN cd apps/frontend && bun run build
 
 # ── Runtime stage ─────────────────────────────────────────────────────────────
+# Only the Astro standalone server. The gateway (apps/gateway) is the public
+# entry point: it proxies /rpc, /api, /scalar and /openapi.json to the backend
+# and everything else here.
 FROM node:24-slim AS runtime
-COPY --from=caddy:2-alpine /usr/bin/caddy /usr/local/bin/caddy
 ENV NODE_ENV=production
 
 COPY --from=build /app/apps/frontend/dist /app/apps/frontend/dist
-COPY apps/frontend/Caddyfile /etc/caddy/Caddyfile
-COPY apps/frontend/start.sh /start.sh
-RUN chmod +x /start.sh
 
-# Astro SSR escucha solo en localhost; Caddy expone el 80
-ENV HOST=127.0.0.1
+# Reachable only inside the Docker network (compose `expose`, never `ports`)
+ENV HOST=0.0.0.0
 ENV PORT=4321
 
-EXPOSE 80
-# Unprivileged: Caddy can still bind :80 because Docker sets
-# net.ipv4.ip_unprivileged_port_start=0 in containers (Docker >= 20.10).
+EXPOSE 4321
 USER node
-CMD ["/start.sh"]
+CMD ["node", "/app/apps/frontend/dist/server/entry.mjs"]

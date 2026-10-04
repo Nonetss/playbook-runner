@@ -46,7 +46,9 @@ export const env = createEnv({
       .refine((value) => Buffer.from(value, "base64").length === 32, {
         message: "must be base64 of exactly 32 bytes",
       }),
-    ANSIBLE_GRPC_TARGET: z.string().min(1).default("localhost:50051"),
+    // The gateway's internal gRPC router, which forwards package `run` to the
+    // Ansible runner (apps/gateway/Caddyfile). Compose sets gateway:50050.
+    ANSIBLE_GRPC_TARGET: z.string().min(1).default("localhost:50050"),
   },
   runtimeEnv: process.env,
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,

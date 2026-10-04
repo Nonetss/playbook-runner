@@ -6,8 +6,9 @@ import type { AppRouterClient } from "@playbook-runner/api/router"
 
 export const link = new RPCLink({
   // Resolved lazily per request so it always targets the current browser
-  // origin (avoids touching `window` during SSR). Caddy (prod) / Vite (dev)
-  // proxy `/rpc` to the backend, keeping every call same-origin and CORS-free.
+  // origin (avoids touching `window` during SSR). The gateway (Docker) / Vite
+  // (dev) proxy `/rpc` to the backend, keeping every call same-origin and
+  // CORS-free.
   url: () => `${window.location.origin}/rpc`,
   fetch(url, options) {
     return fetch(url, {

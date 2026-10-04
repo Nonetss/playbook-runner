@@ -2,11 +2,13 @@
 # Production compose overlay.
 #
 # - Services talk to each other over the docker network via service-name DNS
-#   (no localhost): the backend reaches ansible only over gRPC (see
-#   ANSIBLE_GRPC_TARGET below); see BETTER_AUTH_URL too.
-# - Only the frontend publishes a host port; backend, ansible, and postgres
-#   stay internal (reachable on the network as `backend:3000`, `ansible:8000`,
-#   `postgres:5432`).
+#   (no localhost): the backend reaches ansible only over gRPC, through the
+#   gateway's gRPC router (see ANSIBLE_GRPC_TARGET below); see BETTER_AUTH_URL
+#   too.
+# - Only the gateway publishes a host port (GATEWAY_PORT, falling back to the
+#   legacy FRONTEND_PORT); frontend, backend, ansible, and postgres stay
+#   internal (reachable on the network as `frontend:4321`, `backend:3000`,
+#   `ansible:8000`, `postgres:5432`).
 # - Images are pulled from GitHub Container Registry (ghcr.io/nonetss/...).
 #   No local build, no *_IMAGE env vars — only the *_IMAGE_TAG is overridable
 #   in .env (e.g. pin to v0.0.5 by setting ANSIBLE_IMAGE_TAG=v0.0.5).
@@ -27,7 +29,7 @@ name: playbook-runner
 
 services:
   postgres:
-    image: postgres:17
+    image: postgres:17-alpine
     container_name: postgres
     init: true
     restart: unless-stopped
@@ -87,7 +89,8 @@ services:
     env_file: .env
     environment:
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:?BETTER_AUTH_URL is required (public URL, e.g. https://your-domain.com)}
-      ANSIBLE_GRPC_TARGET: ansible:50051
+      # The gateway's gRPC router forwards package `run` to ansible:50051
+      ANSIBLE_GRPC_TARGET: gateway:50050
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4321}
       NODE_ENV: production
       # Same secret again, this time guarding gRPC in both directions. Without
@@ -99,6 +102,8 @@ services:
       postgres:
         condition: service_healthy
       ansible:
+        condition: service_healthy
+      gateway:
         condition: service_healthy
     healthcheck:
       # start_period has to cover the in-process bootstrap() (Drizzle migrate
@@ -123,13 +128,50 @@ services:
     env_file: .env
     environment:
       BETTER_AUTH_URL: http://backend:3000
-    ports:
-      - "${FRONTEND_PORT:-4321}:80"
+    # Reached only through the gateway, which publishes the site
+    expose:
+      - "4321"
     depends_on:
       backend:
         condition: service_healthy
       ansible:
         condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:4321/login').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # Gateway (apps/gateway/Caddyfile): the public entry point on :80, routing
+  # /rpc, /api, /scalar and /openapi.json to the backend and the rest to the
+  # frontend, and the internal gRPC router on :50050 that the backend dials
+  # (ANSIBLE_GRPC_TARGET). No route reaches ansible from outside.
+  # No depends_on: the backend waits for it, so it must come up first.
+  gateway:
+    image: ghcr.io/nonetss/playbook-runner-gateway:${GATEWAY_IMAGE_TAG:-latest}
+    pull_policy: always
+    container_name: gateway
+    restart: unless-stopped
+    ports:
+      - "${GATEWAY_PORT:-${FRONTEND_PORT:-4321}}:80"
+    expose:
+      - "50050"
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - -q
+        - --spider
+        - http://localhost:50050/health
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
 volumes:
   postgres_data:

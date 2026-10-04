@@ -15,7 +15,7 @@ const publicPaths = [
 const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
 // Paths that never need an auth check. Anything matching is forwarded as-is
-// (next()) so the Astro adapter / Caddy can serve it (or 404) without a
+// (next()) so the Astro adapter can serve it (or 404) without a
 // session lookup or /login redirect.
 
 export const onRequest = defineMiddleware(async (context, next) => {
