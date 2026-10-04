@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { useAuthConfig } from "@/features/auth/hooks/use-auth-config"
 import { authClient } from "@/lib/auth-client"
 import { navigate } from "@/lib/navigate"
 import { getQueryClient } from "@/lib/query-client"
@@ -36,6 +37,7 @@ function SignInFormInner() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [oauthLoading, setOauthLoading] = useState(false)
+  const { data: authConfig } = useAuthConfig()
 
   async function handleSubmit(e: React.SyntheticEvent) {
     e.preventDefault()
@@ -122,16 +124,18 @@ function SignInFormInner() {
         </form>
       </CardContent>
       <CardFooter className="flex-col gap-3 border-t px-6 py-5">
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={handleSSOLogin}
-          disabled={oauthLoading}
-        >
-          {oauthLoading
-            ? t("sign_in.sso_redirecting")
-            : t("sign_in.sso_button")}
-        </Button>
+        {authConfig?.ssoEnabled ? (
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleSSOLogin}
+            disabled={oauthLoading}
+          >
+            {oauthLoading
+              ? t("sign_in.sso_redirecting")
+              : t("sign_in.sso_button")}
+          </Button>
+        ) : null}
         <p className="text-center text-meta text-muted-foreground">
           {t("sign_in.no_account_hint")}
         </p>

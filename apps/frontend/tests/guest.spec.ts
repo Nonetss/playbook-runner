@@ -57,12 +57,26 @@ test.describe("Formulario de login", () => {
     await expect(
       page.getByRole("button", { name: /^iniciar sesión$/i })
     ).toBeVisible()
-    await expect(
-      page.getByRole("button", { name: /iniciar sesión con sso/i })
-    ).toBeVisible()
     // Public sign-up is disabled: no link, just a hint to ask an admin.
     await expect(page.getByRole("link", { name: /regístrate/i })).toHaveCount(0)
     await expect(page.getByText(/pide a un administrador/i)).toBeVisible()
+  })
+
+  test("el botón de SSO solo aparece si el backend lo tiene configurado", async ({
+    page,
+  }) => {
+    // Cookie-less calls still need the CSRF header the oRPC link sends.
+    const res = await page.request.get("/api/v1/authConfig/get", {
+      headers: { "x-csrf-token": "orpc" },
+    })
+    expect(res.ok()).toBe(true)
+    const { ssoEnabled } = (await res.json()) as { ssoEnabled: boolean }
+
+    // Wait for the form so the SSO check runs after the island rendered.
+    await expect(page.getByLabel("Email")).toBeVisible()
+    await expect(
+      page.getByRole("button", { name: /iniciar sesión con sso/i })
+    ).toHaveCount(ssoEnabled ? 1 : 0)
   })
 
   test("credenciales inválidas muestran error visible", async ({ page }) => {
