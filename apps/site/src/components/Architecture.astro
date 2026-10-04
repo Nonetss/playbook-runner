@@ -1,0 +1,150 @@
+---
+import ArrowRight from "@lucide/astro/icons/arrow-right"
+import Database from "@lucide/astro/icons/database"
+import { type Lang, t } from "@/i18n/ui"
+import { localized } from "@/lib/url"
+
+interface Props {
+  lang: Lang
+}
+
+interface Hop {
+  name: string
+  tech?: string
+  port?: string
+  note?: string
+  /** Label of the edge to the next hop. */
+  via?: string
+}
+
+const { lang } = Astro.props
+const dict = t(lang)
+const n = dict.arch.nodes
+
+// Both paths share one six-column grid from `xl` up, so the gateway lines up
+// and the frontend sits in the backend's column: both live behind it.
+const paths: { title: string; hops: Hop[] }[] = [
+  {
+    title: dict.arch.pagePath,
+    hops: [
+      { name: n.browser, via: "HTTPS" },
+      { name: n.gateway, tech: "Caddy", port: ":80", via: "/*" },
+      { name: n.frontend, tech: "Astro SSR", port: ":4321" },
+    ],
+  },
+  {
+    title: dict.arch.runPath,
+    hops: [
+      { name: n.browser, via: "/rpc" },
+      { name: n.gateway, tech: "Caddy", port: ":80", via: "" },
+      {
+        name: n.backend,
+        tech: "Hono · oRPC",
+        port: ":3000",
+        note: n.postgres,
+        via: "gRPC",
+      },
+      { name: n.grpc, tech: "Caddy", port: ":50050", via: "/run.*" },
+      { name: n.executor, tech: "ansible-runner", port: ":50051", via: "SSH" },
+      { name: n.hosts },
+    ],
+  },
+]
+---
+
+<section
+  id="architecture"
+  aria-labelledby="architecture-title"
+  class="border-t border-hairline py-20 lg:py-28"
+>
+  <div class="max-w-184">
+    <h2
+      id="architecture-title"
+      class="text-title font-semibold tracking-tight text-strong"
+    >
+      {dict.arch.heading}
+    </h2>
+    <p class="mt-5 text-lede text-foreground">{dict.arch.lede}</p>
+  </div>
+
+  <h3 class="sr-only">{dict.arch.pathsLabel}</h3>
+  <div
+    class="mt-14 grid gap-10 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] xl:grid-cols-1"
+  >
+    {paths.map((path) => (
+        <figure class="min-w-0">
+          <figcaption class="text-label-caps text-muted-foreground">
+            {path.title}
+          </figcaption>
+          <ol class="mt-4 flex flex-col xl:grid xl:grid-cols-6">
+            {path.hops.map((hop, index) => (
+              <li class="flex flex-col xl:flex-row xl:items-center">
+                <div class="rounded-md border border-border bg-card px-3.5 py-3 xl:w-44 xl:shrink-0">
+                  <div class="flex items-baseline justify-between gap-3">
+                    <span class="text-meta font-medium text-strong">
+                      {hop.name}
+                    </span>
+                    {hop.port && (
+                      <span class="font-mono text-[0.75rem] text-muted-foreground tabular-nums">
+                        {hop.port}
+                      </span>
+                    )}
+                  </div>
+                  {hop.tech && (
+                    <div class="mt-0.5 font-mono text-[0.75rem] text-muted-foreground">
+                      {hop.tech}
+                    </div>
+                  )}
+                  {hop.note && (
+                    <div class="mt-2 flex items-center gap-1.5 border-t border-hairline pt-2 font-mono text-[0.75rem] text-muted-foreground">
+                      <Database class="size-3" stroke-width={1.75} />
+                      {hop.note}
+                    </div>
+                  )}
+                </div>
+                {index < path.hops.length - 1 && (
+                  <div class="flex min-h-10 items-center gap-3 pl-5 xl:min-h-0 xl:flex-1 xl:flex-col xl:items-stretch xl:gap-1 xl:px-2">
+                    <span
+                      class="h-6 w-px shrink-0 bg-muted-foreground/50 xl:hidden"
+                      aria-hidden="true"
+                    />
+                    <span class="min-h-4 font-mono text-[0.6875rem] text-muted-foreground xl:text-center">
+                      {hop.via && <span class="sr-only">→ </span>}
+                      {hop.via}
+                    </span>
+                    <span class="hidden items-center xl:flex" aria-hidden="true">
+                      <span class="h-px flex-1 bg-muted-foreground/50" />
+                      <ArrowRight
+                        class="-ml-1.5 size-3 text-muted-foreground"
+                        stroke-width={2}
+                      />
+                    </span>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ol>
+        </figure>
+      ))}
+  </div>
+
+  <dl class="mt-16 grid gap-x-12 lg:grid-cols-3">
+    {dict.arch.principles.map((item) => (
+        <div class="border-t border-hairline py-6">
+          <dt class="text-headline font-medium text-strong">{item.term}</dt>
+          <dd class="mt-2 text-body text-muted-foreground">{item.text}</dd>
+        </div>
+      ))}
+  </dl>
+
+  <a
+    href={localized(lang, "docs/architecture/")}
+    class="focus-ring group mt-6 inline-flex items-center gap-1.5 rounded-sm text-body font-medium text-strong"
+  >
+    {dict.arch.docsLink}
+    <ArrowRight
+      class="size-4 text-primary transition-transform duration-300 ease-out-expo group-hover:translate-x-0.5"
+      stroke-width={1.75}
+    />
+  </a>
+</section>

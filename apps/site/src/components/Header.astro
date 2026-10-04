@@ -1,0 +1,120 @@
+---
+import Moon from "@lucide/astro/icons/moon"
+import Sun from "@lucide/astro/icons/sun"
+import GithubMark from "@/components/GithubMark.astro"
+import Logo from "@/components/Logo.astro"
+import { type Lang, languages, t } from "@/i18n/ui"
+import { localized, REPO_URL, switchLanguage } from "@/lib/url"
+
+interface Props {
+  lang: Lang
+}
+
+const { lang } = Astro.props
+const dict = t(lang)
+const home = localized(lang)
+const onDocs = Astro.url.pathname.includes("/docs/")
+
+const anchors = [
+  { href: `${home}#tour`, label: dict.nav.tour },
+  { href: `${home}#architecture`, label: dict.nav.architecture },
+  { href: `${home}#install`, label: dict.nav.install },
+]
+---
+
+<header
+  class="sticky top-0 z-40 h-(--header-height) border-b border-hairline bg-background"
+>
+  <div
+    class="mx-auto flex h-full max-w-360 items-center gap-3 px-4 sm:gap-6 sm:px-6 lg:px-8"
+  >
+    <a
+      href={home}
+      class="focus-ring -mx-1 flex items-center gap-2.5 rounded-md px-1 text-strong"
+    >
+      <Logo class="size-6 text-primary" />
+      <span
+        class="text-[0.9375rem] font-medium tracking-tight whitespace-nowrap max-sm:sr-only"
+        >Playbook Runner</span
+      >
+    </a>
+
+    <nav aria-label="Main" class="ml-auto flex items-center gap-1 text-meta">
+      {anchors.map((link) => (
+          <a
+            href={link.href}
+            class="focus-ring hidden rounded-md px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-strong md:block"
+          >
+            {link.label}
+          </a>
+        ))}
+      <a
+        href={localized(lang, "docs/")}
+        {...(onDocs ? { "aria-current": "page" } : {})}
+        class="focus-ring rounded-md px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-strong aria-[current=page]:font-medium aria-[current=page]:text-strong"
+      >
+        {dict.nav.docs}
+      </a>
+    </nav>
+
+    <div class="flex items-center gap-1 border-l border-hairline pl-3">
+      <nav
+        class="flex items-center font-mono text-[0.75rem] uppercase"
+        aria-label={dict.nav.language}
+      >
+        {(Object.keys(languages) as Lang[]).map((code) =>
+            code === lang ? (
+              <span
+                class="px-1.5 py-1.5 text-strong"
+                aria-current="true"
+                title={languages[code]}
+              >
+                {code}
+              </span>
+            ) : (
+              <a
+                href={switchLanguage(Astro.url.pathname, code)}
+                hreflang={code}
+                lang={code}
+                title={languages[code]}
+                class="focus-ring rounded-md px-1.5 py-1.5 text-muted-foreground transition-colors hover:text-strong"
+              >
+                {code}
+              </a>
+            )
+          )}
+      </nav>
+      <button
+        type="button"
+        data-theme-toggle
+        aria-label={dict.nav.theme}
+        title={dict.nav.theme}
+        class="focus-ring grid size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-strong"
+      >
+        <Sun class="hidden size-4 dark:block" stroke-width={1.75} />
+        <Moon class="size-4 dark:hidden" stroke-width={1.75} />
+      </button>
+      <a
+        href={REPO_URL}
+        aria-label={dict.nav.github}
+        title={dict.nav.github}
+        class="focus-ring grid size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-strong"
+      >
+        <GithubMark class="size-4" />
+      </a>
+    </div>
+  </div>
+</header>
+
+<script>
+for (const button of document.querySelectorAll("[data-theme-toggle]")) {
+  button.addEventListener("click", () => {
+    const dark = document.documentElement.classList.toggle("dark")
+    try {
+      localStorage.setItem("theme", dark ? "dark" : "light")
+    } catch {
+      // Private mode or blocked storage: the toggle still works this visit.
+    }
+  })
+}
+</script>

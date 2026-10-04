@@ -1,0 +1,306 @@
+@import "tailwindcss";
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource/space-mono/latin-400.css";
+@import "@fontsource/space-mono/latin-700.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Same tokens as apps/frontend/src/styles/global.css (documented in
+   apps/frontend/DESIGN.md): paper, ink, hairlines and one terracotta accent.
+   The terminal set frames the app screenshots and the code blocks. */
+:root {
+  --brand-orange: oklch(0.6724 0.1308 38.7559);
+  --background: oklch(0.9818 0.0054 95.0986);
+  --foreground: oklch(0.3438 0.0269 95.7226);
+  --strong: oklch(0.1908 0.002 106.5859);
+  --card: oklch(0.9665 0.0067 97.3521);
+  --primary: var(--brand-orange);
+  --primary-foreground: oklch(1 0 0);
+  /* Terracotta dark enough for text on paper (4.5:1). */
+  --primary-ink: oklch(0.54 0.13 38.7559);
+  --muted: oklch(0.9341 0.0153 90.239);
+  --muted-foreground: oklch(0.5341 0.0078 97.4503);
+  --accent: oklch(0.9245 0.0138 92.9892);
+  --border: oklch(0.9 0.006 97.3627);
+  --hairline: oklch(0.94 0.003 97.3627);
+  --ring: var(--brand-orange);
+
+  --terminal-bg: oklch(0.2 0.003 106.6);
+  --terminal-surface: oklch(0.235 0.003 106.6);
+  --terminal-raised: oklch(0.265 0.004 106.6);
+  --terminal-border: oklch(0.32 0.004 106.8);
+  --terminal-fg: oklch(0.92 0.004 106.4);
+  --terminal-muted: oklch(0.7 0.012 99);
+  --terminal-subtle: oklch(0.55 0.008 99);
+
+  --header-height: 3.6rem;
+  color-scheme: light;
+}
+
+.dark {
+  --background: oklch(0.2679 0.0036 106.6427);
+  --foreground: oklch(0.9576 0.0027 106.4494);
+  --strong: oklch(0.9818 0.0054 95.0986);
+  --card: oklch(0.2928 0.0018 106.5092);
+  --primary-ink: oklch(0.74 0.12 38.7559);
+  --muted: oklch(0.2213 0.0038 106.707);
+  --muted-foreground: oklch(0.7713 0.0169 99.0657);
+  --accent: oklch(0.31 0.004 106.8928);
+  --border: oklch(0.36 0.004 106.8928);
+  --hairline: oklch(0.31 0.004 106.8928);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-strong: var(--strong);
+  --color-card: var(--card);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-ink: var(--primary-ink);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-border: var(--border);
+  --color-hairline: var(--hairline);
+  --color-ring: var(--ring);
+
+  --color-terminal-bg: var(--terminal-bg);
+  --color-terminal-surface: var(--terminal-surface);
+  --color-terminal-raised: var(--terminal-raised);
+  --color-terminal-border: var(--terminal-border);
+  --color-terminal-fg: var(--terminal-fg);
+  --color-terminal-muted: var(--terminal-muted);
+  --color-terminal-subtle: var(--terminal-subtle);
+
+  --font-sans: "Space Grotesk Variable", "Space Grotesk", sans-serif;
+  --font-mono: "Space Mono", ui-monospace, monospace;
+
+  /* Typography roles shared with the app, plus the two marketing sizes the
+     landing needs (hero and section titles). */
+  --text-hero: clamp(2.25rem, 1.5rem + 2.6vw, 3.5rem);
+  --text-hero--line-height: 1.02;
+  --text-title: clamp(1.625rem, 1.2rem + 1.6vw, 2.375rem);
+  --text-title--line-height: 1.1;
+  --text-display: 1.75rem;
+  --text-display--line-height: 1.2;
+  --text-headline: 1.125rem;
+  --text-headline--line-height: 1.35;
+  --text-lede: 1.0625rem;
+  --text-lede--line-height: 1.6;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.65;
+  --text-meta: 0.8125rem;
+  --text-meta--line-height: 1.5;
+  --text-label: 0.6875rem;
+  --text-label--line-height: 1.3;
+  --text-data: 0.8125rem;
+  --text-data--line-height: 1.6;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@utility focus-ring {
+  @apply outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50;
+}
+
+/* Label role: 11px medium caps, 0.12em — table heads, nav groups. */
+@utility text-label-caps {
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@layer base {
+  html {
+    scroll-padding-top: calc(var(--header-height) + 1.5rem);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    font-feature-settings: "ss01";
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--brand-orange) 28%, transparent);
+    color: var(--strong);
+  }
+
+  :where(code, kbd, samp, pre) {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  :where(a) {
+    text-underline-offset: 0.22em;
+    text-decoration-thickness: 1px;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+/* Long-form docs. Element styles only: the markdown has no classes. */
+.prose {
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  max-width: 72ch;
+
+  & > * + * {
+    margin-top: 1rem;
+  }
+
+  & h2 {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--hairline);
+    font-size: 1.375rem;
+    line-height: 1.25;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--strong);
+  }
+
+  & h3 {
+    margin-top: 2rem;
+    font-size: var(--text-headline);
+    line-height: var(--text-headline--line-height);
+    font-weight: 600;
+    color: var(--strong);
+  }
+
+  & h2 + *,
+  & h3 + * {
+    margin-top: 0.75rem;
+  }
+
+  & strong {
+    font-weight: 600;
+    color: var(--strong);
+  }
+
+  & a {
+    color: var(--strong);
+    text-decoration-line: underline;
+    text-decoration-color: var(--primary);
+  }
+
+  & a:hover {
+    color: var(--primary-ink);
+  }
+
+  & ul,
+  & ol {
+    padding-left: 1.25rem;
+  }
+
+  & ul {
+    list-style: square;
+  }
+
+  & ol {
+    list-style: decimal;
+  }
+
+  & li + li {
+    margin-top: 0.375rem;
+  }
+
+  & li::marker {
+    color: var(--muted-foreground);
+  }
+
+  & :not(pre) > code {
+    font-size: 0.85em;
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    background: var(--muted);
+    color: var(--strong);
+    overflow-wrap: anywhere;
+  }
+
+  & pre {
+    font-size: var(--text-data);
+    line-height: var(--text-data--line-height);
+    padding: 1rem 1.125rem;
+    border-radius: 10px;
+    border: 1px solid var(--terminal-border);
+    overflow-x: auto;
+    scrollbar-color: var(--terminal-border) transparent;
+  }
+
+  & blockquote {
+    padding: 0.875rem 1.125rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--card);
+    color: var(--foreground);
+  }
+
+  & table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    display: block;
+    overflow-x: auto;
+  }
+
+  & th {
+    text-align: left;
+    font-size: var(--text-label);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    padding: 0 1rem 0.625rem 0;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  & td {
+    padding: 0.75rem 1rem 0.75rem 0;
+    border-bottom: 1px solid var(--hairline);
+    vertical-align: top;
+  }
+
+  & td code {
+    white-space: nowrap;
+  }
+}
+
+/* Tour frame: screenshots cross-fade when the active stop changes. */
+.frame-shot {
+  opacity: 0;
+  transition: opacity 0.45s var(--ease-out-expo);
+}
+
+.frame-shot[data-active] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame-shot {
+    transition: none;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}

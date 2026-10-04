@@ -1,0 +1,65 @@
+---
+import { Image } from "astro:assets"
+import Logo from "@/components/Logo.astro"
+import { type Screen, screenWidths } from "@/lib/screens"
+
+interface Shot extends Screen {
+  alt: string
+}
+
+interface Props {
+  /** One shot renders a static frame; several stack for the tour. */
+  shots: Shot[]
+  active?: Shot["id"]
+  eager?: boolean
+  class?: string
+}
+
+const {
+  shots,
+  active = shots[0]?.id,
+  eager = false,
+  class: className,
+} = Astro.props
+const current = shots.find((shot) => shot.id === active) ?? shots[0]
+const sizes = "(min-width: 64rem) 56vw, 100vw"
+---
+
+<div
+  class:list={[
+    "overflow-hidden rounded-[10px] border border-terminal-border bg-terminal-bg",
+    className,
+  ]}
+  data-frame
+>
+  <div
+    class="flex h-9 items-center gap-2.5 border-b border-terminal-border bg-terminal-surface px-3.5"
+  >
+    <Logo class="size-3.5 text-primary" />
+    <span class="font-mono text-[0.75rem] text-terminal-muted">
+      runner.example.com<span class="text-terminal-fg" data-frame-route
+        >{current?.route}</span
+      >
+    </span>
+  </div>
+  <div class="relative aspect-3810/2092 bg-terminal-bg">
+    {shots.map((shot, index) => (
+        <Image
+          src={shot.image}
+          alt={shot.alt}
+          widths={screenWidths}
+          sizes={sizes}
+          loading={eager && index === 0 ? "eager" : "lazy"}
+          fetchpriority={eager && index === 0 ? "high" : undefined}
+          data-shot={shot.id}
+          data-route={shot.route}
+          data-active={shot.id === current?.id ? "" : undefined}
+          aria-hidden={shot.id === current?.id ? undefined : "true"}
+          class:list={[
+            "absolute inset-0 size-full object-cover object-top-left",
+            shots.length > 1 && "frame-shot",
+          ]}
+        />
+      ))}
+  </div>
+</div>

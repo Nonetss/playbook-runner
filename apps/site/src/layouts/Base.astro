@@ -1,0 +1,82 @@
+---
+import "@/styles/global.css"
+import Footer from "@/components/Footer.astro"
+import Header from "@/components/Header.astro"
+import { type Lang, languages, t } from "@/i18n/ui"
+import { href, switchLanguage } from "@/lib/url"
+
+interface Props {
+  lang: Lang
+  title?: string
+  description?: string
+}
+
+const { lang, title, description } = Astro.props
+const dict = t(lang)
+const pageTitle = title ? `${title} · Playbook Runner` : dict.meta.title
+const pageDescription = description ?? dict.meta.description
+const canonical = new URL(Astro.url.pathname, Astro.site)
+const alternates = (Object.keys(languages) as Lang[]).map((code) => ({
+  code,
+  url: new URL(switchLanguage(Astro.url.pathname, code), Astro.site),
+}))
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription}>
+    <link rel="canonical" href={canonical}>
+    {alternates.map((alt) => (
+        <link rel="alternate" hreflang={alt.code} href={alt.url} />
+      ))}
+    <link rel="icon" href={href("favicon.ico")} sizes="32x32">
+    <link rel="icon" href={href("logo.svg")} type="image/svg+xml">
+    <link rel="apple-touch-icon" href={href("apple-touch-icon.png")}>
+    <meta
+      name="theme-color"
+      content="#f9f8f3"
+      media="(prefers-color-scheme: light)"
+    >
+    <meta
+      name="theme-color"
+      content="#2a2a27"
+      media="(prefers-color-scheme: dark)"
+    >
+    <meta property="og:type" content="website">
+    <meta property="og:title" content={pageTitle}>
+    <meta property="og:description" content={pageDescription}>
+    <meta property="og:url" content={canonical}>
+    <meta property="og:locale" content={lang === "es" ? "es_ES" : "en_US"}>
+    <script is:inline>
+    // Theme before first paint: stored choice, else the system preference.
+    ;(() => {
+      let stored = null
+      try {
+        stored = localStorage.getItem("theme")
+      } catch {}
+      const dark =
+        stored === "dark" ||
+        (stored !== "light" &&
+          matchMedia("(prefers-color-scheme: dark)").matches)
+      document.documentElement.classList.toggle("dark", dark)
+    })()
+    </script>
+  </head>
+  <body class="min-h-dvh">
+    <a
+      href="#content"
+      class="sr-only z-50 rounded-md bg-background px-3 py-2 text-meta focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:ring-[3px] focus:ring-ring/50"
+    >
+      {dict.nav.skip}
+    </a>
+    <Header lang={lang} />
+    <main id="content">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+  </body>
+</html>

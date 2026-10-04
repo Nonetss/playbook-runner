@@ -1,0 +1,191 @@
+---
+import ArrowRight from "@lucide/astro/icons/arrow-right"
+import AppFrame from "@/components/AppFrame.astro"
+import Architecture from "@/components/Architecture.astro"
+import GithubMark from "@/components/GithubMark.astro"
+import Install from "@/components/Install.astro"
+import InstallCommand from "@/components/InstallCommand.astro"
+import { type Lang, t } from "@/i18n/ui"
+import { dashboard, tourScreens } from "@/lib/screens"
+import { localized, REPO_URL } from "@/lib/url"
+
+interface Props {
+  lang: Lang
+}
+
+const { lang } = Astro.props
+const dict = t(lang)
+
+const dashboardShot = { ...dashboard, alt: dict.tour.dashboardAlt }
+const stops = tourScreens.map((screen) => ({
+  ...screen,
+  ...dict.tour.stops[screen.id],
+}))
+const allShots = [
+  dashboardShot,
+  ...stops.map((stop) => ({ ...stop, alt: stop.alt })),
+]
+---
+
+<div class="mx-auto max-w-360 px-4 sm:px-6 lg:px-8">
+  <!-- Hero + tour: the frame on the right stays pinned while the stops on the
+       left scroll past (from 64rem up); below that every stop has its own. -->
+  <div class="lg:grid lg:grid-cols-12 lg:gap-x-12 xl:gap-x-16">
+    <div class="lg:col-span-5 xl:col-span-4">
+      <section
+        aria-labelledby="hero-title"
+        data-stop="dashboard"
+        class="flex flex-col justify-center pt-12 pb-14 sm:pt-16 lg:min-h-[calc(100dvh-var(--header-height))] lg:py-16"
+      >
+        <h1
+          id="hero-title"
+          class="text-hero font-semibold tracking-[-0.035em] text-strong"
+        >
+          {dict.hero.title}
+        </h1>
+        <p class="mt-5 max-w-136 text-lede text-foreground">
+          {dict.hero.lede}
+        </p>
+
+        <div class="mt-9">
+          <InstallCommand lang={lang} label={dict.hero.installLabel} />
+          <p class="mt-3 max-w-136 text-meta text-muted-foreground">
+            {dict.hero.installHint}
+          </p>
+        </div>
+
+        <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-body">
+          <a
+            href={localized(lang, "docs/")}
+            class="focus-ring group inline-flex items-center gap-1.5 rounded-sm font-medium text-strong"
+          >
+            {dict.hero.docs}
+            <ArrowRight
+              class="size-4 text-primary transition-transform duration-300 ease-out-expo group-hover:translate-x-0.5"
+              stroke-width={1.75}
+            />
+          </a>
+          <a
+            href={REPO_URL}
+            class="focus-ring inline-flex items-center gap-2 rounded-sm text-muted-foreground transition-colors hover:text-strong"
+          >
+            <GithubMark class="size-4" />
+            {dict.hero.github}
+          </a>
+        </div>
+
+        <AppFrame shots={[dashboardShot]} eager class="mt-12 lg:hidden" />
+      </section>
+
+      <section id="tour" aria-labelledby="tour-title" class="scroll-mt-4">
+        <h2 id="tour-title" class="sr-only">{dict.tour.heading}</h2>
+        <ol>
+          {stops.map((stop) => (
+              <li
+                data-stop={stop.id}
+                class="border-t border-hairline py-12 lg:flex lg:min-h-[78dvh] lg:flex-col lg:justify-center lg:border-t-0 lg:py-20"
+              >
+                <h3 class="flex items-baseline gap-3 text-display font-semibold tracking-tight text-strong">
+                  <span
+                    class="relative top-[-0.2em] size-2 shrink-0 rounded-full bg-border transition-colors duration-300 data-active:bg-primary"
+                    data-stop-dot
+                    aria-hidden="true"
+                  />
+                  {stop.title}
+                </h3>
+                <p class="mt-4 max-w-xl pl-5 text-body text-foreground">
+                  {stop.body}
+                </p>
+                <AppFrame shots={[stop]} class="mt-8 lg:hidden" />
+              </li>
+            ))}
+        </ol>
+      </section>
+    </div>
+
+    <div class="hidden lg:col-span-7 lg:block xl:col-span-8">
+      <figure
+        class="sticky top-(--header-height) flex h-[calc(100dvh-var(--header-height))] flex-col justify-center py-8"
+        data-tour-frame
+      >
+        <AppFrame shots={allShots} eager />
+        <figcaption class="mt-4 flex items-center justify-between gap-4">
+          <span class="text-meta text-muted-foreground"
+            >{dict.frame.caption}</span
+          >
+          <span class="flex items-center gap-1.5" aria-hidden="true">
+            {allShots.map((shot, index) => (
+                <span
+                  data-progress={shot.id}
+                  data-active={index === 0 ? "" : undefined}
+                  class="h-1 w-5 rounded-full bg-border transition-colors duration-300 data-active:bg-primary"
+                />
+              ))}
+          </span>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <section
+    aria-labelledby="rest-title"
+    class="border-t border-hairline py-20 lg:py-28"
+  >
+    <h2
+      id="rest-title"
+      class="max-w-[22ch] text-title font-semibold tracking-tight text-strong"
+    >
+      {dict.tour.rest.heading}
+    </h2>
+    <dl class="mt-12 grid gap-x-12 sm:grid-cols-2 lg:grid-cols-3">
+      {dict.tour.rest.items.map((item) => (
+          <div class="border-t border-hairline py-6">
+            <dt class="text-headline font-medium text-strong">{item.term}</dt>
+            <dd class="mt-2 text-body text-muted-foreground">{item.text}</dd>
+          </div>
+        ))}
+    </dl>
+  </section>
+
+  <Architecture lang={lang} />
+  <Install lang={lang} />
+</div>
+
+<script>
+// The stop crossing the middle of the viewport drives the pinned frame.
+const frame = document.querySelector<HTMLElement>("[data-tour-frame]")
+const stops = document.querySelectorAll<HTMLElement>("[data-stop]")
+
+const activate = (id: string) => {
+  if (!frame) return
+  for (const shot of frame.querySelectorAll<HTMLElement>("[data-shot]")) {
+    const on = shot.dataset.shot === id
+    shot.toggleAttribute("data-active", on)
+    if (on) shot.removeAttribute("aria-hidden")
+    else shot.setAttribute("aria-hidden", "true")
+    if (on) {
+      const route = frame.querySelector("[data-frame-route]")
+      if (route) route.textContent = shot.dataset.route ?? ""
+    }
+  }
+  for (const bar of frame.querySelectorAll<HTMLElement>("[data-progress]"))
+    bar.toggleAttribute("data-active", bar.dataset.progress === id)
+  for (const stop of stops)
+    stop
+      .querySelector("[data-stop-dot]")
+      ?.toggleAttribute("data-active", stop.dataset.stop === id)
+}
+
+if (frame && "IntersectionObserver" in window) {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        const id = (entry.target as HTMLElement).dataset.stop
+        if (entry.isIntersecting && id) activate(id)
+      }
+    },
+    { rootMargin: "-50% 0px -50% 0px" }
+  )
+  for (const stop of stops) observer.observe(stop)
+}
+</script>

@@ -1,0 +1,48 @@
+---
+import Logo from "@/components/Logo.astro"
+import { type Lang, t } from "@/i18n/ui"
+import { localized, REPO_URL } from "@/lib/url"
+
+interface Props {
+  lang: Lang
+}
+
+const { lang } = Astro.props
+const dict = t(lang)
+
+const links = [
+  { href: localized(lang, "docs/"), label: dict.nav.docs },
+  { href: REPO_URL, label: dict.nav.github },
+  { href: `${REPO_URL}/releases`, label: dict.footer.releases },
+  { href: `${REPO_URL}/issues`, label: dict.footer.issues },
+  { href: `${REPO_URL}/blob/main/LICENSE`, label: dict.footer.license_link },
+]
+---
+
+<footer class="border-t border-hairline">
+  <div
+    class="mx-auto flex max-w-360 flex-col gap-6 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8"
+  >
+    <div class="flex items-center gap-3 text-meta text-muted-foreground">
+      <Logo class="size-5 text-primary" />
+      <p>
+        <span class="font-medium text-strong">Playbook Runner</span>{" "}
+        <span aria-hidden="true">·</span> {dict.footer.license}
+      </p>
+    </div>
+    <nav aria-label="Footer">
+      <ul class="flex flex-wrap gap-x-5 gap-y-2 text-meta">
+        {links.map((link) => (
+            <li>
+              <a
+                href={link.href}
+                class="focus-ring rounded-sm text-muted-foreground transition-colors hover:text-strong"
+              >
+                {link.label}
+              </a>
+            </li>
+          ))}
+      </ul>
+    </nav>
+  </div>
+</footer>
