@@ -1,14 +1,6 @@
 ---
-description: Show the impeccable command menu, then route to the chosen command
+description: Use when the user wants to design, redesign, shape, critique, audit, polish, clarify, distill, harden, optimize, adapt, animate, colorize, extract, or otherwise improve a frontend interface. Covers websites, landing pages, dashboards, product UI, app shells, components, forms, settings, onboarding, and empty states. Handles UX review, visual hierarchy, information architecture, cognitive load, accessibility, performance, responsive behavior, theming, anti-patterns, typography, fonts, spacing, layout, alignment, color, motion, micro-interactions, UX copy, error states, edge cases, i18n, and reusable design systems or tokens. Also use for bland designs that need to become bolder or more delightful, loud designs that should become quieter, live browser iteration on UI elements, or ambitious visual effects that should feel technically extraordinary. Not for backend-only or non-UI tasks.
+agent: build
+subtask: true
 ---
-
-Present the impeccable command menu and route the user to the matching command.
-
-**Steps:**
-
-1. Load `.agents/skills/impeccable/reference/routing.md` and follow it.
-2. Render the menu from the Commands table in `.agents/skills/impeccable/SKILL.md` (categories: Build, Evaluate, Refine, Enhance, Fix, Iterate, System).
-3. Wait for the user to pick one. Never auto-run a command.
-4. Invoke the matching `/impeccable-<command>` slash command (all of which live in `.opencode/commands/`) with the user's input appended.
-
-Alias notes from the skill: `teach` → `init`; `craft` → `new-work` (use `/impeccable-craft`); `shape` is task discovery then enters `new-work` only for visual-world and surface-concept decisions.
+Call skill({ name: "impeccable" }) and follow its `Setup` and `Commands` sections to handle $ARGUMENTS.
