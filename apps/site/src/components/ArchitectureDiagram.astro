@@ -41,6 +41,8 @@ const boxes: Box[] = [
 
 interface Edge {
   d: string
+  /** Server-streaming gRPC: the run events come back on the same call, so
+   *  these edges carry an arrowhead at both ends. */
   grpc?: boolean
   label: string
   lx: number
@@ -93,6 +95,7 @@ const edges: Edge[] = [
         <path
           d={edge.d}
           marker-end="url(#arch-arrow)"
+          marker-start={edge.grpc ? "url(#arch-arrow)" : undefined}
           stroke-dasharray={edge.grpc ? "5 4" : undefined}
         />
       ))}

@@ -118,7 +118,8 @@ const en = {
     diagramDesc:
       "The browser reaches the Caddy gateway on port 80. The gateway sends /rpc, /api, /scalar and /openapi.json to the Hono backend on port 3000 and every other path to the Astro frontend on port 4321. The backend reads and writes PostgreSQL and calls the Ansible executor over gRPC through the gateway's router on port 50050, which forwards /run.* calls to the executor on port 50051. The executor connects to your hosts over SSH.",
     legendHttp: "Connection, labelled with its protocol or route",
-    legendGrpc: "gRPC inside the Compose network",
+    legendGrpc:
+      "gRPC inside the Compose network: the backend calls, the run events stream back on the same call",
     published: "published",
     pathsLabel: "Request paths",
     pagePath: "Opening a page",
@@ -309,7 +310,8 @@ const es: Dictionary = {
     diagramDesc:
       "El navegador llega al gateway Caddy por el puerto 80. El gateway manda /rpc, /api, /scalar y /openapi.json al backend Hono en el puerto 3000 y cualquier otra ruta al frontend Astro en el 4321. El backend lee y escribe en PostgreSQL y llama al ejecutor de Ansible por gRPC a través del router del gateway en el puerto 50050, que reenvía las llamadas /run.* al ejecutor en el 50051. El ejecutor se conecta a tus hosts por SSH.",
     legendHttp: "Conexión, con su protocolo o ruta",
-    legendGrpc: "gRPC dentro de la red de Compose",
+    legendGrpc:
+      "gRPC dentro de la red de Compose: llama el backend y los eventos de la ejecución vuelven por la misma llamada",
     published: "publicado",
     pathsLabel: "Recorrido de las peticiones",
     pagePath: "Abrir una página",
