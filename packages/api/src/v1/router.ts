@@ -1,5 +1,6 @@
 import type { RouterClient } from "@orpc/server"
 import { apiKeysRouter } from "#v1/api-key/router"
+import { authConfigRouter } from "#v1/auth-config/router"
 import { credentialsRouter } from "#v1/credentials/router"
 import { healthRouter } from "#v1/health/router"
 import { inventoryRouter } from "#v1/inventory/router"
@@ -12,6 +13,7 @@ import { scriptsRouter } from "#v1/scripts/router"
 export const appRouter = {
   health: healthRouter,
   apiKeys: apiKeysRouter,
+  authConfig: authConfigRouter,
   credentials: credentialsRouter,
   inventory: inventoryRouter,
   jobs: jobsRouter,

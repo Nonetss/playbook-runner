@@ -4,35 +4,8 @@ import * as schema from "@playbook-runner/db/schema/auth"
 import { env } from "@playbook-runner/env/server"
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
-import { admin, genericOAuth } from "better-auth/plugins"
-
-const GENERIC_OAUTH_PROVIDER_ID = "generic"
-
-function buildGenericOAuthPlugin() {
-  const {
-    GENERIC_OAUTH_CLIENT_ID,
-    GENERIC_OAUTH_CLIENT_SECRET,
-    GENERIC_OAUTH_ISSUER,
-  } = env
-  if (
-    !GENERIC_OAUTH_CLIENT_ID ||
-    !GENERIC_OAUTH_CLIENT_SECRET ||
-    !GENERIC_OAUTH_ISSUER
-  ) {
-    return null
-  }
-  return genericOAuth({
-    config: [
-      {
-        providerId: GENERIC_OAUTH_PROVIDER_ID,
-        clientId: GENERIC_OAUTH_CLIENT_ID,
-        clientSecret: GENERIC_OAUTH_CLIENT_SECRET,
-        discoveryUrl: `${GENERIC_OAUTH_ISSUER}/.well-known/openid-configuration`,
-        scopes: ["openid", "profile", "email"],
-      },
-    ],
-  })
-}
+import { admin } from "better-auth/plugins"
+import { buildGenericOAuthPlugin, GENERIC_OAUTH_PROVIDER_ID } from "./oauth"
 
 export function createAuth() {
   const db = createDb()
