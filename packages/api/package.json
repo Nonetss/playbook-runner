@@ -14,7 +14,8 @@
   },
   "scripts": {
     "build": "true",
-    "check-types": "tsc --noEmit -p ."
+    "check-types": "tsc --noEmit -p .",
+    "test": "bun test --preload ./test/setup.ts"
   },
   "dependencies": {
     "@playbook-runner/auth": "workspace:*",
