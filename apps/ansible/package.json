@@ -8,6 +8,7 @@
     "start": "uv run fastapi run",
     "format": "uv run ruff check --select I --fix . && uv run ruff format .",
     "check-types": "uv run basedpyright -p ../../pyrightconfig.json",
-    "generate-grpc": "mkdir -p app/grpc/gen && uv run python -m grpc_tools.protoc -I ../../proto --python_out=app/grpc/gen --grpc_python_out=app/grpc/gen --pyi_out=app/grpc/gen ../../proto/*.proto"
+    "generate-grpc": "mkdir -p app/grpc/gen && uv run python -m grpc_tools.protoc -I ../../proto --python_out=app/grpc/gen --grpc_python_out=app/grpc/gen --pyi_out=app/grpc/gen ../../proto/*.proto",
+    "test": "uv run pytest"
   }
 }

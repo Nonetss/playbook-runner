@@ -21,6 +21,7 @@ dependencies = [
 dev = [
     "basedpyright>=1.39.9",
     "grpcio-tools>=1.68.0",
+    "pytest>=9.1.1",
     "ruff>=0.15.20",
 ]
 
@@ -38,3 +39,7 @@ known-first-party = ["app"]
 
 [tool.uv.sources]
 grpc-toolkit = { path = "../../python/grpc-toolkit", editable = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
