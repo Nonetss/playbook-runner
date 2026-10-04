@@ -1,723 +1,365 @@
-<?xml version="1.0" encoding="UTF-8" ?>
 <svg
+  xmlns="http://www.w3.org/2000/svg"
   viewBox="0 0 1280 720"
   role="img"
   aria-labelledby="arch-title arch-desc"
-  xmlns="http://www.w3.org/2000/svg"
 >
-  <title id="arch-title">Playbook runner architecture</title>
+  <title id="arch-title">Playbook Runner architecture</title>
   <desc id="arch-desc">
-    A browser talks over HTTPS to the Caddy gateway, the only published port.
+    The browser reaches the Caddy gateway on port 80, the only published port.
     The gateway sends /rpc, /api, /scalar and /openapi.json to the Hono backend
-    and every other path to the Astro SSR frontend. The backend reads and writes
-    PostgreSQL via Drizzle ORM and calls the Ansible executor over gRPC through
-    the gateway's internal router on port 50050, which forwards the run package
-    to the executor on port 50051 and streams RunEvents back.
+    on port 3000 and every other path to the Astro frontend on port 4321. The
+    backend reads and writes PostgreSQL and calls the Ansible executor over gRPC
+    through the gateway's router on port 50050, which forwards /run.* calls to
+    the executor on port 50051; run events stream back on the same call. The
+    executor connects to your hosts over SSH.
   </desc>
-
   <defs>
     <style>
-    @import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap");
+    @font-face {
+      font-family: "PR Grotesk";
+      font-weight: 400;
+      src: url(data:font/woff2;base64,d09GMgABAAAAABQgABAAAAAAMqQAABO+AAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGoE6G6MoHIEaBmA/U1RBVC4AgQoRCAqxXKcZATYCJAOCWAuBLgAEIAWDagcgDAcblytFB+KeKdYGKf4vE7gxBOsMu0cxGCNUw7vaDkWtF7yrqpma5/1ELnDA/A72Mzu+XzmMLViEiMX+MMClp9oirpH7IySZhSeY8313SQE4JUw/4wBQbR71lJ1DTwqNmwfg4XFb/zi9k9q7aAOjEJvIjR61jbEAQQzACkC9qvZf/Qz51em/H0n0/Bht3v4zD+nSlWqIha6SIVkmksmRDCFRWft3LecHzExSQG2OQdiWc3b3VQM64Is5jbCmQnab3c2iK7EKYInwA/wF8L+2Zi+ZavfxI1bAwlE8ovVTc7OA0Pv/+bkym9cU3aQsm/ZQtavOAqKRb/7PXvLzhot/52CXM2X+k+yUiNxhDpgVAQh58oypkeckC3NSndlSYyWPnFIRsGCFJNeft4yl6b/tPuazFGlMa4RII+Oe/18UAX5wGkAFKCfhFiZikkRamsiyiIoq0dAh+obEqFFi3ASxA2mK3VhTHBI0RZzbTnJD48Yt2okn4LYDyY8WwGAFCZhkThKIU2FOkscoJy+ZdQT5wDG+fgb3PxLwqhmlt++SPIAfn40NA8gEZLZhP7waGQZCALViUqby5hM6i7iurvs+824W+OHfZEt6oLvxkpGPctCxDzmhic36rkn3rGTA1e2c/XNyHpnn5o2y6HsZyQ25LQ+9lZ8guoQyOLj4BIRFRMXEJSSlpGXlFRRZyqpa2jq6+gZsI0ZNmrdoyTI7BycXNz8xLYgXiUR3UgXpGrIFa51bV3Oza1ukklFupSr1e7asVid6g9pOsNN10Cg1B8U4ErJAsOMaBoUiFPpdAHQSjGTPQsFqSIVDrQd1B01p936GFSNm9PCiGynNQHByNo9yNGfXg3BAgh9oCAADLEOBkdz7CMB8lnXqc2YVbsv5uhWuRBSXH68tX0exL6UElihTqJh1FR3RgxgMhI3bP6xtpIbRWsZrm6xqqnPTas52Zl4sApaKrphtRx07YTfsgb2wD/ZfX5BW4+tEglsqFc33qdibElhQMWui6qID6F3ZoDYhnTPGGALIbZlnzRSZCxyihwATgatDoQFm68D/C8wZx6SGvb5Uz98gVZ3E0cEetv/jl5+Nhw81Z3TwV3qNdbg40p2ZlbvyDLzVZ2+r7/Higoltjl9NkzYm4u+tquTcFGhy32k2bDwu99fmN/+nduH+Efucem/u3tiJlMFF20/4koMMr7xuX1eQ52xKy8evyKecyapXq/rZSisuGDqGSDVPtfOMXqnk7qtii1fcwQpW38zA7f702Eyyom952GhCN1wyPndERGeJ7cRB4GMcTcyFemGClzPXEome41WQURpmQ3QwmmXiU0k2Ow3mM37J3Uc3Q8539ZgZp95JcLVWPI3Ow7nYvfJld24pjH/S25p3x/smDpmas68y/ohTA2VYv07bC/KBy7jzzGl1hc90i0sp4ybo5D78C7gQAkCWW2Caq/++3JkZmJrOLt7/MDyIqhsEBDmXjU+W1z7+bK6c1Ooq0iunoWLsadJLuP4TuRBY9dG5qxr3gGe72Xll+nl9eJKhgcyjzzj6Js3UtYwx9pMhPTSlIpus8idrgFPu8c3HX7rCK4t3c65OBvsJLeoJ7hgfzqvDFfzjEjzSvj+A+H0zXWju+YedoFHgSVVoBU609k1phZm5hK6cjZy4Uvk8cPwOZ+zczXjjtUWabk/+2Ll/tPTPiYX9pnbBuiPReO1vGj7+zPSud6iBNaF+c168mzLjJnNU/Gw9lslSev6oHXTb2sfe/1vAKzsyykuVQVWXpc/WNmJMz4RJtmlLRqxxMtjkZrIDCbMby0KofbKE+QlTRJSTU0BMfN5DJMiv8c+NS0ZWTlCeA4AHhICPUhYPHx8AqKhq4Jf9pxt6+qClqaSorqagDADc3MDLCwCUnrSOK1uZLXCKB9yAsYNyAMQfH+KeXoTWbg5e8rpng/BygxdccemvPMvgVGIpc7K/MxlFBSmQl5OURgU+A/w6YLQAo/Z/rDnlx3c9cTBJajoY1wezXY6wNEvLwLhZe2Qpq9k7a1K3z2zabYrYYUbNfqNuJzWpxaEabOaGp5s2M2/2mgr9kTDAjmLr8phySpmzXwUMT9vmIwB4wDqPG2/9n8D8OmVAAPInGQCLQfx48BAnIE8/v+kdEwBAGUBnimAvgGMWoqc4AZsZpivZpHBM7qylwzZj1nHtlrv7/OA/Eghj9AzFyrBu/G7hEoCTr3xPJfFzoaKebpp5LpfZ+Di5ONgJSJEIAXEYAG4DXAFcv+E9AwPQA4BHmsyIfCB1mbBa7bEkvSkO/pRj6wxUJe/0rD/adoqauBIZdL93snPF4iIolorl0ux5yLQZUgihGELJfLFGOEc4Q51KkoKlWVhuzmxZcD6SXTEvWkQPZdOrZydDQvZYiFBR4ZtaVRIONwj63qJRUzo7++Y0HFwkUofCx4JM6JAOIs/6WEO2UqMt6VGmSMu1lICyebih/9wCCjO2VGvCNirSOjmteqWj0XIJYN9PxYAinYRmbcrootDgqDJDj5ENLMdNq96qans7adnReLdginLZK9AnJxS4xOUMvgLoSjeM1losxSu26Qwvhxo/3m/kgCMGUIsMUHaEz6A8X5sFxbDwYFxA5/vAyGxuO7O1uUhYpSIGw+UOxzsjG80P5OZKTaSeyGy0G1iC6LveylLGk493GB8mb8U2MKzRxMuxKXOg0X7jgxkbsX0jvbl+T9JVX52uuMdO9t3NOdnakmV0kZGrNuDI9/vDis35M2wIPBL47dhR0MVnNO8B5dmaKw8gUPTM4/oKXucT5Zwj5k5ZR/b0vridse/iyp00ZWHJcqHivNDGH7IsIK3SbzB3tMFl5LEZhjxNtllvOQ3wHV0bdeV+MoWywGS5Fg8UAifHk4u4spvzHP1l3g3V1mQqbhHKKZUXwuK9zGWhfwz8Rp9y1/G+rql44itYOjd1NvnvwriuZ5VL1w5HImsf44hd5qGzuNJdEFSWZq3yTad46byD/d1S2rvUnYorc/z53pF68fix+0UjVricpEAyBeTRm2alND6txY+SNbMApjFP7Zakme9Bjaa4RSXwChU/FkWFgc/W0Epkg30F+d2rQNzd3y8Zl6JemIznMd4AMk4YT6YsbX7Lzk1cJZT2x7qWExDt7LnA4rKH6jJYQK/pFaXniWeCj8z4v+Nra74H2aYX9Hmqu29F9Pf2ibfXjlDJwb4qmUAlLRLKlfP/YNSYVlZaC+d6txSYa07mggJoPpMXIMGVwblO/snYefLqJZSFujpGG/6tQ8G2ZRRsGznLqJiax37WwtjmhwRC9tDBYQFybpME2DqgGJS1zwkCWvvIGjBz9Dw+VfE4t9zovr4Lz0BUGPtV+5H3I41vexMFwLrT4FB8lAu7Pb4rv4sT1SSeS66xwO+cToAulBo08mDWsil+iwepeLH4/vl/SQ2BTSQqEkQ71lat9muEjW3KLXATSzeKDVq2TYFdIs7YcUwj0uCY/Qx5HnWjSrHKhWLnAYmsOrB3x9kd621YtXLjtqVTOSHNd0YiHYOJ8UTCElsePYNDlm4ovs/jMnP74R371u8/vH17MxHt7uno2zbQE++OgkDmZjL6jYW0/BAj5aYvkdy3elJvAA7Ev9hqX9VaRtZtGRk4R1lKETWm/vqbw2wHN/M1TwVFkvC6ZY6FT/F4nUfH+xKDx/DWA8uAaUjP4tFBLae1ORncZQjYT68g80jy9NDAyLIbaISVDSk+EouPNmihDs6kElxKz967GcnaOZthNsF7Nu5Lw029hhcmU1u4YuhftsCtgEJWHQyCdjCxepryRQ+R+MV4x2hzGZ0NkVoSDYaIFbEYe98b9dg9ud03Oyg7JsZIu/Nmqj+o9R+UP1fpZy2yfDsOApk8W6JGxxoluI1+HjZ8V/st97FsevEvhQMP4j47moN67a4HgR4hl2icg+xcbm5TFx9gg1595RCe/w36Ymut2mcyGYP9tS53qsHa5lFwCtWNvoIGnEP15Zgt/x30uViNgTSbsWhKCf5JfUzOIz9OARLxj+osw8wr3KuhaJDjnBd6lX+F4SFjOvDdKxNND2xFDk5TGQqOpCf4xCa4dtPhNR7h8M3I4bXbrnMbKPo49kFzx61FyG1Fifeb7boSd1Ugd1aAHMkft8QmaJg5Mb0CCRhNbromXU48371pdhPgK0TFldY7GpX1Vq5IfV2Z+lnUZNM/6J1/j8oekmNtPbHw+7L8WgdePFY4VXre81eVwxViCcn5+qeqqr4HU4TkDWWQoTJ0EbzrHleuytqLYik/4jene00cTrbFmkRNVkISsQoRDlSIO4Va034JbU3hNrpdCZU+mCKnOwhbaUMjWV3DGEQGIH7VGr0ksYWacbMhmFCBYsTSZ8LSfsSPpXpRq8qVe89dsIjOUAxUcwbtzTwl4kua57oQUlJfxkNmN95nNA35yvZM8beHPRaHYb6j6AeKr/q6zpzl4Am7I0iA28cP44dXyZ9XrHB2yWTp4/jxcWD8GVLYUJ/JQrFGFWSIqPx+BenSyWT3wTvvxXPV3J744b87ybZ2XhhsayOJWFtQyMfaAZehi+GhzdaFSl2oThW2y+kSr8dmdoej0d+W3MBJ+OFTw/D7eX8NffUafB2+LxnAfU1h8O2/jQZX4yTMcjaaG72VCp+aoBtb26rSOnF7RcOu+Tg4+AupJ3ShWlXkLqHjiC+FmVMUQprTpet7qzRNIhRHDOZ1+VsSvIjPS/xU6xRxRwH75K0UA8t4A2npRc1JGvFj6V5TqHfg3jvh3Kv/h7ifj5+cC++898h5bL4JGkv2oRaSM6ghQ936J45t+r2Awhdba4wei8ZqNCvAfCS6kpM2+2asucs6r1z3d3nFC97NX1LFb9fYu7w81+2DDu+sjQ6FUnmwrDT25mY9KxPVe/opkKN4Xu4/gB+4ib7pLH7WLisYcgJEqAnXKpttUjRyRYgOUwilBy/e9BW//0aYOXwZBm7jXwUCt8P+2zfAgXACzdItA7cjcl2g+tHf7/+pfV8G7s3EHvjpVBo79AjEDYCbJ10LCmS3wYNbbQuUt2orYquiSz33Jyp/vhpg3VqlpBZf261TSq1OYEGW7Ny5a9w1XLI0tXNc/lvZucTTHBmI3xiP9ofDzQOxGxORfiDYPH3LH+GLdccyQOMl1JE2rW127HmHvK0u2x4lPWR7gIUBhLT1pbUez7AGa7eKnJpwm24yUG8vmVs385QX1CG+MZ29j5jNzKLiTXQgzFqEdff4cmtHusRXpXu8n6ezL0mVpoTCyFsldiye1IBde4Zi5c8d/Wypd+mewTfzb4fIRVCLUEkj1otLGREd5chAJOIXEaEwLte/tnd4xXPeFb/AC122hY1YQmfs8UjcpoEkCjSIJ6W39nl/pbGhlNFPDWr1bWbWTJMMGwn747CAUxKWHh3W5ZK6rT1pvdtDtgZ9QqXCTchVSkKucCuFvtYgOLqw9EEgfkdy1nstNm/yjnW584EWYRY3WMOoRF3t+GwcubSBqpUYrIF0tdeXqrYGDJJabPRu5I7XFA61BLWEFzcwnmDCZhFa4rZQMD5FFsqxgWZULzREUZrWLgahXh4EUCDUoFbXjjFmhqS5cNgfR2pZJWHp5dq7x9ad0nu8gnRo369+dDht9DnYhnsahUQLT5KtPCFsPF0XKQepb2LbHd69o84x754yLIYvBum1m42b0utSOHB+gy8FyXWbjJuTa1MYHt/m8O0Zc4769qY+wFOzOjbSLhSsQgq6ZLKuAllQtoQC30plQVlZESzoyEtXXFAQLGgNhYD/Pa/cO9Z+akku875ynXXPaoNOoW9Zhp+4OC50Bhkeeh+/OMFnlvm6IhhoO8e7fCI4cUlc0tRyr4yW34ylzsQvcxKfHJ/8mv66UrWwODevaGHejLzcme+C7mRukiPq3CjucaNfFVmBr6gcX4ovvdChu+D6TuCaxVjq7NjAL/gv4/s+zKX+OrAVDUwOwcfSl5904ZEMFTiDU9f/TVKITa7wl0wgE5rSPU+68IZLne15FHV/h6g37mv6a5A21Xcq70ZN1uJruzykeL9jjOAjkXP4OW1wilcIpl04AOC0aweoe7DOHqy5rrGULxvr27NzLwF+YH4HWAR3clOh0+7lJsa+PJrfZTx1bTou/yNC/6P17Q8EKK7/TCrjEPrPnZX1FeDpr8o9AM/+br7/QxPreL4GTgpA8FtLVkUj2j4Gq+b2Hl4dWkYA0E8W5pD6rIfmSJVT2Zv8a7sHodkr4Nc+wqpKAmaJvSsujkKcCsUjFSy5/10aQsrLcUQGLFwDyrNaURJgbJSxSJ8bcQkxAaEF+pj7FGQ9ueIunGsWfe/n5AIoDVdLo3RRP0pwQIhl1Z2dDsbmOYV0opLHWsUmwqgG748ILGQddM6blShNWtQmrShNVCLRqImRVCdVsyJ8Q8vkzAjAX7N+m53d4XnSnrUHbcLCDKIiBHaOKBh5YDJyQWG9VXIrY808SC9IPj4Bh9llS1PxLfDmPC7IIhsiAE9Q7Soanuyqgl7tapj0Y2zTcVeH7NTt4lQbzwACgH8GS4vszq5JSllmRJ8evcYUGTUcSctBDl39HpAS11HveYsRSWNy1MBJ3wv91EEhVyyqRO9AjhhValHLManTsEY223l9bhiWCXU6bNKQeucMIofuEzdsQJyE300MS/Iij2PWOj/xVRyTO73Lsbr0nGiQvpvSwPA1N2cT4W2qfN3eayHEuBl9kmMVVbWn0JpsIJn1/1MzUjJ9353/vfHsXQAAAA==)
+        format("woff2");
+    }
+    @font-face {
+      font-family: "PR Grotesk";
+      font-weight: 500;
+      src: url(data:font/woff2;base64,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)
+        format("woff2");
+    }
+    @font-face {
+      font-family: "PR Grotesk";
+      font-weight: 600;
+      src: url(data:font/woff2;base64,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)
+        format("woff2");
+    }
+    @font-face {
+      font-family: "PR Mono";
+      font-weight: 400;
+      src: url(data:font/woff2;base64,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)
+        format("woff2");
+    }
+    .sans {
+      font-family: "PR Grotesk", "Space Grotesk", system-ui, sans-serif;
+    }
+    .mono {
+      font-family: "PR Mono", "Space Mono", ui-monospace, monospace;
+    }
+    .halo {
+      paint-order: stroke;
+      stroke: #262624;
+      stroke-width: 6px;
+      stroke-linejoin: round;
+    }
     </style>
     <marker
       id="arrow"
-      markerWidth="8"
-      markerHeight="6"
-      refX="7"
-      refY="3"
-      orient="auto"
+      viewBox="0 0 10 10"
+      refX="9"
+      refY="5"
+      markerWidth="7"
+      markerHeight="7"
+      orient="auto-start-reverse"
     >
-      <polygon points="0 0, 8 3, 0 6" fill="#4f5d75" />
+      <path d="M0,0 L10,5 L0,10 z" fill="#b7b5a9" />
     </marker>
   </defs>
 
-  <rect width="1280" height="720" fill="#f5f5f5" />
+  <rect width="1280" height="720" fill="#262624" />
 
+  <g transform="translate(60 56) scale(0.3)">
+    <path
+      fill="#d97757"
+      d="M26.18 6 48.54 6 78.42 35.88 67.24 47.06ZM81.36 38.82 92.54 50 78.19 64.35 55.83 64.35ZM51.66 68.52 74.03 68.52 48.54 94 26.18 94ZM19.52 23.79 30.76 23.79 40.01 33.04 28.78 33.04ZM28.88 36.89 43.86 36.89 58.11 51.14 43.13 51.14ZM34.71 56.87 50.1 56.87 38.45 68.52 23.06 68.52ZM23.37 74.44 32.52 74.44 23.58 83.39 14.43 83.39ZM20.46 47.3 31.17 47.3 25.24 53.22 14.53 53.22ZM10.58 14.84 15.78 14.84 20.56 19.63 15.36 19.63ZM7.46 39.81 16.61 39.81 12.03 44.38ZM12.03 73.72 15.15 73.72 11.62 77.25 8.5 77.25Z"
+    />
+  </g>
   <text
-    x="40"
-    y="64"
-    fill="#4f5d75"
-    font-size="8"
-    font-family="'Geist Mono', monospace"
-    letter-spacing="0.18em"
-  >
-    ARCHITECTURE
-  </text>
-  <text
-    x="40"
-    y="100"
-    fill="#2d3142"
-    font-size="28"
-    font-family="'Instrument Serif', serif"
-  >
-    Playbook runner — system topology
-  </text>
-  <text
-    x="40"
-    y="124"
-    fill="#4f5d75"
-    font-size="14"
-    font-family="'Geist', sans-serif"
-  >
-    Browser → Caddy gateway → Astro frontend + Hono backend → PostgreSQL. The
-    backend reaches the Ansible executor through the gateway's gRPC router.
-  </text>
-
-  <path
-    d="M 260,348 H 332"
-    fill="none"
-    stroke="#4f5d75"
-    stroke-width="1.2"
-    marker-end="url(#arrow)"
-  />
-  <rect x="272" y="334" width="48" height="12" rx="2" fill="#f5f5f5" />
-  <text
-    x="296"
-    y="343"
-    fill="#4f5d75"
-    font-size="8"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-    letter-spacing="0.06em"
-  >
-    HTTPS
-  </text>
-
-  <path
-    d="M 560,316 H 610 V 216 H 652"
-    fill="none"
-    stroke="#4f5d75"
-    stroke-width="1.2"
-    marker-end="url(#arrow)"
-  />
-  <rect x="586" y="261" width="48" height="12" rx="2" fill="#f5f5f5" />
-  <text
-    x="610"
-    y="270"
-    fill="#4f5d75"
-    font-size="8"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-    letter-spacing="0.06em"
-  >
-    PAGES
-  </text>
-
-  <path
-    d="M 560,336 H 652"
-    fill="none"
-    stroke="#4f5d75"
-    stroke-width="1.2"
-    marker-end="url(#arrow)"
-  />
-  <rect x="566" y="322" width="80" height="12" rx="2" fill="#f5f5f5" />
-  <text
-    x="606"
-    y="331"
-    fill="#4f5d75"
-    font-size="8"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-    letter-spacing="0.06em"
-  >
-    /RPC · /API
-  </text>
-
-  <path
-    d="M 900,358 H 972"
-    fill="none"
-    stroke="#4f5d75"
-    stroke-width="1.2"
-    marker-end="url(#arrow)"
-  />
-  <rect x="908" y="344" width="56" height="12" rx="2" fill="#f5f5f5" />
-  <text
-    x="936"
-    y="353"
-    fill="#4f5d75"
-    font-size="8"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-    letter-spacing="0.06em"
-  >
-    DRIZZLE
-  </text>
-
-  <path
-    d="M 660,396 H 568"
-    fill="none"
-    stroke="#7a8399"
-    stroke-width="1.2"
-    stroke-dasharray="4,3"
-    marker-end="url(#arrow)"
-  />
-  <rect x="574" y="382" width="80" height="12" rx="2" fill="#f5f5f5" />
-  <text
-    x="614"
-    y="391"
-    fill="#7a8399"
-    font-size="8"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-    letter-spacing="0.06em"
-  >
-    gRPC :50050
-  </text>
-
-  <path
-    d="M 450,406 V 492"
-    fill="none"
-    stroke="#7a8399"
-    stroke-width="1.2"
-    stroke-dasharray="4,3"
-    marker-end="url(#arrow)"
-  />
-  <rect x="398" y="444" width="104" height="12" rx="2" fill="#f5f5f5" />
-  <text
-    x="450"
-    y="453"
-    fill="#7a8399"
-    font-size="8"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-    letter-spacing="0.06em"
-  >
-    /run.* → :50051
-  </text>
-
-  <rect
-    x="80"
-    y="300"
-    width="180"
-    height="96"
-    rx="6"
-    fill="rgba(79,93,117,0.10)"
-    stroke="#7a8399"
-    stroke-width="1"
-  />
-  <rect
-    x="88"
-    y="306"
-    width="44"
-    height="12"
-    rx="2"
-    fill="transparent"
-    stroke="#7a8399"
-    stroke-width="0.8"
-  />
-  <text
-    x="110"
-    y="315"
-    fill="#7a8399"
-    font-size="7"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-    letter-spacing="0.08em"
-  >
-    CLIENT
-  </text>
-  <text
-    x="170"
-    y="342"
-    fill="#2d3142"
-    font-size="12"
+    x="100"
+    y="80"
+    class="sans"
+    font-size="26"
     font-weight="600"
-    font-family="'Geist', sans-serif"
-    text-anchor="middle"
+    fill="#faf9f5"
+    letter-spacing="-0.4"
   >
-    Browser
+    Playbook Runner topology
   </text>
-  <text
-    x="170"
-    y="360"
-    fill="#4f5d75"
-    font-size="9"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-  >
-    ops dashboard
-  </text>
-  <text
-    x="170"
-    y="380"
-    fill="#7a8399"
-    font-size="9"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-  >
-    HTTPS · SSE
+  <text x="60" y="114" class="sans" font-size="15" fill="#f1f1ef">
+    Docker Compose stack. Only the gateway's port 80 is published; every other
+    service stays on the internal network.
   </text>
 
-  <rect
-    x="340"
-    y="290"
-    width="220"
-    height="116"
-    rx="6"
-    fill="#ffffff"
-    stroke="#2d3142"
-    stroke-width="1"
-  />
-  <rect
-    x="348"
-    y="296"
-    width="50"
-    height="12"
-    rx="2"
-    fill="transparent"
-    stroke="rgba(45,49,66,0.40)"
-    stroke-width="0.8"
-  />
-  <text
-    x="373"
-    y="305"
-    fill="rgba(45,49,66,0.80)"
-    font-size="7"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-    letter-spacing="0.08em"
-  >
-    GATEWAY
-  </text>
-  <text
-    x="450"
-    y="332"
-    fill="#2d3142"
-    font-size="12"
-    font-weight="600"
-    font-family="'Geist', sans-serif"
-    text-anchor="middle"
-  >
-    Gateway
-  </text>
-  <text
-    x="450"
-    y="350"
-    fill="#4f5d75"
-    font-size="9"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-  >
-    Caddy · HTTP :80
-  </text>
-  <text
-    x="450"
-    y="366"
-    fill="#4f5d75"
-    font-size="9"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-  >
-    gRPC router :50050
-  </text>
-  <text
-    x="450"
-    y="386"
-    fill="#7a8399"
-    font-size="9"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-  >
-    only published port
-  </text>
-
-  <rect
-    x="660"
-    y="160"
-    width="240"
-    height="96"
-    rx="6"
-    fill="#ffffff"
-    stroke="#2d3142"
-    stroke-width="1"
-  />
-  <rect
-    x="668"
-    y="166"
-    width="26"
-    height="12"
-    rx="2"
-    fill="transparent"
-    stroke="rgba(45,49,66,0.40)"
-    stroke-width="0.8"
-  />
-  <text
-    x="681"
-    y="175"
-    fill="rgba(45,49,66,0.80)"
-    font-size="7"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-    letter-spacing="0.08em"
-  >
-    WEB
-  </text>
-  <text
-    x="780"
-    y="202"
-    fill="#2d3142"
-    font-size="12"
-    font-weight="600"
-    font-family="'Geist', sans-serif"
-    text-anchor="middle"
-  >
-    Frontend
-  </text>
-  <text
-    x="780"
-    y="220"
-    fill="#4f5d75"
-    font-size="9"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-  >
-    Astro SSR · React islands
-  </text>
-  <text
-    x="780"
-    y="240"
-    fill="#7a8399"
-    font-size="9"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-  >
-    :4321 · internal
-  </text>
-
-  <rect
-    x="660"
-    y="300"
-    width="240"
-    height="116"
-    rx="6"
-    fill="rgba(217,119,87,0.08)"
-    stroke="#d97757"
-    stroke-width="1.2"
-  />
-  <rect
-    x="668"
-    y="306"
-    width="50"
-    height="12"
-    rx="2"
-    fill="transparent"
-    stroke="rgba(217,119,87,0.50)"
-    stroke-width="0.8"
-  />
-  <text
-    x="693"
-    y="315"
-    fill="rgba(217,119,87,0.95)"
-    font-size="7"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-    letter-spacing="0.08em"
-  >
-    SERVICE
-  </text>
-  <text
-    x="780"
-    y="342"
-    fill="#2d3142"
-    font-size="12"
-    font-weight="600"
-    font-family="'Geist', sans-serif"
-    text-anchor="middle"
-  >
-    Backend
-  </text>
-  <text
-    x="780"
-    y="360"
-    fill="#4f5d75"
-    font-size="9"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-  >
-    Hono · oRPC · Better Auth
-  </text>
-  <text
-    x="780"
-    y="376"
-    fill="#4f5d75"
-    font-size="9"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-  >
-    Drizzle ORM · cron loop
-  </text>
-  <text
-    x="780"
-    y="396"
-    fill="#7a8399"
-    font-size="9"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-  >
-    :3000 · internal
-  </text>
-
-  <rect
-    x="980"
-    y="310"
-    width="200"
-    height="96"
-    rx="6"
-    fill="rgba(45,49,66,0.05)"
-    stroke="#4f5d75"
-    stroke-width="1"
-  />
-  <rect
-    x="988"
-    y="316"
-    width="32"
-    height="12"
-    rx="2"
-    fill="transparent"
-    stroke="rgba(45,49,66,0.40)"
-    stroke-width="0.8"
-  />
-  <text
-    x="1004"
-    y="325"
-    fill="rgba(45,49,66,0.80)"
-    font-size="7"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-    letter-spacing="0.08em"
-  >
-    DATA
-  </text>
-  <text
-    x="1080"
-    y="352"
-    fill="#2d3142"
-    font-size="12"
-    font-weight="600"
-    font-family="'Geist', sans-serif"
-    text-anchor="middle"
-  >
-    PostgreSQL
-  </text>
-  <text
-    x="1080"
-    y="370"
-    fill="#4f5d75"
-    font-size="9"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-  >
-    users · playbooks · inventory
-  </text>
-  <text
-    x="1080"
-    y="390"
-    fill="#7a8399"
-    font-size="9"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-  >
-    :5432 · durable state
-  </text>
-
-  <rect
-    x="340"
-    y="500"
-    width="220"
-    height="96"
-    rx="6"
-    fill="#ffffff"
-    stroke="#2d3142"
-    stroke-width="1"
-  />
-  <rect
-    x="348"
-    y="506"
-    width="56"
-    height="12"
-    rx="2"
-    fill="transparent"
-    stroke="rgba(45,49,66,0.40)"
-    stroke-width="0.8"
-  />
-  <text
-    x="376"
-    y="515"
-    fill="rgba(45,49,66,0.80)"
-    font-size="7"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-    letter-spacing="0.08em"
-  >
-    EXECUTOR
-  </text>
-  <text
-    x="450"
-    y="542"
-    fill="#2d3142"
-    font-size="12"
-    font-weight="600"
-    font-family="'Geist', sans-serif"
-    text-anchor="middle"
-  >
-    Ansible executor
-  </text>
-  <text
-    x="450"
-    y="560"
-    fill="#4f5d75"
-    font-size="9"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-  >
-    Python · FastAPI · gRPC
-  </text>
-  <text
-    x="450"
-    y="580"
-    fill="#7a8399"
-    font-size="9"
-    font-family="'Geist Mono', monospace"
-    text-anchor="middle"
-  >
-    wraps ansible-runner · :50051
-  </text>
-
-  <line
-    x1="40"
-    y1="652"
-    x2="1240"
-    y2="652"
-    stroke="rgba(45,49,66,0.10)"
-    stroke-width="0.8"
-  />
-  <text
-    x="40"
-    y="672"
-    fill="#4f5d75"
-    font-size="8"
-    font-family="'Geist Mono', monospace"
-    letter-spacing="0.14em"
-  >
-    LEGEND
-  </text>
-
-  <rect
-    x="120"
-    y="664"
-    width="20"
-    height="14"
-    rx="3"
-    fill="rgba(217,119,87,0.08)"
-    stroke="#d97757"
-    stroke-width="1"
-  />
-  <text
-    x="148"
-    y="675"
-    fill="#2d3142"
-    font-size="11"
-    font-family="'Geist', sans-serif"
-  >
-    Orchestrator
-  </text>
-
-  <rect
-    x="280"
-    y="664"
-    width="20"
-    height="14"
-    rx="3"
-    fill="#ffffff"
-    stroke="#2d3142"
-    stroke-width="1"
-  />
-  <text
-    x="308"
-    y="675"
-    fill="#2d3142"
-    font-size="11"
-    font-family="'Geist', sans-serif"
-  >
-    Service
-  </text>
-
-  <rect
-    x="400"
-    y="664"
-    width="20"
-    height="14"
-    rx="3"
-    fill="rgba(45,49,66,0.05)"
-    stroke="#4f5d75"
-    stroke-width="1"
-  />
-  <text
-    x="428"
-    y="675"
-    fill="#2d3142"
-    font-size="11"
-    font-family="'Geist', sans-serif"
-  >
-    Datastore
-  </text>
-
-  <rect
-    x="520"
-    y="664"
-    width="20"
-    height="14"
-    rx="3"
-    fill="rgba(79,93,117,0.10)"
-    stroke="#7a8399"
-    stroke-width="1"
-  />
-  <text
-    x="548"
-    y="675"
-    fill="#2d3142"
-    font-size="11"
-    font-family="'Geist', sans-serif"
-  >
-    Input
-  </text>
-
-  <line
-    x1="640"
-    y1="671"
-    x2="680"
-    y2="671"
-    stroke="#4f5d75"
-    stroke-width="1.2"
-    marker-end="url(#arrow)"
-  />
-  <text
-    x="688"
-    y="675"
-    fill="#2d3142"
-    font-size="11"
-    font-family="'Geist', sans-serif"
-  >
-    HTTP
-  </text>
-
-  <line
-    x1="760"
-    y1="671"
-    x2="800"
-    y2="671"
-    stroke="#7a8399"
-    stroke-width="1.2"
-    stroke-dasharray="4,3"
-    marker-end="url(#arrow)"
-  />
-  <text
-    x="808"
-    y="675"
-    fill="#2d3142"
-    font-size="11"
-    font-family="'Geist', sans-serif"
-  >
-    gRPC (internal)
-  </text>
+  <g transform="translate(40 110)">
+    <g fill="none" stroke="#b7b5a9" stroke-width="1.25">
+      <path d="M190,248 H274" marker-end="url(#arrow)" />
+      <path d="M510,234 H530 V98 H634" marker-end="url(#arrow)" />
+      <path d="M510,252 H634" marker-end="url(#arrow)" />
+      <path d="M880,248 H954" marker-end="url(#arrow)" />
+      <path
+        d="M700,286 V316 H516"
+        marker-end="url(#arrow)"
+        stroke-dasharray="5 4"
+        marker-start="url(#arrow)"
+      />
+      <path
+        d="M395,350 V418 H634"
+        marker-end="url(#arrow)"
+        stroke-dasharray="5 4"
+        marker-start="url(#arrow)"
+      />
+      <path d="M880,418 H954" marker-end="url(#arrow)" />
+    </g>
+    <g class="mono halo" font-size="12" fill="#b7b5a9">
+      <text x="232" y="238" text-anchor="middle">HTTPS</text>
+      <text x="540" y="170" text-anchor="start">/*</text>
+      <text x="582" y="242" text-anchor="middle">/rpc /api</text>
+      <text x="917" y="238" text-anchor="middle">SQL</text>
+      <text x="610" y="306" text-anchor="middle">gRPC</text>
+      <text x="515" y="408" text-anchor="middle">/run.*</text>
+      <text x="917" y="408" text-anchor="middle">SSH</text>
+    </g>
+    <rect
+      x="280"
+      y="150"
+      width="230"
+      height="200"
+      rx="8"
+      fill="#2c2c2b"
+      stroke="#3d3d3b"
+    />
+    <text
+      x="298"
+      y="180"
+      class="sans"
+      font-size="16"
+      font-weight="500"
+      fill="#faf9f5"
+    >
+      Gateway
+    </text>
+    <text x="298" y="200" class="mono" font-size="12" fill="#b7b5a9">
+      Caddy
+    </text>
+    <line x1="280" x2="510" y1="214" y2="214" stroke="#3d3d3b" />
+    <text x="298" y="253" class="mono" font-size="14" fill="#faf9f5">:80</text>
+    <text
+      x="492"
+      y="253"
+      text-anchor="end"
+      class="mono"
+      font-size="12"
+      fill="#b7b5a9"
+    >
+      HTTP · published
+    </text>
+    <line x1="280" x2="510" y1="282" y2="282" stroke="#3d3d3b" />
+    <text x="298" y="321" class="mono" font-size="14" fill="#faf9f5">
+      :50050
+    </text>
+    <text
+      x="492"
+      y="321"
+      text-anchor="end"
+      class="mono"
+      font-size="12"
+      fill="#b7b5a9"
+    >
+      gRPC router
+    </text>
+    <rect
+      x="20"
+      y="210"
+      width="170"
+      height="76"
+      rx="8"
+      fill="#2c2c2b"
+      stroke="#3d3d3b"
+    />
+    <text
+      x="38"
+      y="253"
+      class="sans"
+      font-size="16"
+      font-weight="500"
+      fill="#faf9f5"
+    >
+      Browser
+    </text>
+    <rect
+      x="640"
+      y="60"
+      width="240"
+      height="76"
+      rx="8"
+      fill="#2c2c2b"
+      stroke="#3d3d3b"
+    />
+    <text
+      x="658"
+      y="92"
+      class="sans"
+      font-size="16"
+      font-weight="500"
+      fill="#faf9f5"
+    >
+      Frontend
+    </text>
+    <text
+      x="862"
+      y="92"
+      text-anchor="end"
+      class="mono"
+      font-size="13"
+      fill="#b7b5a9"
+    >
+      :4321
+    </text>
+    <text x="658" y="114" class="mono" font-size="12" fill="#b7b5a9">
+      Astro SSR · React
+    </text>
+    <rect
+      x="640"
+      y="210"
+      width="240"
+      height="76"
+      rx="8"
+      fill="#2c2c2b"
+      stroke="#3d3d3b"
+    />
+    <text
+      x="658"
+      y="242"
+      class="sans"
+      font-size="16"
+      font-weight="500"
+      fill="#faf9f5"
+    >
+      Backend
+    </text>
+    <text
+      x="862"
+      y="242"
+      text-anchor="end"
+      class="mono"
+      font-size="13"
+      fill="#b7b5a9"
+    >
+      :3000
+    </text>
+    <text x="658" y="264" class="mono" font-size="12" fill="#b7b5a9">
+      Hono · oRPC · auth · cron
+    </text>
+    <rect
+      x="960"
+      y="210"
+      width="220"
+      height="76"
+      rx="8"
+      fill="#2c2c2b"
+      stroke="#3d3d3b"
+    />
+    <text
+      x="978"
+      y="242"
+      class="sans"
+      font-size="16"
+      font-weight="500"
+      fill="#faf9f5"
+    >
+      PostgreSQL
+    </text>
+    <text
+      x="1162"
+      y="242"
+      text-anchor="end"
+      class="mono"
+      font-size="13"
+      fill="#b7b5a9"
+    >
+      :5432
+    </text>
+    <text x="978" y="264" class="mono" font-size="12" fill="#b7b5a9">
+      all app data
+    </text>
+    <rect
+      x="640"
+      y="380"
+      width="240"
+      height="76"
+      rx="8"
+      fill="#2c2c2b"
+      stroke="#3d3d3b"
+    />
+    <text
+      x="658"
+      y="412"
+      class="sans"
+      font-size="16"
+      font-weight="500"
+      fill="#faf9f5"
+    >
+      Executor
+    </text>
+    <text
+      x="862"
+      y="412"
+      text-anchor="end"
+      class="mono"
+      font-size="13"
+      fill="#b7b5a9"
+    >
+      :50051
+    </text>
+    <text x="658" y="434" class="mono" font-size="12" fill="#b7b5a9">
+      FastAPI · ansible-runner
+    </text>
+    <rect
+      x="960"
+      y="380"
+      width="220"
+      height="76"
+      rx="8"
+      fill="#2c2c2b"
+      stroke="#3d3d3b"
+    />
+    <text
+      x="978"
+      y="412"
+      class="sans"
+      font-size="16"
+      font-weight="500"
+      fill="#faf9f5"
+    >
+      Your hosts
+    </text>
+    <text x="978" y="434" class="mono" font-size="12" fill="#b7b5a9">
+      from your inventory
+    </text>
+  </g>
+  <line x1="60" x2="1220" y1="626" y2="626" stroke="#30302e" />
+  <g class="sans" font-size="13" fill="#b7b5a9">
+    <line
+      x1="60"
+      x2="92"
+      y1="660"
+      y2="660"
+      stroke="#b7b5a9"
+      stroke-width="1.25"
+    />
+    <text x="104" y="664">Connection, labelled with its protocol or route</text>
+    <line
+      x1="430"
+      x2="462"
+      y1="660"
+      y2="660"
+      stroke="#b7b5a9"
+      stroke-width="1.25"
+      stroke-dasharray="5 4"
+    />
+    <text x="474" y="664">
+      gRPC inside the Compose network: the backend calls, run events stream back
+      on the same call
+    </text>
+  </g>
 </svg>
