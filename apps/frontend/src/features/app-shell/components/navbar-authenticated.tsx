@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query"
 import type { Session, User } from "better-auth"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { StatusDot } from "@/components/shared/data-display/status-dot"
@@ -12,10 +13,13 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
+import { Separator } from "@/components/ui/separator"
 import { AppLogo } from "@/features/app-shell/components/app-logo"
 import { LanguageSwitcher } from "@/features/app-shell/components/language-switcher"
 import { NavbarMobileMenu } from "@/features/app-shell/components/navbar-mobile-menu"
+import { NavbarSearchTrigger } from "@/features/app-shell/components/navbar-search-trigger"
 import { SettingsLink } from "@/features/app-shell/components/settings-link"
+import { SurfaceSearchDialog } from "@/features/app-shell/components/surface-search-dialog"
 import { ThemeToggle } from "@/features/app-shell/components/theme-toggle"
 import { UserNav } from "@/features/app-shell/components/user-nav"
 import {
@@ -164,7 +168,7 @@ function NavSection({
         {t(item.labelKey)}
         {active ? <StatusDot tone="primary" /> : null}
       </NavigationMenuTrigger>
-      <NavigationMenuContent className="left-1/2 w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 p-1.5 md:w-max">
+      <NavigationMenuContent className="left-0 w-max max-w-[calc(100vw-2rem)] p-1.5 md:w-max">
         <MenuRow
           item={item}
           active={currentPath === item.href}
@@ -194,6 +198,8 @@ function NavbarAuthenticatedInner({
   const queryClient = useQueryClient()
   const scrolled = useScrolled()
   const onIntent = (href: string) => () => prefetchForHref(queryClient, href)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const openSearch = () => setSearchOpen(true)
 
   return (
     <header
@@ -202,10 +208,10 @@ function NavbarAuthenticatedInner({
         scrolled ? "border-border shadow-sm" : "border-border/40"
       )}
     >
-      <nav className="flex h-navbar items-center justify-between gap-3 px-4 sm:px-6 md:gap-4">
+      <nav className="flex h-navbar items-center justify-between gap-3 px-4 sm:px-6 md:gap-4 lg:grid lg:grid-cols-[auto_1fr_auto] lg:gap-x-6">
         <AppLink
           href="/"
-          className="group flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground pointer-coarse:min-h-10 pointer-coarse:min-w-10"
+          className="group flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground pointer-coarse:min-h-10 pointer-coarse:min-w-10 lg:justify-self-start"
         >
           <AppLogo
             alt={nameApp}
@@ -214,7 +220,11 @@ function NavbarAuthenticatedInner({
           <span className="hidden sm:inline">{nameApp}</span>
         </AppLink>
 
-        <div className="hidden flex-1 justify-center lg:flex">
+        <div className="hidden min-w-0 items-center gap-6 lg:flex lg:justify-self-start">
+          <Separator
+            orientation="vertical"
+            className="self-center data-[orientation=vertical]:h-5"
+          />
           <NavigationMenu viewport={false}>
             <NavigationMenuList className="gap-1">
               {siteNavItems.map((item) => (
@@ -230,6 +240,7 @@ function NavbarAuthenticatedInner({
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:hidden">
+          <NavbarSearchTrigger variant="icon" onOpen={openSearch} />
           <LanguageSwitcher />
           <ThemeToggle />
           <SettingsLink />
@@ -241,13 +252,20 @@ function NavbarAuthenticatedInner({
           />
         </div>
 
-        <div className="hidden shrink-0 items-center gap-2 lg:flex">
+        <div className="hidden shrink-0 items-center gap-2 lg:flex lg:justify-self-end">
+          <NavbarSearchTrigger variant="field" onOpen={openSearch} />
           <LanguageSwitcher />
           <ThemeToggle />
           <SettingsLink />
           <UserNav user={user} />
         </div>
       </nav>
+      <SurfaceSearchDialog
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        currentPath={currentPath}
+        userId={user.id}
+      />
     </header>
   )
 }

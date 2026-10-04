@@ -44,5 +44,22 @@
   },
   "labels": {
     "section_navigation": "Section navigation"
+  },
+  "search": {
+    "trigger": "Search pages",
+    "trigger_field": "Search…",
+    "placeholder": "Search pages, playbooks, scripts…",
+    "title": "Search pages",
+    "description": "Type to find a page or a resource and press Enter to go to it.",
+    "empty": "No matching results.",
+    "current_page": "(current page)",
+    "groups": {
+      "general": "General",
+      "recent": "Recent",
+      "playbooks": "Playbooks",
+      "scripts": "Scripts",
+      "jobs": "Scheduled jobs",
+      "groups": "Inventory groups"
+    }
   }
 }

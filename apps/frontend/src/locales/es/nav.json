@@ -44,5 +44,22 @@
   },
   "labels": {
     "section_navigation": "Navegación de sección"
+  },
+  "search": {
+    "trigger": "Buscar páginas",
+    "trigger_field": "Buscar…",
+    "placeholder": "Buscar páginas, playbooks, scripts…",
+    "title": "Buscar páginas",
+    "description": "Escribe para encontrar una página o un recurso y pulsa Intro para ir a él.",
+    "empty": "No hay resultados que coincidan.",
+    "current_page": "(página actual)",
+    "groups": {
+      "general": "General",
+      "recent": "Recientes",
+      "playbooks": "Playbooks",
+      "scripts": "Scripts",
+      "jobs": "Jobs programados",
+      "groups": "Grupos de inventario"
+    }
   }
 }
