@@ -83,6 +83,13 @@
       "cache": false,
       "persistent": true
     },
+    "test": {
+      "cache": false
+    },
+    "ansible#test": {
+      "dependsOn": ["generate-grpc"],
+      "cache": false
+    },
     "test:e2e": {
       "cache": false
     },

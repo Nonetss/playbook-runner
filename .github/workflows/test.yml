@@ -1,0 +1,52 @@
+name: Test
+
+# Quality gate for every change: lint/format, type checks and unit tests.
+# Unit tests need no services (database, gRPC, Docker) and no secrets.
+on:
+  pull_request:
+  push:
+    branches:
+      - "main"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          # Same uv as apps/ansible/Dockerfile; Python from apps/ansible/.python-version.
+          version: 0.11.23
+          enable-cache: true
+          cache-dependency-glob: apps/ansible/uv.lock
+
+      - name: Install JavaScript dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Python dependencies
+        working-directory: apps/ansible
+        run: uv sync --frozen
+
+      - name: Lint and format (Biome)
+        run: bunx biome ci .
+
+      - name: Type check
+        run: bun run check-types
+
+      - name: Unit tests
+        run: bun run test
