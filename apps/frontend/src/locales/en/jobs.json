@@ -172,7 +172,6 @@
     "load_error": "Could not load the run history.",
     "empty": "No runs yet.",
     "loaded_count": "{{count}} runs loaded",
-    "load_more": "Load more",
     "loaded_label": "loaded"
   },
   "dashboard_activity": {

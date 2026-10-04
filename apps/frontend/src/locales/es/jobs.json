@@ -172,7 +172,6 @@
     "load_error": "No se pudo cargar el historial de ejecuciones.",
     "empty": "Aún no hay ejecuciones.",
     "loaded_count": "{{count}} ejecuciones cargadas",
-    "load_more": "Cargar más",
     "loaded_label": "cargadas"
   },
   "dashboard_activity": {

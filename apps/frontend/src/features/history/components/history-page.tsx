@@ -3,7 +3,7 @@ import { getIcon } from "@/lib/icon-registry"
 const HistoryIcon = getIcon("resources", "history")
 const Loader2 = getIcon("status", "loading")
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Text } from "@/components/shared/brand/typography"
@@ -14,7 +14,6 @@ import {
 import { HeroCount } from "@/components/shared/layout/page-hero"
 import { ResourceOverview } from "@/components/shared/resource/resource-overview"
 import { AppLink } from "@/components/ui/app-link"
-import { Button } from "@/components/ui/button"
 import {
   Table,
   TableBody,
@@ -139,6 +138,25 @@ function HistoryPageInner() {
   const { data: metrics } = useJobRunMetrics(window, { live: true })
   const feed = useJobRunsAll({ live: true })
   const runs: JobRunFeedRow[] = feed.data?.pages.flatMap((p) => p.runs) ?? []
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = feed
+  const hasRuns = runs.length > 0
+
+  // Load the next batch as the end of the feed scrolls into view.
+  const loadMoreRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const sentinel = loadMoreRef.current
+    if (!sentinel || !hasRuns || !hasNextPage) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting) && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { rootMargin: "200px" }
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [hasRuns, hasNextPage, isFetchingNextPage, fetchNextPage])
   const successPct = metrics ? Math.round(metrics.successRate * 100) : null
 
   return (
@@ -207,23 +225,24 @@ function HistoryPageInner() {
       isEmpty={(items) => items.length === 0}
       empty={{ icon: <HistoryIcon />, title: t("history.empty") }}
       footer={
-        runs.length > 0 ? (
-          <div className="flex items-center justify-between gap-3">
+        hasRuns ? (
+          <div
+            ref={loadMoreRef}
+            className="flex min-h-8 items-center justify-between gap-3"
+          >
             <Text as="p" variant="meta" tone="muted" className="tabular-nums">
               {t("history.loaded_count", { count: runs.length })}
             </Text>
-            {feed.hasNextPage ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => feed.fetchNextPage()}
-                disabled={feed.isFetchingNextPage}
+            {isFetchingNextPage ? (
+              <Text
+                as="span"
+                variant="meta"
+                tone="muted"
+                className="inline-flex items-center gap-2"
               >
-                {feed.isFetchingNextPage ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : null}
-                {t("history.load_more")}
-              </Button>
+                <Loader2 className="size-3.5 animate-spin" />
+                {t("detail.loading_short")}
+              </Text>
             ) : null}
           </div>
         ) : null
