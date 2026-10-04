@@ -173,7 +173,7 @@ function NavSection({
         {t(item.labelKey)}
         {active ? <StatusDot tone="primary" /> : null}
       </NavigationMenuTrigger>
-      <NavigationMenuContent className="left-0 w-max max-w-[calc(100vw-2rem)] p-1.5 md:w-max">
+      <NavigationMenuContent className="left-1/2 w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 p-1.5 md:w-max">
         <MenuRow
           item={item}
           active={currentPath === item.href}
