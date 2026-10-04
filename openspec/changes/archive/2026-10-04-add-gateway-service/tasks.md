@@ -25,7 +25,7 @@
 - [x] 5.2 Create `apps/ansible/Dockerfile.dev` per design §8 (`python:3.12-slim` + pinned `uv`, `openssh-client git ca-certificates`, `uv sync --frozen` with dev deps, stubs generated into `app/grpc/gen`, `fastapi dev app/main.py --host 0.0.0.0 --port 8000`); verify it builds and `docker run --rm <image> python -c "import app.grpc.gen.run_pb2"` succeeds
 - [x] 5.3 Create `compose.dev.yml` (project `playbook-runner-dev`) with frontend, backend, ansible and gateway on `network_mode: host`, `env_file` per app, the `develop.watch` rules from design §7–§8, and the `ansible_dev_state` volume at `/app/.data/ansible-runner`; verify `docker compose -f compose.dev.yml config` succeeds
 - [x] 5.4 Fix `.dockerignore` (`docker-compose.yml` → `compose*.yml`) and verify the prod and dev images still build
-- [ ] 5.5 Update root `package.json` scripts: `dev` → `docker compose -f compose.dev.yml up --build --watch`, add `dev:local` (`turbo watch dev`), `dev:down`, `gateway`; verify `bun run dev:local` still starts the native stack
+- [x] 5.5 Update root `package.json` scripts: `dev` → `docker compose -f compose.dev.yml up --build --watch`, add `dev:local` (`turbo watch dev`), `dev:down`, `gateway`; verify `bun run dev:local` still starts the native stack
 
 ## 6. CI
 
@@ -40,7 +40,7 @@
 ## 8. End-to-end verification
 
 - [x] 8.1 `docker compose up --build`: all four app services become healthy (`docker compose ps`), `http://localhost:4321/login` renders, `GET /api/v1/health/check` and `/scalar` answer through the gateway, and `docker compose port frontend 4321` / `docker compose port ansible 8000` publish nothing
-- [ ] 8.2 Through the Docker stack, run a ping and a playbook from the UI: output streams live; close the run console mid-run and confirm the runner logs the cancellation and deletes the run's key files
+- [x] 8.2 Through the Docker stack, run a ping and a playbook from the UI: output streams live; close the run console mid-run and confirm the runner logs the cancellation and deletes the run's key files
 - [x] 8.3 From inside the backend container, call a non-routed gRPC path on `gateway:50050` (e.g. `/foo.Bar/Baz`) and confirm `UNIMPLEMENTED`
-- [ ] 8.4 `bun run dev` with a local PostgreSQL: app on `http://localhost:4321` and `http://localhost:8080`, admin sign-in works, editing `apps/frontend/src`, `packages/api/src` and `apps/ansible/app` hot-reloads each service; `bun run dev:down` removes the containers
-- [ ] 8.5 Run `bun run check`, `bun run check-types` and `bun run test:e2e` against the Docker dev stack and confirm they pass
+- [x] 8.4 `bun run dev` with a local PostgreSQL: app on `http://localhost:4321` and `http://localhost:8080`, admin sign-in works, editing `apps/frontend/src`, `packages/api/src` and `apps/ansible/app` hot-reloads each service; `bun run dev:down` removes the containers
+- [x] 8.5 Run `bun run check`, `bun run check-types` and `bun run test:e2e` against the Docker dev stack and confirm they pass
