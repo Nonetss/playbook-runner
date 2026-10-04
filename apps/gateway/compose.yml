@@ -1,0 +1,20 @@
+# Dev only: runs the gateway on the host network so the natively running apps
+# (bun run dev:local) reach each other through the default
+# ANSIBLE_GRPC_TARGET=localhost:50050. Started with `bun run gateway`.
+#
+# Its HTTP site listens on :8080 (never the host's port 80) with the same
+# routing as production; the normal dev URL is still Vite on :4321.
+name: playbook-runner-gateway-dev
+
+services:
+  gateway:
+    build:
+      context: ../..
+      dockerfile: apps/gateway/Dockerfile
+    container_name: playbook-runner-gateway-dev
+    network_mode: host
+    environment:
+      GATEWAY_HTTP_PORT: "8080"
+      BACKEND_HTTP_UPSTREAM: localhost:3000
+      FRONTEND_HTTP_UPSTREAM: localhost:4321
+      ANSIBLE_GRPC_UPSTREAM: localhost:50051

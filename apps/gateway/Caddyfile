@@ -1,0 +1,59 @@
+# Gateway: the only place that maps requests to the app that serves them.
+#
+# - :{$GATEWAY_HTTP_PORT} (default 80) is the public entry point and the only
+#   port compose publishes. It serves the backend's HTTP API and the frontend
+#   on one origin, so the browser never makes cross-origin calls. It has no
+#   route to the Ansible runner: it is never reachable from outside.
+# - :50050 is the internal gRPC router. The backend dials it
+#   (ANSIBLE_GRPC_TARGET) and the request path (/<package>.<Service>/<Method>)
+#   picks the upstream. A new proto package that declares a service needs one
+#   route here, and no package is served by two apps. Never published.
+{
+	admin off
+	auto_https off
+	servers {
+		protocols h1 h2c
+	}
+}
+
+(grpc_upstream) {
+	reverse_proxy h2c://{args[0]} {
+		# Stream server-streaming responses (RunnerService.RunBundle, ...)
+		# event by event
+		flush_interval -1
+	}
+}
+
+:{$GATEWAY_HTTP_PORT:80} {
+	encode zstd gzip
+
+	@backend path /rpc/* /api/* /scalar* /openapi.json
+	handle @backend {
+		reverse_proxy {$BACKEND_HTTP_UPSTREAM:backend:3000}
+	}
+
+	handle {
+		reverse_proxy {$FRONTEND_HTTP_UPSTREAM:frontend:4321}
+	}
+}
+
+:50050 {
+	handle /health {
+		respond "ok" 200
+	}
+
+	# proto/run.proto (package run): RunnerService
+	@ansible path /run.*
+	handle @ansible {
+		import grpc_upstream {$ANSIBLE_GRPC_UPSTREAM:ansible:50051}
+	}
+
+	# Trailers-only gRPC response: clients read it as UNIMPLEMENTED instead
+	# of an opaque error from an empty HTTP 200
+	handle {
+		header Content-Type application/grpc
+		header Grpc-Status 12
+		header Grpc-Message "no route for this gRPC service"
+		respond 200
+	}
+}
