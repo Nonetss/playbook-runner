@@ -18,7 +18,6 @@ import { AppLogo } from "@/features/app-shell/components/app-logo"
 import { LanguageSwitcher } from "@/features/app-shell/components/language-switcher"
 import { NavbarMobileMenu } from "@/features/app-shell/components/navbar-mobile-menu"
 import { NavbarSearchTrigger } from "@/features/app-shell/components/navbar-search-trigger"
-import { SettingsLink } from "@/features/app-shell/components/settings-link"
 import { SurfaceSearchDialog } from "@/features/app-shell/components/surface-search-dialog"
 import { ThemeToggle } from "@/features/app-shell/components/theme-toggle"
 import { UserNav } from "@/features/app-shell/components/user-nav"
@@ -140,7 +139,13 @@ function NavSection({
           <AppLink
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className={cn(pillBase, active ? pillActive : pillInactive)}
+            className={cn(
+              pillBase,
+              // NavigationMenuLink's own `flex-col` reaches the child through
+              // asChild; keep the active dot beside the label.
+              "flex-row",
+              active ? pillActive : pillInactive
+            )}
             onMouseEnter={onIntent(item.href)}
             onFocus={onIntent(item.href)}
           >
@@ -243,7 +248,6 @@ function NavbarAuthenticatedInner({
           <NavbarSearchTrigger variant="icon" onOpen={openSearch} />
           <LanguageSwitcher />
           <ThemeToggle />
-          <SettingsLink />
           <UserNav user={user} />
           <NavbarMobileMenu
             navItems={siteNavItems}
@@ -256,7 +260,6 @@ function NavbarAuthenticatedInner({
           <NavbarSearchTrigger variant="field" onOpen={openSearch} />
           <LanguageSwitcher />
           <ThemeToggle />
-          <SettingsLink />
           <UserNav user={user} />
         </div>
       </nav>

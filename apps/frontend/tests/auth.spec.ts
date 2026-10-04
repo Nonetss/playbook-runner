@@ -23,6 +23,31 @@ test.describe("Navbar autenticada (escritorio)", () => {
     }
   })
 
+  test("API keys es una entrada de la navbar, no un botón", async ({
+    page,
+  }) => {
+    await page.goto("/")
+    const banner = page.getByRole("banner")
+    const settings = banner.getByRole("link", {
+      name: "API keys",
+      exact: true,
+    })
+    await waitForHydration(settings)
+    // The only link to /config is the entry itself, not an icon button.
+    await expect(banner.locator('a[href="/config"]')).toHaveCount(1)
+
+    const bash = await banner
+      .getByRole("button", { name: "Bash", exact: true })
+      .boundingBox()
+    const link = await settings.boundingBox()
+    if (!bash || !link) throw new Error("navbar entries not laid out")
+    expect(link.x).toBeGreaterThan(bash.x + bash.width)
+
+    await settings.click()
+    await expect(page).toHaveURL(/\/config$/)
+    await expect(settings).toHaveAttribute("aria-current", "page")
+  })
+
   test("el desplegable de una sección se abre al pasar el ratón", async ({
     page,
   }) => {

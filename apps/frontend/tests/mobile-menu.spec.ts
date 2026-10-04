@@ -47,6 +47,9 @@ test.describe("NavbarMobileMenu", () => {
     await expect(
       menuNav.getByRole("link", { name: "Credenciales", exact: true })
     ).toBeVisible()
+    await expect(
+      menuNav.getByRole("link", { name: "API keys", exact: true })
+    ).toBeVisible()
   })
 
   test("marca con estilo activo el link del path actual", async ({ page }) => {

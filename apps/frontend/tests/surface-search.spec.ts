@@ -74,10 +74,8 @@ test.describe("Buscador de la navbar (escritorio)", () => {
   test("la búsqueda ignora acentos", async ({ page }) => {
     await gotoHydrated(page, "/")
     const dialog = await openWithShortcut(page)
-    await dialog.getByRole("combobox").fill("configuracion")
-    await expect(
-      dialog.getByRole("option", { name: /Configuración/ })
-    ).toBeVisible()
+    await dialog.getByRole("combobox").fill("programatico")
+    await expect(dialog.getByRole("option", { name: /API keys/ })).toBeVisible()
   })
 
   test("varias palabras acotan a una sección", async ({ page }) => {
@@ -141,9 +139,9 @@ test.describe("Buscador de la navbar (escritorio)", () => {
     const options = recent.getByRole("option")
     await expect(options.first()).toContainText("Scripts")
     await expect(options.nth(1)).toContainText("Playbooks")
-    await expect(
-      recent.getByRole("option", { name: /Configuración/ })
-    ).toHaveCount(0)
+    await expect(recent.getByRole("option", { name: /API keys/ })).toHaveCount(
+      0
+    )
   })
 })
 

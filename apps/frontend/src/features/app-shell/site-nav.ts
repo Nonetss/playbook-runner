@@ -49,19 +49,26 @@ function toNavLink(surface: AppSurface): SiteNavSubItem {
   }
 }
 
+/** Pages with their own navbar entry (no dropdown), after the sections. */
+const standaloneNavSurfaces = ["config"] as const satisfies readonly SurfaceId[]
+
 /**
  * Navigation derives from the page-surface registry (`lib/app-surfaces.ts`),
  * never from a second list of labels and icons. Consumers resolve translation
  * keys so locale changes update every persisted React island.
  */
-export const siteNavItems: SiteNavItem[] = (
-  Object.keys(appSections) as SectionId[]
-).map((section) => ({
-  ...toNavLink(appSurfaces[section]),
-  section,
-  primary: true,
-  subItems: appSections[section].map((id) => toNavLink(appSurfaces[id])),
-}))
+export const siteNavItems: SiteNavItem[] = [
+  ...(Object.keys(appSections) as SectionId[]).map((section) => ({
+    ...toNavLink(appSurfaces[section]),
+    section,
+    primary: true,
+    subItems: appSections[section].map((id) => toNavLink(appSurfaces[id])),
+  })),
+  ...standaloneNavSurfaces.map((id) => ({
+    ...toNavLink(appSurfaces[id]),
+    primary: true,
+  })),
+]
 
 export function getSiteNavItemByHref(href: string) {
   return siteNavItems.find((item) => item.href === href)

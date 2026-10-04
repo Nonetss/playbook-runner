@@ -1,6 +1,6 @@
 {
   "page": {
-    "title": "Configuración",
+    "title": "API keys",
     "subtitle": "Claves API para acceso programático.",
     "create": "Nueva API key"
   },
