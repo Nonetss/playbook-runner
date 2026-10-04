@@ -6,11 +6,12 @@ Reaching a page today means opening a section menu in the navbar (or the slide-o
 
 - Port the `stack` navbar search ("surface search") to the authenticated navbar: a search-field-looking trigger on large viewports and an icon-only trigger below them, both opening one command palette dialog. `⌘K` / `Ctrl+K` toggles it from any authenticated page.
 - The palette lists every page registered in `app-surfaces.ts`, grouped like the navigation (a "General" group for the pages outside a section, then one group per section: Inventory, Ansible, Bash, hub first). Every user sees every page: the search applies no role filtering. Labels, descriptions and headings come from the `nav` i18n namespace, so the palette follows the active language.
-- Matching is case- and accent-insensitive, and every word of the query must match some text of the result (its label, description, section and trail), so "configuracion" finds "Configuración" and "ansible historial" finds the run history.
+- Matching is case- and accent-insensitive, and every word of the query must match some text of the result (its label, description, section and trail), so "programatico" finds the API keys page ("Claves API para acceso programático.") and "ansible historial" finds the run history.
 - Once the user types, the palette also lists records the user can open, loaded from the existing list procedures while the dialog is open and sharing their TanStack Query cache: playbooks (→ `/playbooks/<id>/edit`), scripts (→ `/scripts/<id>/edit`), scheduled jobs (→ `/jobs/<id>`) and inventory groups (→ `/inventory/<id>/group`). Typing a section's name ("playbooks") lists its records.
 - A "Recent" group, stored per user in `localStorage`, suggests the last five pages visited while the query is empty.
 - Selecting a result closes the dialog and navigates with the View Transitions–aware `navigate()`; the current page is marked.
-- Align the desktop navbar like `stack`: the section links move from the centre to the left, right after the brand and divided from it by a vertical hairline separator, and the actions (search field, language, theme, settings, account) stay at the right. This also leaves room for the search field.
+- Align the desktop navbar like `stack`: the section links move from the centre to the left, right after the brand and divided from it by a vertical hairline separator, and the actions (language, theme, search field, account) stay at the right, with the search next to the account button. This also leaves room for the search field.
+- Settings becomes a navbar entry named "API keys", the page's only content (`/config`, URL unchanged): it is listed after the sections as its own link (no dropdown) on desktop and in the slide-out menu, and the gear icon button is removed from the navbar actions.
 - Not ported from `stack`: the server-searched source mechanism (`defineServerSearchSource`, debounced `search` procedures, trigram recipe). Every searchable entity here is listed in full; run history is paginated but has no detail page.
 
 ## Capabilities
@@ -21,7 +22,7 @@ _None._
 
 ### Modified Capabilities
 
-- `web-navigation`: adds the navbar surface search (triggers, shortcut, which pages are listed, record results, recent pages, matching and navigation) and the desktop navbar arrangement (brand, separator, left-aligned sections, actions at the right).
+- `web-navigation`: adds the navbar surface search (triggers, shortcut, which pages are listed, record results, recent pages, matching and navigation) and the desktop navbar arrangement (brand, separator, left-aligned sections, actions at the right); modifies "Authenticated and guest navbars" so settings is reached through a navigation entry instead of an action button.
 
 ## Impact
 

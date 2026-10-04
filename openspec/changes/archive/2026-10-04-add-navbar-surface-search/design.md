@@ -79,7 +79,9 @@ Add `cmdk` to `apps/frontend/package.json` (plain caret range, like `radix-ui`; 
 
 `features/app-shell/components/navbar-search-trigger.tsx` ports `stack`'s two variants: `field` (outline button reading as an input, search icon, muted "Search…" via `textVariants`, `<kbd>` with `⌘K`/`Ctrl K` detected client-side, `aria-keyshortcuts`, fixed compact width ~`w-52`) and `icon` (a `navTriggerClass` button with a localized `aria-label`, like `SettingsLink` and `ThemeToggle`, which carry no tooltip).
 
-The navbar adopts `stack`'s desktop arrangement: at `lg+` the `<nav>` becomes a `grid-cols-[auto_1fr_auto]` grid — brand (`justify-self-start`), then a left-aligned block holding a vertical `Separator` (`h-5 w-px self-center`) and the `NavigationMenu`, then the actions (`justify-self-end`): search field, language, theme, settings, account. Below `lg` the layout stays the current flex row; the `icon` trigger goes first in the mobile actions. `NavbarAuthenticatedInner` owns one `searchOpen` state and renders one `SurfaceSearchDialog` (already inside `AppProviders`, so no extra provider).
+The navbar adopts `stack`'s desktop arrangement: at `lg+` the `<nav>` becomes a `grid-cols-[auto_1fr_auto]` grid — brand (`justify-self-start`), then a left-aligned block holding a vertical `Separator` (`h-5 w-px self-center`) and the `NavigationMenu`, then the actions (`justify-self-end`): language, theme, search field and account, so the search sits next to the account button. Below `lg` the layout stays the current flex row and the `icon` trigger goes right after the account button, before the mobile menu, as in `stack`. Settings stops being an action: `siteNavItems` appends the `config` surface as a standalone entry (no `section`, no `subItems`) after the sections, which `NavSection` already renders as a plain pill link and the slide-out menu as a top-level link; `SettingsLink` is deleted. `config` stays out of `appSections`, so it gets no section sidebar and stays in the search's General group.
+
+`NavbarAuthenticatedInner` owns one `searchOpen` state and renders one `SurfaceSearchDialog` (already inside `AppProviders`, so no extra provider).
 
 ### 8. Recents
 
@@ -87,7 +89,7 @@ The navbar adopts `stack`'s desktop arrangement: at `lg+` the `<nav>` becomes a 
 
 ## Risks / Trade-offs
 
-- [Section dropdowns anchored at the left edge] → `NavigationMenuContent` is centred under its trigger (`left-1/2 -translate-x-1/2`); with the sections now near the brand, the first dropdown can cross the viewport's left edge. Resolved by aligning every section dropdown to the start of its trigger (`left-0`), which also suits a left-aligned bar.
+- [Section dropdowns anchored at the left edge] → `NavigationMenuContent` is centred under its trigger (`left-1/2 -translate-x-1/2`); with the sections now near the brand, the first dropdown can cross the viewport's left edge. Checked at 1024px and 1440px: the centred Inventario dropdown starts at x ≈ 112px, so the dropdowns stay centred under their trigger.
 - [Desktop field crowds the bar at exactly `lg`] → Three sections plus five actions fit with the field at `w-52`; fall back to the icon variant until `xl` if the visual check says otherwise.
 - [`⌘K` collides with another shortcut] → None exists in `src`; the code editor (CodeMirror/Monaco) may bind `Ctrl+K` chords — the listener runs on `document`, so check the playbook/script editor still behaves and stop the shortcut when the event was already `defaultPrevented`.
 - [Whole lists loaded client-side] → Fine at current volumes; the dropped server-search path in `stack` is the documented way out if an entity grows.

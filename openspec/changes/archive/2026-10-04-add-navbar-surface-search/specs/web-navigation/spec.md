@@ -1,8 +1,29 @@
+## MODIFIED Requirements
+
+### Requirement: Authenticated and guest navbars
+The web layout SHALL render an authenticated navbar by default and a guest navbar for public pages (such as login and registration). The authenticated navbar SHALL reach the settings page through an "API keys" navigation entry listed after the navigation sections, not through a separate settings action button. The guest navbar SHALL omit application navigation links, the user menu, and the settings entry.
+
+#### Scenario: Public page renders the guest navbar
+- **WHEN** a page is rendered with the guest navbar flag enabled
+- **THEN** the layout SHALL show only the brand and the theme toggle, without app links or account actions
+
+#### Scenario: Application page renders the authenticated navbar
+- **WHEN** a page is rendered without the guest navbar flag
+- **THEN** the layout SHALL show the brand, navigation links (including the settings entry), and the user menu
+
+#### Scenario: API keys is a navigation entry
+- **WHEN** the authenticated navbar is displayed on a large viewport
+- **THEN** an "API keys" link to `/config` SHALL appear after the Bash section, highlighted while the current path is `/config`, and no settings icon button SHALL be rendered among the navbar actions
+
+#### Scenario: API keys in the slide-out menu
+- **WHEN** the user opens the slide-out menu below the large breakpoint
+- **THEN** the menu SHALL list an "API keys" link to `/config` after the navigation sections
+
 ## ADDED Requirements
 
 ### Requirement: Desktop navbar arrangement
 
-On large (`lg` and up) viewports the authenticated navbar SHALL place the brand first, then a vertical hairline separator, then the inline navigation sections aligned to the left right after it, and SHALL place its actions (search, language, theme, settings and account) at the right edge. Below the large breakpoint the separator and the inline sections SHALL NOT be shown.
+On large (`lg` and up) viewports the authenticated navbar SHALL place the brand first, then a vertical hairline separator, then the inline navigation sections aligned to the left right after it, and SHALL place its actions (language, theme, search and account) at the right edge. Below the large breakpoint the separator and the inline sections SHALL NOT be shown.
 
 #### Scenario: Sections sit at the left after a separator
 
@@ -12,7 +33,7 @@ On large (`lg` and up) viewports the authenticated navbar SHALL place the brand 
 #### Scenario: Actions stay at the right
 
 - **WHEN** the authenticated navbar is displayed on a large viewport
-- **THEN** the search trigger and the language, theme, settings and account actions SHALL be grouped at the right edge of the navbar
+- **THEN** the language, theme, search and account actions SHALL be grouped at the right edge of the navbar, with the search trigger immediately next to the account action
 
 #### Scenario: Small viewport has no separator
 
@@ -151,8 +172,8 @@ The surface search SHALL match the query case- and accent-insensitively. A query
 
 #### Scenario: Accent-insensitive match
 
-- **WHEN** the user types "configuracion" (Spanish interface)
-- **THEN** the "Configuración" page SHALL appear in the results
+- **WHEN** the user types "programatico" (Spanish interface)
+- **THEN** the "API keys" page, described as "Claves API para acceso programático.", SHALL appear in the results
 
 #### Scenario: Match through the section
 
