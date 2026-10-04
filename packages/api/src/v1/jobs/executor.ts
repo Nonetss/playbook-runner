@@ -17,7 +17,8 @@ import {
   taskEventToRecord,
   toProtoHost,
 } from "#v1/run/proto"
-import { type RunInventorySelection, resolveRun } from "#v1/run/resolve"
+import { resolveRun } from "#v1/run/resolve"
+import type { RunInventorySelection } from "#v1/run/selection"
 
 type RunOutcome = {
   events: RunEventRecord[]

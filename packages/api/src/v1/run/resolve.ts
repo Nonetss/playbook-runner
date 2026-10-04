@@ -9,11 +9,7 @@ import { playbooks } from "@playbook-runner/db/schema/playbooks"
 import { scripts } from "@playbook-runner/db/schema/scripts"
 import { eq, inArray } from "drizzle-orm"
 import { decryptSecret } from "#v1/credentials/crypto"
-
-export type RunInventorySelection = {
-  id: string
-  type: "group" | "device"
-}
+import { type RunInventorySelection, splitSelection } from "#v1/run/selection"
 
 export type ResolvedRunHost = {
   name: string
@@ -226,20 +222,19 @@ export async function resolveDevice(
 
 /**
  * Resolve an inventory selection into a de-duplicated list of hosts with
- * credentials. Expands group entries to their member devices, joins the
- * device's credential, and fails fast on missing credentials or unknown
- * device ids. Used by `resolveRun`/`resolveScript` and directly by ad-hoc
- * command runs.
+ * credentials. Expands group entries to their member devices and an `all`
+ * entry to every device, joins the device's credential, and fails fast on
+ * missing credentials or unknown device ids. Used by `resolveRun`/
+ * `resolveScript` and directly by ad-hoc command runs.
  */
 export async function resolveHosts(
   inventory: RunInventorySelection[]
 ): Promise<ResolvedRunHost[]> {
-  const directDeviceIds = inventory
-    .filter((sel) => sel.type === "device")
-    .map((sel) => sel.id)
-  const groupIds = inventory
-    .filter((sel) => sel.type === "group")
-    .map((sel) => sel.id)
+  const {
+    all,
+    deviceIds: directDeviceIds,
+    groupIds,
+  } = splitSelection(inventory)
 
   let groupDeviceIds: string[] = []
   if (groupIds.length > 0) {
@@ -250,7 +245,18 @@ export async function resolveHosts(
     groupDeviceIds = rows.map((r) => r.deviceId)
   }
 
-  const deviceIds = Array.from(new Set([...directDeviceIds, ...groupDeviceIds]))
+  // The built-in All group: every device in the inventory right now.
+  let allDeviceIds: string[] = []
+  if (all) {
+    const rows = await db
+      .select({ deviceId: inventoryDevices.id })
+      .from(inventoryDevices)
+    allDeviceIds = rows.map((r) => r.deviceId)
+  }
+
+  const deviceIds = Array.from(
+    new Set([...directDeviceIds, ...groupDeviceIds, ...allDeviceIds])
+  )
   if (deviceIds.length === 0) {
     throw new ResolveRunValidationError(
       "Selection produced no devices to run against"

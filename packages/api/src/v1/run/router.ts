@@ -39,7 +39,7 @@ export const runRouter = {
     .route({
       summary: "Run a playbook",
       description:
-        "Resolves a playbook + inventory selection (expanding groups to devices), then streams the playbook run.",
+        'Resolves a playbook + inventory selection (expanding groups to their devices and `{ type: "all" }` to every device), then streams the playbook run.',
       tags: ["Run"],
       method: "POST",
     })
@@ -52,7 +52,7 @@ export const runRouter = {
     .route({
       summary: "Run an ad-hoc command",
       description:
-        "Resolves an inventory selection (no playbook), then streams an ad-hoc `shell`/`command` module run against the resolved hosts.",
+        'Resolves an inventory selection (no playbook; `{ type: "all" }` targets every device), then streams an ad-hoc `shell`/`command` module run against the resolved hosts.',
       tags: ["Run"],
       method: "POST",
     })
@@ -65,7 +65,7 @@ export const runRouter = {
     .route({
       summary: "Run a stored script",
       description:
-        "Resolves a stored script + inventory selection, then streams the script run (Ansible `script` module) against the resolved hosts.",
+        'Resolves a stored script + inventory selection (`{ type: "all" }` targets every device), then streams the script run (Ansible `script` module) against the resolved hosts.',
       tags: ["Run"],
       method: "POST",
     })

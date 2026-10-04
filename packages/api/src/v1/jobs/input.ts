@@ -1,18 +1,14 @@
 import { z } from "zod"
 import { cronExpression, forks } from "#v1/jobs/cron"
 import { safeExtravars } from "#v1/run/extravars"
+import { inventorySelection } from "#v1/run/selection"
 import { idSchema } from "#v1/schemas"
-
-const inventoryItem = z.object({
-  id: z.string(),
-  type: z.enum(["group", "device"]),
-})
 
 const job = z.object({
   name: z.string().min(1),
   description: z.string().nullable().optional(),
   playbookId: idSchema.nullable().optional(),
-  inventoryJson: z.array(inventoryItem).default([]),
+  inventoryJson: z.array(inventorySelection).default([]),
   extravarsJson: safeExtravars.default({}),
   forks: forks.default(1),
   cronExpression,

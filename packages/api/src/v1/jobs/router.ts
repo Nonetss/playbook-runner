@@ -37,7 +37,7 @@ export const jobsRouter = {
     .route({
       summary: "Create a job",
       description:
-        "Persists a new scheduled/manual job. The cron expression is optional; omit it to create a manual-only job.",
+        'Persists a new scheduled/manual job. The cron expression is optional; omit it to create a manual-only job. An inventory entry `{ type: "all" }` targets every device at each execution, including devices added later.',
       tags: ["Jobs"],
       method: "POST",
     })

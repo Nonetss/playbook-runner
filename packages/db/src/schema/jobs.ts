@@ -27,7 +27,7 @@ export const jobs = pgTable("jobs", {
     onDelete: "set null",
   }),
   inventoryJson: jsonb("inventory_json")
-    .$type<Array<{ id: string; type: "group" | "device" }>>()
+    .$type<Array<{ id: string; type: "group" | "device" } | { type: "all" }>>()
     .notNull()
     .default([]),
   extravarsJson: jsonb("extravars_json")

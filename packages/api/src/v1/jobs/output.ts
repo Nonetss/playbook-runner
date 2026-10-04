@@ -1,6 +1,7 @@
 import { eventIterator } from "@orpc/server"
 import { z } from "zod"
 import { taskEventSchema } from "#v1/run/router"
+import { inventorySelectionItem } from "#v1/run/selection"
 
 const runStatus = z.enum(["pending", "running", "ok", "failed"])
 
@@ -10,9 +11,7 @@ const job = z.object({
   name: z.string(),
   description: z.string().nullable(),
   playbookId: z.string().nullable(),
-  inventoryJson: z
-    .array(z.object({ id: z.string(), type: z.enum(["group", "device"]) }))
-    .nullable(),
+  inventoryJson: z.array(inventorySelectionItem(z.string())).nullable(),
   extravarsJson: z.record(z.string(), z.string()).nullable(),
   forks: z.number().int(),
   cronExpression: z.string().nullable(),
