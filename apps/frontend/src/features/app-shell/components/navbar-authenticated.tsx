@@ -1,4 +1,4 @@
-import { useQueryClient } from "@tanstack/react-query"
+import { noop, useQueryClient } from "@tanstack/react-query"
 import type { Session, User } from "better-auth"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -47,37 +47,42 @@ const pillInactive =
   "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
 const pillActive = "bg-primary/10 text-primary"
 
+/**
+ * Warms the cache for the page a nav link points to. `query` only fetches
+ * when the cached data is stale; a failure is ignored because the page
+ * loads the same query again on mount.
+ */
 function prefetchForHref(
   queryClient: ReturnType<typeof useQueryClient>,
   href: string
 ) {
   switch (href) {
     case "/inventory/devices":
-      queryClient.prefetchQuery(orpc.inventory.devices.list.queryOptions())
+      queryClient.query(orpc.inventory.devices.list.queryOptions()).catch(noop)
       return
     case "/inventory/groups":
-      queryClient.prefetchQuery(orpc.inventory.groups.list.queryOptions())
+      queryClient.query(orpc.inventory.groups.list.queryOptions()).catch(noop)
       return
     case "/inventory/credentials":
-      queryClient.prefetchQuery(orpc.credentials.list.queryOptions())
+      queryClient.query(orpc.credentials.list.queryOptions()).catch(noop)
       return
     case "/playbooks":
-      queryClient.prefetchQuery(orpc.playbooks.list.queryOptions())
+      queryClient.query(orpc.playbooks.list.queryOptions()).catch(noop)
       return
     case "/scripts":
-      queryClient.prefetchQuery(orpc.scripts.list.queryOptions())
+      queryClient.query(orpc.scripts.list.queryOptions()).catch(noop)
       return
     case "/jobs/scheduler":
-      queryClient.prefetchQuery(orpc.jobs.list.queryOptions())
+      queryClient.query(orpc.jobs.list.queryOptions()).catch(noop)
       return
     case "/history":
     case "/jobs/history":
-      queryClient.prefetchQuery(
-        orpc.jobs.runs.listAll.queryOptions({ input: { limit: 25 } })
-      )
+      queryClient
+        .query(orpc.jobs.runs.listAll.queryOptions({ input: { limit: 25 } }))
+        .catch(noop)
       return
     case "/config":
-      queryClient.prefetchQuery(orpc.apiKeys.list.queryOptions())
+      queryClient.query(orpc.apiKeys.list.queryOptions()).catch(noop)
   }
 }
 
