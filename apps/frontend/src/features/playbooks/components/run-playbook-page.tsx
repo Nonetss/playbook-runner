@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useDevicesList } from "@/features/inventory/hooks/use-devices"
 import { useGroupsList } from "@/features/inventory/hooks/use-groups"
+import { useSelectableGroups } from "@/features/inventory/hooks/use-selectable-groups"
 import { PlaybookSwitcher } from "@/features/playbooks/components/playbook-switcher"
 import { usePlaybookGet } from "@/features/playbooks/hooks/use-playbooks"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
@@ -32,7 +33,7 @@ import {
 import { useRunInventorySelection } from "@/features/run/hooks/use-run-inventory-selection"
 import { useRunPlaybook } from "@/features/run/hooks/use-run-playbook"
 import { toggleIn } from "@/features/run/hooks/use-selection-toggle"
-import type { RunSelection } from "@/features/run/types"
+import { toRunSelection } from "@/features/run/lib/run-selection"
 import { useConfirm } from "@/hooks/use-confirm"
 import { cn } from "@/lib/utils"
 
@@ -41,8 +42,9 @@ import { cn } from "@/lib/utils"
 function RunPlaybookPageInner({ id }: { id: string }) {
   const { t } = useTranslation("playbooks")
   const { data: playbook, isPending: playbookLoading } = usePlaybookGet(id)
-  const { data: groups = [], isPending: groupsLoading } = useGroupsList()
+  const { data: storedGroups = [], isPending: groupsLoading } = useGroupsList()
   const { data: devices = [], isPending: devicesLoading } = useDevicesList()
+  const groups = useSelectableGroups(storedGroups, devices)
   const { phase, events, result, errorMessage, start, stopWatching, reset } =
     useRunPlaybook()
   const confirm = useConfirm()
@@ -68,10 +70,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
 
   async function handleRun() {
     if (!playbook || selectionCount === 0) return
-    const inventory: RunSelection[] = [
-      ...[...selectedGroups].map((id) => ({ id, type: "group" as const })),
-      ...[...selectedDevices].map((id) => ({ id, type: "device" as const })),
-    ]
+    const inventory = toRunSelection(selectedGroups, selectedDevices)
     const extravarMap = Object.fromEntries(
       extravars.filter((e) => e.key.trim()).map((e) => [e.key.trim(), e.value])
     )

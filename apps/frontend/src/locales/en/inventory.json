@@ -25,8 +25,6 @@
   },
   "group": {
     "document_title": "Group",
-    "empty_title": "No groups",
-    "empty_description": "Create your first group to start organizing devices.",
     "delete_confirm_title": "Delete \"{{label}}\"",
     "delete_confirm_description": "This action cannot be undone.",
     "detail_loading": "Loading group…",
@@ -54,6 +52,12 @@
     "fallback_label": "this group",
     "members": "Members",
     "back_to_groups": "Groups"
+  },
+  "all_group": {
+    "description": "Every device in the inventory",
+    "detail_hint": "Built-in group that always contains every device. Devices join and leave it automatically, so it cannot be edited or deleted.",
+    "devices_count": "{{count}} device",
+    "devices_count_other": "{{count}} devices"
   },
   "device": {
     "empty_title": "No devices",

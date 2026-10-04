@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useDevicesList } from "@/features/inventory/hooks/use-devices"
 import { useGroupsList } from "@/features/inventory/hooks/use-groups"
+import { useSelectableGroups } from "@/features/inventory/hooks/use-selectable-groups"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { RunButton } from "@/features/run/components/run-button"
 import { RunHostConsole } from "@/features/run/components/run-host-console"
@@ -33,14 +34,15 @@ import {
   useRunCommand,
 } from "@/features/run/hooks/use-run-command"
 import { toggleIn } from "@/features/run/hooks/use-selection-toggle"
-import type { RunSelection } from "@/features/run/types"
+import { toRunSelection } from "@/features/run/lib/run-selection"
 import { useConfirm } from "@/hooks/use-confirm"
 import { cn } from "@/lib/utils"
 
 function CommandsPageInner() {
   const { t } = useTranslation("commands")
-  const { data: groups = [] } = useGroupsList()
+  const { data: storedGroups = [] } = useGroupsList()
   const { data: devices = [] } = useDevicesList()
+  const groups = useSelectableGroups(storedGroups, devices)
   const { phase, events, result, errorMessage, start, stopWatching, reset } =
     useRunCommand()
   const confirm = useConfirm()
@@ -60,10 +62,7 @@ function CommandsPageInner() {
 
   async function handleRun() {
     if (!canRun) return
-    const inventory: RunSelection[] = [
-      ...[...selectedGroups].map((id) => ({ id, type: "group" as const })),
-      ...[...selectedDevices].map((id) => ({ id, type: "device" as const })),
-    ]
+    const inventory = toRunSelection(selectedGroups, selectedDevices)
     const body: CommandRequest = {
       inventory,
       command: trimmedCommand,

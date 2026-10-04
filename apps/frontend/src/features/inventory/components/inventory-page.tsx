@@ -1,7 +1,6 @@
 import { getIcon } from "@/lib/icon-registry"
 
 const Computer = getIcon("resources", "device")
-const Folder = getIcon("resources", "folder")
 const Plus = getIcon("actions", "add")
 
 import { useMemo, useState } from "react"
@@ -12,6 +11,7 @@ import { EntityCardGrid } from "@/components/shared/resource/entity-list"
 import { ResourceOverview } from "@/components/shared/resource/resource-overview"
 import { Button } from "@/components/ui/button"
 import { useCredentialsList } from "@/features/credentials/hooks/use-credentials"
+import { ALL_GROUP_ID, makeAllGroup } from "@/features/inventory/all-group"
 import { DeviceFormModal } from "@/features/inventory/components/device-form-modal"
 import { GroupFormModal } from "@/features/inventory/components/group-form-modal"
 import { PingDeviceModal } from "@/features/inventory/components/ping-device-modal"
@@ -86,9 +86,14 @@ function InventoryPageInner({ section }: { section: InventorySection }) {
     [credentials]
   )
 
+  const allGroup = useMemo(() => makeAllGroup(t("all_group.description")), [t])
+
   const { groupsByDevice, devicesByGroup } = useMemo(() => {
     const byDevice = new Map<string, InventoryGroup[]>()
-    const byGroup = new Map<string, InventoryDevice[]>()
+    // The built-in All group always holds every device.
+    const byGroup = new Map<string, InventoryDevice[]>([
+      [ALL_GROUP_ID, [...devices]],
+    ])
     const relations = deviceGroups as InventoryDeviceGroup[]
 
     for (const relation of relations) {
@@ -106,7 +111,7 @@ function InventoryPageInner({ section }: { section: InventorySection }) {
       }
     }
     return { groupsByDevice: byDevice, devicesByGroup: byGroup }
-  }, [deviceGroups, groupsById, devicesById])
+  }, [deviceGroups, groupsById, devicesById, devices])
 
   function openCreateGroup() {
     setEditingGroup(null)
@@ -200,7 +205,8 @@ function InventoryPageInner({ section }: { section: InventorySection }) {
     <HeroCount
       segments={[
         {
-          count: isGroups ? groups.length : devices.length,
+          // Groups always include the built-in All group.
+          count: isGroups ? groups.length + 1 : devices.length,
           label: tCommon("labels.total"),
         },
       ]}
@@ -215,17 +221,10 @@ function InventoryPageInner({ section }: { section: InventorySection }) {
           heroMeta={totalCount}
           heroAction={createButton}
           query={groupsQuery}
-          isEmpty={(items) => items.length === 0}
-          empty={{
-            icon: <Folder />,
-            title: t("group.empty_title"),
-            description: t("group.empty_description"),
-            action: createButton,
-          }}
         >
           {(items) => (
             <EntityCardGrid
-              items={items}
+              items={[allGroup, ...items]}
               definition={groupDefinition}
               context={{
                 t,

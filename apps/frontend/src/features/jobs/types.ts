@@ -1,4 +1,6 @@
-export type InventoryItem = { id: string; type: "group" | "device" }
+import type { RunSelection } from "@/features/run/types"
+
+export type InventoryItem = RunSelection
 
 export type Job = {
   id: string

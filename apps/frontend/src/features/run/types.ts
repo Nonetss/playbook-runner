@@ -1,8 +1,10 @@
-/** A single inventory selection forwarded to a run endpoint. */
-export type RunSelection = {
-  id: string
-  type: "group" | "device"
-}
+/**
+ * A single inventory selection forwarded to a run endpoint or stored on a
+ * job. `all` is the built-in All group (every device), so it has no id.
+ */
+export type RunSelection =
+  | { id: string; type: "group" | "device" }
+  | { type: "all" }
 
 /** Per-event payload streamed by the backend's `run.*` oRPC procedures. */
 export type RunEvent = {

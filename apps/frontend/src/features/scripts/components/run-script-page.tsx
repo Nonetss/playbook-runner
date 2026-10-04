@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useDevicesList } from "@/features/inventory/hooks/use-devices"
 import { useGroupsList } from "@/features/inventory/hooks/use-groups"
+import { useSelectableGroups } from "@/features/inventory/hooks/use-selectable-groups"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { RunButton } from "@/features/run/components/run-button"
 import { RunHostConsole } from "@/features/run/components/run-host-console"
@@ -30,7 +31,7 @@ import {
   useRunScript,
 } from "@/features/run/hooks/use-run-script"
 import { toggleIn } from "@/features/run/hooks/use-selection-toggle"
-import type { RunSelection } from "@/features/run/types"
+import { toRunSelection } from "@/features/run/lib/run-selection"
 import { useScriptGet } from "@/features/scripts/hooks/use-scripts"
 import { useConfirm } from "@/hooks/use-confirm"
 
@@ -39,8 +40,9 @@ import { useConfirm } from "@/hooks/use-confirm"
 function RunScriptPageInner({ id }: { id: string }) {
   const { t } = useTranslation("scripts")
   const { data: script, isPending: scriptLoading } = useScriptGet(id)
-  const { data: groups = [] } = useGroupsList()
+  const { data: storedGroups = [] } = useGroupsList()
   const { data: devices = [] } = useDevicesList()
+  const groups = useSelectableGroups(storedGroups, devices)
   const { phase, events, result, errorMessage, start, stopWatching, reset } =
     useRunScript()
   const confirm = useConfirm()
@@ -56,10 +58,7 @@ function RunScriptPageInner({ id }: { id: string }) {
 
   async function handleRun() {
     if (!script || selectionCount === 0) return
-    const inventory: RunSelection[] = [
-      ...[...selectedGroups].map((id) => ({ id, type: "group" as const })),
-      ...[...selectedDevices].map((id) => ({ id, type: "device" as const })),
-    ]
+    const inventory = toRunSelection(selectedGroups, selectedDevices)
     const body: ScriptRequest = {
       scriptId: script.id,
       inventory,

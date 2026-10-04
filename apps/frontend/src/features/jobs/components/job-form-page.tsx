@@ -19,15 +19,20 @@ import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { useDevicesList } from "@/features/inventory/hooks/use-devices"
 import { useGroupsList } from "@/features/inventory/hooks/use-groups"
+import { useSelectableGroups } from "@/features/inventory/hooks/use-selectable-groups"
 import { CronScheduleDialog } from "@/features/jobs/components/cron-schedule-dialog"
 import {
   useJobCreate,
   useJobGet,
   useJobUpdate,
 } from "@/features/jobs/hooks/use-jobs"
-import type { InventoryItem, Job } from "@/features/jobs/types"
+import type { Job } from "@/features/jobs/types"
 import { PlaybookPicker } from "@/features/playbooks/components/playbook-picker"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
+import {
+  fromRunSelection,
+  toRunSelection,
+} from "@/features/run/lib/run-selection"
 import { navigate } from "@/lib/navigate"
 import { cn } from "@/lib/utils"
 
@@ -60,19 +65,6 @@ function valuesFromJob(job: Job): FormValues {
     forks: job.forks,
     enabled: job.enabled,
   }
-}
-
-function inventoryFromJob(inventoryJson: InventoryItem[] | null | undefined): {
-  groups: Set<string>
-  devices: Set<string>
-} {
-  const groups = new Set<string>()
-  const devices = new Set<string>()
-  for (const item of inventoryJson ?? []) {
-    if (item.type === "group") groups.add(item.id)
-    else devices.add(item.id)
-  }
-  return { groups, devices }
 }
 
 export type JobFormPageProps = { id?: string }
@@ -160,10 +152,11 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
   const createJob = useJobCreate()
   const updateJob = useJobUpdate()
 
-  const { data: groups = [] } = useGroupsList()
+  const { data: storedGroups = [] } = useGroupsList()
   const { data: devices = [] } = useDevicesList()
+  const groups = useSelectableGroups(storedGroups, devices)
 
-  const initialInventory = inventoryFromJob(initialJob?.inventoryJson)
+  const initialInventory = fromRunSelection(initialJob?.inventoryJson)
   const [values, setValues] = React.useState<FormValues>(() =>
     initialJob ? valuesFromJob(initialJob) : EMPTY
   )
@@ -205,10 +198,7 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
     e.preventDefault()
     setError(null)
 
-    const inventory: InventoryItem[] = [
-      ...[...selectedGroups].map((id) => ({ id, type: "group" as const })),
-      ...[...selectedDevices].map((id) => ({ id, type: "device" as const })),
-    ]
+    const inventory = toRunSelection(selectedGroups, selectedDevices)
 
     const extravarsMap = Object.fromEntries(
       extravars.filter((x) => x.key.trim()).map((x) => [x.key.trim(), x.value])

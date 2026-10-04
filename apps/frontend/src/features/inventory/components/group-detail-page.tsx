@@ -14,6 +14,8 @@ import { DetailFrame } from "@/components/shared/layout/detail-frame"
 import { PageHero } from "@/components/shared/layout/page-hero"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { isAllGroup } from "@/features/inventory/all-group"
+import { AllGroupDetail } from "@/features/inventory/components/all-group-detail-page"
 import { SelectableList } from "@/features/inventory/components/selectable-list"
 import {
   useDeviceGroupAssign,
@@ -275,7 +277,13 @@ function MissingGroup() {
 export function GroupDetailPage({ id }: { id?: string }) {
   return (
     <AppProviders>
-      {id ? <GroupDetailPageInner id={id} /> : <MissingGroup />}
+      {!id ? (
+        <MissingGroup />
+      ) : isAllGroup(id) ? (
+        <AllGroupDetail />
+      ) : (
+        <GroupDetailPageInner id={id} />
+      )}
     </AppProviders>
   )
 }

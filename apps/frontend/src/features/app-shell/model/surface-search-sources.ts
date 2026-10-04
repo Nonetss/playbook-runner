@@ -1,4 +1,5 @@
 import type { UseQueryOptions } from "@tanstack/react-query"
+import { ALL_GROUP_ID } from "@/features/inventory/all-group"
 import type { SurfaceId } from "@/lib/app-surfaces"
 import type { LucideIcon } from "@/lib/icon-registry"
 import { orpc } from "@/lib/orpc"
@@ -104,6 +105,14 @@ export const surfaceSearchSources: SurfaceSearchSource[] = [
     headingKey: "search.groups.groups",
     href: (id) => `/inventory/${segment(id)}/group`,
     queryOptions: ({ enabled }) =>
-      orpc.inventory.groups.list.queryOptions({ enabled, select: toEntries }),
+      orpc.inventory.groups.list.queryOptions({
+        enabled,
+        // The built-in All group has no row; it falls back to the groups
+        // page's description.
+        select: (rows) => [
+          { id: ALL_GROUP_ID, label: "All" },
+          ...toEntries(rows),
+        ],
+      }),
   }),
 ]

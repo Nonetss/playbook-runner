@@ -8,6 +8,7 @@ const Trash2 = getIcon("actions", "delete")
 import type { TFunction } from "i18next"
 import { Text } from "@/components/shared/brand/typography"
 import type { EntityListDefinition } from "@/components/shared/resource/entity-list"
+import { isAllGroup } from "@/features/inventory/all-group"
 import type {
   InventoryDevice,
   InventoryGroup,
@@ -74,12 +75,14 @@ export const groupDefinition: EntityListDefinition<
       key: "edit",
       label: (_, { tCommon }) => tCommon("actions.edit"),
       icon: Pencil,
+      hidden: (group) => isAllGroup(group.id),
       onSelect: (group, { onEdit }) => onEdit(group),
     },
     {
       key: "devices",
       label: (_, { tCommon }) => tCommon("actions.manage_devices"),
       icon: Link2,
+      hidden: (group) => isAllGroup(group.id),
       onSelect: (group, { onManageDevices }) => onManageDevices(group),
     },
     {
@@ -87,6 +90,7 @@ export const groupDefinition: EntityListDefinition<
       label: (_, { tCommon }) => tCommon("actions.delete"),
       icon: Trash2,
       destructive: true,
+      hidden: (group) => isAllGroup(group.id),
       disabled: (group, { deletingId }) => deletingId === group.id,
       onSelect: (group, { onDelete }) => onDelete(group),
     },
