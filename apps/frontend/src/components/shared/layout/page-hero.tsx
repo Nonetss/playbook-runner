@@ -48,6 +48,11 @@ interface PageHeroSharedProps {
   action?: ReactNode
   children?: ReactNode
   className?: string
+  /**
+   * Vertically center the icon against the title and description together.
+   * `false` keeps the icon on the title's line.
+   */
+  center?: boolean
 }
 
 type PageHeroProps = PageHeroSharedProps &
@@ -71,7 +76,15 @@ type PageHeroProps = PageHeroSharedProps &
  *  and right-aligned meta/status/action slots. */
 export function PageHero(props: PageHeroProps) {
   const { t } = useTranslation("nav")
-  const { description, meta, status, action, children, className } = props
+  const {
+    description,
+    meta,
+    status,
+    action,
+    children,
+    className,
+    center = false,
+  } = props
   const surface = props.surface ? getSurface(props.surface) : undefined
   const SurfaceIcon = surface?.icon
 
@@ -85,18 +98,37 @@ export function PageHero(props: PageHeroProps) {
   return (
     <header className={cn("flex flex-col gap-4", className)}>
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
-        <div className="flex min-w-0 items-center gap-2.5">
+        <div
+          className={cn(
+            "flex min-w-0 gap-2.5",
+            center ? "items-center" : "items-start"
+          )}
+        >
           {icon ? (
-            <div className="flex size-5 shrink-0 items-center justify-center text-primary [&_svg]:size-5">
+            <div
+              className={cn(
+                "flex w-5 shrink-0 items-center justify-center text-primary [&_svg]:size-5",
+                // The icon box is one title line tall, so the icon sits on
+                // the title's line however long the description runs.
+                center
+                  ? "h-5"
+                  : "h-[calc(var(--font-size-display)*var(--line-height-display))]"
+              )}
+            >
               {icon}
             </div>
           ) : null}
           <div className="min-w-0">
-            <Text as="h1" variant="display" className="truncate">
+            <Text as="h1" variant="display">
               {title}
             </Text>
             {resolvedDescription ? (
-              <Text as="p" variant="meta" tone="muted" className="mt-0.5">
+              <Text
+                as="p"
+                variant="meta"
+                tone="muted"
+                className="mt-0.5 max-w-prose text-pretty"
+              >
                 {resolvedDescription}
               </Text>
             ) : null}
