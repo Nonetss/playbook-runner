@@ -99,6 +99,9 @@
   --text-data--line-height: 1.6;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Frames, cards and code blocks (the frontend's rounded-xl). */
+  --radius-frame: 10px;
 }
 
 @utility focus-ring {
@@ -112,6 +115,99 @@
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+/* Named patterns. Each one is a role the site repeats; a page combines them
+   with layout utilities (margins, grid placement) at the call site. */
+
+/* Page width and side gutters, shared by header, footer and every page. */
+@utility page-container {
+  @apply mx-auto max-w-360 px-4 sm:px-6 lg:px-8;
+}
+
+/* A landing section after the first one: hairline on top, generous rhythm. */
+@utility section-block {
+  @apply border-t border-hairline py-20 lg:py-28;
+}
+
+@utility section-title {
+  @apply text-title font-semibold tracking-tight text-strong;
+}
+
+/* Quiet text link (navigation, footer, secondary actions). The radius of
+   its focus ring stays at the call site. */
+@utility link-muted {
+  @apply focus-ring text-muted-foreground transition-colors hover:text-strong;
+}
+
+/* Square ghost button holding one icon (theme toggle, GitHub). */
+@utility icon-button {
+  @apply focus-ring grid size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-strong;
+}
+
+/* Small technical value in mono: ports, roles, edge labels. */
+@utility mono-note {
+  @apply font-mono text-[0.75rem] text-muted-foreground;
+}
+
+/* Bordered hairline box: diagram hops, doc pager, notes. */
+@utility card-box {
+  @apply rounded-frame border border-border;
+}
+
+/* The always-dark surfaces: app frame, install command, code blocks. */
+@utility terminal-frame {
+  @apply overflow-hidden rounded-frame border border-terminal-border bg-terminal-bg;
+}
+
+@utility terminal-bar {
+  @apply flex items-center border-b border-terminal-border bg-terminal-surface;
+}
+
+/* Raised control on a terminal surface (copy, viewer, zoom hint). The
+   transition stays at the call site: colours on buttons, opacity on hints. */
+@utility terminal-control {
+  @apply rounded-md border border-terminal-border bg-terminal-raised text-terminal-fg hover:border-terminal-muted;
+}
+
+/* "Skip to content": hidden until it receives keyboard focus. */
+@utility skip-link {
+  @apply sr-only z-50 rounded-md bg-background px-3 py-2 text-meta focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:ring-[3px] focus:ring-ring/50;
+}
+
+/* Landing tour (Landing.astro): the hero fills the first viewport and each
+   stop is a tall band from lg up, so the pinned frame has room to switch. */
+@utility tour-hero {
+  @apply flex flex-col justify-center pt-12 pb-14 sm:pt-16 lg:min-h-[calc(100dvh-var(--header-height))] lg:py-16;
+}
+
+@utility tour-stop {
+  @apply border-t border-hairline py-12 lg:flex lg:min-h-[78dvh] lg:flex-col lg:justify-center lg:border-t-0 lg:py-20;
+}
+
+@utility tour-frame {
+  @apply sticky top-(--header-height) flex h-[calc(100dvh-var(--header-height))] flex-col justify-center py-8;
+}
+
+/* Dot or bar that turns terracotta for the active tour stop. */
+@utility active-marker {
+  @apply bg-border transition-colors duration-300 data-active:bg-primary;
+}
+
+/* Zoom hint on an app frame: hidden until hover or keyboard focus, always
+   shown on touch screens. */
+@utility zoom-hint {
+  @apply opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 pointer-coarse:opacity-100;
+}
+
+/* Previous / next page card at the foot of a doc. */
+@utility pager-link {
+  @apply focus-ring px-4 py-3.5 transition-colors hover:border-muted-foreground/60;
+}
+
+/* Docs sidebar entry; the current page gets the accent wash. */
+@utility side-link {
+  @apply focus-ring block rounded-md px-2.5 text-meta text-muted-foreground transition-colors hover:text-strong aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-strong;
 }
 
 @layer base {
@@ -239,7 +335,7 @@
     font-size: var(--text-data);
     line-height: var(--text-data--line-height);
     padding: 1rem 1.125rem;
-    border-radius: 10px;
+    border-radius: var(--radius-frame);
     border: 1px solid var(--terminal-border);
     overflow-x: auto;
     scrollbar-color: var(--terminal-border) transparent;
@@ -257,7 +353,7 @@
   & blockquote {
     padding: 0.875rem 1.125rem;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: var(--radius-frame);
     background: var(--card);
     color: var(--foreground);
   }

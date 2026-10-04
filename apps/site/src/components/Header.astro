@@ -25,9 +25,7 @@ const anchors = [
 <header
   class="sticky top-0 z-40 h-(--header-height) border-b border-hairline bg-background"
 >
-  <div
-    class="mx-auto flex h-full max-w-360 items-center gap-3 px-4 sm:gap-6 sm:px-6 lg:px-8"
-  >
+  <div class="page-container flex h-full items-center gap-3 sm:gap-6">
     <a
       href={home}
       class="focus-ring -mx-1 flex items-center gap-2.5 rounded-md px-1 text-strong"
@@ -43,7 +41,7 @@ const anchors = [
       {anchors.map((link) => (
           <a
             href={link.href}
-            class="focus-ring hidden rounded-md px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-strong md:block"
+            class="link-muted hidden rounded-md px-2.5 py-1.5 md:block"
           >
             {link.label}
           </a>
@@ -51,7 +49,7 @@ const anchors = [
       <a
         href={localized(lang, "docs/")}
         {...(onDocs ? { "aria-current": "page" } : {})}
-        class="focus-ring rounded-md px-2.5 py-1.5 text-muted-foreground transition-colors hover:text-strong aria-[current=page]:font-medium aria-[current=page]:text-strong"
+        class="link-muted rounded-md px-2.5 py-1.5 aria-[current=page]:font-medium aria-[current=page]:text-strong"
       >
         {dict.nav.docs}
       </a>
@@ -65,7 +63,7 @@ const anchors = [
         {(Object.keys(languages) as Lang[]).map((code) =>
             code === lang ? (
               <span
-                class="px-1.5 py-1.5 text-strong"
+                class="p-1.5 text-strong"
                 aria-current="true"
                 title={languages[code]}
               >
@@ -77,7 +75,7 @@ const anchors = [
                 hreflang={code}
                 lang={code}
                 title={languages[code]}
-                class="focus-ring rounded-md px-1.5 py-1.5 text-muted-foreground transition-colors hover:text-strong"
+                class="link-muted rounded-md p-1.5"
               >
                 {code}
               </a>
@@ -89,7 +87,7 @@ const anchors = [
         data-theme-toggle
         aria-label={dict.nav.theme}
         title={dict.nav.theme}
-        class="focus-ring grid size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-strong"
+        class="icon-button"
       >
         <Sun class="hidden size-4 dark:block" stroke-width={1.75} />
         <Moon class="size-4 dark:hidden" stroke-width={1.75} />
@@ -98,7 +96,7 @@ const anchors = [
         href={REPO_URL}
         aria-label={dict.nav.github}
         title={dict.nav.github}
-        class="focus-ring grid size-9 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-strong"
+        class="icon-button"
       >
         <GithubMark class="size-4" />
       </a>

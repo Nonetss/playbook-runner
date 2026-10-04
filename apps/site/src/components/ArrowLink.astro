@@ -1,0 +1,26 @@
+---
+import ArrowRight from "@lucide/astro/icons/arrow-right"
+
+// The site's strong text link: ink text and a terracotta arrow that nudges
+// right on hover.
+interface Props {
+  href: string
+  class?: string
+}
+
+const { href, class: className } = Astro.props
+---
+
+<a
+  href={href}
+  class:list={[
+    "focus-ring group inline-flex items-center gap-1.5 rounded-sm font-medium text-strong",
+    className,
+  ]}
+>
+  <slot />
+  <ArrowRight
+    class="size-4 text-primary transition-transform duration-300 ease-out-expo group-hover:translate-x-0.5"
+    stroke-width={1.75}
+  />
+</a>

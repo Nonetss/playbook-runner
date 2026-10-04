@@ -27,7 +27,7 @@ const editUrl = `${REPO_URL}/edit/main/apps/site/${doc.filePath ?? ""}`
 
 <Base lang={lang} title={doc.data.title} description={doc.data.description}>
   <div
-    class="mx-auto grid max-w-360 px-4 sm:px-6 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-x-14 lg:px-8 xl:grid-cols-[13rem_minmax(0,1fr)_12rem]"
+    class="page-container grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-x-14 xl:grid-cols-[13rem_minmax(0,1fr)_12rem]"
   >
     <nav
       aria-label={dict.docs.pages}
@@ -52,7 +52,7 @@ const editUrl = `${REPO_URL}/edit/main/apps/site/${doc.filePath ?? ""}`
                 <a
                   href={localized(lang, docPath(entry))}
                   aria-current={entry.id === doc.id ? "page" : undefined}
-                  class="focus-ring block rounded-md px-2.5 py-2 text-meta text-muted-foreground aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-strong"
+                  class="side-link py-2"
                 >
                   {entry.data.title}
                 </a>
@@ -71,7 +71,7 @@ const editUrl = `${REPO_URL}/edit/main/apps/site/${doc.filePath ?? ""}`
                 <a
                   href={localized(lang, docPath(entry))}
                   aria-current={entry.id === doc.id ? "page" : undefined}
-                  class="focus-ring block rounded-md px-2.5 py-1.5 text-meta text-muted-foreground transition-colors hover:text-strong aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-strong"
+                  class="side-link py-1.5"
                 >
                   {entry.data.title}
                 </a>
@@ -103,7 +103,7 @@ const editUrl = `${REPO_URL}/edit/main/apps/site/${doc.filePath ?? ""}`
           {previous && (
               <a
                 href={localized(lang, docPath(previous))}
-                class="focus-ring group rounded-[10px] border border-border px-4 py-3.5 transition-colors hover:border-muted-foreground/60"
+                class="card-box pager-link"
               >
                 <span class="flex items-center gap-1.5 text-label-caps text-muted-foreground">
                   <ArrowLeft class="size-3" stroke-width={2} />
@@ -117,7 +117,7 @@ const editUrl = `${REPO_URL}/edit/main/apps/site/${doc.filePath ?? ""}`
           {next && (
               <a
                 href={localized(lang, docPath(next))}
-                class="focus-ring group rounded-[10px] border border-border px-4 py-3.5 text-right transition-colors hover:border-muted-foreground/60 sm:col-start-2"
+                class="card-box pager-link text-right sm:col-start-2"
               >
                 <span class="flex items-center justify-end gap-1.5 text-label-caps text-muted-foreground">
                   {dict.docs.next}
@@ -131,7 +131,7 @@ const editUrl = `${REPO_URL}/edit/main/apps/site/${doc.filePath ?? ""}`
         </div>
         <a
           href={editUrl}
-          class="focus-ring mt-6 inline-block rounded-sm text-meta text-muted-foreground underline decoration-border underline-offset-4 transition-colors hover:text-strong"
+          class="link-muted mt-6 inline-block rounded-sm text-meta underline decoration-border underline-offset-4"
         >
           {dict.docs.edit}
         </a>
@@ -149,7 +149,7 @@ const editUrl = `${REPO_URL}/edit/main/apps/site/${doc.filePath ?? ""}`
                 <a
                   href={`#${heading.slug}`}
                   data-toc={heading.slug}
-                  class="focus-ring -ml-px block border-l border-transparent pl-3 text-meta text-muted-foreground transition-colors hover:text-strong data-active:border-strong data-active:text-strong"
+                  class="link-muted -ml-px block border-l border-transparent pl-3 text-meta data-active:border-strong data-active:text-strong"
                 >
                   {heading.text}
                 </a>

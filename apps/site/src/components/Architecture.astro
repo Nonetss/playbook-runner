@@ -1,7 +1,7 @@
 ---
-import ArrowRight from "@lucide/astro/icons/arrow-right"
 import Database from "@lucide/astro/icons/database"
 import ArchitectureDiagram from "@/components/ArchitectureDiagram.astro"
+import ArrowLink from "@/components/ArrowLink.astro"
 import { type Lang, t } from "@/i18n/ui"
 import { localized } from "@/lib/url"
 
@@ -56,24 +56,21 @@ const paths: { title: string; hops: Hop[] }[] = [
 <section
   id="architecture"
   aria-labelledby="architecture-title"
-  class="border-t border-hairline py-20 lg:py-28"
+  class="section-block"
 >
   <div class="max-w-184">
-    <h2
-      id="architecture-title"
-      class="text-title font-semibold tracking-tight text-strong"
-    >
+    <h2 id="architecture-title" class="section-title">
       {dict.arch.heading}
     </h2>
     <p class="mt-5 text-lede text-foreground">{dict.arch.lede}</p>
   </div>
 
   <figure
-    class="mt-14 hidden rounded-[10px] border border-hairline px-6 pt-8 pb-5 lg:block"
+    class="mt-14 hidden rounded-frame border border-hairline px-6 pt-8 pb-5 lg:block"
   >
     <ArchitectureDiagram lang={lang} />
     <figcaption
-      class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-hairline pt-4 text-meta text-muted-foreground"
+      class="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-t border-hairline pt-4 text-meta text-muted-foreground"
     >
       <span class="flex items-center gap-2">
         <svg class="h-2 w-8" viewBox="0 0 32 8" aria-hidden="true">
@@ -123,18 +120,18 @@ const paths: { title: string; hops: Hop[] }[] = [
                       {hop.name}
                     </span>
                     {hop.port && (
-                      <span class="font-mono text-[0.75rem] text-muted-foreground tabular-nums">
+                      <span class="mono-note tabular-nums">
                         {hop.port}
                       </span>
                     )}
                   </div>
                   {hop.tech && (
-                    <div class="mt-0.5 font-mono text-[0.75rem] text-muted-foreground">
+                    <div class="mono-note mt-0.5">
                       {hop.tech}
                     </div>
                   )}
                   {hop.note && (
-                    <div class="mt-2 flex items-center gap-1.5 border-t border-hairline pt-2 font-mono text-[0.75rem] text-muted-foreground">
+                    <div class="mono-note mt-2 flex items-center gap-1.5 border-t border-hairline pt-2">
                       <Database class="size-3" stroke-width={1.75} />
                       {hop.note}
                     </div>
@@ -167,14 +164,10 @@ const paths: { title: string; hops: Hop[] }[] = [
       <table class="mt-4 w-full text-meta">
         <thead>
           <tr class="border-b border-border text-left">
-            <th
-              class="pb-2.5 text-label-caps font-medium text-muted-foreground"
-            >
+            <th class="pb-2.5 text-label-caps text-muted-foreground">
               {dict.arch.routing.route}
             </th>
-            <th
-              class="pb-2.5 text-label-caps font-medium text-muted-foreground"
-            >
+            <th class="pb-2.5 text-label-caps text-muted-foreground">
               {dict.arch.routing.target}
             </th>
           </tr>
@@ -207,14 +200,10 @@ const paths: { title: string; hops: Hop[] }[] = [
     </dl>
   </div>
 
-  <a
+  <ArrowLink
     href={localized(lang, "docs/architecture/")}
-    class="focus-ring group mt-8 inline-flex items-center gap-1.5 rounded-sm text-body font-medium text-strong"
+    class="mt-8 text-body"
   >
     {dict.arch.docsLink}
-    <ArrowRight
-      class="size-4 text-primary transition-transform duration-300 ease-out-expo group-hover:translate-x-0.5"
-      stroke-width={1.75}
-    />
-  </a>
+  </ArrowLink>
 </section>

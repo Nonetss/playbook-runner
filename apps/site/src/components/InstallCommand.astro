@@ -11,12 +11,9 @@ const { lang, label } = Astro.props
 const dict = t(lang)
 ---
 
-<figure
-  class="overflow-hidden rounded-[10px] border border-terminal-border bg-terminal-bg"
-  data-copy-scope
->
+<figure class="terminal-frame" data-copy-scope>
   {label && (
-      <figcaption class="flex items-center gap-2 border-b border-terminal-border bg-terminal-surface px-4 py-2 text-label-caps text-terminal-muted">
+      <figcaption class="terminal-bar gap-2 px-4 py-2 text-label-caps text-terminal-muted">
         <span class="size-1.5 rounded-full bg-primary" aria-hidden="true" />
         {label}
       </figcaption>

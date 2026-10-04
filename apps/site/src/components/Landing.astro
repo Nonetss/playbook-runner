@@ -1,7 +1,7 @@
 ---
-import ArrowRight from "@lucide/astro/icons/arrow-right"
 import AppFrame from "@/components/AppFrame.astro"
 import Architecture from "@/components/Architecture.astro"
+import ArrowLink from "@/components/ArrowLink.astro"
 import GithubMark from "@/components/GithubMark.astro"
 import Install from "@/components/Install.astro"
 import InstallCommand from "@/components/InstallCommand.astro"
@@ -28,7 +28,7 @@ const allShots = [
 ]
 ---
 
-<div class="mx-auto max-w-360 px-4 sm:px-6 lg:px-8">
+<div class="page-container">
   <!-- Hero + tour: the frame on the right stays pinned while the stops on the
        left scroll past (from 64rem up); below that every stop has its own. -->
   <div class="lg:grid lg:grid-cols-12 lg:gap-x-12 xl:gap-x-16">
@@ -36,7 +36,7 @@ const allShots = [
       <section
         aria-labelledby="hero-title"
         data-stop="dashboard"
-        class="flex flex-col justify-center pt-12 pb-14 sm:pt-16 lg:min-h-[calc(100dvh-var(--header-height))] lg:py-16"
+        class="tour-hero"
       >
         <h1
           id="hero-title"
@@ -56,19 +56,12 @@ const allShots = [
         </div>
 
         <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-body">
-          <a
-            href={localized(lang, "docs/")}
-            class="focus-ring group inline-flex items-center gap-1.5 rounded-sm font-medium text-strong"
+          <ArrowLink href={localized(lang, "docs/")}
+            >{dict.hero.docs}</ArrowLink
           >
-            {dict.hero.docs}
-            <ArrowRight
-              class="size-4 text-primary transition-transform duration-300 ease-out-expo group-hover:translate-x-0.5"
-              stroke-width={1.75}
-            />
-          </a>
           <a
             href={REPO_URL}
-            class="focus-ring inline-flex items-center gap-2 rounded-sm text-muted-foreground transition-colors hover:text-strong"
+            class="link-muted inline-flex items-center gap-2 rounded-sm"
           >
             <GithubMark class="size-4" />
             {dict.hero.github}
@@ -89,11 +82,11 @@ const allShots = [
           {stops.map((stop) => (
               <li
                 data-stop={stop.id}
-                class="border-t border-hairline py-12 lg:flex lg:min-h-[78dvh] lg:flex-col lg:justify-center lg:border-t-0 lg:py-20"
+                class="tour-stop"
               >
                 <h3 class="flex items-baseline gap-3 text-display font-semibold tracking-tight text-strong">
                   <span
-                    class="relative top-[-0.2em] size-2 shrink-0 rounded-full bg-border transition-colors duration-300 data-active:bg-primary"
+                    class="active-marker relative top-[-0.2em] size-2 shrink-0 rounded-full"
                     data-stop-dot
                     aria-hidden="true"
                   />
@@ -110,10 +103,7 @@ const allShots = [
     </div>
 
     <div class="hidden lg:col-span-7 lg:block xl:col-span-8">
-      <figure
-        class="sticky top-(--header-height) flex h-[calc(100dvh-var(--header-height))] flex-col justify-center py-8"
-        data-tour-frame
-      >
+      <figure class="tour-frame" data-tour-frame>
         <AppFrame lang={lang} shots={allShots} eager />
         <figcaption class="mt-4 flex items-center justify-between gap-4">
           <span class="text-meta text-muted-foreground"
@@ -124,7 +114,7 @@ const allShots = [
                 <span
                   data-progress={shot.id}
                   data-active={index === 0 ? "" : undefined}
-                  class="h-1 w-5 rounded-full bg-border transition-colors duration-300 data-active:bg-primary"
+                  class="active-marker h-1 w-5 rounded-full"
                 />
               ))}
           </span>
@@ -133,14 +123,8 @@ const allShots = [
     </div>
   </div>
 
-  <section
-    aria-labelledby="rest-title"
-    class="border-t border-hairline py-20 lg:py-28"
-  >
-    <h2
-      id="rest-title"
-      class="max-w-[22ch] text-title font-semibold tracking-tight text-strong"
-    >
+  <section aria-labelledby="rest-title" class="section-block">
+    <h2 id="rest-title" class="section-title max-w-[22ch]">
       {dict.tour.rest.heading}
     </h2>
     <dl class="mt-12 grid gap-x-12 sm:grid-cols-2 lg:grid-cols-3">

@@ -67,10 +67,7 @@ const alternates = (Object.keys(languages) as Lang[]).map((code) => ({
     </script>
   </head>
   <body class="min-h-dvh">
-    <a
-      href="#content"
-      class="sr-only z-50 rounded-md bg-background px-3 py-2 text-meta focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:ring-[3px] focus:ring-ring/50"
-    >
+    <a href="#content" class="skip-link">
       {dict.nav.skip}
     </a>
     <Header lang={lang} />

@@ -32,14 +32,12 @@ const sizes = "(min-width: 64rem) 56vw, 100vw"
 
 <div
   class:list={[
-    "overflow-hidden rounded-[10px] border border-terminal-border bg-terminal-bg",
+    "terminal-frame",
     className,
   ]}
   data-frame
 >
-  <div
-    class="flex h-9 items-center gap-2.5 border-b border-terminal-border bg-terminal-surface px-3.5"
-  >
+  <div class="terminal-bar h-9 gap-2.5 px-3.5">
     <Logo class="size-3.5 text-primary" />
     <span class="font-mono text-[0.75rem] text-terminal-muted">
       runner.example.com<span class="text-terminal-fg" data-frame-route
@@ -52,7 +50,7 @@ const sizes = "(min-width: 64rem) 56vw, 100vw"
     type="button"
     data-lightbox-open
     aria-label={dict.frame.open}
-    class="group relative block aspect-3810/2092 w-full cursor-zoom-in bg-terminal-bg outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset"
+    class="group relative block aspect-3810/2092 w-full cursor-zoom-in bg-terminal-bg focus-ring focus-visible:ring-inset"
   >
     {shots.map((shot, index) => (
         <Image
@@ -73,7 +71,7 @@ const sizes = "(min-width: 64rem) 56vw, 100vw"
         />
       ))}
     <span
-      class="absolute right-3 bottom-3 grid size-8 place-items-center rounded-md border border-terminal-border bg-terminal-raised text-terminal-fg opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 pointer-coarse:opacity-100"
+      class="terminal-control zoom-hint absolute right-3 bottom-3 grid size-8 place-items-center"
       aria-hidden="true"
     >
       <Maximize class="size-3.5" stroke-width={1.75} />

@@ -21,7 +21,7 @@ const links = [
 
 <footer class="border-t border-hairline">
   <div
-    class="mx-auto flex max-w-360 flex-col gap-6 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8"
+    class="page-container flex flex-col gap-6 py-10 sm:flex-row sm:items-center sm:justify-between"
   >
     <div class="flex items-center gap-3 text-meta text-muted-foreground">
       <Logo class="size-5 text-primary" />
@@ -36,7 +36,7 @@ const links = [
             <li>
               <a
                 href={link.href}
-                class="focus-ring rounded-sm text-muted-foreground transition-colors hover:text-strong"
+                class="link-muted rounded-sm"
               >
                 {link.label}
               </a>
