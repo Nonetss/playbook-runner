@@ -40,7 +40,9 @@
     "more": "More sections",
     "open": "Open",
     "collapse_sidebar": "Collapse section navigation",
-    "expand_sidebar": "Expand section navigation"
+    "expand_sidebar": "Expand section navigation",
+    "collapse_menu": "Collapse menu",
+    "expand_menu": "Expand menu"
   },
   "labels": {
     "section_navigation": "Section navigation"

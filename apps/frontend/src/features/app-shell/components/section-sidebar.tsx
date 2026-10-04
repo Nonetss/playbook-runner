@@ -15,7 +15,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
 import { ScrollerRestoration } from "@/features/app-shell/components/scroller-restoration"
@@ -24,6 +23,9 @@ import { isNavLinkActive } from "@/features/app-shell/site-nav"
 import { useCurrentPath } from "@/hooks/use-current-path"
 import { useIsTablet } from "@/hooks/use-mobile"
 import { appSections, appSurfaces, getSectionForPath } from "@/lib/app-surfaces"
+import { getIcon } from "@/lib/icon-registry"
+
+const PanelLeft = getIcon("controls", "sidebar")
 
 function SidebarToggleBridge() {
   const { toggleSidebar } = useSidebar()
@@ -35,6 +37,31 @@ function SidebarToggleBridge() {
   }, [toggleSidebar])
 
   return null
+}
+
+/** Full-width footer row that collapses the sidebar to its icon rail. */
+function SidebarCollapseButton() {
+  const { t } = useTranslation("nav")
+  const { state, toggleSidebar } = useSidebar()
+  const label = t(
+    state === "expanded" ? "actions.collapse_menu" : "actions.expand_menu"
+  )
+
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          onClick={toggleSidebar}
+          tooltip={label}
+          aria-expanded={state === "expanded"}
+          className="text-muted-foreground"
+        >
+          <PanelLeft />
+          <span>{label}</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </SidebarMenu>
+  )
 }
 
 function SectionSidebarContent({ currentPath }: { currentPath: string }) {
@@ -110,7 +137,7 @@ function SectionSidebarContent({ currentPath }: { currentPath: string }) {
       </SidebarContent>
 
       <SidebarFooter className="hidden md:flex">
-        <SidebarTrigger className="text-muted-foreground" />
+        <SidebarCollapseButton />
       </SidebarFooter>
     </Sidebar>
   )
