@@ -42,6 +42,20 @@ that name so a plain `docker compose up -d` picks it up), pulls the images from
 > Losing that key makes every SSH private key stored in the database
 > unrecoverable.
 
+## Upgrading to the gateway release
+
+The public entry point moved out of the frontend image into its own
+`playbook-runner-gateway` image (Caddy): it publishes the site and routes the
+backend's gRPC calls to the Ansible service. The frontend no longer publishes a
+port. No new required environment variables: the gateway is published on
+`GATEWAY_PORT`, falling back to your existing `FRONTEND_PORT`. Refresh the
+compose file, then pull and restart:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/main/compose.prod.yml -o compose.yml
+docker compose pull && docker compose up -d
+```
+
 ## Upgrading to v0.9.0
 
 No new required environment variables. Update the backend **and** Ansible
@@ -184,10 +198,12 @@ codes, and ready-to-run `curl`/client snippets. The raw spec lives at
 
 ## Architecture
 
-Three services compose an Ansible control plane in a single monorepo. The
-browser consumes the Astro frontend, which proxies `/rpc` and `/api` to the
-Hono backend; the backend owns the database and the gRPC channel to the
-executor.
+Three services compose an Ansible control plane in a single monorepo, behind
+a Caddy gateway. The gateway is the only published port: it sends `/rpc`,
+`/api`, `/scalar` and `/openapi.json` to the Hono backend and everything else
+to the Astro frontend, so the browser sees one origin. The backend owns the
+database and dials the executor over gRPC through the gateway's internal gRPC
+router, which routes each call by its proto package.
 
 ![Architecture: browser → Astro frontend → Hono backend → PostgreSQL + Ansible executor](img/architecture.svg)
 
@@ -224,7 +240,7 @@ queueing. A scheduled job never overlaps with itself.
 - **Turborepo** for the monorepo pipeline
 - **FastAPI** + **ansible-runner** for the executor
 - **gRPC** (`@grpc/grpc-js` + `grpc.aio`) between backend and ansible, contracts in `proto/`
-- **Caddy** as a reverse proxy in front of the SSR frontend
+- **Caddy** as the gateway: public HTTP entry point and internal gRPC router
 
 ## Quick start (local dev)
 
@@ -238,6 +254,20 @@ cp apps/frontend/.env.example apps/frontend/.env
 #   SERVICE_TOKEN               openssl rand -base64 48 (same value in apps/ansible/.env)
 bun run dev
 ```
+
+`bun run dev` builds and starts the whole stack in Docker (`compose.dev.yml`):
+frontend, backend, Ansible service and gateway, each running its own
+hot-reload server from source on the host network and reading its
+`apps/*/.env`. `docker compose watch` syncs your edits into the containers;
+dependency, lockfile and `proto/` changes rebuild the affected image. Stop
+with Ctrl+C and remove the containers with `bun run dev:down`. The gateway's
+production-like HTTP site is on <http://localhost:8080>.
+
+To run the apps natively instead, use `bun run dev:local` together with
+`bun run gateway` (the backend reaches the Ansible service through the
+gateway's gRPC router on `localhost:50050`; set
+`ANSIBLE_GRPC_TARGET=localhost:50051` in `apps/backend/.env` to skip it). Run
+one setup or the other, not both: they use the same ports.
 
 On startup the backend applies the Drizzle migrations and creates the seed
 admin if it doesn't exist, so there is no separate migrate/seed step. Open
@@ -317,7 +347,8 @@ playbook-runner/
 ├── apps/
 │   ├── frontend/    # Astro + React UI (PWA)
 │   ├── backend/     # Hono API + oRPC + cron loop + auth
-│   └── ansible/     # Python service wrapping ansible-runner
+│   ├── ansible/     # Python service wrapping ansible-runner
+│   └── gateway/     # Caddy: public entry point + internal gRPC router
 ├── packages/
 │   ├── api/         # oRPC routers and handlers
 │   ├── auth/        # Better Auth configuration
@@ -423,18 +454,20 @@ bun run db:seed          # create the default admin user (idempotent)
 
 ## Docker
 
-Two compose files:
+Three compose files:
 
-- **`compose.yml`** — builds the three images from the local sources.
-  Only the frontend is published on the host; the Ansible state lives in
+- **`compose.yml`** — builds the four images from the local sources.
+  Only the gateway is published on the host; the Ansible state lives in
   the `ansible_state` volume. Add `-f compose.debug.yml` to publish the
   Ansible HTTP API on `:8000`.
+- **`compose.dev.yml`** — the hot-reload dev stack behind `bun run dev`
+  (see [Quick start (local dev)](#quick-start-local-dev)).
 - **`compose.prod.yml`** — production overlay. Pulls prebuilt
   multi-arch images from `ghcr.io/nonetss/playbook-runner-*`, bundles
   PostgreSQL, and wires healthchecks.
 
 ```bash
-# Dev
+# Local production-like stack
 bun run docker:build     # build images from sources
 bun run docker:up        # build and start the stack
 bun run docker:logs      # tail logs
@@ -448,7 +481,10 @@ docker compose -f compose.prod.yml --env-file .env up -d
 
 | Command | What it does |
 | --- | --- |
-| `bun run dev` | Start all apps in dev mode |
+| `bun run dev` | Start the Docker dev stack with hot reload |
+| `bun run dev:down` | Remove the Docker dev stack |
+| `bun run dev:local` | Start all apps natively in dev mode |
+| `bun run gateway` | Start only the dev gateway (pair with `dev:local`) |
 | `bun run build` | Build all apps |
 | `bun run dev:frontend` | Start only the frontend |
 | `bun run dev:backend` | Start only the backend |
@@ -462,9 +498,9 @@ docker compose -f compose.prod.yml --env-file .env up -d
 | `bun run format` | Format TypeScript (Biome) and Python (Ruff) |
 | `bun run test:e2e` | Run the Playwright E2E suite |
 | `bun run docker:build` | Build Docker images from source |
-| `bun run docker:up` | Start the dev Docker stack |
+| `bun run docker:up` | Build and start `compose.yml` |
 | `bun run docker:logs` | Tail Docker logs |
-| `bun run docker:down` | Stop the dev Docker stack |
+| `bun run docker:down` | Stop `compose.yml` |
 
 ## License
 
