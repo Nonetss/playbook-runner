@@ -245,10 +245,10 @@ function NavbarAuthenticatedInner({
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:hidden">
-          <NavbarSearchTrigger variant="icon" onOpen={openSearch} />
           <LanguageSwitcher />
           <ThemeToggle />
           <UserNav user={user} />
+          <NavbarSearchTrigger variant="icon" onOpen={openSearch} />
           <NavbarMobileMenu
             navItems={siteNavItems}
             currentPath={currentPath}
@@ -257,9 +257,9 @@ function NavbarAuthenticatedInner({
         </div>
 
         <div className="hidden shrink-0 items-center gap-2 lg:flex lg:justify-self-end">
-          <NavbarSearchTrigger variant="field" onOpen={openSearch} />
           <LanguageSwitcher />
           <ThemeToggle />
+          <NavbarSearchTrigger variant="field" onOpen={openSearch} />
           <UserNav user={user} />
         </div>
       </nav>

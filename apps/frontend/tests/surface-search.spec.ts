@@ -49,6 +49,13 @@ test.describe("Buscador de la navbar (escritorio)", () => {
     expect(separator.x).toBeGreaterThan(logo.x + logo.width)
     expect(firstSection.x).toBeGreaterThan(separator.x)
     expect(search.x).toBeGreaterThan(firstSection.x + firstSection.width)
+    const account = await banner
+      .getByRole("button", { name: "Menú de cuenta" })
+      .boundingBox()
+    if (!account) throw new Error("account button not laid out")
+    // The search sits right before the account button.
+    expect(account.x).toBeGreaterThan(search.x + search.width)
+    expect(account.x - (search.x + search.width)).toBeLessThan(16)
   })
 
   test("el campo de búsqueda abre el diálogo con el foco en el input", async ({
