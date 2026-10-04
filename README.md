@@ -17,6 +17,10 @@ for all of that: playbooks (written in the browser or synced from a Git
 repository), ad-hoc commands, SSH credentials, devices, groups, scheduled runs,
 and a live log of every execution.
 
+The [documentation](https://nonetss.github.io/playbook-runner/docs/), in
+English and Spanish, covers installation, a first run, deployment behind
+HTTPS, every environment variable, the architecture and the upgrade notes.
+
 ## TL;DR — install on a server
 
 Create an empty directory for the deployment, `cd` into it, and run:
@@ -351,7 +355,8 @@ playbook-runner/
 │   ├── frontend/    # Astro + React UI (PWA)
 │   ├── backend/     # Hono API + oRPC + cron loop + auth
 │   ├── ansible/     # Python service wrapping ansible-runner
-│   └── gateway/     # Caddy: public entry point + internal gRPC router
+│   ├── gateway/     # Caddy: public entry point + internal gRPC router
+│   └── site/        # Project website and docs (Astro, GitHub Pages)
 ├── packages/
 │   ├── api/         # oRPC routers and handlers
 │   ├── auth/        # Better Auth configuration
