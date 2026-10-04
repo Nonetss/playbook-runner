@@ -1,0 +1,31 @@
+# Dev image for compose.dev.yml: runs the app's own hot-reload server from
+# source. Edits reach the container through `docker compose watch` (sync), so
+# the repo is never bind-mounted and node_modules stays the container's own.
+# Keep the Bun tag in sync with "packageManager" in the root package.json.
+FROM oven/bun:1.3.14-slim
+WORKDIR /app
+
+# Same manifest-first install layer as the production Dockerfile: it stays
+# cached until a package.json or the lockfile changes (watch rebuilds then).
+COPY package.json bun.lock bunfig.toml ./
+COPY apps/backend/package.json apps/backend/
+COPY apps/frontend/package.json apps/frontend/
+COPY apps/ansible/package.json apps/ansible/
+COPY packages/api/package.json packages/api/
+COPY packages/auth/package.json packages/auth/
+COPY packages/config/package.json packages/config/
+COPY packages/db/package.json packages/db/
+COPY packages/env/package.json packages/env/
+COPY packages/grpc/package.json packages/grpc/
+COPY packages/logger/package.json packages/logger/
+RUN --mount=type=cache,target=/root/.bun/install/cache bun install --frozen-lockfile
+
+COPY . .
+
+EXPOSE 4321
+
+WORKDIR /app/apps/frontend
+# Host network (compose.dev.yml): same port as native `astro dev`. --host
+# binds every interface; without it Astro only listens on [::1], so
+# 127.0.0.1:4321 and the machine's LAN address are unreachable.
+CMD ["bun", "run", "dev", "--port", "4321", "--host"]

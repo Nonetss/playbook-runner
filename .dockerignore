@@ -19,7 +19,7 @@
 
 Dockerfile
 **/Dockerfile
-docker-compose.yml
+compose*.yml
 
 # Secrets stay out of image layers; runtime env comes from compose env_file,
 # build-time public values come from compose build args

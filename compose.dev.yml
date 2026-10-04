@@ -1,0 +1,163 @@
+# Docker dev stack: every app runs its own hot-reload server from source and
+# `docker compose watch` syncs edits into the containers (no bind mounts, so
+# node_modules, .venv and generated stubs stay the containers' own).
+#
+#   bun run dev        # build, start and watch (Ctrl+C stops)
+#   bun run dev:down   # remove the containers
+#
+# Behaves exactly like native dev (`bun run dev:local` + `bun run gateway`):
+# every service runs on the host network, reads its apps/*/.env unchanged and
+# reaches the others, the database and the gateway through the same
+# localhost addresses and ports. Run one or the other, not both. PostgreSQL
+# is not part of this stack: point DATABASE_URL at your own (README).
+name: playbook-runner-dev
+
+x-node-ignore: &node-ignore
+  - node_modules/
+  - dist/
+  - .astro/
+  - .turbo/
+  - gen/
+
+x-python-ignore: &python-ignore
+  - .venv/
+  - __pycache__/
+  - .ruff_cache/
+  - gen/
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile.dev
+    init: true
+    network_mode: host
+    env_file:
+      - path: apps/frontend/.env
+        required: false
+    develop:
+      watch:
+        - action: sync
+          path: ./apps/frontend/src
+          target: /app/apps/frontend/src
+          ignore: *node-ignore
+        - action: sync
+          path: ./apps/frontend/public
+          target: /app/apps/frontend/public
+        - action: sync
+          path: ./packages/api/src
+          target: /app/packages/api/src
+        - action: sync
+          path: ./packages/auth/src
+          target: /app/packages/auth/src
+        - action: sync
+          path: ./packages/env/src
+          target: /app/packages/env/src
+        - action: sync
+          path: ./packages/logger/src
+          target: /app/packages/logger/src
+        - action: sync+restart
+          path: ./apps/frontend/astro.config.mjs
+          target: /app/apps/frontend/astro.config.mjs
+        - action: rebuild
+          path: ./bun.lock
+        - action: rebuild
+          path: ./package.json
+        - action: rebuild
+          path: ./apps/frontend/package.json
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile.dev
+    init: true
+    network_mode: host
+    env_file:
+      - path: apps/backend/.env
+        required: false
+    develop:
+      watch:
+        - action: sync
+          path: ./apps/backend/src
+          target: /app/apps/backend/src
+          ignore: *node-ignore
+        - action: sync
+          path: ./packages/api/src
+          target: /app/packages/api/src
+        - action: sync
+          path: ./packages/auth/src
+          target: /app/packages/auth/src
+        - action: sync
+          path: ./packages/db/src
+          target: /app/packages/db/src
+        - action: sync
+          path: ./packages/env/src
+          target: /app/packages/env/src
+        - action: sync
+          path: ./packages/grpc/src
+          target: /app/packages/grpc/src
+          ignore:
+            - gen/
+        - action: sync
+          path: ./packages/logger/src
+          target: /app/packages/logger/src
+        - action: rebuild
+          path: ./proto
+        - action: rebuild
+          path: ./bun.lock
+        - action: rebuild
+          path: ./package.json
+        - action: rebuild
+          path: ./apps/backend/package.json
+
+  ansible:
+    build:
+      context: .
+      dockerfile: apps/ansible/Dockerfile.dev
+    init: true
+    network_mode: host
+    env_file:
+      - path: apps/ansible/.env
+        required: false
+    # known_hosts and the Git mirrors outlive rebuilds (STATE_DIR dev default)
+    volumes:
+      - ansible_dev_state:/app/.data/ansible-runner
+    develop:
+      watch:
+        - action: sync
+          path: ./apps/ansible/app
+          target: /app/apps/ansible/app
+          ignore: *python-ignore
+        # fastapi dev only watches app/; the toolkit is an editable path dep
+        - action: sync+restart
+          path: ./python
+          target: /app/python
+          ignore: *python-ignore
+        - action: rebuild
+          path: ./proto
+        - action: rebuild
+          path: ./apps/ansible/pyproject.toml
+        - action: rebuild
+          path: ./apps/ansible/uv.lock
+
+  # Same image and upstreams as `bun run gateway` (apps/gateway/compose.yml):
+  # gRPC on :50050, and its HTTP site on :8080 so it never takes the host's
+  # port 80. The app is still served by `astro dev` on :4321.
+  gateway:
+    build:
+      context: .
+      dockerfile: apps/gateway/Dockerfile
+    network_mode: host
+    environment:
+      GATEWAY_HTTP_PORT: "8080"
+      BACKEND_HTTP_UPSTREAM: localhost:3000
+      FRONTEND_HTTP_UPSTREAM: localhost:4321
+      ANSIBLE_GRPC_UPSTREAM: localhost:50051
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./apps/gateway/Caddyfile
+          target: /etc/caddy/Caddyfile
+
+volumes:
+  ansible_dev_state:
