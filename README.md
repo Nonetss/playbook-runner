@@ -42,14 +42,15 @@ that name so a plain `docker compose up -d` picks it up), pulls the images from
 > Losing that key makes every SSH private key stored in the database
 > unrecoverable.
 
-## Upgrading to the gateway release
+## Upgrading to v0.10.0
 
 The public entry point moved out of the frontend image into its own
 `playbook-runner-gateway` image (Caddy): it publishes the site and routes the
 backend's gRPC calls to the Ansible service. The frontend no longer publishes a
 port. No new required environment variables: the gateway is published on
-`GATEWAY_PORT`, falling back to your existing `FRONTEND_PORT`. Refresh the
-compose file, then pull and restart:
+`GATEWAY_PORT`, falling back to your existing `FRONTEND_PORT`. If you track
+`latest` with the old compose file, the site stops answering after a pull
+until you refresh it. Refresh the compose file, then pull and restart:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Nonetss/playbook-runner/main/compose.prod.yml -o compose.yml
