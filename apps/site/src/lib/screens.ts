@@ -25,4 +25,5 @@ export const tourScreens: (Screen & { id: TourStopId })[] = [
   { id: "api", route: "/scalar", image: scalar },
 ]
 
-export const screenWidths = [720, 1200, 1800]
+// The widest step serves the full-screen viewer on large and dense displays.
+export const screenWidths = [720, 1200, 1800, 2560]

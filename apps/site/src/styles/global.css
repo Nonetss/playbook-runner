@@ -294,6 +294,28 @@
   }
 }
 
+/* Screenshot viewer (Lightbox.astro): always dark, like the run console. */
+/* The dialog itself is full-screen and opaque; ::backdrop does not resolve
+   custom properties in every browser, so it stays plain. */
+.lightbox::backdrop {
+  background: transparent;
+}
+
+.lightbox[open] {
+  animation: lightbox-in 0.25s var(--ease-out-expo);
+}
+
+@keyframes lightbox-in {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+}
+
+html:has(.lightbox[open]) {
+  overflow: hidden;
+}
+
 /* Tour frame: screenshots cross-fade when the active stop changes. */
 .frame-shot {
   opacity: 0;
@@ -307,6 +329,10 @@
 @media (prefers-reduced-motion: reduce) {
   .frame-shot {
     transition: none;
+  }
+
+  .lightbox[open] {
+    animation: none;
   }
 
   html {

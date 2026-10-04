@@ -40,7 +40,12 @@ const en = {
     github: "Source on GitHub",
   },
   frame: {
-    caption: "Screenshots of the running app",
+    caption: "Screenshots of the running app. Click one to enlarge it.",
+    open: "Enlarge screenshot",
+    viewer: "Screenshot viewer",
+    close: "Close",
+    previous: "Previous screenshot",
+    next: "Next screenshot",
   },
   tour: {
     heading: "What you get",
@@ -204,7 +209,12 @@ const es: Dictionary = {
     github: "Código en GitHub",
   },
   frame: {
-    caption: "Capturas de la aplicación en marcha",
+    caption: "Capturas de la aplicación en marcha. Pulsa una para ampliarla.",
+    open: "Ampliar captura",
+    viewer: "Visor de capturas",
+    close: "Cerrar",
+    previous: "Captura anterior",
+    next: "Captura siguiente",
   },
   tour: {
     heading: "Qué incluye",

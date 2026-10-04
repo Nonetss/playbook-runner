@@ -5,6 +5,7 @@ import Architecture from "@/components/Architecture.astro"
 import GithubMark from "@/components/GithubMark.astro"
 import Install from "@/components/Install.astro"
 import InstallCommand from "@/components/InstallCommand.astro"
+import Lightbox from "@/components/Lightbox.astro"
 import { type Lang, t } from "@/i18n/ui"
 import { dashboard, tourScreens } from "@/lib/screens"
 import { localized, REPO_URL } from "@/lib/url"
@@ -74,7 +75,12 @@ const allShots = [
           </a>
         </div>
 
-        <AppFrame shots={[dashboardShot]} eager class="mt-12 lg:hidden" />
+        <AppFrame
+          lang={lang}
+          shots={[dashboardShot]}
+          eager
+          class="mt-12 lg:hidden"
+        />
       </section>
 
       <section id="tour" aria-labelledby="tour-title" class="scroll-mt-4">
@@ -96,7 +102,7 @@ const allShots = [
                 <p class="mt-4 max-w-xl pl-5 text-body text-foreground">
                   {stop.body}
                 </p>
-                <AppFrame shots={[stop]} class="mt-8 lg:hidden" />
+                <AppFrame lang={lang} shots={[stop]} class="mt-8 lg:hidden" />
               </li>
             ))}
         </ol>
@@ -108,7 +114,7 @@ const allShots = [
         class="sticky top-(--header-height) flex h-[calc(100dvh-var(--header-height))] flex-col justify-center py-8"
         data-tour-frame
       >
-        <AppFrame shots={allShots} eager />
+        <AppFrame lang={lang} shots={allShots} eager />
         <figcaption class="mt-4 flex items-center justify-between gap-4">
           <span class="text-meta text-muted-foreground"
             >{dict.frame.caption}</span
@@ -150,6 +156,8 @@ const allShots = [
   <Architecture lang={lang} />
   <Install lang={lang} />
 </div>
+
+<Lightbox lang={lang} />
 
 <script>
 // The stop crossing the middle of the viewport drives the pinned frame.

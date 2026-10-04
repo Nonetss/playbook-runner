@@ -1,0 +1,178 @@
+---
+import ChevronLeft from "@lucide/astro/icons/chevron-left"
+import ChevronRight from "@lucide/astro/icons/chevron-right"
+import X from "@lucide/astro/icons/x"
+import { type Lang, t } from "@/i18n/ui"
+
+interface Props {
+  lang: Lang
+}
+
+const { lang } = Astro.props
+const dict = t(lang)
+const control =
+  "focus-ring grid size-10 shrink-0 place-items-center rounded-md border border-terminal-border bg-terminal-raised text-terminal-fg transition-colors hover:border-terminal-muted disabled:opacity-40"
+---
+
+<!-- Full-screen viewer for the app screenshots. It reads the screenshots
+     already on the page (img[data-shot]), so it carries no images itself. -->
+<dialog
+  data-lightbox
+  aria-label={dict.frame.viewer}
+  class="lightbox m-0 h-dvh max-h-none w-screen max-w-none bg-terminal-bg p-0 text-terminal-fg"
+>
+  <div class="flex h-full flex-col" data-lightbox-stage>
+    <div class="flex items-center gap-3 px-4 py-3 sm:px-6">
+      <span
+        class="min-w-0 truncate font-mono text-[0.8125rem] text-terminal-muted"
+      >
+        runner.example.com<span
+          class="text-terminal-fg"
+          data-lightbox-route
+        ></span>
+      </span>
+      <span
+        class="ml-auto font-mono text-[0.75rem] text-terminal-muted tabular-nums"
+        data-lightbox-count
+      ></span>
+      <button
+        type="button"
+        data-lightbox-close
+        aria-label={dict.frame.close}
+        class={control}
+        autofocus
+      >
+        <X class="size-4" stroke-width={1.75} />
+      </button>
+    </div>
+
+    <div
+      class="relative flex min-h-0 flex-1 items-center justify-center px-4 sm:px-20"
+      data-lightbox-backdrop
+    >
+      <img
+        alt=""
+        decoding="async"
+        sizes="95vw"
+        data-lightbox-image
+        class="max-h-full max-w-full rounded-md border border-terminal-border object-contain"
+      >
+      <button
+        type="button"
+        data-lightbox-step="-1"
+        aria-label={dict.frame.previous}
+        class:list={[control, "absolute top-1/2 left-4 hidden -translate-y-1/2 sm:grid"]}
+      >
+        <ChevronLeft class="size-5" stroke-width={1.75} />
+      </button>
+      <button
+        type="button"
+        data-lightbox-step="1"
+        aria-label={dict.frame.next}
+        class:list={[control, "absolute top-1/2 right-4 hidden -translate-y-1/2 sm:grid"]}
+      >
+        <ChevronRight class="size-5" stroke-width={1.75} />
+      </button>
+    </div>
+
+    <div class="flex items-center gap-3 px-4 py-4 sm:px-6">
+      <p
+        class="min-w-0 flex-1 text-[0.875rem] text-terminal-muted"
+        data-lightbox-caption
+      ></p>
+      <div class="flex gap-2 sm:hidden">
+        <button
+          type="button"
+          data-lightbox-step="-1"
+          aria-label={dict.frame.previous}
+          class={control}
+        >
+          <ChevronLeft class="size-5" stroke-width={1.75} />
+        </button>
+        <button
+          type="button"
+          data-lightbox-step="1"
+          aria-label={dict.frame.next}
+          class={control}
+        >
+          <ChevronRight class="size-5" stroke-width={1.75} />
+        </button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<script>
+const dialog = document.querySelector<HTMLDialogElement>(
+  "dialog[data-lightbox]"
+)
+
+if (dialog) {
+  const image = dialog.querySelector<HTMLImageElement>("[data-lightbox-image]")
+  const route = dialog.querySelector("[data-lightbox-route]")
+  const count = dialog.querySelector("[data-lightbox-count]")
+  const caption = dialog.querySelector("[data-lightbox-caption]")
+
+  // One entry per screen, in page order (the tour frame and the per-stop
+  // frames on small screens show the same screens).
+  const shots = [
+    ...new Map(
+      [...document.querySelectorAll<HTMLImageElement>("img[data-shot]")].map(
+        (img) => [img.dataset.shot, img]
+      )
+    ).values(),
+  ]
+  let index = 0
+
+  const show = (next: number) => {
+    index = (next + shots.length) % shots.length
+    const shot = shots[index]
+    if (!shot || !image) return
+    image.srcset = shot.srcset
+    image.src = shot.currentSrc || shot.src
+    image.alt = shot.alt
+    if (route) route.textContent = shot.dataset.route ?? ""
+    if (caption) caption.textContent = shot.alt
+    if (count) count.textContent = `${index + 1} / ${shots.length}`
+  }
+
+  for (const button of document.querySelectorAll<HTMLButtonElement>(
+    "[data-lightbox-open]"
+  )) {
+    button.addEventListener("click", () => {
+      const visible =
+        button.querySelector<HTMLImageElement>("img[data-active]") ??
+        button.querySelector<HTMLImageElement>("img[data-shot]")
+      const at = shots.findIndex(
+        (s) => s.dataset.shot === visible?.dataset.shot
+      )
+      show(Math.max(at, 0))
+      dialog.showModal()
+    })
+  }
+
+  for (const button of dialog.querySelectorAll<HTMLButtonElement>(
+    "[data-lightbox-step]"
+  )) {
+    button.addEventListener("click", () =>
+      show(index + Number(button.dataset.lightboxStep))
+    )
+  }
+
+  dialog
+    .querySelector("[data-lightbox-close]")
+    ?.addEventListener("click", () => dialog.close())
+
+  // A click on the empty area around the screenshot closes the viewer.
+  dialog
+    .querySelector("[data-lightbox-backdrop]")
+    ?.addEventListener("click", (event) => {
+      if (event.target === event.currentTarget) dialog.close()
+    })
+
+  dialog.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowLeft") show(index - 1)
+    if (event.key === "ArrowRight") show(index + 1)
+  })
+}
+</script>

@@ -1,6 +1,8 @@
 ---
 import { Image } from "astro:assets"
+import Maximize from "@lucide/astro/icons/maximize-2"
 import Logo from "@/components/Logo.astro"
+import { type Lang, t } from "@/i18n/ui"
 import { type Screen, screenWidths } from "@/lib/screens"
 
 interface Shot extends Screen {
@@ -8,6 +10,7 @@ interface Shot extends Screen {
 }
 
 interface Props {
+  lang: Lang
   /** One shot renders a static frame; several stack for the tour. */
   shots: Shot[]
   active?: Shot["id"]
@@ -16,11 +19,13 @@ interface Props {
 }
 
 const {
+  lang,
   shots,
   active = shots[0]?.id,
   eager = false,
   class: className,
 } = Astro.props
+const dict = t(lang)
 const current = shots.find((shot) => shot.id === active) ?? shots[0]
 const sizes = "(min-width: 64rem) 56vw, 100vw"
 ---
@@ -42,7 +47,13 @@ const sizes = "(min-width: 64rem) 56vw, 100vw"
       >
     </span>
   </div>
-  <div class="relative aspect-3810/2092 bg-terminal-bg">
+  <!-- Opens the screenshot on display in the full-screen viewer (Lightbox). -->
+  <button
+    type="button"
+    data-lightbox-open
+    aria-label={dict.frame.open}
+    class="group relative block aspect-3810/2092 w-full cursor-zoom-in bg-terminal-bg outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-inset"
+  >
     {shots.map((shot, index) => (
         <Image
           src={shot.image}
@@ -61,5 +72,11 @@ const sizes = "(min-width: 64rem) 56vw, 100vw"
           ]}
         />
       ))}
-  </div>
+    <span
+      class="absolute right-3 bottom-3 grid size-8 place-items-center rounded-md border border-terminal-border bg-terminal-raised text-terminal-fg opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 pointer-coarse:opacity-100"
+      aria-hidden="true"
+    >
+      <Maximize class="size-3.5" stroke-width={1.75} />
+    </span>
+  </button>
 </div>
