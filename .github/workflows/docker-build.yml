@@ -52,6 +52,14 @@ jobs:
             suffix: -frontend
             dockerfile: apps/frontend/Dockerfile
             arch: arm64
+          - name: gateway
+            suffix: -gateway
+            dockerfile: apps/gateway/Dockerfile
+            arch: amd64
+          - name: gateway
+            suffix: -gateway
+            dockerfile: apps/gateway/Dockerfile
+            arch: arm64
     steps:
       - uses: actions/checkout@v4
 
@@ -95,6 +103,8 @@ jobs:
             suffix: -ansible
           - name: frontend
             suffix: -frontend
+          - name: gateway
+            suffix: -gateway
     steps:
       - name: Log in to the Container registry
         uses: docker/login-action@v3
