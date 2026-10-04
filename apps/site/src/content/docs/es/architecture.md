@@ -44,7 +44,7 @@ Los jobs programados siguen el mismo camino, lanzados por el bucle cron del back
 
 La API está versionada bajo `/rpc/v1` (oRPC, la que usa el frontend) y `/api/v1` (OpenAPI). La referencia interactiva está en `/scalar` y la especificación en bruto en `/openapi.json`.
 
-Desde scripts, autentícate con una API key personal, creada en la página **Configuración** y enviada en la cabecera `x-api-key`:
+Desde scripts, autentícate con una API key personal, creada en la página **API keys** y enviada en la cabecera `x-api-key`:
 
 ```bash
 curl -H "x-api-key: $PLAYBOOK_RUNNER_KEY" https://ansible.example.com/api/v1/playbooks/list

@@ -44,7 +44,7 @@ Scheduled jobs follow the same path, started by the backend's in-process cron lo
 
 The API is versioned under `/rpc/v1` (oRPC, used by the frontend) and `/api/v1` (OpenAPI). The interactive reference lives at `/scalar` and the raw specification at `/openapi.json`.
 
-From scripts, authenticate with a personal API key, created on the **Config** page and sent as the `x-api-key` header:
+From scripts, authenticate with a personal API key, created on the **API keys** page and sent as the `x-api-key` header:
 
 ```bash
 curl -H "x-api-key: $PLAYBOOK_RUNNER_KEY" https://ansible.example.com/api/v1/playbooks/list

@@ -38,7 +38,7 @@ Si alguna de las tres variables está vacía, el SSO queda desactivado y la app 
 
 ## API keys
 
-Cualquier usuario puede crear API keys personales desde la página **Configuración**. Envíala en la cabecera `x-api-key`; las peticiones autenticadas así actúan como ese usuario y no pasan por la comprobación CSRF que necesitan las sesiones del navegador.
+Cualquier usuario puede crear API keys personales desde la página **API keys**. Envíala en la cabecera `x-api-key`; las peticiones autenticadas así actúan como ese usuario y no pasan por la comprobación CSRF que necesitan las sesiones del navegador.
 
 ```bash
 curl -H "x-api-key: $PLAYBOOK_RUNNER_KEY" https://ansible.example.com/api/v1/playbooks/list

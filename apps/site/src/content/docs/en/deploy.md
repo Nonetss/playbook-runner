@@ -64,13 +64,13 @@ The frontend and the API are served from the same origin, so there is nothing el
 
 ## Pin a version
 
-Images come from `ghcr.io/nonetss/playbook-runner-*` for `linux/amd64` and `linux/arm64`. `latest` is the newest build; every release is also published under its tag (`v0.10.2`). Pin all four together in `.env`:
+Images come from `ghcr.io/nonetss/playbook-runner-*` for `linux/amd64` and `linux/arm64`. `latest` is the newest build; every release is also published under its tag (`v0.11.0`). Pin all four together in `.env`:
 
 ```bash
-ANSIBLE_IMAGE_TAG=v0.10.2
-BACKEND_IMAGE_TAG=v0.10.2
-FRONTEND_IMAGE_TAG=v0.10.2
-GATEWAY_IMAGE_TAG=v0.10.2
+ANSIBLE_IMAGE_TAG=v0.11.0
+BACKEND_IMAGE_TAG=v0.11.0
+FRONTEND_IMAGE_TAG=v0.11.0
+GATEWAY_IMAGE_TAG=v0.11.0
 ```
 
 See [Upgrading](../upgrading/) before moving between versions.

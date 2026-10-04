@@ -27,7 +27,7 @@ The script is interactive even when piped, because it reads your answers from th
 2. The **first admin**: name, email and a password of at least 8 characters.
 3. Optionally, an **OIDC provider** for single sign-on (client id, secret and issuer).
 
-Then it generates every secret with `openssl`, writes `.env` (mode `600`) and `compose.yml` in the current directory, pulls the images from `ghcr.io` and starts the stack. Setting `PB_REF` on the `bash` side (`… | PB_REF=v0.10.2 bash`) picks which version of `compose.yml` it downloads (default `main`); the image versions are the `*_IMAGE_TAG` variables in `.env`, `latest` by default.
+Then it generates every secret with `openssl`, writes `.env` (mode `600`) and `compose.yml` in the current directory, pulls the images from `ghcr.io` and starts the stack. Setting `PB_REF` on the `bash` side (`… | PB_REF=v0.11.0 bash`) picks which version of `compose.yml` it downloads (default `main`); the image versions are the `*_IMAGE_TAG` variables in `.env`, `latest` by default.
 
 > **Back up `.env`**, above all `CREDENTIALS_ENCRYPTION_KEY`. It encrypts the SSH private keys stored in the database; if you lose it, they cannot be recovered.
 

@@ -64,13 +64,13 @@ El frontend y la API se sirven desde el mismo origen, así que no hay nada más 
 
 ## Fijar una versión
 
-Las imágenes se publican en `ghcr.io/nonetss/playbook-runner-*` para `linux/amd64` y `linux/arm64`. `latest` es la compilación más reciente; cada versión se publica además con su etiqueta (`v0.10.2`). Fija las cuatro a la vez en `.env`:
+Las imágenes se publican en `ghcr.io/nonetss/playbook-runner-*` para `linux/amd64` y `linux/arm64`. `latest` es la compilación más reciente; cada versión se publica además con su etiqueta (`v0.11.0`). Fija las cuatro a la vez en `.env`:
 
 ```bash
-ANSIBLE_IMAGE_TAG=v0.10.2
-BACKEND_IMAGE_TAG=v0.10.2
-FRONTEND_IMAGE_TAG=v0.10.2
-GATEWAY_IMAGE_TAG=v0.10.2
+ANSIBLE_IMAGE_TAG=v0.11.0
+BACKEND_IMAGE_TAG=v0.11.0
+FRONTEND_IMAGE_TAG=v0.11.0
+GATEWAY_IMAGE_TAG=v0.11.0
 ```
 
 Lee [Actualizar](../upgrading/) antes de cambiar de versión.

@@ -27,7 +27,7 @@ El script es interactivo aunque llegue por una tubería, porque lee las respuest
 2. El **primer administrador**: nombre, email y una contraseña de al menos 8 caracteres.
 3. Opcionalmente, un **proveedor OIDC** para el inicio de sesión único (client id, secret e issuer).
 
-Después genera todos los secretos con `openssl`, escribe `.env` (modo `600`) y `compose.yml` en el directorio actual, descarga las imágenes de `ghcr.io` y arranca el stack. Si defines `PB_REF` en el lado de `bash` (`… | PB_REF=v0.10.2 bash`) eliges qué versión de `compose.yml` descarga (por defecto `main`); la versión de las imágenes la marcan las variables `*_IMAGE_TAG` de `.env`, `latest` por defecto.
+Después genera todos los secretos con `openssl`, escribe `.env` (modo `600`) y `compose.yml` en el directorio actual, descarga las imágenes de `ghcr.io` y arranca el stack. Si defines `PB_REF` en el lado de `bash` (`… | PB_REF=v0.11.0 bash`) eliges qué versión de `compose.yml` descarga (por defecto `main`); la versión de las imágenes la marcan las variables `*_IMAGE_TAG` de `.env`, `latest` por defecto.
 
 > **Haz copia de `.env`**, sobre todo de `CREDENTIALS_ENCRYPTION_KEY`. Cifra las claves privadas SSH guardadas en la base de datos; si la pierdes, no se pueden recuperar.
 

@@ -38,7 +38,7 @@ If any of the three variables is empty, SSO stays off and the app boots with ema
 
 ## API keys
 
-Any user can create personal API keys from the **Config** page. Send one in the `x-api-key` header; requests authenticated this way act as that user and skip the CSRF check that browser sessions need.
+Any user can create personal API keys from the **API keys** page. Send one in the `x-api-key` header; requests authenticated this way act as that user and skip the CSRF check that browser sessions need.
 
 ```bash
 curl -H "x-api-key: $PLAYBOOK_RUNNER_KEY" https://ansible.example.com/api/v1/playbooks/list
