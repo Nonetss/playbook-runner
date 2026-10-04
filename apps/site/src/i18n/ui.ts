@@ -112,8 +112,14 @@ const en = {
     },
   },
   arch: {
-    heading: "Four containers, one published port.",
-    lede: "A Caddy gateway is the only thing exposed. It serves the Astro frontend and the Hono API from one origin, and routes the backend's gRPC calls to the Ansible executor, which never faces the network.",
+    heading: "How it fits together",
+    lede: "Four services and PostgreSQL, run with Docker Compose. Browsers only talk to the Caddy gateway, which sends the API to the backend and everything else to the frontend. The backend owns the database and reaches the Ansible executor over gRPC, through the gateway's internal router.",
+    diagramTitle: "Topology",
+    diagramDesc:
+      "The browser reaches the Caddy gateway on port 80. The gateway sends /rpc, /api, /scalar and /openapi.json to the Hono backend on port 3000 and every other path to the Astro frontend on port 4321. The backend reads and writes PostgreSQL and calls the Ansible executor over gRPC through the gateway's router on port 50050, which forwards /run.* calls to the executor on port 50051. The executor connects to your hosts over SSH.",
+    legendHttp: "Connection, labelled with its protocol or route",
+    legendGrpc: "gRPC inside the Compose network",
+    published: "published",
     pathsLabel: "Request paths",
     pagePath: "Opening a page",
     runPath: "Running a playbook",
@@ -126,6 +132,25 @@ const en = {
       grpc: "gRPC router",
       executor: "Executor",
       hosts: "Your hosts",
+    },
+    roles: {
+      frontend: "Astro SSR · React",
+      backend: "Hono · oRPC · auth · cron",
+      postgres: "all app data",
+      executor: "FastAPI · ansible-runner",
+      hosts: "from your inventory",
+    },
+    routing: {
+      heading: "Gateway routing",
+      route: "Request",
+      target: "Goes to",
+      rows: [
+        { route: "/rpc  /api  /scalar  /openapi.json", target: "backend:3000" },
+        { route: "any other path", target: "frontend:4321" },
+        { route: "gRPC /run.* on :50050", target: "ansible:50051" },
+        { route: "any other gRPC service", target: "UNIMPLEMENTED" },
+      ],
+      note: "Only the gateway's port 80 is mapped to the host, as GATEWAY_PORT. The rest of the services are reachable only inside the Compose network.",
     },
     principles: [
       {
@@ -141,7 +166,7 @@ const en = {
         text: "At most eight Ansible processes run at once by default; extra requests are refused instead of queued. SSH host keys are verified, trusting a host on first contact and rejecting changed keys.",
       },
     ],
-    docsLink: "How it fits together",
+    docsLink: "Read the architecture docs",
   },
   install: {
     heading: "Up in one command.",
@@ -278,8 +303,14 @@ const es: Dictionary = {
     },
   },
   arch: {
-    heading: "Cuatro contenedores, un único puerto publicado.",
-    lede: "Solo se expone un gateway Caddy. Sirve el frontend Astro y la API Hono desde un mismo origen, y enruta las llamadas gRPC del backend al ejecutor de Ansible, que nunca queda expuesto a la red.",
+    heading: "Cómo está montado",
+    lede: "Cuatro servicios y PostgreSQL, levantados con Docker Compose. El navegador solo habla con el gateway Caddy, que manda la API al backend y todo lo demás al frontend. El backend es el dueño de la base de datos y llega al ejecutor de Ansible por gRPC, a través del router interno del gateway.",
+    diagramTitle: "Topología",
+    diagramDesc:
+      "El navegador llega al gateway Caddy por el puerto 80. El gateway manda /rpc, /api, /scalar y /openapi.json al backend Hono en el puerto 3000 y cualquier otra ruta al frontend Astro en el 4321. El backend lee y escribe en PostgreSQL y llama al ejecutor de Ansible por gRPC a través del router del gateway en el puerto 50050, que reenvía las llamadas /run.* al ejecutor en el 50051. El ejecutor se conecta a tus hosts por SSH.",
+    legendHttp: "Conexión, con su protocolo o ruta",
+    legendGrpc: "gRPC dentro de la red de Compose",
+    published: "publicado",
     pathsLabel: "Recorrido de las peticiones",
     pagePath: "Abrir una página",
     runPath: "Ejecutar un playbook",
@@ -292,6 +323,25 @@ const es: Dictionary = {
       grpc: "Router gRPC",
       executor: "Ejecutor",
       hosts: "Tus hosts",
+    },
+    roles: {
+      frontend: "Astro SSR · React",
+      backend: "Hono · oRPC · auth · cron",
+      postgres: "todos los datos",
+      executor: "FastAPI · ansible-runner",
+      hosts: "de tu inventario",
+    },
+    routing: {
+      heading: "Enrutado del gateway",
+      route: "Petición",
+      target: "Va a",
+      rows: [
+        { route: "/rpc  /api  /scalar  /openapi.json", target: "backend:3000" },
+        { route: "cualquier otra ruta", target: "frontend:4321" },
+        { route: "gRPC /run.* en :50050", target: "ansible:50051" },
+        { route: "cualquier otro servicio gRPC", target: "UNIMPLEMENTED" },
+      ],
+      note: "Solo el puerto 80 del gateway se mapea al host, como GATEWAY_PORT. El resto de servicios solo son accesibles dentro de la red de Compose.",
     },
     principles: [
       {
@@ -307,7 +357,7 @@ const es: Dictionary = {
         text: "Por defecto corren como mucho ocho procesos de Ansible a la vez; las peticiones de más se rechazan en lugar de encolarse. Las claves de host SSH se verifican: se confía en el primer contacto y se rechazan las que cambian.",
       },
     ],
-    docsLink: "Cómo encaja todo",
+    docsLink: "Leer la arquitectura en la documentación",
   },
   install: {
     heading: "En marcha con un solo comando.",

@@ -1,6 +1,7 @@
 ---
 import ArrowRight from "@lucide/astro/icons/arrow-right"
 import Database from "@lucide/astro/icons/database"
+import ArchitectureDiagram from "@/components/ArchitectureDiagram.astro"
 import { type Lang, t } from "@/i18n/ui"
 import { localized } from "@/lib/url"
 
@@ -21,8 +22,8 @@ const { lang } = Astro.props
 const dict = t(lang)
 const n = dict.arch.nodes
 
-// Both paths share one six-column grid from `xl` up, so the gateway lines up
-// and the frontend sits in the backend's column: both live behind it.
+// Below `lg` the diagram would be too small to read, so the same topology is
+// told as the two request paths, one hop per row.
 const paths: { title: string; hops: Hop[] }[] = [
   {
     title: dict.arch.pagePath,
@@ -67,19 +68,56 @@ const paths: { title: string; hops: Hop[] }[] = [
     <p class="mt-5 text-lede text-foreground">{dict.arch.lede}</p>
   </div>
 
-  <h3 class="sr-only">{dict.arch.pathsLabel}</h3>
-  <div
-    class="mt-14 grid gap-10 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] xl:grid-cols-1"
+  <figure
+    class="mt-14 hidden rounded-[10px] border border-hairline px-6 pt-8 pb-5 lg:block"
   >
+    <ArchitectureDiagram lang={lang} />
+    <figcaption
+      class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-hairline pt-4 text-meta text-muted-foreground"
+    >
+      <span class="flex items-center gap-2">
+        <svg class="h-2 w-8" viewBox="0 0 32 8" aria-hidden="true">
+          <line
+            x1="0"
+            x2="32"
+            y1="4"
+            y2="4"
+            class="stroke-muted-foreground"
+            stroke-width="1.25"
+          ></line>
+        </svg>
+        {dict.arch.legendHttp}
+      </span>
+      <span class="flex items-center gap-2">
+        <svg class="h-2 w-8" viewBox="0 0 32 8" aria-hidden="true">
+          <line
+            x1="0"
+            x2="32"
+            y1="4"
+            y2="4"
+            class="stroke-muted-foreground"
+            stroke-width="1.25"
+            stroke-dasharray="5 4"
+          ></line>
+        </svg>
+        {dict.arch.legendGrpc}
+      </span>
+    </figcaption>
+  </figure>
+
+  <div
+    class="mt-14 grid gap-10 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] lg:hidden"
+  >
+    <h3 class="sr-only">{dict.arch.pathsLabel}</h3>
     {paths.map((path) => (
         <figure class="min-w-0">
           <figcaption class="text-label-caps text-muted-foreground">
             {path.title}
           </figcaption>
-          <ol class="mt-4 flex flex-col xl:grid xl:grid-cols-6">
+          <ol class="mt-4 flex flex-col">
             {path.hops.map((hop, index) => (
-              <li class="flex flex-col xl:flex-row xl:items-center">
-                <div class="rounded-md border border-border bg-card px-3.5 py-3 xl:w-44 xl:shrink-0">
+              <li class="flex flex-col">
+                <div class="rounded-md border border-border bg-card px-3.5 py-3">
                   <div class="flex items-baseline justify-between gap-3">
                     <span class="text-meta font-medium text-strong">
                       {hop.name}
@@ -103,21 +141,14 @@ const paths: { title: string; hops: Hop[] }[] = [
                   )}
                 </div>
                 {index < path.hops.length - 1 && (
-                  <div class="flex min-h-10 items-center gap-3 pl-5 xl:min-h-0 xl:flex-1 xl:flex-col xl:items-stretch xl:gap-1 xl:px-2">
+                  <div class="flex min-h-10 items-center gap-3 pl-5">
                     <span
-                      class="h-6 w-px shrink-0 bg-muted-foreground/50 xl:hidden"
+                      class="h-6 w-px shrink-0 bg-muted-foreground/50"
                       aria-hidden="true"
                     />
-                    <span class="min-h-4 font-mono text-[0.6875rem] text-muted-foreground xl:text-center">
+                    <span class="min-h-4 font-mono text-[0.6875rem] text-muted-foreground">
                       {hop.via && <span class="sr-only">→ </span>}
                       {hop.via}
-                    </span>
-                    <span class="hidden items-center xl:flex" aria-hidden="true">
-                      <span class="h-px flex-1 bg-muted-foreground/50" />
-                      <ArrowRight
-                        class="-ml-1.5 size-3 text-muted-foreground"
-                        stroke-width={2}
-                      />
                     </span>
                   </div>
                 )}
@@ -128,18 +159,57 @@ const paths: { title: string; hops: Hop[] }[] = [
       ))}
   </div>
 
-  <dl class="mt-16 grid gap-x-12 lg:grid-cols-3">
-    {dict.arch.principles.map((item) => (
-        <div class="border-t border-hairline py-6">
-          <dt class="text-headline font-medium text-strong">{item.term}</dt>
-          <dd class="mt-2 text-body text-muted-foreground">{item.text}</dd>
-        </div>
-      ))}
-  </dl>
+  <div class="mt-16 grid gap-x-16 gap-y-12 lg:grid-cols-12">
+    <div class="min-w-0 lg:col-span-5">
+      <h3 class="text-headline font-medium text-strong">
+        {dict.arch.routing.heading}
+      </h3>
+      <table class="mt-4 w-full text-meta">
+        <thead>
+          <tr class="border-b border-border text-left">
+            <th
+              class="pb-2.5 text-label-caps font-medium text-muted-foreground"
+            >
+              {dict.arch.routing.route}
+            </th>
+            <th
+              class="pb-2.5 text-label-caps font-medium text-muted-foreground"
+            >
+              {dict.arch.routing.target}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {dict.arch.routing.rows.map((row) => (
+              <tr class="border-b border-hairline align-top">
+                <td class="py-3 pr-4 font-mono text-[0.75rem] whitespace-pre-wrap text-foreground">
+                  {row.route}
+                </td>
+                <td class="py-3 font-mono text-[0.75rem] whitespace-nowrap text-strong">
+                  {row.target}
+                </td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
+      <p class="mt-4 text-meta text-muted-foreground">
+        {dict.arch.routing.note}
+      </p>
+    </div>
+
+    <dl class="min-w-0 lg:col-span-7">
+      {dict.arch.principles.map((item) => (
+          <div class="border-t border-hairline py-5 first:border-t-0 first:pt-0">
+            <dt class="text-headline font-medium text-strong">{item.term}</dt>
+            <dd class="mt-2 text-body text-muted-foreground">{item.text}</dd>
+          </div>
+        ))}
+    </dl>
+  </div>
 
   <a
     href={localized(lang, "docs/architecture/")}
-    class="focus-ring group mt-6 inline-flex items-center gap-1.5 rounded-sm text-body font-medium text-strong"
+    class="focus-ring group mt-8 inline-flex items-center gap-1.5 rounded-sm text-body font-medium text-strong"
   >
     {dict.arch.docsLink}
     <ArrowRight

@@ -1,0 +1,187 @@
+---
+import { type Lang, t } from "@/i18n/ui"
+
+interface Props {
+  lang: Lang
+  class?: string
+}
+
+const { lang, class: className } = Astro.props
+const dict = t(lang)
+const n = dict.arch.nodes
+const r = dict.arch.roles
+
+// Topology of the Docker Compose stack, same layout as img/architecture.svg
+// but drawn with the site tokens so it follows the theme. Coordinates are in
+// the 1200×470 space (the viewBox crops the empty top 40); every box is 76 high and labelled from its centre.
+interface Box {
+  x: number
+  y: number
+  w: number
+  name: string
+  port?: string
+  role?: string
+}
+
+const boxes: Box[] = [
+  { x: 20, y: 210, w: 170, name: n.browser },
+  { x: 640, y: 60, w: 240, name: n.frontend, port: ":4321", role: r.frontend },
+  { x: 640, y: 210, w: 240, name: n.backend, port: ":3000", role: r.backend },
+  { x: 960, y: 210, w: 220, name: n.postgres, port: ":5432", role: r.postgres },
+  {
+    x: 640,
+    y: 380,
+    w: 240,
+    name: n.executor,
+    port: ":50051",
+    role: r.executor,
+  },
+  { x: 960, y: 380, w: 220, name: n.hosts, role: r.hosts },
+]
+
+interface Edge {
+  d: string
+  grpc?: boolean
+  label: string
+  lx: number
+  ly: number
+  anchor?: "start" | "middle" | "end"
+}
+
+const edges: Edge[] = [
+  { d: "M190,248 H274", label: "HTTPS", lx: 232, ly: 238 },
+  {
+    d: "M510,234 H530 V98 H634",
+    label: "/*",
+    lx: 540,
+    ly: 170,
+    anchor: "start",
+  },
+  { d: "M510,252 H634", label: "/rpc /api", lx: 582, ly: 242 },
+  { d: "M880,248 H954", label: "SQL", lx: 917, ly: 238 },
+  { d: "M700,286 V316 H516", grpc: true, label: "gRPC", lx: 610, ly: 306 },
+  { d: "M395,350 V418 H634", grpc: true, label: "/run.*", lx: 515, ly: 408 },
+  { d: "M880,418 H954", label: "SSH", lx: 917, ly: 408 },
+]
+---
+
+<svg
+  viewBox="0 40 1200 430"
+  role="img"
+  aria-labelledby="arch-diagram-title arch-diagram-desc"
+  class:list={["h-auto w-full", className]}
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <title id="arch-diagram-title">{dict.arch.diagramTitle}</title>
+  <desc id="arch-diagram-desc">{dict.arch.diagramDesc}</desc>
+  <defs>
+    <marker
+      id="arch-arrow"
+      viewBox="0 0 10 10"
+      refX="9"
+      refY="5"
+      markerWidth="7"
+      markerHeight="7"
+      orient="auto-start-reverse"
+    >
+      <path d="M0,0 L10,5 L0,10 z" class="fill-muted-foreground"></path>
+    </marker>
+  </defs>
+
+  <g class="fill-none stroke-muted-foreground" stroke-width="1.25">
+    {edges.map((edge) => (
+        <path
+          d={edge.d}
+          marker-end="url(#arch-arrow)"
+          stroke-dasharray={edge.grpc ? "5 4" : undefined}
+        />
+      ))}
+  </g>
+
+  <g class="font-mono text-[12px] fill-muted-foreground arch-halo">
+    {edges.map((edge) => (
+        <text x={edge.lx} y={edge.ly} text-anchor={edge.anchor ?? "middle"}>
+          {edge.label}
+        </text>
+      ))}
+  </g>
+
+  <!-- Gateway: one container, two listeners. -->
+  <g>
+    <rect
+      x="280"
+      y="150"
+      width="230"
+      height="200"
+      rx="8"
+      class="fill-card stroke-border"
+    ></rect>
+    <text x="298" y="180" class="font-sans text-[16px] font-medium fill-strong">
+      {n.gateway}
+    </text>
+    <text x="298" y="200" class="font-mono text-[12px] fill-muted-foreground">
+      Caddy
+    </text>
+    <line x1="280" x2="510" y1="214" y2="214" class="stroke-border"></line>
+    <text x="298" y="253" class="font-mono text-[14px] fill-strong">:80</text>
+    <text
+      x="492"
+      y="253"
+      text-anchor="end"
+      class="font-mono text-[12px] fill-muted-foreground"
+    >
+      HTTP · {dict.arch.published}
+    </text>
+    <line x1="280" x2="510" y1="282" y2="282" class="stroke-border"></line>
+    <text x="298" y="321" class="font-mono text-[14px] fill-strong">
+      :50050
+    </text>
+    <text
+      x="492"
+      y="321"
+      text-anchor="end"
+      class="font-mono text-[12px] fill-muted-foreground"
+    >
+      {n.grpc}
+    </text>
+  </g>
+
+  {boxes.map((box) => (
+      <g>
+        <rect
+          x={box.x}
+          y={box.y}
+          width={box.w}
+          height="76"
+          rx="8"
+          class="fill-card stroke-border"
+        />
+        <text
+          x={box.x + 18}
+          y={box.role ? box.y + 32 : box.y + 43}
+          class="font-sans text-[16px] font-medium fill-strong"
+        >
+          {box.name}
+        </text>
+        {box.port && (
+          <text
+            x={box.x + box.w - 18}
+            y={box.y + 32}
+            text-anchor="end"
+            class="font-mono text-[13px] fill-muted-foreground"
+          >
+            {box.port}
+          </text>
+        )}
+        {box.role && (
+          <text
+            x={box.x + 18}
+            y={box.y + 54}
+            class="font-mono text-[12px] fill-muted-foreground"
+          >
+            {box.role}
+          </text>
+        )}
+      </g>
+    ))}
+</svg>

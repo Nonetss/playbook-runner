@@ -294,6 +294,15 @@
   }
 }
 
+/* Edge labels of the architecture diagram: a halo in the page colour cuts
+   the line behind the text. */
+.arch-halo text {
+  paint-order: stroke;
+  stroke: var(--background);
+  stroke-width: 6px;
+  stroke-linejoin: round;
+}
+
 /* Screenshot viewer (Lightbox.astro): always dark, like the run console. */
 /* The dialog itself is full-screen and opaque; ::backdrop does not resolve
    custom properties in every browser, so it stays plain. */
