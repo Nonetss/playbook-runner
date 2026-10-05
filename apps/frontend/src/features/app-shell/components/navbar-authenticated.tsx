@@ -46,6 +46,17 @@ const pillBase =
 const pillInactive =
   "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
 const pillActive = "bg-primary/10 text-primary"
+// Radix returns focus to the trigger when a menu link closes the menu, and the
+// navbar persists across navigations, so the active pill must survive the
+// trigger's hover, focus and open states instead of the shadcn defaults.
+const triggerInactive = cn(
+  pillInactive,
+  "bg-transparent focus:bg-transparent data-[state=open]:bg-muted/40 data-[state=open]:hover:bg-muted/40 data-[state=open]:focus:bg-muted/40"
+)
+const triggerActive = cn(
+  pillActive,
+  "hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary data-[state=open]:bg-primary/10 data-[state=open]:text-primary data-[state=open]:hover:bg-primary/10 data-[state=open]:focus:bg-primary/10"
+)
 
 /**
  * Warms the cache for the page a nav link points to. `query` only fetches
@@ -168,9 +179,8 @@ function NavSection({
         aria-current={active ? "page" : undefined}
         className={cn(
           pillBase,
-          "h-auto bg-transparent focus:bg-transparent data-[state=open]:bg-muted/40 data-[state=open]:hover:bg-muted/40 data-[state=open]:focus:bg-muted/40",
-          active ? pillActive : pillInactive,
-          active && "data-[state=open]:bg-primary/10"
+          "h-auto",
+          active ? triggerActive : triggerInactive
         )}
         onMouseEnter={onIntent(item.href)}
         onFocus={onIntent(item.href)}
