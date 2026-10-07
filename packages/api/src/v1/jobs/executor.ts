@@ -139,6 +139,8 @@ async function streamRun(
       { token: env.SERVICE_TOKEN, timeoutMs: RUN_TIMEOUT_MS }
     )
     for await (const frame of stream) {
+      // Transport-only keepalive: never stored nor published.
+      if (frame.heartbeat) continue
       if (frame.done) {
         ok = frame.done.ok
       } else if (frame.error !== undefined) {

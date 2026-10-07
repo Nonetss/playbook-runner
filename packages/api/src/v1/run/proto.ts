@@ -63,6 +63,8 @@ export async function* toEventIterator(
   stream: AsyncIterable<ProtoRunResponse>
 ): AsyncGenerator<RunEventRecord, Done, void> {
   for await (const evt of stream) {
+    // Transport-only keepalive from the runner during silent tasks.
+    if (evt.heartbeat) continue
     if (evt.task) {
       yield taskEventToRecord(evt.task)
     } else if (evt.done) {

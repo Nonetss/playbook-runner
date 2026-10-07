@@ -120,6 +120,33 @@ describe("toEventIterator", () => {
     await expect(iterator.next()).rejects.toThrow("boom")
   })
 
+  test("skips heartbeat frames", async () => {
+    const result = await drain(
+      toEventIterator(
+        frames(
+          { heartbeat: {} },
+          { task: { event: "playbook_on_start" } },
+          { heartbeat: {} },
+          { heartbeat: {} },
+          { task: { event: "runner_on_ok", host: "web-01" } },
+          { heartbeat: {} },
+          { done }
+        )
+      )
+    )
+    expect(result.records).toEqual([
+      { event: "playbook_on_start" },
+      { event: "runner_on_ok", host: "web-01" },
+    ])
+    expect(result.done).toEqual(done)
+  })
+
+  test("a heartbeat is not a terminal frame", async () => {
+    await expect(
+      drain(toEventIterator(frames({ heartbeat: {} })))
+    ).rejects.toThrow("without a terminal frame")
+  })
+
   test("throws when the stream ends without a terminal frame", async () => {
     await expect(
       drain(toEventIterator(frames({ task: { event: "playbook_on_start" } })))
