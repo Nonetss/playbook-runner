@@ -10,7 +10,13 @@ import type { z } from "zod"
 import type { Context } from "#context"
 import { errors } from "#errors"
 import type { runInput } from "#v1/run/input"
-import { RUN_TIMEOUT_MS, toEventIterator, toProtoHost } from "#v1/run/proto"
+import {
+  describeStreamError,
+  isStreamLost,
+  RUN_TIMEOUT_MS,
+  toEventIterator,
+  toProtoHost,
+} from "#v1/run/proto"
 import {
   ResolveRunCredentiallessError,
   ResolveRunNotFoundError,
@@ -50,7 +56,9 @@ function toResolveError(err: unknown): never {
 
 /**
  * Maps gRPC failures the user can act on to API errors. `RESOURCE_EXHAUSTED`
- * is the ansible service refusing a run because every slot is busy.
+ * is the ansible service refusing a run because every slot is busy; a lost
+ * stream becomes `BAD_GATEWAY` with a message saying the hosts may have
+ * kept going.
  *
  * `yield*` forwards oRPC's `.return()` (client disconnected) down to
  * `serverStream`, which cancels the gRPC call and so stops the run.
@@ -65,6 +73,9 @@ async function* interactive<T, R>(
       throw errors.TOO_MANY_REQUESTS({
         message: "Too many concurrent runs, try again in a moment",
       })
+    }
+    if (isStreamLost(err)) {
+      throw errors.BAD_GATEWAY({ message: describeStreamError(err) })
     }
     throw err
   }

@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test"
+import { grpcStatus } from "@playbook-runner/grpc"
 import type { Done, RunBundleResponse } from "@playbook-runner/grpc/stubs"
 import {
+  describeStreamError,
+  isStreamLost,
   type RunEventRecord,
   taskEventToRecord,
   toEventIterator,
@@ -151,5 +154,47 @@ describe("toEventIterator", () => {
     await expect(
       drain(toEventIterator(frames({ task: { event: "playbook_on_start" } })))
     ).rejects.toThrow("without a terminal frame")
+  })
+})
+
+function grpcError(code: number, details: string) {
+  return Object.assign(new Error(details), { code, details })
+}
+
+describe("describeStreamError", () => {
+  test("reports a reset stream as a lost connection", () => {
+    const err = grpcError(
+      grpcStatus.INTERNAL,
+      "Received RST_STREAM with code 2 (Internal server error)"
+    )
+    expect(isStreamLost(err)).toBe(true)
+    const message = describeStreamError(err)
+    expect(message).toStartWith(
+      "Se perdió la conexión con el servicio de Ansible"
+    )
+    expect(message).toContain(
+      "gRPC INTERNAL: Received RST_STREAM with code 2 (Internal server error)"
+    )
+  })
+
+  test("reports an unavailable service as a lost connection", () => {
+    const err = grpcError(grpcStatus.UNAVAILABLE, "Connection dropped")
+    expect(describeStreamError(err)).toContain(
+      "Se perdió la conexión con el servicio de Ansible (gRPC UNAVAILABLE: Connection dropped)"
+    )
+  })
+
+  test("keeps other gRPC statuses as they are", () => {
+    const err = grpcError(grpcStatus.DEADLINE_EXCEEDED, "Deadline exceeded")
+    expect(isStreamLost(err)).toBe(false)
+    expect(describeStreamError(err)).toBe(
+      "gRPC DEADLINE_EXCEEDED: Deadline exceeded"
+    )
+  })
+
+  test("uses the message of a plain error", () => {
+    const err = new Error("boom")
+    expect(isStreamLost(err)).toBe(false)
+    expect(describeStreamError(err)).toBe("boom")
   })
 })

@@ -1,3 +1,4 @@
+import { grpcStatus, grpcStatusName, isGrpcError } from "@playbook-runner/grpc"
 import type {
   Done,
   Host,
@@ -14,6 +15,31 @@ import type { ResolvedRunHost } from "#v1/run/resolve"
  * typical RPC — this only bounds runaway/hung executions, not normal ones.
  */
 export const RUN_TIMEOUT_MS = 60 * 60 * 1000
+
+/** gRPC statuses that mean the stream itself broke, not that the run failed. */
+const STREAM_LOST_STATUSES: ReadonlySet<number> = new Set([
+  grpcStatus.INTERNAL,
+  grpcStatus.UNAVAILABLE,
+  grpcStatus.CANCELLED,
+])
+
+/** True when a run stream died in transport (reset, proxy, connection loss). */
+export function isStreamLost(err: unknown): boolean {
+  return isGrpcError(err) && STREAM_LOST_STATUSES.has(err.code)
+}
+
+/**
+ * Error text for a run stream that failed. A lost stream says so explicitly:
+ * the hosts may have kept going, so a bare `gRPC INTERNAL` would mislead.
+ */
+export function describeStreamError(err: unknown): string {
+  if (!isGrpcError(err)) {
+    return err instanceof Error ? err.message : "Error en la ejecución"
+  }
+  const detail = `gRPC ${grpcStatusName(err)}: ${err.details}`
+  if (!isStreamLost(err)) return detail
+  return `Se perdió la conexión con el servicio de Ansible (${detail}); la ejecución pudo continuar o terminar en los hosts`
+}
 
 /** A single ansible-runner event, reshaped from a `TaskEvent` gRPC frame. */
 export type RunEventRecord = Record<string, unknown> & { event: string }

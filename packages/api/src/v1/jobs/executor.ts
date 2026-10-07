@@ -1,17 +1,13 @@
 import { db } from "@playbook-runner/db"
 import { jobRuns, jobs } from "@playbook-runner/db/schema/jobs"
 import { env } from "@playbook-runner/env/server"
-import {
-  getClient,
-  grpcStatusName,
-  isGrpcError,
-  serverStream,
-} from "@playbook-runner/grpc"
+import { getClient, serverStream } from "@playbook-runner/grpc"
 import { RunnerServiceClient } from "@playbook-runner/grpc/stubs"
 import { logger } from "@playbook-runner/logger"
 import { and, eq, sql } from "drizzle-orm"
 import { beginLiveRun, finishLiveRun, publishRunEvent } from "#v1/jobs/live"
 import {
+  describeStreamError,
   RUN_TIMEOUT_MS,
   type RunEventRecord,
   taskEventToRecord,
@@ -152,12 +148,12 @@ async function streamRun(
       }
     }
   } catch (err) {
-    const detail = isGrpcError(err)
-      ? `gRPC ${grpcStatusName(err)}: ${err.details}`
-      : err instanceof Error
-        ? err.message
-        : "Error en la ejecución"
-    return { events, ok: false, error: detail, commitSha: bundle.commitSha }
+    return {
+      events,
+      ok: false,
+      error: describeStreamError(err),
+      commitSha: bundle.commitSha,
+    }
   }
 
   return {
