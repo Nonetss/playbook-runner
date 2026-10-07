@@ -11,6 +11,23 @@ type ClientConstructor<TClient extends grpc.Client> = new (
 const clients = new Map<string, grpc.Client>()
 
 /**
+ * HTTP/2 keepalive for every channel, so a dead connection is detected in
+ * ~40 s instead of at the call deadline. The ping interval must stay above
+ * the Python server's `grpc.http2.min_recv_ping_interval_without_data_ms`
+ * (`python/grpc-toolkit`), or it answers `GOAWAY too_many_pings`. Pings are
+ * hop-by-hop and stop at the gateway; run streams stay alive across it
+ * through the runner's `heartbeat` frames.
+ */
+const KEEPALIVE_TIME_MS = 30_000
+const KEEPALIVE_TIMEOUT_MS = 10_000
+
+const CHANNEL_OPTIONS: Partial<grpc.ClientOptions> = {
+  "grpc.keepalive_time_ms": KEEPALIVE_TIME_MS,
+  "grpc.keepalive_timeout_ms": KEEPALIVE_TIMEOUT_MS,
+  "grpc.keepalive_permit_without_calls": 1,
+}
+
+/**
  * Returns a cached client for `target`. gRPC multiplexes every service over one
  * connection, so the cache is keyed by constructor + target and reused for the
  * whole process life — same idea as the single channel the Python services open
@@ -24,7 +41,11 @@ export function getClient<TClient extends grpc.Client>(
   const cached = clients.get(key)
   if (cached) return cached as TClient
 
-  const client = new Ctor(target, grpc.credentials.createInsecure())
+  const client = new Ctor(
+    target,
+    grpc.credentials.createInsecure(),
+    CHANNEL_OPTIONS
+  )
   clients.set(key, client)
   return client
 }
