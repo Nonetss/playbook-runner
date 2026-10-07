@@ -121,6 +121,7 @@ message RunBundleResponse {
     TaskEvent task = 1;
     Done done = 2;
     string error = 3;
+    Heartbeat heartbeat = 4;
   }
 }
 
@@ -129,6 +130,7 @@ message RunPingResponse {
     TaskEvent task = 1;
     Done done = 2;
     string error = 3;
+    Heartbeat heartbeat = 4;
   }
 }
 
@@ -137,6 +139,7 @@ message RunCommandResponse {
     TaskEvent task = 1;
     Done done = 2;
     string error = 3;
+    Heartbeat heartbeat = 4;
   }
 }
 
@@ -145,6 +148,7 @@ message RunScriptResponse {
     TaskEvent task = 1;
     Done done = 2;
     string error = 3;
+    Heartbeat heartbeat = 4;
   }
 }
 
@@ -173,6 +177,12 @@ message Stats {
   map<string, int32> dark = 4;
   map<string, int32> skipped = 5;
 }
+
+// Sent by the runner while a run has produced no other frame for
+// `RUN_HEARTBEAT_INTERVAL_S`, so a long silent task never leaves the stream
+// idle (HTTP/2 pings don't cross the gateway; DATA frames do). Transport-only:
+// the backend drops it and it never reaches the browser or the database.
+message Heartbeat {}
 
 // Terminal frame once the run finishes (no more TaskEvents follow).
 message Done {

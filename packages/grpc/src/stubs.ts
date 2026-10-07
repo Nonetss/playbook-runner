@@ -3,6 +3,7 @@ export {
   DeleteRepositoryResponse,
   Done,
   GitSource,
+  Heartbeat,
   Host,
   ListBranchesRequest,
   ListBranchesResponse,

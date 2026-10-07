@@ -10,7 +10,8 @@ con el ``SERVICE_TOKEN`` compartido.
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Callable
+from typing import cast
 
 import grpc
 from loguru import logger
@@ -19,6 +20,7 @@ from app.core.config import settings
 from app.grpc.stubs import (
     DeleteRepositoryResponse,
     Done,
+    Heartbeat,
     ListBranchesResponse,
     PlaybookFile,
     RunBundleResponse,
@@ -100,6 +102,59 @@ async def _stream_runner(runner: AnsibleRunner, response_type):
     yield response_type(done=Done(status=runner.status, rc=rc, ok=rc == 0))
 
 
+async def _with_heartbeats[T](
+    frames: AsyncGenerator[T, None],
+    interval_s: float,
+    heartbeat: Callable[[], T],
+) -> AsyncIterator[T]:
+    """Forwards ``frames`` and yields ``heartbeat()`` after every ``interval_s``
+    without one, so a silent task never leaves the stream idle.
+
+    ``frames`` runs in a pump task: timing out a direct ``__anext__`` would
+    cancel the run. On close or cancellation the pump is cancelled and awaited,
+    so the inner ``finally`` chain (stop ansible-runner, cleanup, release the
+    slot) completes before the RPC ends. Inner exceptions, ``context.abort``
+    included, are re-raised here.
+    """
+    queue: asyncio.Queue[tuple[bool, object]] = asyncio.Queue(maxsize=1)
+    end = object()
+
+    async def pump() -> None:
+        try:
+            async for frame in frames:
+                await queue.put((True, frame))
+            await queue.put((True, end))
+        except Exception as exc:  # noqa: BLE001 - re-raised by the consumer
+            await queue.put((False, exc))
+        finally:
+            await frames.aclose()
+
+    task = asyncio.create_task(pump())
+    try:
+        while True:
+            try:
+                ok, item = await asyncio.wait_for(queue.get(), interval_s)
+            except TimeoutError:
+                yield heartbeat()
+                continue
+            if not ok:
+                raise cast(Exception, item)
+            if item is end:
+                return
+            yield cast(T, item)
+    finally:
+        task.cancel()
+        await asyncio.wait([task])
+
+
+def _heartbeats[T](frames: AsyncGenerator[T, None], response_type) -> AsyncIterator[T]:
+    return _with_heartbeats(
+        frames,
+        settings.run_heartbeat_interval_s,
+        lambda: response_type(heartbeat=Heartbeat()),
+    )
+
+
 async def _serve[M: (MaterializedHosts, MaterializedRun)](
     context: grpc.aio.ServicerContext,
     response_type,
@@ -133,6 +188,12 @@ async def _serve[M: (MaterializedHosts, MaterializedRun)](
 
 class RunnerServicer(RunnerServiceServicer):
     async def RunBundle(self, request, context):
+        async for frame in _heartbeats(
+            self._run_bundle(request, context), RunBundleResponse
+        ):
+            yield frame
+
+    async def _run_bundle(self, request, context):
         """Ejecuta un playbook contra hosts ya resueltos (used by the job scheduler too)."""
         logger.bind(peer=context.peer()).info("RunBundle recibido")
 
@@ -185,6 +246,12 @@ class RunnerServicer(RunnerServiceServicer):
             yield frame
 
     async def RunPing(self, request, context):
+        async for frame in _heartbeats(
+            self._run_ping(request, context), RunPingResponse
+        ):
+            yield frame
+
+    async def _run_ping(self, request, context):
         """Ejecuta un `ansible.builtin.ping` embebido contra un único host."""
         logger.bind(peer=context.peer()).info("RunPing recibido")
 
@@ -212,6 +279,12 @@ class RunnerServicer(RunnerServiceServicer):
             yield frame
 
     async def RunCommand(self, request, context):
+        async for frame in _heartbeats(
+            self._run_command(request, context), RunCommandResponse
+        ):
+            yield frame
+
+    async def _run_command(self, request, context):
         """Ejecuta un módulo ad-hoc (`shell`/`command`) contra hosts ya resueltos."""
         logger.bind(peer=context.peer()).info("RunCommand recibido")
 
@@ -242,6 +315,12 @@ class RunnerServicer(RunnerServiceServicer):
             yield frame
 
     async def RunScript(self, request, context):
+        async for frame in _heartbeats(
+            self._run_script(request, context), RunScriptResponse
+        ):
+            yield frame
+
+    async def _run_script(self, request, context):
         """Ejecuta un script ya resuelto (módulo `script`) contra hosts ya resueltos."""
         logger.bind(peer=context.peer()).info("RunScript recibido")
 

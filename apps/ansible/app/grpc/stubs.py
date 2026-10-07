@@ -27,6 +27,7 @@ DeleteRepositoryResponse = run_pb2.DeleteRepositoryResponse
 TaskEvent = run_pb2.TaskEvent
 Stats = run_pb2.Stats
 Done = run_pb2.Done
+Heartbeat = run_pb2.Heartbeat
 RunnerServiceStub = run_pb2_grpc.RunnerServiceStub
 RunnerServiceServicer = run_pb2_grpc.RunnerServiceServicer
 add_RunnerServiceServicer_to_server = run_pb2_grpc.add_RunnerServiceServicer_to_server

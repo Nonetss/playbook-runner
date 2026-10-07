@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     # Seconds in-flight RPCs get to cancel and clean up on shutdown. Keep it
     # below Docker's 10 s stop timeout.
     grpc_shutdown_grace_s: float = Field(default=8, gt=0)
+    # A run stream sends a ``heartbeat`` frame after this many seconds without
+    # any other frame, so a long silent task (package upgrade, slow script)
+    # never leaves it idle long enough for a proxy or HTTP/2 layer to reset it.
+    run_heartbeat_interval_s: float = Field(default=15, gt=0)
 
     # Git playbook repositories: mirrors live in ``STATE_DIR/repos``. Each git
     # command is bounded by ``git_timeout_s``; a mirror larger than
