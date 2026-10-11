@@ -7,13 +7,18 @@ const Search = getIcon("views", "search")
 const Computer = getIcon("resources", "device")
 
 import { type ElementType, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Text } from "@/components/shared/brand/typography"
 import { Input } from "@/components/ui/input"
+import { useDeviceGroupsList } from "@/features/inventory/hooks/use-device-groups"
 import type {
   InventoryDevice,
   InventoryGroup,
 } from "@/features/inventory/types"
+import { coveredDevices } from "@/features/run/lib/run-selection"
 import { cn } from "@/lib/utils"
+
+const NO_RELATIONS: readonly { deviceId: string; groupId: string }[] = []
 
 export type InventorySelectionLabels = {
   groups: string
@@ -51,6 +56,7 @@ function SelectionRow({
   description,
   icon: Icon,
   selected,
+  coveredBy,
   onToggle,
   disabled,
 }: {
@@ -58,35 +64,49 @@ function SelectionRow({
   description?: string | null
   icon: ElementType
   selected: boolean
+  /** Hint naming the selected group that already includes this row. */
+  coveredBy: string | null
   onToggle: () => void
   disabled: boolean
 }) {
+  // A row covered by a selected group shows as checked and can't be toggled
+  // on its own; its own (direct) selection is kept untouched underneath.
+  const covered = coveredBy !== null
+  const meta = [description, coveredBy].filter(Boolean).join(" · ")
   return (
     <li>
       <button
         type="button"
-        onClick={onToggle}
+        onClick={covered ? undefined : onToggle}
         disabled={disabled}
-        className="hover:bg-accent flex min-h-10 w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+        aria-pressed={selected || covered}
+        aria-disabled={covered || undefined}
+        title={coveredBy ?? undefined}
+        className={cn(
+          "hover:bg-accent flex min-h-10 w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60",
+          covered && "cursor-default"
+        )}
       >
         <span
           className={cn(
             "flex size-3.5 shrink-0 items-center justify-center rounded-sm border",
-            selected
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-input"
+            covered
+              ? "border-primary text-primary"
+              : selected
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-input"
           )}
         >
-          {selected ? <Check className="size-2.5" /> : null}
+          {selected || covered ? <Check className="size-2.5" /> : null}
         </span>
         <Icon className="text-muted-foreground size-3.5 shrink-0" />
         <span className="min-w-0 flex-1">
           <span className="block truncate font-medium leading-tight">
             {name}
           </span>
-          {description ? (
+          {meta ? (
             <span className="text-muted-foreground block truncate text-xs">
-              {description}
+              {meta}
             </span>
           ) : null}
         </span>
@@ -98,7 +118,8 @@ function SelectionRow({
 function SelectionSection({
   title,
   items,
-  selected,
+  isSelected,
+  coveredBy,
   icon,
   description,
   collapsible,
@@ -115,7 +136,8 @@ function SelectionSection({
     description?: string | null
     ipAddress?: string | null
   }[]
-  selected: ReadonlySet<string>
+  isSelected: (id: string) => boolean
+  coveredBy?: (id: string) => string | null
   icon: ElementType
   description: (item: {
     name: string
@@ -129,8 +151,8 @@ function SelectionSection({
   noResults: string
   disabled: boolean
 }) {
-  const visibleSelectedCount = items.filter((item) =>
-    selected.has(item.id)
+  const visibleSelectedCount = items.filter(
+    (item) => isSelected(item.id) || coveredBy?.(item.id)
   ).length
   const content =
     items.length > 0 ? (
@@ -141,7 +163,8 @@ function SelectionSection({
             name={item.name}
             description={description(item)}
             icon={icon}
-            selected={selected.has(item.id)}
+            selected={isSelected(item.id)}
+            coveredBy={coveredBy?.(item.id) ?? null}
             onToggle={() => onToggleItem(item.id)}
             disabled={disabled}
           />
@@ -201,6 +224,8 @@ export function InventorySelectionList({
   disabled = false,
   className,
 }: InventorySelectionListProps) {
+  const { t } = useTranslation("inventory")
+  const { data: relations = NO_RELATIONS } = useDeviceGroupsList()
   const [search, setSearch] = useState("")
   const [groupsExpanded, setGroupsExpanded] = useState(true)
   const [devicesExpanded, setDevicesExpanded] = useState(false)
@@ -220,6 +245,24 @@ export function InventorySelectionList({
       ),
     [devices, query]
   )
+
+  const covered = useMemo(
+    () => coveredDevices(selectedGroups, groups, devices, relations),
+    [selectedGroups, groups, devices, relations]
+  )
+  const groupNames = useMemo(
+    () => new Map(groups.map((group) => [group.id, group.name])),
+    [groups]
+  )
+
+  function deviceCoveredBy(id: string): string | null {
+    const [first, ...others] = covered.get(id) ?? []
+    if (first === undefined) return null
+    const group = groupNames.get(first) ?? first
+    return others.length > 0
+      ? t("picker.included_by_more", { group, count: others.length })
+      : t("picker.included_by", { group })
+  }
 
   if (groups.length === 0 && devices.length === 0) {
     return (
@@ -249,7 +292,7 @@ export function InventorySelectionList({
         <SelectionSection
           title={labels.groups}
           items={filteredGroups}
-          selected={selectedGroups}
+          isSelected={(id) => selectedGroups.has(id)}
           icon={Folder}
           description={(group) => group.description}
           collapsible={collapsible}
@@ -265,7 +308,8 @@ export function InventorySelectionList({
         <SelectionSection
           title={labels.devices}
           items={filteredDevices}
-          selected={selectedDevices}
+          isSelected={(id) => selectedDevices.has(id)}
+          coveredBy={deviceCoveredBy}
           icon={Computer}
           description={(device) => device.ipAddress}
           collapsible={collapsible}

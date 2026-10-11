@@ -136,5 +136,9 @@
     "no_devices": "No hay dispositivos disponibles.",
     "loading": "Cargando relaciones…",
     "load_error": "No se pudieron cargar las relaciones."
+  },
+  "picker": {
+    "included_by": "incluido por {{group}}",
+    "included_by_more": "incluido por {{group}} +{{count}}"
   }
 }

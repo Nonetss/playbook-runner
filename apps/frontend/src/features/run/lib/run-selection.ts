@@ -31,3 +31,44 @@ export function fromRunSelection(
   }
   return { groups, devices }
 }
+
+/**
+ * Devices reached through the selected groups, each mapped to the selected
+ * groups that cover it (in `groups` order, so the first one names the hint).
+ * The All group's sentinel covers every device. Relations to devices or
+ * groups that are not listed are ignored.
+ */
+export function coveredDevices(
+  selectedGroups: ReadonlySet<string>,
+  groups: readonly { id: string }[],
+  devices: readonly { id: string }[],
+  relations: readonly { deviceId: string; groupId: string }[]
+): Map<string, string[]> {
+  const covered = new Map<string, string[]>()
+  const selected = groups.filter((group) => selectedGroups.has(group.id))
+  if (selected.length === 0) return covered
+
+  const deviceIds = new Set(devices.map((device) => device.id))
+  const members = new Map<string, Set<string>>()
+  for (const { deviceId, groupId } of relations) {
+    if (!deviceIds.has(deviceId)) continue
+    let groupMembers = members.get(groupId)
+    if (!groupMembers) {
+      groupMembers = new Set()
+      members.set(groupId, groupMembers)
+    }
+    groupMembers.add(deviceId)
+  }
+
+  for (const group of selected) {
+    const groupMembers = isAllGroup(group.id)
+      ? deviceIds
+      : members.get(group.id)
+    for (const deviceId of groupMembers ?? []) {
+      const coveringGroups = covered.get(deviceId)
+      if (coveringGroups) coveringGroups.push(group.id)
+      else covered.set(deviceId, [group.id])
+    }
+  }
+  return covered
+}
