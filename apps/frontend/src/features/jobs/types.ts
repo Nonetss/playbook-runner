@@ -78,3 +78,14 @@ export type JobRollup = {
   recentSuccessRatio: number
   recentRunCount: number
 }
+
+/**
+ * A job run starting (`running`) or finishing, as `jobs.runs.watchChanges`
+ * pushes it: ids only, so views refetch what they show.
+ */
+export type JobRunChange = {
+  runId: string
+  jobId: string
+  status: "running" | "ok" | "failed"
+  trigger: "manual" | "schedule"
+}

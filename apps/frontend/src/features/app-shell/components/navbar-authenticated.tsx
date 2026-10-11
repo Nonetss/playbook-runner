@@ -28,13 +28,14 @@ import {
   type SiteNavSubItem,
   siteNavItems,
 } from "@/features/app-shell/site-nav"
+import { useJobRunChanges } from "@/features/jobs/hooks/use-job-run-changes"
 import { useCurrentPath } from "@/hooks/use-current-path"
 import { useScrolled } from "@/hooks/use-scrolled"
 import { orpc } from "@/lib/orpc"
 import { cn } from "@/lib/utils"
 
 export interface NavbarAuthenticatedProps {
-  user: User
+  user: User & { role?: string | null }
   session: Session
   nameApp: string
   currentPath: string
@@ -216,6 +217,10 @@ function NavbarAuthenticatedInner({
 }: NavbarAuthenticatedProps) {
   const currentPath = useCurrentPath(initialPath)
   const queryClient = useQueryClient()
+  // This island persists across navigations, so it holds the app's one
+  // run-change subscription that keeps every run view current. Pending
+  // accounts can't call it (FORBIDDEN).
+  useJobRunChanges({ enabled: user.role !== "pending" })
   const scrolled = useScrolled()
   const onIntent = (href: string) => () => prefetchForHref(queryClient, href)
   const [searchOpen, setSearchOpen] = useState(false)
