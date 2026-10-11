@@ -36,7 +36,8 @@ export default defineConfig({
     },
     {
       name: "chromium-auth",
-      testMatch: /(auth|surface-search|inventory-all-group)\.spec\.ts/,
+      testMatch:
+        /(auth|surface-search|inventory-all-group|inventory-picker-coverage)\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
         baseURL,
