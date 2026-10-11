@@ -100,8 +100,8 @@ export const jobsRouter = {
       })
       .input(jobRunsInput.watch)
       .output(jobRunsOutput.watch)
-      .handler(({ context, input }) =>
-        jobRunsHandler.watch({ context, input })
+      .handler(({ context, input, signal }) =>
+        jobRunsHandler.watch({ context, input, signal })
       ),
     list: protectedProcedure
       .route({

@@ -203,10 +203,12 @@ function shapeRun<
 export const jobRunsHandler = {
   watch: async ({
     input,
+    signal,
   }: {
     context: Context
     input: z.infer<typeof jobRunsInput.watch>
-  }) => watchLiveRun(input.runId),
+    signal?: AbortSignal
+  }) => watchLiveRun(input.runId, signal),
 
   list: async ({
     input,
