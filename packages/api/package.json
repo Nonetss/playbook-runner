@@ -10,6 +10,7 @@
     }
   },
   "imports": {
+    "#tests/*": "./tests/*.ts",
     "#*": "./src/*.ts"
   },
   "scripts": {

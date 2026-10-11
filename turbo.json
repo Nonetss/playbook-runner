@@ -86,6 +86,10 @@
     "test": {
       "cache": false
     },
+    "@playbook-runner/api#test": {
+      "dependsOn": ["^generate-grpc"],
+      "cache": false
+    },
     "ansible#test": {
       "dependsOn": ["generate-grpc"],
       "cache": false
