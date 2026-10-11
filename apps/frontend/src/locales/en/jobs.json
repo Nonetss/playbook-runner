@@ -203,6 +203,7 @@
     "stopped_watching": "Live watching stopped",
     "server_may_still_be_running": "The server-side run may still be active. Review it before starting another run.",
     "connection_error": "The live run connection ended",
+    "reconnecting": "Connection lost. Reconnecting to the live output…",
     "result_finished_with_status": "Run finished — status {{status}}",
     "not_found": "Job not found."
   },

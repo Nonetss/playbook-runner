@@ -283,6 +283,7 @@ function JobDetailPageInner({ id }: { id: string }) {
               phase={watch.phase}
               errorMessage={watch.errorMessage}
               onStopWatching={watch.stopWatching}
+              reconnecting={watch.reconnecting}
               variant="terminal"
               labels={{
                 connecting: t("detail.connecting"),
@@ -292,6 +293,7 @@ function JobDetailPageInner({ id }: { id: string }) {
                   "detail.server_may_still_be_running"
                 ),
                 connectionError: t("detail.connection_error"),
+                reconnecting: t("detail.reconnecting"),
               }}
             />
             {isWatchingSelected && watch.phase === "done" && watch.result ? (

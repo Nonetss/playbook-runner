@@ -15,6 +15,8 @@ export type RunStreamStatusLabels = {
   stoppedWatching: string
   serverMayStillBeRunning: string
   connectionError: string
+  /** Shown instead of `connecting` while a lost stream is being reattached. */
+  reconnecting?: string
 }
 
 /**
@@ -23,25 +25,35 @@ export type RunStreamStatusLabels = {
  * is intentionally not implied here.
  *
  * `terminal` renders inside `TerminalFrame` on terminal tokens; `default`
- * renders on the page theme (e.g. the ping dialog).
+ * renders on the page theme (e.g. the ping dialog). `reconnecting` keeps the
+ * running state but says the stream is being reattached, for callers that
+ * reattach on their own (the job run console).
  */
 export function RunStreamStatus({
   phase,
   errorMessage,
   labels,
   onStopWatching,
+  reconnecting = false,
   variant = "default",
 }: {
   phase: StreamPhase
   errorMessage?: string | null
   labels: RunStreamStatusLabels
   onStopWatching?: () => void
+  reconnecting?: boolean
   variant?: "default" | "terminal"
 }) {
+  const runningLabel =
+    reconnecting && labels.reconnecting
+      ? labels.reconnecting
+      : labels.connecting
+
   if (variant === "terminal") {
     if (phase === "running") {
       return (
         <TerminalBanner
+          tone={reconnecting ? "changed" : "muted"}
           icon={<Loader2 className="animate-spin" />}
           action={
             onStopWatching ? (
@@ -56,7 +68,7 @@ export function RunStreamStatus({
             ) : null
           }
         >
-          {labels.connecting}
+          {runningLabel}
         </TerminalBanner>
       )
     }
@@ -89,7 +101,7 @@ export function RunStreamStatus({
       >
         <span className="flex min-w-0 items-center gap-2 text-muted-foreground">
           <Loader2 className="size-3.5 shrink-0 animate-spin" />
-          <span className="truncate">{labels.connecting}</span>
+          <span className="truncate">{runningLabel}</span>
         </span>
         {onStopWatching ? (
           <Button

@@ -2,6 +2,11 @@ import { consumeEventIterator } from "@orpc/client"
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
+import {
+  isTransportError,
+  MAX_REATTACH_ATTEMPTS,
+  reattachDelay,
+} from "@/features/jobs/lib/run-watch-retry"
 import type { InventoryItem, Job, JobRunEvent } from "@/features/jobs/types"
 import { useHydratedQuery } from "@/hooks/use-hydrated-query"
 import { useOrpcMutation } from "@/hooks/use-orpc-mutation"
@@ -314,6 +319,11 @@ export type JobRunWatchResult = {
  * `phase` settles to `"idle"` (not `"done"`) if the run turns out not to
  * have been live at all (already finished, or never existed) — nothing to
  * show; the caller should rely on the polled/stored data for it instead.
+ *
+ * A watch that loses its connection (not one the API refuses) reattaches on
+ * its own with backoff while `phase` stays `"running"` and `reconnecting` is
+ * on. The new watch replays the run from its first event in the same order,
+ * so the events already shown are skipped instead of drawn twice.
  */
 export function useJobRunWatch() {
   const { t } = useTranslation("jobs")
@@ -322,11 +332,18 @@ export function useJobRunWatch() {
   const [events, setEvents] = useState<JobRunEvent[]>([])
   const [result, setResult] = useState<JobRunWatchResult | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [reconnecting, setReconnecting] = useState(false)
   const unsubscribeRef = useRef<(() => void) | null>(null)
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const generationRef = useRef(0)
 
   const detach = useCallback(() => {
     generationRef.current += 1
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current)
+      retryTimerRef.current = null
+    }
+    setReconnecting(false)
     try {
       unsubscribeRef.current?.()
     } catch {
@@ -347,16 +364,40 @@ export function useJobRunWatch() {
       setPhase("running")
 
       const generation = generationRef.current
-      unsubscribeRef.current = consumeEventIterator(
-        client.v1.jobs.runs.watch({ runId }),
-        {
+      const isCurrent = () => generation === generationRef.current
+      /** Events of this run already on screen, across reattaches. */
+      let shown = 0
+      /** Reattaches in a row that have not reached the backend yet. */
+      let attempt = 0
+
+      const attach = () => {
+        /** Events of this attach so far; the first `shown` are its replay. */
+        let received = 0
+        const watch = client.v1.jobs.runs.watch({ runId })
+        // Resolves once the backend answered, before any event: the
+        // connection is back even if the run is silent right now.
+        watch.then(
+          () => {
+            if (!isCurrent()) return
+            attempt = 0
+            setReconnecting(false)
+          },
+          () => {
+            // Handled by `onError` below.
+          }
+        )
+        unsubscribeRef.current = consumeEventIterator(watch, {
           onEvent: (event) => {
-            if (generation !== generationRef.current) return
+            if (!isCurrent()) return
+            received += 1
+            if (received <= shown) return
+            shown = received
             setEvents((prev) => [...prev, event as JobRunEvent])
           },
           onSuccess: (value) => {
-            if (generation !== generationRef.current) return
+            if (!isCurrent()) return
             unsubscribeRef.current = null
+            setReconnecting(false)
             if (value) {
               setResult(value)
               setPhase("done")
@@ -365,15 +406,27 @@ export function useJobRunWatch() {
             }
           },
           onError: (err) => {
-            if (generation !== generationRef.current) return
+            if (!isCurrent()) return
             unsubscribeRef.current = null
+            if (isTransportError(err) && attempt < MAX_REATTACH_ATTEMPTS) {
+              attempt += 1
+              setReconnecting(true)
+              retryTimerRef.current = setTimeout(() => {
+                retryTimerRef.current = null
+                if (isCurrent()) attach()
+              }, reattachDelay(attempt))
+              return
+            }
+            setReconnecting(false)
             setErrorMessage(
               err instanceof Error ? err.message : t("toast.network_error")
             )
             setPhase("error")
           },
-        }
-      )
+        })
+      }
+
+      attach()
     },
     [detach, t]
   )
@@ -401,6 +454,7 @@ export function useJobRunWatch() {
     events,
     result,
     errorMessage,
+    reconnecting,
     start,
     stopWatching,
     reset,
