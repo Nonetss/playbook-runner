@@ -133,10 +133,10 @@ function HistoryPageInner() {
   const { t: tDashboard } = useTranslation("dashboard")
 
   const [window, setWindow] = useState<JobRunMetricsWindow>("24h")
-  // `live: true` polls while the user is on the page so freshly-triggered
-  // runs and metrics surface without a manual refresh.
-  const { data: metrics } = useJobRunMetrics(window, { live: true })
-  const feed = useJobRunsAll({ live: true })
+  // Kept current by the app's run-change subscription: a run starting or
+  // finishing anywhere refreshes the feed and the metrics.
+  const { data: metrics } = useJobRunMetrics(window)
+  const feed = useJobRunsAll()
   const runs: JobRunFeedRow[] = feed.data?.pages.flatMap((p) => p.runs) ?? []
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = feed
   const hasRuns = runs.length > 0

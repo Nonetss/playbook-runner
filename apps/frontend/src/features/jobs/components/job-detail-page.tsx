@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query"
 import { getIcon } from "@/lib/icon-registry"
 
 const Clock = getIcon("scheduling", "time")
@@ -21,6 +20,7 @@ import {
   RunHostSummary,
   RunStatusTag,
 } from "@/features/jobs/components/run-widgets"
+import { useOnRunChange } from "@/features/jobs/hooks/use-job-run-changes"
 import {
   useJobGet,
   useJobRun,
@@ -28,6 +28,7 @@ import {
   useJobRunsList,
   useJobRunWatch,
 } from "@/features/jobs/hooks/use-jobs"
+import { shouldFollowNewRun } from "@/features/jobs/lib/run-change-bus"
 import type { JobRun } from "@/features/jobs/types"
 import { PlaybookRunConsole } from "@/features/run/components/playbook-run-console"
 import { RunResultBanner } from "@/features/run/components/run-result-banner"
@@ -39,7 +40,6 @@ import {
 } from "@/features/run/components/terminal-frame"
 import { useConfirm } from "@/hooks/use-confirm"
 import { formatDateTime } from "@/lib/format"
-import { orpc } from "@/lib/orpc"
 import { cn } from "@/lib/utils"
 
 function formatDuration(run: JobRun): string {
@@ -55,7 +55,6 @@ function formatDuration(run: JobRun): string {
 
 function JobDetailPageInner({ id }: { id: string }) {
   const { t, i18n } = useTranslation("jobs")
-  const queryClient = useQueryClient()
   const { data: job, isPending: jobLoading, isError } = useJobGet(id)
   const runJob = useJobRun()
   const watch = useJobRunWatch()
@@ -67,10 +66,7 @@ function JobDetailPageInner({ id }: { id: string }) {
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-  } = useJobRunsList(id, {
-    // Poll while anything is running so the status flips without a refresh.
-    live: true,
-  })
+  } = useJobRunsList(id)
   // Offset batches can overlap by a row when a new run lands between two
   // fetches; keep the first occurrence.
   const runs = useMemo(() => {
@@ -109,8 +105,8 @@ function JobDetailPageInner({ id }: { id: string }) {
   const [selectedId, setSelectedId] = useState<string | null>(initialRunId)
 
   // The selected run may not be loaded yet (a deep link to an old run
-  // beyond the first batch), or be a just-triggered run
-  // whose row has not landed in the polled list yet: fetch it on its own.
+  // beyond the first batch), or be a just-started run whose row has not
+  // landed in the refetched list yet: fetch it on its own.
   const listedRun = runs.find((r) => r.id === selectedId) ?? null
   const { data: fetchedRun, isError: selectedRunMissing } = useJobRunGet(
     selectedId,
@@ -134,33 +130,33 @@ function JobDetailPageInner({ id }: { id: string }) {
     setSelectedId(null)
   }, [selectedRunMissing, listedRun, selectedId, watch.watchingRunId])
 
-  // Whenever the currently-selected run shows as `running` in the polled
-  // list — whether it's cron-triggered, started from another tab, or just
-  // hasn't been picked up by `watch` yet — attach to its live events. This
-  // is what makes *any* in-progress run watchable, not just the one this
-  // page happened to trigger itself.
+  // Whenever the currently-selected run shows as `running` — whether it's
+  // cron-triggered, started from another tab, or just hasn't been picked up
+  // by `watch` yet — attach to its live events. This is what makes *any*
+  // in-progress run watchable, not just the one this page happened to
+  // trigger itself.
   useEffect(() => {
     if (selectedRun?.status !== "running") return
     if (watch.watchingRunId === selectedRun.id) return
     watch.start(selectedRun.id)
   }, [selectedRun?.id, selectedRun?.status, watch.watchingRunId, watch.start])
 
-  // Once a watched run settles, its row is already persisted — refresh the
-  // (already-polling) runs list so history/badges catch up immediately
-  // instead of waiting for the next 3s tick.
-  useEffect(() => {
-    if (watch.phase !== "done" && watch.phase !== "error") return
-    queryClient.invalidateQueries({
-      queryKey: orpc.jobs.runs.list.key({ input: { jobId: id } }),
-    })
-    if (watch.watchingRunId) {
-      queryClient.invalidateQueries({
-        queryKey: orpc.jobs.runs.get.queryKey({
-          input: { id: watch.watchingRunId },
-        }),
+  // A run of this job starting anywhere (schedule, another tab, this one)
+  // takes over the selection while the page shows the newest run or none, so
+  // the console follows it live; an older run picked for review stays. The
+  // app's run-change subscription has already refreshed the list.
+  useOnRunChange((change) => {
+    if (
+      shouldFollowNewRun({
+        pageJobId: id,
+        change,
+        selectedId,
+        newestRunId: runs[0]?.id ?? null,
       })
+    ) {
+      focusRun(change.runId)
     }
-  }, [watch.phase, watch.watchingRunId, queryClient, id])
+  })
 
   function focusRun(runId: string) {
     setSelectedId(runId)

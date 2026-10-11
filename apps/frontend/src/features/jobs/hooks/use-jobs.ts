@@ -1,5 +1,5 @@
 import { consumeEventIterator } from "@orpc/client"
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
@@ -30,17 +30,14 @@ const JOB_RUNS_PAGE_SIZE = 15
 
 /**
  * A job's runs, newest first, loaded in offset batches as the history panel
- * scrolls. While `live` is on, polls only as long as one of the loaded runs
- * is still `running`, so a freshly-triggered run flips to its terminal status
- * without a manual refresh — then polling stops on its own.
+ * scrolls. Never polls: the app's run-change subscription
+ * (`useJobRunChanges`) invalidates it whenever a run of this job starts or
+ * finishes, wherever it was started.
  *
  * Like `useJobRunsAll`, not hydration-gated: the island mounts via
  * `client:only`, so the first request fires post-hydration in practice.
  */
-export function useJobRunsList(
-  jobId: string,
-  options?: { enabled?: boolean; live?: boolean }
-) {
+export function useJobRunsList(jobId: string, options?: { enabled?: boolean }) {
   return useInfiniteQuery(
     orpc.jobs.runs.list.infiniteOptions({
       input: (offset: number) => ({
@@ -54,19 +51,11 @@ export function useJobRunsList(
           ? undefined
           : all.length * JOB_RUNS_PAGE_SIZE,
       enabled: !!jobId && (options?.enabled ?? true),
-      refetchInterval: options?.live
-        ? (query) =>
-            query.state.data?.pages.some((page) =>
-              page.some((run) => run.status === "running")
-            )
-              ? 3000
-              : false
-        : false,
     })
   )
 }
 
-/** Fetch a single run; polls while it is still `running`. */
+/** Fetch a single run; refreshed by the run-change subscription when it finishes. */
 export const useJobRunGet = (
   id: string | null,
   options?: { enabled?: boolean }
@@ -75,8 +64,6 @@ export const useJobRunGet = (
     orpc.jobs.runs.get.queryOptions({
       input: { id: id ?? "" },
       enabled: !!id && (options?.enabled ?? true),
-      refetchInterval: (query) =>
-        query.state.data?.status === "running" ? 3000 : false,
     })
   )
 
@@ -84,46 +71,44 @@ export const useJobRunGet = (
  * Infinite query over the cross-job run feed (`jobs.runs.listAll`). Each
  * page carries `nextCursor`; we thread it through as the TanStack
  * `pageParam` so load-more picks up exactly where the previous batch ended.
+ * Kept current by the run-change subscription instead of polling.
  *
  * Note: hydration gating for infinite queries would require a custom wrapper
  * around `useInfiniteQuery` (since `InfiniteQueryObserverResult` is a
  * discriminated union that can't be naively widened). The island mounts via
  * `client:only`, so the first request fires post-hydration in practice.
  */
-export function useJobRunsAll(options?: { pageSize?: number; live?: boolean }) {
+export function useJobRunsAll(options?: { pageSize?: number }) {
   const limit = options?.pageSize ?? 25
   return useInfiniteQuery(
     orpc.jobs.runs.listAll.infiniteOptions({
       input: (cursor) => ({ limit, cursor: cursor ?? undefined }),
       getNextPageParam: (last) => last.nextCursor ?? undefined,
       initialPageParam: undefined as string | undefined,
-      refetchInterval: options?.live ? 15_000 : false,
     })
   )
 }
 
 /**
- * Aggregate run metrics over a fixed window (24h / 7d / 30d). The aggregate
- * is cheap to recompute, so it polls on a 15s cadence when `live` is requested.
+ * Aggregate run metrics over a fixed window (24h / 7d / 30d), recomputed
+ * whenever the run-change subscription reports a run starting or finishing.
  */
-export function useJobRunMetrics(
-  window: "24h" | "7d" | "30d",
-  options?: { live?: boolean }
-) {
+export function useJobRunMetrics(window: "24h" | "7d" | "30d") {
   return useHydratedQuery(
     orpc.jobs.runs.metrics.queryOptions({
       input: { window },
-      refetchInterval: options?.live ? 15_000 : false,
     })
   )
 }
 
-/** Per-job rollups: latest status + recent success ratio (last 10 runs). */
-export function useJobRunRollups(options?: { live?: boolean }) {
+/**
+ * Per-job rollups: latest status + recent success ratio (last 10 runs),
+ * refreshed by the run-change subscription.
+ */
+export function useJobRunRollups() {
   return useHydratedQuery(
     orpc.jobs.runs.rollups.queryOptions({
       input: {},
-      refetchInterval: options?.live ? 15_000 : false,
     })
   )
 }
@@ -277,21 +262,15 @@ export const useJobToggleEnabled = () => {
 /**
  * Trigger an immediate run of a job. The backend records the run and streams
  * the playbook in the background, so this resolves quickly with the new run id;
- * the runs list (polling while `live`) then reflects progress.
+ * the run-change subscription then refreshes every view that lists it.
  */
 export const useJobRun = () => {
   const { t } = useTranslation("jobs")
-  const queryClient = useQueryClient()
   return useOrpcMutation({
     mutationFn: (input: { id: string }) =>
       orpc.jobs.run.call(input) as Promise<{ runId: string | null }>,
     success: t("toast.run_started"),
     error: t("toast.run_error"),
-    onSuccess: (_data, input) => {
-      queryClient.invalidateQueries({
-        queryKey: orpc.jobs.runs.list.key({ input: { jobId: input.id } }),
-      })
-    },
   })
 }
 
@@ -314,11 +293,11 @@ export type JobRunWatchResult = {
  * was started from another tab entirely. Replays whatever already happened
  * before subscribing, then streams the rest. `watchingRunId` lets a caller
  * check which run (if any) this hook is currently attached to, so it can
- * decide whether to (re)attach as the polled run list changes.
+ * decide whether to (re)attach as the run list changes.
  *
  * `phase` settles to `"idle"` (not `"done"`) if the run turns out not to
  * have been live at all (already finished, or never existed) — nothing to
- * show; the caller should rely on the polled/stored data for it instead.
+ * show; the caller should rely on the stored data for it instead.
  *
  * A watch that loses its connection (not one the API refuses) reattaches on
  * its own with backoff while `phase` stays `"running"` and `reconnecting` is
@@ -333,7 +312,7 @@ export function useJobRunWatch() {
   const [result, setResult] = useState<JobRunWatchResult | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [reconnecting, setReconnecting] = useState(false)
-  const unsubscribeRef = useRef<(() => void) | null>(null)
+  const unsubscribeRef = useRef<(() => Promise<void>) | null>(null)
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const generationRef = useRef(0)
 
@@ -344,13 +323,10 @@ export function useJobRunWatch() {
       retryTimerRef.current = null
     }
     setReconnecting(false)
-    try {
-      unsubscribeRef.current?.()
-    } catch {
-      // The stream is already unusable; local state must still recover.
-    } finally {
-      unsubscribeRef.current = null
-    }
+    // A stream that is already unusable rejects here; local state must
+    // still recover.
+    unsubscribeRef.current?.().catch(() => {})
+    unsubscribeRef.current = null
   }, [])
 
   const start = useCallback(

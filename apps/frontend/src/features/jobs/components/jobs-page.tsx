@@ -28,7 +28,7 @@ function JobsPageInner() {
   const { t: tCommon } = useTranslation("common")
   const query = useJobsList()
   const { data: playbooks = [] } = usePlaybooksList()
-  const { data: rollups = [] } = useJobRunRollups({ live: true })
+  const { data: rollups = [] } = useJobRunRollups()
   const deleteJob = useJobDelete()
   const toggleEnabled = useJobToggleEnabled()
   const runJob = useJobRun()

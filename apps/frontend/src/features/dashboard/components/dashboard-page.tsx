@@ -86,9 +86,9 @@ function DashboardPageInner() {
     useCredentialsList()
 
   const [runWindow, setRunWindow] = useState<JobRunMetricsWindow>("24h")
-  // Live-polled so a freshly-triggered job updates the figures without refresh.
-  const { data: metrics } = useJobRunMetrics(runWindow, { live: true })
-  const { data: activityData } = useJobRunsAll({ live: true })
+  // The app's run-change subscription refreshes these as runs start and end.
+  const { data: metrics } = useJobRunMetrics(runWindow)
+  const { data: activityData } = useJobRunsAll()
 
   const playbookNames = new Map(playbooks.map((p) => [p.id, p.name]))
   const enabledJobs = jobs.filter((j) => j.enabled).length
