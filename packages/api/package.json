@@ -24,6 +24,7 @@
     "@playbook-runner/env": "workspace:*",
     "@playbook-runner/grpc": "workspace:*",
     "@playbook-runner/logger": "workspace:*",
+    "@orpc/experimental-publisher": "catalog:",
     "@orpc/server": "catalog:",
     "drizzle-orm": "catalog:",
     "zod": "catalog:"
