@@ -52,6 +52,7 @@ function toSyncError(err: unknown, message: string) {
  * disappeared are deleted, or flagged `missing` while a job still uses them. A failed sync only records its message.
  */
 export async function syncRepository(repositoryId: string) {
+  const token = serviceToken()
   const repository = await db
     .select({
       id: playbookRepositories.id,
@@ -83,7 +84,7 @@ export async function syncRepository(repositoryId: string) {
           ? decryptSecret(repository.privateKey)
           : undefined,
       },
-      { token: serviceToken(), timeoutMs: SYNC_TIMEOUT_MS }
+      { token, timeoutMs: SYNC_TIMEOUT_MS }
     )
   } catch (err) {
     const message = isGrpcError(err)
@@ -190,13 +191,14 @@ export async function listRemoteBranches(
   url: string,
   credentialId: string | null | undefined
 ) {
+  const token = serviceToken()
   const privateKey = await credentialKey(credentialId)
   const client = getClient(RunnerServiceClient, env.ANSIBLE_GRPC_TARGET)
   try {
     const response = await unary(
       client.listBranches.bind(client),
       { url, private_key: privateKey },
-      { token: serviceToken(), timeoutMs: 30_000 }
+      { token, timeoutMs: 30_000 }
     )
     return {
       branches: response.branches,
