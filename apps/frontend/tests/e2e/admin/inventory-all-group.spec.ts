@@ -1,21 +1,8 @@
-import { expect, type Page, test } from "@playwright/test"
-import { pinLocaleTo, TEST_LOCALE, waitForHydration } from "./helpers"
-
-/** Calls a procedure as the signed-in user (cookie + oRPC CSRF header). */
-async function rpc<T>(page: Page, path: string, json: unknown = {}) {
-  const response = await page.request.post(`/rpc/v1/${path}`, {
-    headers: { "x-csrf-token": "orpc" },
-    data: { json },
-  })
-  expect(response.ok()).toBe(true)
-  return ((await response.json()) as { json: T }).json
-}
+import { expect, test } from "@test/e2e/fixtures"
+import { waitForHydration } from "@test/e2e/helpers/hydration"
+import { rpc } from "@test/e2e/helpers/rpc"
 
 test.describe("Grupo All integrado", () => {
-  test.beforeEach(async ({ context }) => {
-    await pinLocaleTo(context, TEST_LOCALE)
-  })
-
   test("aparece el primero en Grupos aunque no haya grupos creados", async ({
     page,
   }) => {
@@ -74,11 +61,11 @@ test.describe("Grupo All integrado", () => {
       // Never leave a stray group behind if the server let it through.
       const groups = await rpc<
         { id: string; name: string; createdAt: string | null }[]
-      >(page, "inventory/groups/list")
+      >(page.request, "inventory/groups/list")
       for (const group of groups) {
         const created = group.createdAt ? Date.parse(group.createdAt) : 0
         if (group.name.toLowerCase() === "all" && created >= startedAt) {
-          await rpc(page, "inventory/groups/delete", { id: group.id })
+          await rpc(page.request, "inventory/groups/delete", { id: group.id })
         }
       }
     }
@@ -105,8 +92,8 @@ test.describe("Grupo All integrado", () => {
     page,
   }) => {
     const [devices, playbooks] = await Promise.all([
-      rpc<unknown[]>(page, "inventory/devices/list"),
-      rpc<{ id: string }[]>(page, "playbooks/list"),
+      rpc<unknown[]>(page.request, "inventory/devices/list"),
+      rpc<{ id: string }[]>(page.request, "playbooks/list"),
     ])
     test.skip(
       devices.length === 0 || playbooks.length === 0,

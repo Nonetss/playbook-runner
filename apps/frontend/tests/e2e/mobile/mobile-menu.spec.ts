@@ -1,5 +1,5 @@
-import { expect, test } from "@playwright/test"
-import { waitForHydration } from "./helpers"
+import { expect, test } from "@test/e2e/fixtures"
+import { waitForHydration } from "@test/e2e/helpers/hydration"
 
 test.describe("NavbarMobileMenu", () => {
   test.use({ viewport: { width: 390, height: 844 } })

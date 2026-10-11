@@ -1,5 +1,6 @@
-import { expect, type Page, test } from "@playwright/test"
-import { pinLocaleTo, TEST_LOCALE, waitForHydration } from "./helpers"
+import type { Page } from "@playwright/test"
+import { expect, test } from "@test/e2e/fixtures"
+import { waitForHydration } from "@test/e2e/helpers/hydration"
 
 async function gotoHydrated(page: Page, path: string) {
   await page.goto(path)
@@ -22,10 +23,6 @@ function groupHeading(page: Page, heading: string) {
 }
 
 test.describe("Buscador de la navbar (escritorio)", () => {
-  test.beforeEach(async ({ context }) => {
-    await pinLocaleTo(context, TEST_LOCALE)
-  })
-
   test("las secciones van a la izquierda tras un separador", async ({
     page,
   }) => {
@@ -154,10 +151,6 @@ test.describe("Buscador de la navbar (escritorio)", () => {
 
 test.describe("Buscador de la navbar (móvil)", () => {
   test.use({ viewport: { width: 390, height: 844 } })
-
-  test.beforeEach(async ({ context }) => {
-    await pinLocaleTo(context, TEST_LOCALE)
-  })
 
   test("el botón con icono abre el diálogo", async ({ page }) => {
     await gotoHydrated(page, "/")

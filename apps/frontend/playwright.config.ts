@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test"
+import { ADMIN_STATE, USER_STATE } from "./tests/e2e/helpers/auth"
 
 const PORT = Number(process.env.PLAYWRIGHT_PORT ?? 4321)
 const baseURL = `http://localhost:${PORT}`
@@ -22,6 +23,9 @@ export default defineConfig({
     timeout: 5_000,
   },
 
+  // One project per signed-in account, matched by folder: `admin/` runs as
+  // the seeded admin, `user/` as the regular E2E user, `guest/` signed out,
+  // `mobile/` as the admin on a phone. `auth.setup.ts` writes both states.
   projects: [
     {
       name: "setup",
@@ -30,28 +34,37 @@ export default defineConfig({
     },
     {
       name: "chromium-guest",
-      testMatch: /guest\.spec\.ts/,
+      testMatch: /\/guest\/.*\.spec\.ts/,
       use: { ...devices["Desktop Chrome"], baseURL },
       dependencies: ["setup"],
     },
     {
-      name: "chromium-auth",
-      testMatch:
-        /(auth|surface-search|inventory-all-group|inventory-picker-coverage)\.spec\.ts/,
+      name: "chromium-admin",
+      testMatch: /\/admin\/.*\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
         baseURL,
-        storageState: "playwright/.auth/admin.json",
+        storageState: ADMIN_STATE,
+      },
+      dependencies: ["setup"],
+    },
+    {
+      name: "chromium-user",
+      testMatch: /\/user\/.*\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL,
+        storageState: USER_STATE,
       },
       dependencies: ["setup"],
     },
     {
       name: "chromium-mobile",
-      testMatch: /mobile-menu\.spec\.ts/,
+      testMatch: /\/mobile\/.*\.spec\.ts/,
       use: {
         ...devices["Pixel 7"],
         baseURL,
-        storageState: "playwright/.auth/admin.json",
+        storageState: ADMIN_STATE,
       },
       dependencies: ["setup"],
     },

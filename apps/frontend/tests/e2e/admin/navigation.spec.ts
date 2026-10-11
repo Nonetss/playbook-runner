@@ -1,11 +1,7 @@
-import { expect, test } from "@playwright/test"
-import { pinLocaleTo, TEST_LOCALE, waitForHydration } from "./helpers"
+import { expect, test } from "@test/e2e/fixtures"
+import { waitForHydration } from "@test/e2e/helpers/hydration"
 
 test.describe("Navbar autenticada (escritorio)", () => {
-  test.beforeEach(async ({ context }) => {
-    await pinLocaleTo(context, TEST_LOCALE)
-  })
-
   test("muestra logo y las tres secciones de navegación", async ({ page }) => {
     await page.goto("/")
     const banner = page.getByRole("banner")
@@ -131,10 +127,6 @@ test.describe("Navbar autenticada (escritorio)", () => {
 })
 
 test.describe("Dashboard autenticada", () => {
-  test.beforeEach(async ({ context }) => {
-    await pinLocaleTo(context, TEST_LOCALE)
-  })
-
   test("renderiza el saludo y la grilla de stats", async ({ page }) => {
     await page.goto("/")
     await expect(

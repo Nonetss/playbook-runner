@@ -1,16 +1,10 @@
-import { expect, test } from "@playwright/test"
-import {
-  fillSignInForm,
-  pinLocaleTo,
-  TEST_LOCALE,
-  waitForHydration,
-} from "./helpers"
+import { expect, test } from "@test/e2e/fixtures"
+import { fillSignInForm } from "@test/e2e/helpers/auth"
+import { waitForHydration } from "@test/e2e/helpers/hydration"
+import { pinLocaleTo, TEST_LOCALE } from "@test/e2e/helpers/locale"
+import { rpcStatus } from "@test/e2e/helpers/rpc"
 
 test.describe("Visitantes sin sesión", () => {
-  test.beforeEach(async ({ context }) => {
-    await pinLocaleTo(context, TEST_LOCALE)
-  })
-
   test("la raíz redirige a /login", async ({ page }) => {
     const response = await page.goto("/", { waitUntil: "domcontentloaded" })
     expect(response, "el servidor debe responder").not.toBeNull()
@@ -18,6 +12,40 @@ test.describe("Visitantes sin sesión", () => {
     await expect(
       page.locator('[data-slot="card-title"]', { hasText: /iniciar sesión/i })
     ).toBeVisible()
+  })
+
+  /** One route per protected route group: each sends a guest to /login. */
+  const PROTECTED_ROUTES = [
+    "/inventory",
+    "/inventory/devices",
+    "/inventory/groups",
+    "/inventory/credentials",
+    "/ansible",
+    "/playbooks",
+    "/playbooks/new",
+    "/jobs/scheduler",
+    "/jobs/new",
+    "/jobs/history",
+    "/bash",
+    "/scripts",
+    "/scripts/new",
+    "/commands",
+    "/config",
+    "/admin/users",
+    "/me",
+  ]
+
+  for (const path of PROTECTED_ROUTES) {
+    test(`${path} redirige a /login`, async ({ page }) => {
+      await page.goto(path)
+      await expect(page).toHaveURL(/\/login$/)
+    })
+  }
+
+  test("la API rechaza sus llamadas con 401", async ({ page }) => {
+    for (const path of ["playbooks/list", "inventory/devices/list"]) {
+      expect(await rpcStatus(page.request, path)).toBe(401)
+    }
   })
 
   test("/signup redirige a /login", async ({ page }) => {
@@ -97,10 +125,6 @@ test.describe("Formulario de login", () => {
 })
 
 test.describe("Theme toggle (visitante)", () => {
-  test.beforeEach(async ({ context }) => {
-    await pinLocaleTo(context, TEST_LOCALE)
-  })
-
   test("alterna la clase dark en <html> y persiste en localStorage", async ({
     page,
     context,
@@ -144,10 +168,6 @@ test.describe("Theme toggle (visitante)", () => {
 })
 
 test.describe("Language switcher", () => {
-  test.beforeEach(async ({ context }) => {
-    await pinLocaleTo(context, TEST_LOCALE)
-  })
-
   test("cambia el texto de la página a inglés y persiste la cookie", async ({
     page,
     context,

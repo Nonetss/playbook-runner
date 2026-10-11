@@ -1,15 +1,7 @@
-import { expect, type Page, test } from "@playwright/test"
-import { pinLocaleTo, TEST_LOCALE, waitForHydration } from "./helpers"
-
-/** Calls a procedure as the signed-in user (cookie + oRPC CSRF header). */
-async function rpc<T>(page: Page, path: string, json: unknown = {}) {
-  const response = await page.request.post(`/rpc/v1/${path}`, {
-    headers: { "x-csrf-token": "orpc" },
-    data: { json },
-  })
-  expect(response.ok()).toBe(true)
-  return ((await response.json()) as { json: T }).json
-}
+import type { Page } from "@playwright/test"
+import { expect, test } from "@test/e2e/fixtures"
+import { waitForHydration } from "@test/e2e/helpers/hydration"
+import { rpc } from "@test/e2e/helpers/rpc"
 
 type Fixtures = {
   prefix: string
@@ -22,19 +14,19 @@ type Fixtures = {
 async function createFixtures(page: Page): Promise<Fixtures> {
   const prefix = `e2e-cov-${Date.now()}`
   const group = await rpc<{ id: string; name: string }>(
-    page,
+    page.request,
     "inventory/groups/create",
     { name: `${prefix}-g` }
   )
   const devices = {} as Fixtures["devices"]
   for (const [index, key] of (["a", "b", "c"] as const).entries()) {
-    devices[key] = await rpc(page, "inventory/devices/create", {
+    devices[key] = await rpc(page.request, "inventory/devices/create", {
       name: `${prefix}-${key}`,
       ipAddress: `192.0.2.${10 + index}`,
     })
   }
   for (const device of [devices.a, devices.b]) {
-    await rpc(page, "inventory/deviceGroups/assign", {
+    await rpc(page.request, "inventory/deviceGroups/assign", {
       deviceId: device.id,
       groupId: group.id,
     })
@@ -45,9 +37,9 @@ async function createFixtures(page: Page): Promise<Fixtures> {
 async function deleteFixtures(page: Page, fixtures: Fixtures | undefined) {
   if (!fixtures) return
   for (const device of Object.values(fixtures.devices)) {
-    await rpc(page, "inventory/devices/delete", { id: device.id })
+    await rpc(page.request, "inventory/devices/delete", { id: device.id })
   }
-  await rpc(page, "inventory/groups/delete", { id: fixtures.group.id })
+  await rpc(page.request, "inventory/groups/delete", { id: fixtures.group.id })
 }
 
 function row(page: Page, name: string) {
@@ -57,8 +49,7 @@ function row(page: Page, name: string) {
 test.describe("Selector de inventario: dispositivos cubiertos por un grupo", () => {
   let fixtures: Fixtures | undefined
 
-  test.beforeEach(async ({ context, page }) => {
-    await pinLocaleTo(context, TEST_LOCALE)
+  test.beforeEach(async ({ page }) => {
     fixtures = await createFixtures(page)
   })
 
@@ -111,7 +102,10 @@ test.describe("Selector de inventario: dispositivos cubiertos por un grupo", () 
 
   test("el run de un playbook envía solo el grupo", async ({ page }) => {
     const { prefix, group, devices } = fixtures as Fixtures
-    const playbooks = await rpc<{ id: string }[]>(page, "playbooks/list")
+    const playbooks = await rpc<{ id: string }[]>(
+      page.request,
+      "playbooks/list"
+    )
     test.skip(playbooks.length === 0, "needs at least one playbook")
 
     // Abort every run call: the test only inspects the payload.
@@ -146,7 +140,7 @@ test.describe("Selector de inventario: dispositivos cubiertos por un grupo", () 
     page,
   }) => {
     const { prefix, group, devices } = fixtures as Fixtures
-    const job = await rpc<{ id: string }>(page, "jobs/create", {
+    const job = await rpc<{ id: string }>(page.request, "jobs/create", {
       name: `${prefix}-job`,
       inventoryJson: [{ id: group.id, type: "group" }],
       cronExpression: "0 0 1 1 *",
@@ -177,7 +171,7 @@ test.describe("Selector de inventario: dispositivos cubiertos por un grupo", () 
         "false"
       )
     } finally {
-      await rpc(page, "jobs/delete", { id: job.id })
+      await rpc(page.request, "jobs/delete", { id: job.id })
     }
   })
 })
