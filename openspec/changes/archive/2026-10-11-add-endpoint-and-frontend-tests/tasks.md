@@ -64,7 +64,7 @@
 - [x] 10.2 Extend `auth.setup.ts` to create the non-admin `e2e-user@playbook-runner.local` through the admin endpoint only when missing and save `playwright/.auth/user.json`; verify with `--list` and type-check
 - [x] 10.3 Admin surface specs, each seeding via `rpc` with an `e2e-` prefix and cleaning up in `afterEach`: inventory (devices, groups, credentials), playbooks + folders, scripts, commands, jobs (list, new/edit, scheduler, history), config + API keys, admin users, `/me`, dashboard; execution screens target `192.0.2.10` and assert the console reaches a terminal outcome; verify `--list` and `check-types`
 - [x] 10.4 `chromium-user` specs (admin pages refused, regular surfaces reachable) and extend `guest.spec.ts` to every protected route group; verify `--list` and `check-types`
-- [ ] 10.5 Ask the user to run `bun run test:e2e` twice against their stack (the agent never runs it unprompted) and fix what fails
+- [x] 10.5 Ask the user to run `bun run test:e2e` twice against their stack (the agent never runs it unprompted) and fix what fails
 
 ## 11. Docs and final validation
 
