@@ -1,0 +1,5 @@
+[test]
+# Unit tests only: Playwright's specs live in `tests/e2e/` and run with
+# `bun run test:e2e`.
+root = "./tests/unit"
+preload = ["./tests/unit/setup.ts"]
