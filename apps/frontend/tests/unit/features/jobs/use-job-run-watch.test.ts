@@ -1,15 +1,7 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  jest,
-  mock,
-  test,
-} from "bun:test"
+import { afterEach, beforeEach, describe, expect, jest, test } from "bun:test"
 import { ORPCError } from "@orpc/client"
+import { fakeJobRuns, resetFakeJobRuns } from "@test/unit/fixtures/orpc"
 import { act, cleanup, renderHook } from "@testing-library/react"
-import * as realOrpc from "@/lib/orpc"
 
 type WatchEnd =
   | { result: { runId: string; status: "ok" | "failed"; ok: boolean } | null }
@@ -35,13 +27,6 @@ function fakeWatch() {
   return Promise.resolve(streamOf(script.events, script.end))
 }
 
-// The hook only calls `client.v1.jobs.runs.watch`; the rest of the module
-// (`orpc`, `link`) stays real for anything else that imports it.
-mock.module("@/lib/orpc", () => ({
-  ...realOrpc,
-  client: { v1: { jobs: { runs: { watch: fakeWatch } } } },
-}))
-
 const { useJobRunWatch } = await import("@/features/jobs/hooks/use-jobs")
 
 /** Lets the stream callbacks (all promise-driven) run to completion. */
@@ -63,6 +48,8 @@ const ok = { runId: "r1", status: "ok" as const, ok: true }
 beforeEach(() => {
   scripts = []
   calls = 0
+  resetFakeJobRuns()
+  fakeJobRuns.watch.mockImplementation(fakeWatch)
   jest.useFakeTimers()
 })
 
