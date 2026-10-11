@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, test } from "bun:test"
+import { call } from "@orpc/server"
 import { IDS, jobRunRow, stepArgs } from "@playbook-runner/db/testing"
-import { userContext } from "#tests/fixtures/context"
+import { pendingContext, userContext } from "#tests/fixtures/context"
 import { fakeDb } from "#tests/fixtures/db"
 import { expectErrorCode } from "#tests/fixtures/errors"
+import { publishRunChange } from "#v1/jobs/events"
 import { jobRunsHandler } from "#v1/jobs/handler"
+import { jobsRouter } from "#v1/jobs/router"
 
 const context = userContext()
 const STARTED = new Date("2026-01-01T10:00:00.000Z")
@@ -227,5 +230,41 @@ describe("jobs.runs.rollups", () => {
         recentRunCount: 0,
       },
     ])
+  })
+})
+
+describe("jobs.runs.watchChanges", () => {
+  test("a pending account is FORBIDDEN", async () => {
+    await expectErrorCode(
+      call(jobsRouter.runs.watchChanges, undefined, {
+        context: pendingContext(),
+      }),
+      "FORBIDDEN"
+    )
+  })
+
+  test("opens with subscribed, then streams run changes", async () => {
+    const controller = new AbortController()
+    const stream = await call(jobsRouter.runs.watchChanges, undefined, {
+      context: userContext(),
+      signal: controller.signal,
+    })
+
+    expect((await stream.next()).value).toEqual({ type: "subscribed" })
+    publishRunChange({
+      runId: IDS.jobRun,
+      jobId: IDS.job,
+      status: "ok",
+      trigger: "manual",
+    })
+    expect((await stream.next()).value).toEqual({
+      type: "changed",
+      runId: IDS.jobRun,
+      jobId: IDS.job,
+      status: "ok",
+      trigger: "manual",
+    })
+    controller.abort()
+    expect((await stream.next()).done).toBe(true)
   })
 })

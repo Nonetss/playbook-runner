@@ -4,6 +4,7 @@ import { and, asc, desc, eq, lt, or, sql } from "drizzle-orm"
 import type { z } from "zod"
 import type { Context } from "#context"
 import { errors } from "#errors"
+import { followRunChanges } from "#v1/jobs/changes"
 import { startJobRun } from "#v1/jobs/executor"
 import type { jobRunsInput, jobsInput } from "#v1/jobs/input"
 import { watchLiveRun } from "#v1/jobs/live"
@@ -209,6 +210,13 @@ export const jobRunsHandler = {
     input: z.infer<typeof jobRunsInput.watch>
     signal?: AbortSignal
   }) => watchLiveRun(input.runId, signal),
+
+  watchChanges: async ({
+    signal,
+  }: {
+    context: Context
+    signal?: AbortSignal
+  }) => followRunChanges(signal),
 
   list: async ({
     input,

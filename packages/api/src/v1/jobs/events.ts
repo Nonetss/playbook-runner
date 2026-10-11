@@ -9,12 +9,25 @@ import type { RunEventRecord } from "#v1/run/proto"
 export type RunMessage = { event: RunEventRecord } | { end: LiveRunResult }
 
 /**
+ * A job run starting (`running`) or finishing (`ok`/`failed`), whatever
+ * started it: ids only, for clients to refetch what they show.
+ */
+export type RunChange = {
+  runId: string
+  jobId: string
+  status: "running" | "ok" | "failed"
+  trigger: "manual" | "schedule"
+}
+
+/**
  * Every event the jobs feature publishes: a channel per run (`run:<runId>`),
  * so a watcher only ever hears its own run and a later run of the same job
- * never reaches an old watcher.
+ * never reaches an old watcher; and one jobs-wide `run-changed` channel,
+ * since every authenticated user may see every job's runs.
  */
 type JobEvents = {
   [channel: `run:${string}`]: RunMessage
+  "run-changed": RunChange
 }
 
 type JobEventsState = {
@@ -57,6 +70,22 @@ export function publishRunMessage(runId: string, message: RunMessage): void {
  */
 export function subscribeRunMessages(runId: string, signal?: AbortSignal) {
   return state.publisher.subscribe(`run:${runId}`, {
+    signal,
+    maxBufferedEvents: Number.POSITIVE_INFINITY,
+  })
+}
+
+/** Published by the job executor when a run opens and when it finishes. */
+export function publishRunChange(change: RunChange): void {
+  void state.publisher.publish("run-changed", change)
+}
+
+/**
+ * Every run change from the moment of the call, registered synchronously and
+ * never dropped. The iterator throws the abort reason once `signal` aborts.
+ */
+export function subscribeRunChanges(signal?: AbortSignal) {
+  return state.publisher.subscribe("run-changed", {
     signal,
     maxBufferedEvents: Number.POSITIVE_INFINITY,
   })

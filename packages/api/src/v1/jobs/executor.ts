@@ -5,6 +5,7 @@ import { getClient, serverStream } from "@playbook-runner/grpc"
 import { RunnerServiceClient } from "@playbook-runner/grpc/stubs"
 import { logger } from "@playbook-runner/logger"
 import { and, eq, sql } from "drizzle-orm"
+import { publishRunChange } from "#v1/jobs/events"
 import { beginLiveRun, finishLiveRun, publishRunEvent } from "#v1/jobs/live"
 import {
   describeStreamError,
@@ -168,13 +169,19 @@ async function streamRun(
  * Stream the playbook for an already-recorded run, publishing events to the
  * live registry as they happen (so any caller — the scheduler, a "run now"
  * click, or someone attaching later via `jobs.runs.watch` — sees the same
- * run), and persist the result once it finishes.
+ * run), and persist the result once it finishes. Its start and finish are
+ * also announced on the jobs-wide `run-changed` channel, which keeps every
+ * client's run views current.
  */
 async function completeRun(
   job: typeof jobs.$inferSelect,
-  runId: string
+  runId: string,
+  trigger: "manual" | "schedule"
 ): Promise<void> {
   beginLiveRun(runId)
+  // The row is committed by now (`openRun`), so a client refetching on this
+  // finds the run, and one attaching `jobs.runs.watch` finds it live.
+  publishRunChange({ runId, jobId: job.id, status: "running", trigger })
 
   let outcome: RunOutcome
   try {
@@ -221,8 +228,10 @@ async function completeRun(
         logger.error({ runId, err: retryErr }, "failed to mark run as failed")
       )
   } finally {
-    // Always release live watchers, even when persisting failed.
+    // Always release live watchers and announce the finish, even when
+    // persisting failed.
     finishLiveRun(runId, { runId, status, ok: status === "ok" })
+    publishRunChange({ runId, jobId: job.id, status, trigger })
   }
 }
 
@@ -291,7 +300,7 @@ export async function executeJob(
     return null
   }
   if (opened.status !== "opened") return null
-  await completeRun(opened.job, opened.runId)
+  await completeRun(opened.job, opened.runId, trigger)
   return opened.runId
 }
 
@@ -312,7 +321,7 @@ export async function startJobRun(
 > {
   const opened = await openRun(jobId, trigger)
   if (opened.status !== "opened") return opened
-  void completeRun(opened.job, opened.runId).catch((err) => {
+  void completeRun(opened.job, opened.runId, trigger).catch((err) => {
     logger.error({ runId: opened.runId, err }, "run failed")
   })
   return { status: "opened", runId: opened.runId }

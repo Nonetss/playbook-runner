@@ -9,9 +9,11 @@ import {
   grpc,
   grpcError,
   resetGrpc,
+  settle,
   streamOf,
 } from "#tests/fixtures/grpc"
 import { encryptSecret } from "#v1/credentials/crypto"
+import { type RunChange, subscribeRunChanges } from "#v1/jobs/events"
 import { executeJob, startJobRun } from "#v1/jobs/executor"
 import { watchLiveRun } from "#v1/jobs/live"
 
@@ -76,6 +78,28 @@ function persisted(): Record<string, unknown> {
   if (!update) throw new Error("no update recorded")
   const [values] = stepArgs(update, "set")
   return typeof values === "object" && values !== null ? { ...values } : {}
+}
+
+/** Every run change published from now until `stop()`. */
+function recordRunChanges() {
+  const controller = new AbortController()
+  const seen: RunChange[] = []
+  const live = subscribeRunChanges(controller.signal)
+  const reading = (async () => {
+    try {
+      for await (const change of live) seen.push(change)
+    } catch {
+      // Aborted by `stop()`.
+    }
+  })()
+  return {
+    async stop() {
+      await settle()
+      controller.abort()
+      await reading
+      return seen
+    },
+  }
 }
 
 beforeEach(() => {
@@ -302,5 +326,77 @@ describe("startJobRun", () => {
     fakeDb.queue("select", [])
 
     expect(await startJobRun(IDS.job)).toEqual({ status: "not_found" })
+  })
+})
+
+describe("run changes", () => {
+  test("a scheduled run announces its start and its stored finish", async () => {
+    const runId = freshRunId()
+    const changes = recordRunChanges()
+    queueOpenedRun(runId)
+    fakeDb.queue("update", undefined)
+    grpc.serverStream.mockImplementation(() => streamOf([TASK, DONE_OK]))
+
+    await executeJob(IDS.job, "schedule")
+
+    expect(await changes.stop()).toEqual([
+      { runId, jobId: IDS.job, status: "running", trigger: "schedule" },
+      { runId, jobId: IDS.job, status: "ok", trigger: "schedule" },
+    ])
+  })
+
+  test("a manual run announces its start before it finishes in the background", async () => {
+    const runId = freshRunId()
+    const changes = recordRunChanges()
+    queueOpenedRun(runId)
+    fakeDb.queue("update", undefined)
+    const runner = controlledStream<RunBundleResponse>()
+    grpc.serverStream.mockImplementation(() => runner.stream())
+
+    await startJobRun(IDS.job, "manual")
+    await settle()
+    runner.push(
+      RunBundleResponse.fromPartial({
+        done: { status: "failed", rc: 2, ok: false },
+      })
+    )
+    runner.end()
+    const watcher = watchLiveRun(runId)
+    while (!(await watcher.next()).done) {
+      // Drain until the run is stored and released.
+    }
+
+    expect(await changes.stop()).toEqual([
+      { runId, jobId: IDS.job, status: "running", trigger: "manual" },
+      { runId, jobId: IDS.job, status: "failed", trigger: "manual" },
+    ])
+  })
+
+  test("a run whose result cannot be stored still announces failed", async () => {
+    const runId = freshRunId()
+    const changes = recordRunChanges()
+    queueOpenedRun(runId)
+    fakeDb.queueError("update", new Error("db down"))
+    fakeDb.queue("update", undefined)
+    grpc.serverStream.mockImplementation(() => streamOf([DONE_OK]))
+
+    await executeJob(IDS.job)
+
+    expect((await changes.stop()).map((c) => c.status)).toEqual([
+      "running",
+      "failed",
+    ])
+  })
+
+  test("a conflict or a missing job announces nothing", async () => {
+    const changes = recordRunChanges()
+    fakeDb.queue("execute", undefined)
+    fakeDb.queue("select", [JOB], [{ id: IDS.jobRun }])
+    await executeJob(IDS.job, "schedule")
+    fakeDb.queue("execute", undefined)
+    fakeDb.queue("select", [])
+    await startJobRun(IDS.job)
+
+    expect(await changes.stop()).toEqual([])
   })
 })

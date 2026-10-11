@@ -54,6 +54,19 @@ const jobRunWatchResult = z
   })
   .nullable()
 
+// Events of `runs.watchChanges`: `subscribed` once the stream is listening,
+// then one `changed` per job run starting (`running`) or finishing.
+const jobRunChangeEvent = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("subscribed") }),
+  z.object({
+    type: z.literal("changed"),
+    runId: z.string(),
+    jobId: z.string(),
+    status: z.enum(["running", "ok", "failed"]),
+    trigger: z.enum(["manual", "schedule"]),
+  }),
+])
+
 /**
  * One row in the global run feed. Slimmer than `jobRun` because the feed
  * never needs the captured SSE events; it omits `eventsJson` and `error`
@@ -114,6 +127,7 @@ export const jobsOutput = {
 
 export const jobRunsOutput = {
   watch: eventIterator(taskEventSchema, jobRunWatchResult),
+  watchChanges: eventIterator(jobRunChangeEvent),
   list: z.array(jobRun),
   get: jobRun,
   listAll: jobRunFeedPage,
@@ -127,3 +141,4 @@ export type JobRunFeedRow = z.infer<typeof jobRunFeedRow>
 export type JobRunFeedPage = z.infer<typeof jobRunFeedPage>
 export type JobRunMetrics = z.infer<typeof jobRunMetrics>
 export type JobRollup = z.infer<typeof jobRollup>
+export type JobRunChangeEvent = z.infer<typeof jobRunChangeEvent>

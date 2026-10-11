@@ -103,6 +103,18 @@ export const jobsRouter = {
       .handler(({ context, input, signal }) =>
         jobRunsHandler.watch({ context, input, signal })
       ),
+    watchChanges: protectedProcedure
+      .route({
+        summary: "Watch job run changes",
+        description:
+          "Streams every job run starting (`running`) or finishing (`ok`/`failed`), whatever started it — the scheduler, `run`, another user — as an event iterator: a `subscribed` event once the stream is listening, then one `changed` event (run id, job id, status, trigger) per change until the caller leaves. A finish is announced once its result is stored. Carries ids only; clients refetch what they show.",
+        tags: ["Jobs"],
+        method: "POST",
+      })
+      .output(jobRunsOutput.watchChanges)
+      .handler(({ context, signal }) =>
+        jobRunsHandler.watchChanges({ context, signal })
+      ),
     list: protectedProcedure
       .route({
         summary: "List runs for a job",
