@@ -47,9 +47,9 @@
 ## 5. Verification
 
 - [x] 5.1 Run `bunx biome ci .`, `bun run check-types` and `bun run test`; all pass
-- [ ] 5.2 Manual check with the dev stack, open in two tabs:
+- [x] 5.2 Manual check with the dev stack, open in two tabs:
   - **History page:** triggering a job from the other tab shows the run as `running` and then its terminal status within a second, with no periodic `/rpc/v1/jobs/runs/*` requests in DevTools while idle.
   - **Job detail on its latest run:** a run started from the other tab (or by a one-minute cron) becomes selected and streams live.
   - **Job detail on an older run:** the selection stays.
   - **Reconnect:** stop and start the backend container; the stream reconnects and the views refresh once.
-- [ ] 5.3 Run the job-related Playwright E2E specs (`bun run test:e2e`, with `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` set for this stack) and verify they pass, in particular "ejecutar ahora termina y aparece en el historial"
+- [x] 5.3 Run the job-related Playwright E2E specs (`bun run test:e2e`, with `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` set for this stack) and verify they pass, in particular "ejecutar ahora termina y aparece en el historial"
