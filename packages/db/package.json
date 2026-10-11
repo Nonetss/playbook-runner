@@ -5,11 +5,15 @@
     ".": {
       "default": "./src/index.ts"
     },
+    "./testing": {
+      "default": "./testing/index.ts"
+    },
     "./*": {
       "default": "./src/*.ts"
     }
   },
   "imports": {
+    "#testing/*": "./testing/*.ts",
     "#*": "./src/*.ts"
   },
   "scripts": {
