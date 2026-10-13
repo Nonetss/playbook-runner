@@ -6,7 +6,7 @@ const Folder = getIcon("resources", "folder")
 const GitBranch = getIcon("resources", "repository")
 const Search = getIcon("views", "search")
 
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import {
@@ -53,6 +53,9 @@ export function PlaybookPicker({
   const { data: repositories = [] } = useRepositoriesList()
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
+  // Radix opens the menu on pointerdown, so on a touch screen a scroll that
+  // starts on the trigger opened it. Touch opens on click (a real tap) instead.
+  const touchRef = useRef(false)
 
   const folderById = useMemo(
     () => new Map(folders.map((folder) => [folder.id, folder.name])),
@@ -124,6 +127,13 @@ export function PlaybookPicker({
           variant="outline"
           size={size === "sm" ? "sm" : "default"}
           disabled={disabled}
+          onPointerDown={(event) => {
+            touchRef.current = event.pointerType === "touch"
+            if (touchRef.current) event.preventDefault()
+          }}
+          onClick={() => {
+            if (touchRef.current) setOpen((prev) => !prev)
+          }}
           aria-label={id ? undefined : t("run.switcher.label")}
           className={cn(
             "w-full justify-between gap-2 font-normal shadow-xs",
@@ -159,7 +169,8 @@ export function PlaybookPicker({
               placeholder={t("run.switcher.search_placeholder")}
               aria-label={t("run.switcher.search_label")}
               className="h-8 border-0 bg-background pl-8 text-xs shadow-none focus-visible:ring-1"
-              autoFocus
+              // No on-screen keyboard over the list when opened by touch.
+              autoFocus={!touchRef.current}
             />
           </div>
         </div>
