@@ -51,7 +51,10 @@ export function createAuth() {
     },
     plugins: [
       admin(),
-      apiKey({ enableSessionForAPIKeys: true }),
+      apiKey({
+        enableSessionForAPIKeys: true,
+        rateLimit: { enabled: false },
+      }),
       ...(oauthPlugin ? [oauthPlugin] : []),
     ],
   })
