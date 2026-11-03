@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { cronExpression, forks } from "#v1/jobs/cron"
 import { safeExtravars } from "#v1/run/extravars"
+import { infisicalEnvironment, secretVariables } from "#v1/run/secret-variables"
 import { inventorySelection } from "#v1/run/selection"
 import { idSchema } from "#v1/schemas"
 
@@ -13,6 +14,9 @@ const job = z.object({
   forks: forks.default(1),
   cronExpression,
   enabled: z.boolean().default(true),
+  infisicalConnectionId: idSchema.nullable().optional(),
+  infisicalEnvironment: infisicalEnvironment.nullable().optional(),
+  secretVariables: secretVariables.default([]),
 })
 
 const byId = z.object({ id: idSchema })

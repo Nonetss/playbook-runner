@@ -1,5 +1,8 @@
 import { db } from "@playbook-runner/db"
+import { infisicalConnections } from "@playbook-runner/db/schema/infisical-connections"
 import { jobRuns, jobs } from "@playbook-runner/db/schema/jobs"
+import { playbooks } from "@playbook-runner/db/schema/playbooks"
+import { jobSecretVariables } from "@playbook-runner/db/schema/secret-variables"
 import { and, asc, desc, eq, lt, or, sql } from "drizzle-orm"
 import type { z } from "zod"
 import type { Context } from "#context"
@@ -8,6 +11,7 @@ import { followRunChanges } from "#v1/jobs/changes"
 import { startJobRun } from "#v1/jobs/executor"
 import type { jobRunsInput, jobsInput } from "#v1/jobs/input"
 import { watchLiveRun } from "#v1/jobs/live"
+import { toSecretVariable } from "#v1/run/secret-variables"
 
 type JobInput = z.infer<typeof jobsInput.create>
 
@@ -24,6 +28,64 @@ function toJobColumns(input: JobInput) {
     forks: input.forks,
     cronExpression: input.cronExpression ?? null,
     enabled: input.enabled,
+    infisicalConnectionId: input.infisicalConnectionId ?? null,
+    infisicalEnvironment: input.infisicalEnvironment ?? null,
+  }
+}
+
+function toJobSecretVariableRows(jobId: string, input: JobInput) {
+  return input.secretVariables.map((variable) => ({
+    jobId,
+    variableName: variable.name,
+    secretName: variable.secretName,
+    secretPath: variable.secretPath,
+  }))
+}
+
+/** A reference to a connection that does not exist is the caller's mistake. */
+async function assertConnectionExists(connectionId?: string | null) {
+  if (!connectionId) return
+  const [row] = await db
+    .select({ id: infisicalConnections.id })
+    .from(infisicalConnections)
+    .where(eq(infisicalConnections.id, connectionId))
+  if (!row) {
+    throw errors.BAD_REQUEST({ message: "Unknown Infisical connection" })
+  }
+}
+
+/**
+ * A job's own variables must be readable: through its connection and
+ * environment, or its playbook's. An extra var of the same name would silently
+ * replace the secret.
+ */
+async function assertSecretVariablesUsable(input: JobInput) {
+  if (input.secretVariables.length === 0) return
+  const collision = input.secretVariables.find(
+    (variable) => input.extravarsJson[variable.name] !== undefined
+  )
+  if (collision) {
+    throw errors.BAD_REQUEST({
+      message: `Extra var "${collision.name}" has the same name as a secret variable`,
+    })
+  }
+  if (input.infisicalConnectionId && input.infisicalEnvironment) return
+  const [playbook] = input.playbookId
+    ? await db
+        .select({
+          infisicalConnectionId: playbooks.infisicalConnectionId,
+          infisicalEnvironment: playbooks.infisicalEnvironment,
+        })
+        .from(playbooks)
+        .where(eq(playbooks.id, input.playbookId))
+    : []
+  if (
+    !(input.infisicalConnectionId ?? playbook?.infisicalConnectionId) ||
+    !(input.infisicalEnvironment ?? playbook?.infisicalEnvironment)
+  ) {
+    throw errors.BAD_REQUEST({
+      message: "Secret variables need an Infisical connection and environment",
+    })
   }
 }
 
@@ -40,7 +102,12 @@ export const jobsHandler = {
   }) => {
     const [row] = await db.select().from(jobs).where(eq(jobs.id, input.id))
     if (!row) throw errors.NOT_FOUND()
-    return row
+    const secretVariables = await db
+      .select()
+      .from(jobSecretVariables)
+      .where(eq(jobSecretVariables.jobId, row.id))
+      .orderBy(asc(jobSecretVariables.variableName))
+    return { ...row, secretVariables: secretVariables.map(toSecretVariable) }
   },
 
   create: async ({
@@ -49,9 +116,22 @@ export const jobsHandler = {
     context: Context
     input: z.infer<typeof jobsInput.create>
   }) => {
-    const [row] = await db.insert(jobs).values(toJobColumns(input)).returning()
-    if (!row) throw errors.INTERNAL_SERVER_ERROR()
-    return row
+    await assertConnectionExists(input.infisicalConnectionId)
+    await assertSecretVariablesUsable(input)
+    const row = await db.transaction(async (tx) => {
+      const [created] = await tx
+        .insert(jobs)
+        .values(toJobColumns(input))
+        .returning()
+      if (!created) throw errors.INTERNAL_SERVER_ERROR()
+      if (input.secretVariables.length > 0) {
+        await tx
+          .insert(jobSecretVariables)
+          .values(toJobSecretVariableRows(created.id, input))
+      }
+      return created
+    })
+    return { ...row, secretVariables: input.secretVariables }
   },
 
   update: async ({
@@ -61,13 +141,26 @@ export const jobsHandler = {
     input: z.infer<typeof jobsInput.update>
   }) => {
     const { id, ...rest } = input
-    const [row] = await db
-      .update(jobs)
-      .set({ ...toJobColumns(rest), updatedAt: new Date() })
-      .where(eq(jobs.id, id))
-      .returning()
-    if (!row) throw errors.NOT_FOUND()
-    return row
+    await assertConnectionExists(rest.infisicalConnectionId)
+    await assertSecretVariablesUsable(rest)
+    const row = await db.transaction(async (tx) => {
+      const [updated] = await tx
+        .update(jobs)
+        .set({ ...toJobColumns(rest), updatedAt: new Date() })
+        .where(eq(jobs.id, id))
+        .returning()
+      if (!updated) throw errors.NOT_FOUND()
+      await tx
+        .delete(jobSecretVariables)
+        .where(eq(jobSecretVariables.jobId, id))
+      if (rest.secretVariables.length > 0) {
+        await tx
+          .insert(jobSecretVariables)
+          .values(toJobSecretVariableRows(id, rest))
+      }
+      return updated
+    })
+    return { ...row, secretVariables: rest.secretVariables }
   },
 
   delete: async ({

@@ -1,5 +1,6 @@
 import { db } from "@playbook-runner/db"
 import { jobRuns, jobs } from "@playbook-runner/db/schema/jobs"
+import { jobSecretVariables } from "@playbook-runner/db/schema/secret-variables"
 import { env } from "@playbook-runner/env/server"
 import { getClient, serverStream } from "@playbook-runner/grpc"
 import { RunnerServiceClient } from "@playbook-runner/grpc/stubs"
@@ -15,6 +16,7 @@ import {
   toProtoHost,
 } from "#v1/run/proto"
 import { resolveRun } from "#v1/run/resolve"
+import { toSecretVariable } from "#v1/run/secret-variables"
 import type { RunInventorySelection } from "#v1/run/selection"
 
 type RunOutcome = {
@@ -102,7 +104,16 @@ async function streamRun(
 
   let bundle: Awaited<ReturnType<typeof resolveRun>>
   try {
-    bundle = await resolveRun(job.playbookId, inventory)
+    const secretVariables = await db
+      .select()
+      .from(jobSecretVariables)
+      .where(eq(jobSecretVariables.jobId, job.id))
+    bundle = await resolveRun(job.playbookId, inventory, {
+      infisicalConnectionId: job.infisicalConnectionId,
+      infisicalEnvironment: job.infisicalEnvironment,
+      secretVariables: secretVariables.map(toSecretVariable),
+      extravars: (job.extravarsJson ?? {}) as Record<string, string>,
+    })
   } catch (err) {
     return {
       events: [],
@@ -132,6 +143,7 @@ async function streamRun(
         hosts: bundle.hosts.map(toProtoHost),
         forks: job.forks,
         extravars: (job.extravarsJson ?? {}) as Record<string, string>,
+        secret_variables: bundle.secretVariables,
       },
       { token: env.SERVICE_TOKEN, timeoutMs: RUN_TIMEOUT_MS }
     )

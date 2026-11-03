@@ -1,6 +1,7 @@
 import { eventIterator } from "@orpc/server"
 import { z } from "zod"
 import { taskEventSchema } from "#v1/run/router"
+import { secretVariableOutput } from "#v1/run/secret-variables"
 import { inventorySelectionItem } from "#v1/run/selection"
 
 const runStatus = z.enum(["pending", "running", "ok", "failed"])
@@ -16,9 +17,14 @@ const job = z.object({
   forks: z.number().int(),
   cronExpression: z.string().nullable(),
   enabled: z.boolean(),
+  infisicalConnectionId: z.string().nullable(),
+  infisicalEnvironment: z.string().nullable(),
   createdAt: z.coerce.date().nullable(),
   updatedAt: z.coerce.date().nullable(),
 })
+
+// A job with its own secret variables, not those its playbook declares.
+const jobDetail = job.extend({ secretVariables: z.array(secretVariableOutput) })
 
 // A single execution row; this is also part of the scheduler's source-of-truth
 // for "what ran against which playbook when".
@@ -117,9 +123,9 @@ const jobRollup = z.object({
 
 export const jobsOutput = {
   list: z.array(job),
-  get: job,
-  create: job,
-  update: job,
+  get: jobDetail,
+  create: jobDetail,
+  update: jobDetail,
   delete: job,
   toggleEnabled: job,
   run: startRunResult,
@@ -136,6 +142,7 @@ export const jobRunsOutput = {
 }
 
 export type Job = z.infer<typeof job>
+export type JobDetail = z.infer<typeof jobDetail>
 export type JobRun = z.infer<typeof jobRun>
 export type JobRunFeedRow = z.infer<typeof jobRunFeedRow>
 export type JobRunFeedPage = z.infer<typeof jobRunFeedPage>

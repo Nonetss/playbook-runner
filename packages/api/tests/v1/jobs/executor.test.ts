@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, test } from "bun:test"
-import { IDS, jobRow, playbookRow, stepArgs } from "@playbook-runner/db/testing"
+import {
+  IDS,
+  jobRow,
+  jobSecretVariableRow,
+  playbookRow,
+  stepArgs,
+} from "@playbook-runner/db/testing"
 import { grpcStatus } from "@playbook-runner/grpc"
 import { RunBundleResponse } from "@playbook-runner/grpc/stubs"
 import { fakeDb } from "#tests/fixtures/db"
@@ -69,7 +75,7 @@ function queueOpenedRun(runId: string, job = JOB) {
   fakeDb.queue("execute", undefined)
   fakeDb.queue("select", [job], [])
   fakeDb.queue("insert", [{ id: runId }])
-  fakeDb.queue("select", [playbookSelection()], [HOST_ROW])
+  fakeDb.queue("select", [], [playbookSelection()], [HOST_ROW], [])
 }
 
 /** The values the run's final update persisted. */
@@ -247,6 +253,7 @@ describe("executeJob", () => {
     fakeDb.queue("insert", [{ id: freshRunId() }])
     fakeDb.queue(
       "select",
+      [],
       [
         playbookSelection({
           source: "git",
@@ -262,7 +269,8 @@ describe("executeJob", () => {
           privateKey: null,
         },
       ],
-      [HOST_ROW]
+      [HOST_ROW],
+      []
     )
     fakeDb.queue("update", undefined)
     grpc.serverStream.mockImplementation(() => streamOf([DONE_OK]))
@@ -281,6 +289,111 @@ describe("executeJob", () => {
     await executeJob(IDS.job)
 
     expect(fakeDb.calls("update")).toHaveLength(2)
+    expect(persisted()).toMatchObject({ status: "failed" })
+  })
+})
+
+describe("executeJob secret variables", () => {
+  const CONNECTION = {
+    url: "https://app.infisical.com",
+    clientId: "client-id",
+    clientSecret: encryptSecret("client-secret"),
+    projectId: "project-id",
+  }
+  const queueJob = (job: ReturnType<typeof jobRow>) => {
+    fakeDb.queue("execute", undefined)
+    fakeDb.queue("select", [job], [])
+    fakeDb.queue("insert", [{ id: freshRunId() }])
+  }
+  const WITH_CONNECTION = jobRow({
+    inventoryJson: JOB.inventoryJson,
+    infisicalConnectionId: IDS.infisicalConnection,
+    infisicalEnvironment: "prod",
+  })
+
+  test("the run receives the job's variables, connection and environment", async () => {
+    queueJob(WITH_CONNECTION)
+    fakeDb.queue(
+      "select",
+      [jobSecretVariableRow()],
+      [playbookSelection()],
+      [HOST_ROW],
+      [],
+      [CONNECTION]
+    )
+    fakeDb.queue("update", undefined)
+    grpc.serverStream.mockImplementation(() => streamOf([DONE_OK]))
+
+    await executeJob(IDS.job, "schedule")
+
+    expect(grpc.serverStream.mock.calls[0]?.[1]).toMatchObject({
+      secret_variables: {
+        auth: {
+          url: "https://app.infisical.com",
+          client_id: "client-id",
+          client_secret: "client-secret",
+        },
+        project_id: "project-id",
+        environment: "prod",
+        variables: [
+          { name: "api_token", secret_name: "API_TOKEN", secret_path: "/" },
+        ],
+      },
+    })
+  })
+
+  test("a job without variables sends none", async () => {
+    queueOpenedRun(freshRunId())
+    fakeDb.queue("update", undefined)
+    grpc.serverStream.mockImplementation(() => streamOf([DONE_OK]))
+
+    await executeJob(IDS.job, "schedule")
+
+    expect(grpc.serverStream.mock.calls[0]?.[1]).toMatchObject({
+      secret_variables: undefined,
+    })
+  })
+
+  test("a colliding extra var becomes the run's error with no gRPC call", async () => {
+    queueJob(
+      jobRow({
+        ...WITH_CONNECTION,
+        extravarsJson: { api_token: "typed" },
+      })
+    )
+    fakeDb.queue(
+      "select",
+      [jobSecretVariableRow()],
+      [playbookSelection()],
+      [HOST_ROW],
+      []
+    )
+    fakeDb.queue("update", undefined)
+
+    await executeJob(IDS.job, "schedule")
+
+    expect(grpc.serverStream).not.toHaveBeenCalled()
+    expect(persisted()).toMatchObject({
+      status: "failed",
+      error: expect.stringContaining("api_token"),
+    })
+  })
+
+  test("a connection without a project becomes the run's error", async () => {
+    queueJob(WITH_CONNECTION)
+    fakeDb.queue(
+      "select",
+      [jobSecretVariableRow()],
+      [playbookSelection()],
+      [HOST_ROW],
+      [],
+      [{ ...CONNECTION, projectId: null }]
+    )
+    fakeDb.queue("update", undefined)
+
+    await executeJob(IDS.job, "schedule")
+
+    expect(grpc.serverStream).not.toHaveBeenCalled()
     expect(persisted()).toMatchObject({ status: "failed" })
   })
 })
