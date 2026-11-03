@@ -337,6 +337,36 @@ test.describe("Playbooks: formulario", () => {
 })
 
 test.describe("Playbooks: ejecución", () => {
+  test("muestra el mensaje de una tarea correcta", async ({ page, seed }) => {
+    test.setTimeout(150_000)
+    const credential = await seed.credential()
+    const device = await seed.device({ credentialId: credential.id })
+    const playbook = await seed.playbook({
+      // Runs on the runner itself: never touches the unreachable device.
+      content:
+        "- hosts: localhost\n  gather_facts: false\n  tasks:\n    - debug:\n        msg: e2e-debug-message\n",
+    })
+
+    await page.goto(`/playbooks/${playbook.id}/run`)
+    const search = page.getByPlaceholder("Buscar…", { exact: true })
+    await waitForHydration(search)
+    await search.fill(device.name)
+    await page
+      .getByRole("button", {
+        name: new RegExp(`^${escapeRegExp(device.name)}`),
+      })
+      .click()
+    await page.getByRole("button", { name: /^Ejecutar/ }).click()
+    await page
+      .getByRole("dialog", { name: `¿Ejecutar "${playbook.name}"?` })
+      .getByRole("button", { name: "Iniciar ejecución" })
+      .click()
+
+    await expect(page.getByText("e2e-debug-message")).toBeVisible({
+      timeout: 90_000,
+    })
+  })
+
   test("ejecuta un playbook contra un dispositivo y muestra el resultado", async ({
     page,
     seed,

@@ -143,6 +143,7 @@ function parseEvents(raw: unknown[]): Parsed {
       case "runner_on_ok":
         upsertHost(host, e.changed ? "changed" : "ok", {
           rc: e.rc ?? null,
+          msg: e.msg ?? null,
           stdout: e.stdout ?? null,
           stderr: e.stderr ?? null,
         })
