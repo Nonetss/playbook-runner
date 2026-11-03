@@ -62,7 +62,6 @@
     "kind_aria": "Variable {{n}} type",
     "kind_text": "Text",
     "kind_secret": "Secret",
-    "path_aria": "Variable {{n}} secret path",
     "secret_aria": "Variable {{n}} secret",
     "secret_placeholder": "Choose a secret",
     "secret_not_listed": "{{name}} (no longer listed)",
@@ -72,20 +71,18 @@
     "incomplete": "Choose a secret for: {{names}}",
     "environment_no_project": "This connection has no project ID, so it cannot list its environments.",
     "environment_edit_connection": "Edit the connection",
-    "environment_not_listed": "Infisical did not return the environment list: type the slug."
+    "environment_not_listed": "Infisical did not return the environment list: type the slug.",
+    "section": "Infisical"
   },
   "declaration": {
     "title": "Infisical secrets",
-    "empty": "This playbook declares no secrets.",
-    "summary_one": "{{count}} variable · {{connection}} · {{environment}}",
-    "summary_other": "{{count}} variables · {{connection}} · {{environment}}",
-    "edit": "Configure",
     "description": "Declare the secrets this playbook needs and use them like any variable: {{example}}. The runner reads them before each run and they are never stored here.",
     "environment_label": "Default environment",
     "environment_hint": "Each run or job can choose another.",
     "no_connection_hint": "Without a connection, the playbook has no secrets.",
     "save": "Save secrets",
     "saved": "Secrets saved",
-    "save_error": "Could not save the secrets"
+    "save_error": "Could not save the secrets",
+    "unsaved": "You have unsaved changes."
   }
 }

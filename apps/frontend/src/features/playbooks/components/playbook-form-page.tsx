@@ -223,154 +223,160 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
         }
       />
 
-      {/* Outside the form: its dialog's submit would bubble through the portal. */}
-      {isEditing && id ? (
-        <PlaybookSecretVariablesSection playbookId={id} />
-      ) : null}
-
-      <form
-        onSubmit={handleSubmit}
-        className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-5 split:overflow-hidden"
-      >
-        <div className="grid gap-5 lg:grid-cols-3">
-          <FormField label={t("form.name_label")} htmlFor="name-field" required>
-            <Input
-              id="name-field"
-              required
-              disabled={isLocked}
-              placeholder={t("form.name_placeholder")}
-              value={values.name}
-              onChange={(e) => updateField("name", e.target.value)}
-            />
-          </FormField>
-          <FormField
-            label={t("form.description_label")}
-            htmlFor="description-field"
-          >
-            <Input
-              id="description-field"
-              disabled={isLocked}
-              placeholder={t("form.description_placeholder")}
-              value={values.description}
-              onChange={(e) => updateField("description", e.target.value)}
-            />
-          </FormField>
-          {isGit ? (
+      <div className="flex min-h-0 flex-1 flex-col gap-5 split:overflow-hidden lg:flex-row">
+        <form
+          onSubmit={handleSubmit}
+          className="grid min-h-0 min-w-0 flex-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-5 split:overflow-hidden"
+        >
+          <div className="grid gap-5 lg:grid-cols-3">
             <FormField
-              label={t("repository.source_label")}
-              htmlFor="source-field"
+              label={t("form.name_label")}
+              htmlFor="name-field"
+              required
             >
               <Input
-                id="source-field"
-                disabled
-                className="font-mono"
-                value={`${repository?.name ?? "—"} · ${playbook?.path ?? ""}`}
+                id="name-field"
+                required
+                disabled={isLocked}
+                placeholder={t("form.name_placeholder")}
+                value={values.name}
+                onChange={(e) => updateField("name", e.target.value)}
               />
             </FormField>
-          ) : (
-            <FormField label={t("form.folder_label")} htmlFor="folder-field">
-              <Select
-                value={values.folderId ?? PLAYBOOK_ROOT_FOLDER_VALUE}
-                onValueChange={(value) => {
-                  // Radix fires "" when the current value has no matching item
-                  // yet (folders still loading). The root option is the
-                  // sentinel, so "" is never a user choice: ignore it instead of
-                  // silently moving the playbook to the root.
-                  if (value === "") return
-                  setValues((current) => ({
-                    ...current,
-                    folderId: toFolderId(value),
-                  }))
-                }}
-                disabled={isSubmitting}
-              >
-                <SelectTrigger id="folder-field" className="w-full">
-                  <SelectValue placeholder={t("form.folder_placeholder")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value={PLAYBOOK_ROOT_FOLDER_VALUE}>
-                      {t("folder.root")}
-                    </SelectItem>
-                    {folders.map((folder) => (
-                      <SelectItem key={folder.id} value={folder.id}>
-                        {folder.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+            <FormField
+              label={t("form.description_label")}
+              htmlFor="description-field"
+            >
+              <Input
+                id="description-field"
+                disabled={isLocked}
+                placeholder={t("form.description_placeholder")}
+                value={values.description}
+                onChange={(e) => updateField("description", e.target.value)}
+              />
             </FormField>
-          )}
-        </div>
-
-        <div className="flex min-h-0 flex-col gap-2 split:overflow-hidden">
-          <FieldLabel htmlFor="content-field" required className="shrink-0">
-            <span id="content-field-label">{t("form.content_label")}</span>
-          </FieldLabel>
-          {isGit ? (
-            <InlineAlert
-              tone={playbook?.missing ? "destructive" : "muted"}
-              className="shrink-0 text-xs"
-            >
-              {playbook?.missing
-                ? t("repository.missing_notice")
-                : t("repository.read_only_notice", {
-                    commit: repository?.lastCommitSha?.slice(0, 7) ?? "—",
-                  })}
-            </InlineAlert>
-          ) : null}
-          <InlineAlert tone="muted" className="shrink-0 text-xs">
-            <span
-              className="[&_code]:font-mono [&_code]:text-foreground"
-              dangerouslySetInnerHTML={{
-                __html: t("form.hosts_all_warning"),
-              }}
-            />
-          </InlineAlert>
-          <div className="min-h-[60dvh] flex-1 split:min-h-0">
-            <CodeEditor
-              id="content-field"
-              ariaLabelledBy="content-field-label"
-              required
-              disabled={isLocked}
-              placeholder={t("form.content_placeholder")}
-              value={values.content}
-              language="yaml"
-              onChange={(content) => updateField("content", content)}
-              className="h-full"
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-3">
-          {error ? <InlineAlert>{error}</InlineAlert> : null}
-          <div className="flex justify-end gap-2 border-t pt-4">
-            <Button
-              asChild
-              type="button"
-              variant="outline"
-              disabled={isSubmitting}
-            >
-              <AppLink href={returnHref}>
-                {isGit ? t("form.back_to_playbooks") : t("form.cancel")}
-              </AppLink>
-            </Button>
-            {isGit ? null : (
-              <Button
-                type="submit"
-                disabled={isSubmitting || values.content.trim().length === 0}
+            {isGit ? (
+              <FormField
+                label={t("repository.source_label")}
+                htmlFor="source-field"
               >
-                {isSubmitting
-                  ? t("form.saving")
-                  : isEditing
-                    ? t("form.save_changes")
-                    : t("form.create")}
-              </Button>
+                <Input
+                  id="source-field"
+                  disabled
+                  className="font-mono"
+                  value={`${repository?.name ?? "—"} · ${playbook?.path ?? ""}`}
+                />
+              </FormField>
+            ) : (
+              <FormField label={t("form.folder_label")} htmlFor="folder-field">
+                <Select
+                  value={values.folderId ?? PLAYBOOK_ROOT_FOLDER_VALUE}
+                  onValueChange={(value) => {
+                    // Radix fires "" when the current value has no matching item
+                    // yet (folders still loading). The root option is the
+                    // sentinel, so "" is never a user choice: ignore it instead of
+                    // silently moving the playbook to the root.
+                    if (value === "") return
+                    setValues((current) => ({
+                      ...current,
+                      folderId: toFolderId(value),
+                    }))
+                  }}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger id="folder-field" className="w-full">
+                    <SelectValue placeholder={t("form.folder_placeholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value={PLAYBOOK_ROOT_FOLDER_VALUE}>
+                        {t("folder.root")}
+                      </SelectItem>
+                      {folders.map((folder) => (
+                        <SelectItem key={folder.id} value={folder.id}>
+                          {folder.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </FormField>
             )}
           </div>
-        </div>
-      </form>
+
+          <div className="flex min-h-0 flex-col gap-2 split:overflow-hidden">
+            <FieldLabel htmlFor="content-field" required className="shrink-0">
+              <span id="content-field-label">{t("form.content_label")}</span>
+            </FieldLabel>
+            {isGit ? (
+              <InlineAlert
+                tone={playbook?.missing ? "destructive" : "muted"}
+                className="shrink-0 text-xs"
+              >
+                {playbook?.missing
+                  ? t("repository.missing_notice")
+                  : t("repository.read_only_notice", {
+                      commit: repository?.lastCommitSha?.slice(0, 7) ?? "—",
+                    })}
+              </InlineAlert>
+            ) : null}
+            <InlineAlert tone="muted" className="shrink-0 text-xs">
+              <span
+                className="[&_code]:font-mono [&_code]:text-foreground"
+                dangerouslySetInnerHTML={{
+                  __html: t("form.hosts_all_warning"),
+                }}
+              />
+            </InlineAlert>
+            <div className="min-h-[60dvh] flex-1 split:min-h-0">
+              <CodeEditor
+                id="content-field"
+                ariaLabelledBy="content-field-label"
+                required
+                disabled={isLocked}
+                placeholder={t("form.content_placeholder")}
+                value={values.content}
+                language="yaml"
+                onChange={(content) => updateField("content", content)}
+                className="h-full"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            {error ? <InlineAlert>{error}</InlineAlert> : null}
+            <div className="flex justify-end gap-2 border-t pt-4">
+              <Button
+                asChild
+                type="button"
+                variant="outline"
+                disabled={isSubmitting}
+              >
+                <AppLink href={returnHref}>
+                  {isGit ? t("form.back_to_playbooks") : t("form.cancel")}
+                </AppLink>
+              </Button>
+              {isGit ? null : (
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || values.content.trim().length === 0}
+                >
+                  {isSubmitting
+                    ? t("form.saving")
+                    : isEditing
+                      ? t("form.save_changes")
+                      : t("form.create")}
+                </Button>
+              )}
+            </div>
+          </div>
+        </form>
+
+        {/* A form of its own, next to the playbook's: it saves separately. */}
+        {isEditing && id ? (
+          <PlaybookSecretVariablesSection playbookId={id} />
+        ) : null}
+      </div>
     </>
   )
 }

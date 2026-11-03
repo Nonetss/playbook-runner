@@ -62,7 +62,6 @@
     "kind_aria": "Tipo de la variable {{n}}",
     "kind_text": "Texto",
     "kind_secret": "Secreto",
-    "path_aria": "Ruta del secreto de la variable {{n}}",
     "secret_aria": "Secreto de la variable {{n}}",
     "secret_placeholder": "Elige un secreto",
     "secret_not_listed": "{{name}} (ya no aparece)",
@@ -72,20 +71,18 @@
     "incomplete": "Elige un secreto para: {{names}}",
     "environment_no_project": "Esta conexión no tiene Project ID, así que no puede listar sus entornos.",
     "environment_edit_connection": "Editar la conexión",
-    "environment_not_listed": "Infisical no ha devuelto la lista de entornos: escribe el slug."
+    "environment_not_listed": "Infisical no ha devuelto la lista de entornos: escribe el slug.",
+    "section": "Infisical"
   },
   "declaration": {
     "title": "Secretos de Infisical",
-    "empty": "Este playbook no declara secretos.",
-    "summary_one": "{{count}} variable · {{connection}} · {{environment}}",
-    "summary_other": "{{count}} variables · {{connection}} · {{environment}}",
-    "edit": "Configurar",
     "description": "Declara los secretos que necesita este playbook y úsalos como cualquier variable: {{example}}. El runner los lee antes de cada ejecución y nunca se guardan aquí.",
     "environment_label": "Entorno por defecto",
     "environment_hint": "Cada ejecución o job puede elegir otro.",
     "no_connection_hint": "Sin conexión, el playbook no tiene secretos.",
     "save": "Guardar secretos",
     "saved": "Secretos guardados",
-    "save_error": "No se pudieron guardar los secretos"
+    "save_error": "No se pudieron guardar los secretos",
+    "unsaved": "Hay cambios sin guardar."
   }
 }
