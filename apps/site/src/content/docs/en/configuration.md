@@ -50,6 +50,7 @@ Read by `compose.yml` itself.
 | `MAX_CONCURRENT_RUNS` | `8` | Ansible processes allowed at once (runs, scripts, commands). Extra requests are refused, not queued. |
 | `GRPC_SHUTDOWN_GRACE_S` | `8` | Seconds in-flight runs get to cancel when the container stops. |
 | `GIT_TIMEOUT_S` | `120` | Timeout of each Git command during a repository sync. |
+| `INFISICAL_TIMEOUT_S` | `15` | Timeout of each read from Infisical before a run or when listing secrets. |
 | `GIT_MAX_REPO_MB` | `512` | A mirror larger than this is dropped and the sync fails. |
 | `MAX_CONCURRENT_SYNCS` | `2` | Repository syncs allowed at once. |
 | `ANSIBLE_USER` | `ansible` | Fallback SSH user. Normally each host connects as its credential's user. |

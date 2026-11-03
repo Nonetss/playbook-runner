@@ -50,6 +50,7 @@ Las lee el propio `compose.yml`.
 | `MAX_CONCURRENT_RUNS` | `8` | Procesos de Ansible permitidos a la vez (ejecuciones, scripts, comandos). Las peticiones de más se rechazan, no se encolan. |
 | `GRPC_SHUTDOWN_GRACE_S` | `8` | Segundos que tienen las ejecuciones en curso para cancelarse cuando se para el contenedor. |
 | `GIT_TIMEOUT_S` | `120` | Tiempo máximo de cada comando Git durante una sincronización. |
+| `INFISICAL_TIMEOUT_S` | `15` | Tiempo máximo de cada lectura de Infisical, antes de una ejecución o al listar secretos. |
 | `GIT_MAX_REPO_MB` | `512` | Un mirror mayor que esto se descarta y la sincronización falla. |
 | `MAX_CONCURRENT_SYNCS` | `2` | Sincronizaciones de repositorios permitidas a la vez. |
 | `ANSIBLE_USER` | `ansible` | Usuario SSH de reserva. Normalmente cada host se conecta con el usuario de su credencial. |
