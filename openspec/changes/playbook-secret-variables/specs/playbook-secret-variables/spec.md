@@ -168,7 +168,7 @@ The system SHALL let any authenticated, non-pending user list a connection's env
 - **THEN** the call SHALL fail with `NOT_FOUND`
 
 ### Requirement: Operators manage secret variables from the playbook page
-The playbook edit page SHALL offer a section to choose the connection and default environment and to add, edit and remove variables, choosing each secret from the picker. Choosing a secret on an empty row SHALL suggest a variable name. A secret that is no longer listed SHALL stay visible in its row.
+The playbook edit page SHALL offer a section to choose the connection and default environment and to add, edit and remove variables, choosing each secret from the picker, which SHALL list the root path of the environment and SHALL keep the path of a variable stored with another one. Choosing a secret on an empty row SHALL suggest a variable name. A secret that is no longer listed SHALL stay visible in its row.
 
 #### Scenario: Declaring from the page
 - **WHEN** a user chooses a connection, an environment and a secret, then saves
@@ -179,7 +179,7 @@ The playbook edit page SHALL offer a section to choose the connection and defaul
 - **THEN** the content SHALL stay read-only and the secret variables section SHALL stay editable
 
 ### Requirement: Variables can be chosen from Infisical on the run page and job form
-The run page and job form SHALL offer a connection select and, once a connection is effective, an environment select. Each variable row SHALL hold either typed text, sent as an extra var, or a secret chosen from the picker, sent as a secret variable. Rows SHALL start from the playbook's declared variables, filled in and marked as coming from the playbook; those rows SHALL allow choosing another secret but not removal. The secret option SHALL be available only when a connection and an environment are effective, and without one the rows SHALL work as typed text.
+The run page and job form SHALL offer a connection select and, once a connection is effective, an environment select that SHALL start on the first listed environment when neither the run or job nor the playbook sets one. Each variable row SHALL hold either typed text, sent as an extra var, or a secret chosen from the picker, sent as a secret variable. Rows SHALL start from the playbook's declared variables, filled in and marked as coming from the playbook; those rows SHALL allow choosing another secret but not removal. The secret option SHALL be available only when a connection and an environment are effective, and without one the rows SHALL work as typed text.
 
 #### Scenario: Declared variables are filled in
 - **WHEN** a user opens the run page of a playbook declaring `db_password`

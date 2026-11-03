@@ -29,9 +29,9 @@ Una conexión que usa un job o un playbook no se puede eliminar. Quítala antes 
 
 ## Declarar los secretos de un playbook
 
-Abre la página de edición del playbook y pulsa **Configurar** en **Secretos de Infisical**. Elige la conexión y el entorno por defecto, y añade una fila por variable: la ruta del secreto, el secreto y el nombre de la variable, que se sugiere a partir del secreto. También funciona en playbooks de Git, porque la declaración se guarda aparte de su contenido de solo lectura y una sincronización nunca la cambia.
+Abre la página de edición del playbook y usa el panel **Secretos de Infisical** de la derecha, que tiene su propio botón de guardar. Elige la conexión y el entorno por defecto, y añade una fila por variable: el secreto y el nombre de la variable, que se sugiere a partir del secreto. También funciona en playbooks de Git, porque la declaración se guarda aparte de su contenido de solo lectura y una sincronización nunca la cambia.
 
-La lista solo muestra nombres. Si un secreto deja de aparecer, sigue visible en su fila para que puedas sustituirlo.
+La lista solo muestra nombres, de la raíz del entorno, así que no se pueden elegir secretos dentro de carpetas. Si un secreto deja de aparecer, sigue visible en su fila para que puedas sustituirlo.
 
 ## Ejecutar con secretos
 

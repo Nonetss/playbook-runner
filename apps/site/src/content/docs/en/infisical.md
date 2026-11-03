@@ -29,9 +29,9 @@ A connection that a job or a playbook uses cannot be deleted. Remove it from the
 
 ## Declare a playbook's secrets
 
-Open the playbook's edit page and choose **Configure** under **Infisical secrets**. Pick the connection and the default environment, then add a row per variable: the secret's path, the secret, and the variable name, which is suggested from the secret. This also works on Git playbooks, because the declaration is stored apart from their read-only content, and a sync never changes it.
+Open the playbook's edit page and use the **Infisical secrets** panel on the right, which has its own save button. Pick the connection and the default environment, then add a row per variable: the secret and the variable name, which is suggested from the secret. This also works on Git playbooks, because the declaration is stored apart from their read-only content, and a sync never changes it.
 
-The list shows names only. If a secret is no longer listed it stays visible in its row, so you can replace it.
+The list shows names only, from the root of the environment, so secrets inside folders cannot be chosen. If a secret is no longer listed it stays visible in its row, so you can replace it.
 
 ## Run with secrets
 
