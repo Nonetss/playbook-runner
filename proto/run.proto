@@ -19,6 +19,11 @@ service RunnerService {
   rpc ListBranches(ListBranchesRequest) returns (ListBranchesResponse);
   // Drop a repository's mirror cache (the repository was deleted).
   rpc DeleteRepository(DeleteRepositoryRequest) returns (DeleteRepositoryResponse);
+  // List a project's environments, to pick one in the UI. Empty when the
+  // Infisical instance does not provide them.
+  rpc ListInfisicalEnvironments(ListInfisicalEnvironmentsRequest) returns (ListInfisicalEnvironmentsResponse);
+  // List the secret names at an environment and path. Never carries values.
+  rpc ListInfisicalSecretNames(ListInfisicalSecretNamesRequest) returns (ListInfisicalSecretNamesResponse);
 }
 
 message Host {
@@ -52,11 +57,36 @@ message Script {
   string language = 3; // "bash" | "python"
 }
 
+// Universal Auth credentials the runner authenticates to Infisical with.
+message InfisicalAuth {
+  string url = 1;
+  string client_id = 2;
+  string client_secret = 3;
+}
+
+// One playbook variable and the secret that fills it.
+message SecretVariable {
+  string name = 1;
+  string secret_name = 2;
+  string secret_path = 3;
+}
+
+// What the runner fetches before starting Ansible. Only references: values
+// never cross this boundary.
+message SecretVariables {
+  InfisicalAuth auth = 1;
+  string project_id = 2;
+  string environment = 3;
+  repeated SecretVariable variables = 4;
+}
+
 message RunBundleRequest {
   Playbook playbook = 1;
   repeated Host hosts = 2;
   int32 forks = 3;
   map<string, string> extravars = 4;
+  reserved 5;
+  optional SecretVariables secret_variables = 6;
 }
 
 message RunPingRequest {
@@ -111,6 +141,31 @@ message DeleteRepositoryRequest {
 }
 
 message DeleteRepositoryResponse {}
+
+message ListInfisicalEnvironmentsRequest {
+  InfisicalAuth auth = 1;
+  string project_id = 2;
+}
+
+message InfisicalEnvironment {
+  string slug = 1;
+  string name = 2;
+}
+
+message ListInfisicalEnvironmentsResponse {
+  repeated InfisicalEnvironment environments = 1;
+}
+
+message ListInfisicalSecretNamesRequest {
+  InfisicalAuth auth = 1;
+  string project_id = 2;
+  string environment = 3;
+  string secret_path = 4;
+}
+
+message ListInfisicalSecretNamesResponse {
+  repeated string names = 1;
+}
 
 // Each RPC has its own response type because Buf requires request and response
 // messages to be used by only one RPC. Exactly one payload is set per frame,
