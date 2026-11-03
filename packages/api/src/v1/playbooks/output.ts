@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { secretVariableOutput } from "#v1/run/secret-variables"
 import { idSchema } from "#v1/schemas"
 
 const playbook = z.object({
@@ -24,10 +25,21 @@ const folder = z.object({
   updatedAt: z.coerce.date().nullable(),
 })
 
+const secretVariablesDeclaration = z.object({
+  infisicalConnectionId: idSchema.nullable(),
+  infisicalEnvironment: z.string().nullable(),
+  variables: z.array(secretVariableOutput),
+})
+
 export type Playbook = z.infer<typeof playbook>
+export type PlaybookSecretVariables = z.infer<typeof secretVariablesDeclaration>
 export type PlaybookFolder = z.infer<typeof folder>
 
 export const playbooksOutput = {
+  secretVariables: {
+    get: secretVariablesDeclaration,
+    set: secretVariablesDeclaration,
+  },
   create: playbook,
   list: z.array(playbook),
   listByFolder: z.array(playbook),

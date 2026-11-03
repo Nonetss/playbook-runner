@@ -9,6 +9,7 @@ import {
   playbookFoldersHandler,
 } from "#v1/playbooks/folders"
 import type { playbooksInput } from "#v1/playbooks/input"
+import { playbookSecretVariablesHandler } from "#v1/playbooks/secret-variables"
 
 type Input = typeof playbooksInput
 
@@ -33,6 +34,7 @@ async function assertInline(id: string) {
 
 export const playbooksHandler = {
   folders: playbookFoldersHandler,
+  secretVariables: playbookSecretVariablesHandler,
 
   create: async ({
     input,

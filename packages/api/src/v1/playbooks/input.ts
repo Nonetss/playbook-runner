@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { infisicalEnvironment, secretVariables } from "#v1/run/secret-variables"
 import { idSchema } from "#v1/schemas"
 
 /** UI sentinels / empty values that mean "no folder" (root). */
@@ -28,12 +29,32 @@ const playbook = z.object({
   folderId: folderId.optional(),
 })
 
+// Without a connection there is nothing to read from, so a declaration either
+// clears everything or names what its variables need.
+const secretVariablesDeclaration = z
+  .object({
+    id: idSchema,
+    infisicalConnectionId: idSchema.nullable(),
+    infisicalEnvironment: infisicalEnvironment.nullable(),
+    variables: secretVariables,
+  })
+  .refine(
+    (declaration) =>
+      declaration.variables.length === 0 ||
+      (declaration.infisicalConnectionId && declaration.infisicalEnvironment),
+    "Secret variables need an Infisical connection and environment"
+  )
+
 const folder = z.object({
   name: z.string().trim().min(1),
   description: z.string().optional(),
 })
 
 export const playbooksInput = {
+  secretVariables: {
+    get: byId,
+    set: secretVariablesDeclaration,
+  },
   create: playbook,
   listByFolder: z.object({ folderId }),
   get: byId,

@@ -3,13 +3,47 @@ import { playbooksHandler } from "#v1/playbooks/handler"
 import { playbooksInput } from "#v1/playbooks/input"
 import { playbooksOutput } from "#v1/playbooks/output"
 
-export type { Playbook, PlaybookFolder } from "#v1/playbooks/output"
+export type {
+  Playbook,
+  PlaybookFolder,
+  PlaybookSecretVariables,
+} from "#v1/playbooks/output"
 
 const folderNotFound = {
   BAD_REQUEST: { message: "Playbook folder not found", status: 400 },
 } as const
 
 export const playbooksRouter = {
+  secretVariables: {
+    get: protectedProcedure
+      .route({
+        summary: "Get a playbook's secret variables",
+        description:
+          "Returns the Infisical connection, default environment and variables a playbook declares. They hold only references to secrets, never values. NOT_FOUND when the playbook is missing.",
+        tags: ["Playbooks"],
+        method: "GET",
+      })
+      .input(playbooksInput.secretVariables.get)
+      .output(playbooksOutput.secretVariables.get)
+      .handler(({ context, input }) =>
+        playbooksHandler.secretVariables.get({ context, input })
+      ),
+
+    set: protectedProcedure
+      .route({
+        summary: "Replace a playbook's secret variables",
+        description:
+          "Replaces the declaration, also on Git-sourced playbooks, whose content stays read-only. A null connection clears it. BAD_REQUEST for an unknown connection, NOT_FOUND when the playbook is missing.",
+        tags: ["Playbooks"],
+        method: "PUT",
+      })
+      .input(playbooksInput.secretVariables.set)
+      .output(playbooksOutput.secretVariables.set)
+      .handler(({ context, input }) =>
+        playbooksHandler.secretVariables.set({ context, input })
+      ),
+  },
+
   folders: {
     create: protectedProcedure
       .route({
