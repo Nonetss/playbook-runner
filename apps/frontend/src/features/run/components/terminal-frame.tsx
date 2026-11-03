@@ -1,10 +1,11 @@
 import { getIcon } from "@/lib/icon-registry"
 
 const AlertTriangle = getIcon("status", "alert")
+const ChevronDown = getIcon("controls", "expand")
 const CheckCircle2 = getIcon("status", "success")
 const XCircle = getIcon("status", "error")
 
-import { type ReactNode, useEffect, useRef } from "react"
+import { type ReactNode, useEffect, useRef, useState } from "react"
 import { Text } from "@/components/shared/brand/typography"
 import { cn } from "@/lib/utils"
 
@@ -82,6 +83,52 @@ export function TerminalPanelSection({
         {aside}
       </div>
       {children}
+    </section>
+  )
+}
+
+/**
+ * A side panel block that folds. Its content stays mounted while closed, so
+ * what it holds keeps working: fields keep their state and defaults still load.
+ */
+export function TerminalPanelCollapsible({
+  label,
+  aside,
+  children,
+  className,
+}: {
+  label: ReactNode
+  /** Shown closed too, e.g. how many items the block holds. */
+  aside?: ReactNode
+  children: ReactNode
+  className?: string
+}) {
+  const [open, setOpen] = useState(true)
+  return (
+    // Only open: the header would keep its margin above the hidden content.
+    <section className={cn(open && "space-y-3", className)}>
+      <div className="flex items-center justify-between gap-2">
+        <Text as="h2" variant="label" tone="muted" className="min-w-0 flex-1">
+          <button
+            type="button"
+            aria-expanded={open}
+            onClick={() => setOpen((current) => !current)}
+            className="flex w-full items-center gap-1.5 text-left uppercase"
+          >
+            <ChevronDown
+              className={cn(
+                "size-3.5 shrink-0 transition-transform",
+                !open && "-rotate-90"
+              )}
+            />
+            {label}
+          </button>
+        </Text>
+        {aside}
+      </div>
+      <div hidden={!open} className="space-y-3">
+        {children}
+      </div>
     </section>
   )
 }

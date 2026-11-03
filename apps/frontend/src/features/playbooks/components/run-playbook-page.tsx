@@ -6,6 +6,7 @@ import type * as React from "react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
+import { Text } from "@/components/shared/brand/typography"
 import { InlineAlert } from "@/components/shared/feedback/inline-alert"
 import { StateCard } from "@/components/shared/feedback/state-card"
 import { DetailFrame } from "@/components/shared/layout/detail-frame"
@@ -24,9 +25,13 @@ import { RunButton } from "@/features/run/components/run-button"
 import { RunForksOption } from "@/features/run/components/run-options"
 import { RunResultBanner } from "@/features/run/components/run-result-banner"
 import { RunStreamStatus } from "@/features/run/components/run-stream-status"
-import { RunVariablesFields } from "@/features/run/components/run-variables-fields"
+import {
+  RunInfisicalFields,
+  RunVariableRows,
+} from "@/features/run/components/run-variables-fields"
 import {
   TerminalFrame,
+  TerminalPanelCollapsible,
   TerminalPanelSection,
 } from "@/features/run/components/terminal-frame"
 import { useRunInventorySelection } from "@/features/run/hooks/use-run-inventory-selection"
@@ -36,6 +41,7 @@ import { toRunSelection } from "@/features/run/lib/run-selection"
 import {
   type RunVariableRow,
   toRunVariables,
+  viewVariables,
 } from "@/features/run/lib/run-variables"
 import { useConfirm } from "@/hooks/use-confirm"
 
@@ -123,6 +129,12 @@ function RunPlaybookPageInner({ id }: { id: string }) {
     })
   }
 
+  const variableView = viewVariables(
+    declaredVariables?.variables ?? [],
+    variableRows
+  )
+  const variableCount = variableView.declared.length + variableView.own.length
+
   const frame = (children: React.ReactNode) => (
     <DetailFrame
       backHref="/playbooks"
@@ -201,7 +213,10 @@ function RunPlaybookPageInner({ id }: { id: string }) {
         }
         panel={
           <>
-            <TerminalPanelSection label={t("run.panel.inventory")}>
+            <TerminalPanelCollapsible
+              label={t("run.panel.inventory")}
+              aside={<PanelCount count={selectionCount} />}
+            >
               <InventorySelectionList
                 groups={groups}
                 devices={devices}
@@ -221,7 +236,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                 collapsible
                 disabled={isRunning}
               />
-            </TerminalPanelSection>
+            </TerminalPanelCollapsible>
 
             <TerminalPanelSection
               label={t("run.panel.options")}
@@ -234,8 +249,13 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                 onChange={setForks}
                 disabled={isRunning}
               />
+            </TerminalPanelSection>
 
-              <RunVariablesFields
+            <TerminalPanelCollapsible
+              label={tInfisical("variables.section")}
+              className="border-t pt-5"
+            >
+              <RunInfisicalFields
                 idPrefix="run"
                 declared={declaredVariables}
                 connectionId={infisicalConnectionId}
@@ -246,10 +266,27 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                 onRowsChange={setVariableRows}
                 disabled={isRunning}
               />
-              {variablesError ? (
-                <InlineAlert>{variablesError}</InlineAlert>
-              ) : null}
-            </TerminalPanelSection>
+            </TerminalPanelCollapsible>
+
+            <TerminalPanelCollapsible
+              label={tInfisical("variables.title")}
+              aside={<PanelCount count={variableCount} />}
+              className="border-t pt-5"
+            >
+              <RunVariableRows
+                declared={declaredVariables}
+                connectionId={infisicalConnectionId}
+                environment={infisicalEnvironment}
+                rows={variableRows}
+                onRowsChange={setVariableRows}
+                disabled={isRunning}
+              />
+            </TerminalPanelCollapsible>
+
+            {/* Outside the block: a folded one must not hide why a run stopped. */}
+            {variablesError ? (
+              <InlineAlert>{variablesError}</InlineAlert>
+            ) : null}
           </>
         }
         panelFooter={
@@ -287,4 +324,12 @@ export function RunPlaybookPage({ id }: { id?: string }) {
       <RunPlaybookPageInner id={id} />
     </AppProviders>
   )
+}
+
+function PanelCount({ count }: { count: number }) {
+  return count > 0 ? (
+    <Text variant="data" tone="muted">
+      {count}
+    </Text>
+  ) : null
 }
