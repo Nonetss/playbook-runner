@@ -320,14 +320,6 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
                     })}
               </InlineAlert>
             ) : null}
-            <InlineAlert tone="muted" className="shrink-0 text-xs">
-              <span
-                className="[&_code]:font-mono [&_code]:text-foreground"
-                dangerouslySetInnerHTML={{
-                  __html: t("form.hosts_all_warning"),
-                }}
-              />
-            </InlineAlert>
             <div className="min-h-[60dvh] flex-1 split:min-h-0">
               <CodeEditor
                 id="content-field"

@@ -32,7 +32,6 @@
     "folder_placeholder": "Selecciona una carpeta",
     "content_label": "Contenido",
     "content_placeholder": "---\n- name: Deploy web\n  hosts: all\n  tasks:\n    - name: Install nginx\n      apt:\n        name: nginx\n        state: present",
-    "hosts_all_warning": "Usa siempre <code>hosts: all</code> en tus plays. Los hosts contra los que se ejecuta se eligen al lanzar el run; el inventario se expone bajo el grupo <code>all</code>, así que cualquier otro patrón (p. ej. <code>docker_hosts</code>) no encontrará hosts y la play se saltará.",
     "cancel": "Cancelar",
     "save_changes": "Guardar cambios",
     "create": "Crear playbook",

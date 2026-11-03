@@ -342,9 +342,10 @@ test.describe("Playbooks: ejecución", () => {
     const credential = await seed.credential()
     const device = await seed.device({ credentialId: credential.id })
     const playbook = await seed.playbook({
-      // Runs on the runner itself: never touches the unreachable device.
+      // A pattern matching nothing still runs on the selection, and debug never
+      // connects to the unreachable device.
       content:
-        "- hosts: localhost\n  gather_facts: false\n  tasks:\n    - debug:\n        msg: e2e-debug-message\n",
+        "- hosts: docker_hosts\n  gather_facts: false\n  tasks:\n    - debug:\n        msg: e2e-debug-message\n",
     })
 
     await page.goto(`/playbooks/${playbook.id}/run`)
