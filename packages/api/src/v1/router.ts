@@ -3,6 +3,7 @@ import { apiKeysRouter } from "#v1/api-key/router"
 import { authConfigRouter } from "#v1/auth-config/router"
 import { credentialsRouter } from "#v1/credentials/router"
 import { healthRouter } from "#v1/health/router"
+import { infisicalConnectionsRouter } from "#v1/infisical-connections/router"
 import { inventoryRouter } from "#v1/inventory/router"
 import { jobsRouter } from "#v1/jobs/router"
 import { playbooksRouter } from "#v1/playbooks/router"
@@ -15,6 +16,7 @@ export const appRouter = {
   apiKeys: apiKeysRouter,
   authConfig: authConfigRouter,
   credentials: credentialsRouter,
+  infisicalConnections: infisicalConnectionsRouter,
   inventory: inventoryRouter,
   jobs: jobsRouter,
   playbooks: playbooksRouter,
