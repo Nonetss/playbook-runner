@@ -14,7 +14,12 @@ type ConnectionRow = { id: string; name: string }
 async function mockInfisicalListings(page: Page) {
   await page.route("**/rpc/v1/infisicalConnections/environments", (route) =>
     route.fulfill({
-      json: { json: [{ slug: "dev", name: "Development" }] },
+      json: {
+        json: [
+          { slug: "dev", name: "Development" },
+          { slug: "prod", name: "Production" },
+        ],
+      },
     })
   )
   await page.route("**/rpc/v1/infisicalConnections/secretNames", (route) =>
@@ -186,24 +191,28 @@ test.describe("Conexiones de Infisical", () => {
     const playbook = await seed.playbook()
 
     await page.goto(`/playbooks/${playbook.id}/edit`)
-    const configure = page.getByRole("button", { name: "Configurar" })
-    await waitForHydration(configure)
-    await configure.click()
-
-    const dialog = page.getByRole("dialog", { name: "Secretos de Infisical" })
-    await dialog.getByLabel("Conexión de Infisical").click()
+    const panel = page.getByRole("complementary", {
+      name: "Secretos de Infisical",
+    })
+    const select = panel.getByLabel("Conexión de Infisical")
+    await waitForHydration(select)
+    await expect(
+      panel.getByRole("button", { name: "Guardar secretos" })
+    ).toBeDisabled()
+    await select.click()
     await page.getByRole("option", { name: connection.name }).click()
-    await dialog.getByLabel("Entorno por defecto").click()
-    await page.getByRole("option", { name: "Development" }).click()
-    await dialog.getByRole("button", { name: "Añadir variable" }).click()
-    await dialog.getByLabel("Secreto de la variable 1", { exact: true }).click()
+    await expect(panel.getByLabel("Entorno por defecto")).toContainText(
+      "Development"
+    )
+    await panel.getByRole("button", { name: "Añadir variable" }).click()
+    await panel.getByLabel("Secreto de la variable 1", { exact: true }).click()
     await page.getByRole("option", { name: "DB_PASS" }).click()
 
-    await expect(dialog.getByLabel("Nombre de la variable 1")).toHaveValue(
+    await expect(panel.getByLabel("Nombre de la variable 1")).toHaveValue(
       "db_pass"
     )
-    await dialog.getByRole("button", { name: "Guardar secretos" }).click()
-    await expect(dialog).toHaveCount(0)
+    await panel.getByRole("button", { name: "Guardar secretos" }).click()
+    await expect(page.getByText("Secretos guardados")).toBeVisible()
 
     const saved = await rpc(request, "playbooks/secretVariables/get", {
       id: playbook.id,
@@ -231,15 +240,12 @@ test.describe("Conexiones de Infisical", () => {
     })
 
     await page.goto(`/playbooks/${playbook.id}/edit`)
-    const configure = page.getByRole("button", { name: "Configurar" })
-    await waitForHydration(configure)
-    await configure.click()
+    const secret = page
+      .getByRole("complementary", { name: "Secretos de Infisical" })
+      .getByLabel("Secreto de la variable 1", { exact: true })
+    await waitForHydration(secret)
 
-    await expect(
-      page
-        .getByRole("dialog")
-        .getByLabel("Secreto de la variable 1", { exact: true })
-    ).toContainText("GONE (ya no aparece)")
+    await expect(secret).toContainText("GONE (ya no aparece)")
   })
 
   test("al ejecutar, las variables del playbook salen rellenas y no se quitan", async ({
@@ -273,6 +279,37 @@ test.describe("Conexiones de Infisical", () => {
     await expect(
       page.getByRole("button", { name: "Eliminar variable" })
     ).toHaveCount(0)
+  })
+
+  test("cada bloque del panel se pliega sin perder lo que contiene", async ({
+    page,
+    seed,
+  }) => {
+    const playbook = await seed.playbook()
+
+    await page.goto(`/playbooks/${playbook.id}/run`)
+    const add = page.getByRole("button", { name: "Añadir variable" })
+    await waitForHydration(add)
+    await add.click()
+    await page.getByLabel("Nombre de la variable 1").fill("debug")
+
+    const variables = page.getByRole("button", {
+      name: "Variables",
+      exact: true,
+    })
+    await variables.click()
+    await expect(variables).toHaveAttribute("aria-expanded", "false")
+    await expect(add).toBeHidden()
+    await variables.click()
+    await expect(page.getByLabel("Nombre de la variable 1")).toHaveValue(
+      "debug"
+    )
+
+    await page.getByRole("button", { name: "Infisical", exact: true }).click()
+    await expect(page.getByLabel("Conexión de Infisical")).toBeHidden()
+
+    await page.getByRole("button", { name: "INVENTARIO", exact: true }).click()
+    await expect(page.getByPlaceholder("Buscar…", { exact: true })).toBeHidden()
   })
 
   test("sin conexión solo se ofrecen valores escritos", async ({
@@ -352,8 +389,9 @@ test.describe("Conexiones de Infisical", () => {
     await waitForHydration(select)
     await select.click()
     await page.getByRole("option", { name: connection.name }).click()
-    await page.getByLabel("Entorno de Infisical").click()
-    await page.getByRole("option", { name: "Development" }).click()
+    await expect(page.getByLabel("Entorno de Infisical")).toContainText(
+      "Development"
+    )
 
     const add = page.getByRole("button", { name: "Añadir variable" })
     await add.click()
