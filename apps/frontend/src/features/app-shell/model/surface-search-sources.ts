@@ -115,4 +115,20 @@ export const surfaceSearchSources: SurfaceSearchSource[] = [
         ],
       }),
   }),
+  defineSearchSource({
+    surface: "infisical",
+    headingKey: "search.groups.infisical",
+    // Connections have no page of their own: the list opens their edit form.
+    href: (id) => `/ansible/infisical?edit=${segment(id)}`,
+    queryOptions: ({ enabled }) =>
+      orpc.infisicalConnections.list.queryOptions({
+        enabled,
+        select: (rows) =>
+          rows.map((row) => ({
+            id: row.id,
+            label: row.name,
+            description: row.url,
+          })),
+      }),
+  }),
 ]

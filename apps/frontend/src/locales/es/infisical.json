@@ -1,0 +1,91 @@
+{
+  "page": {
+    "title": "Infisical",
+    "create": "Nueva conexión"
+  },
+  "notice": {
+    "title": "Trata estas credenciales con cuidado",
+    "body": "Solo se enmascaran los valores literales: usa no_log: true en las tareas que transformen o impriman secretos, porque su salida se guarda en el historial. Quien edite o ejecute un playbook puede leer los secretos que permita su conexión, así que da a cada identidad el mínimo acceso en Infisical."
+  },
+  "empty": {
+    "title": "Sin conexiones",
+    "description": "Añade una conexión para declarar secretos en tus playbooks."
+  },
+  "card": {
+    "client_id": "Client ID",
+    "created_label": "Creada",
+    "project_id": "Project ID",
+    "project_missing": "Falta: edita la conexión"
+  },
+  "form": {
+    "create_title": "Nueva conexión",
+    "edit_title": "Editar conexión",
+    "description": "Credenciales Universal Auth de una identidad de máquina de Infisical.",
+    "name_label": "Nombre",
+    "url_label": "URL de Infisical",
+    "client_id_label": "Client ID",
+    "client_secret_label": "Client Secret",
+    "client_secret_keep_hint": "Déjalo vacío para conservar el actual.",
+    "create": "Crear conexión",
+    "save_changes": "Guardar cambios",
+    "saving": "Guardando…",
+    "cancel": "Cancelar",
+    "save_error": "No se pudo guardar la conexión",
+    "project_id_label": "Project ID",
+    "project_id_hint": "Una conexión lee de un solo proyecto. Está en Project Settings, en Infisical."
+  },
+  "select": {
+    "none": "Sin conexión"
+  },
+  "toast": {
+    "created": "Conexión creada",
+    "create_error": "No se pudo crear la conexión",
+    "updated": "Conexión actualizada",
+    "update_error": "No se pudo actualizar la conexión",
+    "deleted": "Conexión eliminada",
+    "delete_error": "No se pudo eliminar la conexión. Comprueba que ningún job ni playbook la use."
+  },
+  "delete": {
+    "confirm_title": "Eliminar \"{{label}}\"",
+    "confirm_description": "Esta acción no se puede deshacer."
+  },
+  "variables": {
+    "title": "Variables",
+    "add": "Añadir variable",
+    "connection_label": "Conexión de Infisical",
+    "environment_label": "Entorno de Infisical",
+    "environment_placeholder": "Elige un entorno",
+    "name_placeholder": "VARIABLE",
+    "value_placeholder": "valor",
+    "name_aria": "Nombre de la variable {{n}}",
+    "value_aria": "Valor de la variable {{n}}",
+    "kind_aria": "Tipo de la variable {{n}}",
+    "kind_text": "Texto",
+    "kind_secret": "Secreto",
+    "path_aria": "Ruta del secreto de la variable {{n}}",
+    "secret_aria": "Secreto de la variable {{n}}",
+    "secret_placeholder": "Elige un secreto",
+    "secret_not_listed": "{{name}} (ya no aparece)",
+    "list_error": "No se pudieron listar los secretos: {{message}}",
+    "remove_aria": "Eliminar variable",
+    "from_playbook": "del playbook",
+    "incomplete": "Elige un secreto para: {{names}}",
+    "environment_no_project": "Esta conexión no tiene Project ID, así que no puede listar sus entornos.",
+    "environment_edit_connection": "Editar la conexión",
+    "environment_not_listed": "Infisical no ha devuelto la lista de entornos: escribe el slug."
+  },
+  "declaration": {
+    "title": "Secretos de Infisical",
+    "empty": "Este playbook no declara secretos.",
+    "summary_one": "{{count}} variable · {{connection}} · {{environment}}",
+    "summary_other": "{{count}} variables · {{connection}} · {{environment}}",
+    "edit": "Configurar",
+    "description": "Declara los secretos que necesita este playbook y úsalos como cualquier variable: {{example}}. El runner los lee antes de cada ejecución y nunca se guardan aquí.",
+    "environment_label": "Entorno por defecto",
+    "environment_hint": "Cada ejecución o job puede elegir otro.",
+    "no_connection_hint": "Sin conexión, el playbook no tiene secretos.",
+    "save": "Guardar secretos",
+    "saved": "Secretos guardados",
+    "save_error": "No se pudieron guardar los secretos"
+  }
+}

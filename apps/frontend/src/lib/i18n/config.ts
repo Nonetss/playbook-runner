@@ -18,6 +18,7 @@ export const NAMESPACES = [
   "scripts",
   "inventory",
   "credentials",
+  "infisical",
   "commands",
   "config",
   "dashboard",

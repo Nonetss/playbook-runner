@@ -15,6 +15,7 @@ import enCommon from "@/locales/en/common.json"
 import enConfig from "@/locales/en/config.json"
 import enCredentials from "@/locales/en/credentials.json"
 import enDashboard from "@/locales/en/dashboard.json"
+import enInfisical from "@/locales/en/infisical.json"
 import enInventory from "@/locales/en/inventory.json"
 import enJobs from "@/locales/en/jobs.json"
 import enNav from "@/locales/en/nav.json"
@@ -27,6 +28,7 @@ import esCommon from "@/locales/es/common.json"
 import esConfig from "@/locales/es/config.json"
 import esCredentials from "@/locales/es/credentials.json"
 import esDashboard from "@/locales/es/dashboard.json"
+import esInfisical from "@/locales/es/infisical.json"
 import esInventory from "@/locales/es/inventory.json"
 import esJobs from "@/locales/es/jobs.json"
 import esNav from "@/locales/es/nav.json"
@@ -44,6 +46,7 @@ const resources = {
     scripts: enScripts,
     inventory: enInventory,
     credentials: enCredentials,
+    infisical: enInfisical,
     commands: enCommands,
     config: enConfig,
     dashboard: enDashboard,
@@ -58,6 +61,7 @@ const resources = {
     scripts: esScripts,
     inventory: esInventory,
     credentials: esCredentials,
+    infisical: esInfisical,
     commands: esCommands,
     config: esConfig,
     dashboard: esDashboard,

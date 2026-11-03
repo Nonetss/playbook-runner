@@ -63,6 +63,12 @@ export const appSurfaces = {
     descriptionKey: "descriptions.playbooks",
     icon: getIcon("resources", "book"),
   },
+  infisical: {
+    href: "/ansible/infisical",
+    titleKey: "links.infisical",
+    descriptionKey: "descriptions.infisical",
+    icon: getIcon("resources", "vault"),
+  },
   scripts: {
     href: "/scripts",
     titleKey: "links.scripts",
@@ -112,7 +118,7 @@ export type SurfaceId = keyof typeof appSurfaces
 /** Navigation sections: each renders the persistent section sidebar. */
 export const appSections = {
   inventory: ["devices", "groups", "credentials"],
-  ansible: ["playbooks", "scheduler", "history"],
+  ansible: ["playbooks", "scheduler", "history", "infisical"],
   bash: ["scripts", "commands"],
 } as const satisfies Record<string, readonly SurfaceId[]>
 

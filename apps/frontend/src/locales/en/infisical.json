@@ -1,0 +1,91 @@
+{
+  "page": {
+    "title": "Infisical",
+    "create": "New connection"
+  },
+  "notice": {
+    "title": "Handle these credentials with care",
+    "body": "Only literal values are masked: use no_log: true on tasks that transform or print secrets, because their output is kept in the history. Anyone who edits or runs a playbook can read the secrets its connection allows, so give each identity least-privilege access in Infisical."
+  },
+  "empty": {
+    "title": "No connections",
+    "description": "Add a connection to declare secrets in your playbooks."
+  },
+  "card": {
+    "client_id": "Client ID",
+    "created_label": "Created",
+    "project_id": "Project ID",
+    "project_missing": "Missing: edit the connection"
+  },
+  "form": {
+    "create_title": "New connection",
+    "edit_title": "Edit connection",
+    "description": "Universal Auth credentials of an Infisical machine identity.",
+    "name_label": "Name",
+    "url_label": "Infisical URL",
+    "client_id_label": "Client ID",
+    "client_secret_label": "Client Secret",
+    "client_secret_keep_hint": "Leave empty to keep the current one.",
+    "create": "Create connection",
+    "save_changes": "Save changes",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "save_error": "Could not save the connection",
+    "project_id_label": "Project ID",
+    "project_id_hint": "A connection reads from one project. Find it in Project Settings in Infisical."
+  },
+  "select": {
+    "none": "No connection"
+  },
+  "toast": {
+    "created": "Connection created",
+    "create_error": "Could not create the connection",
+    "updated": "Connection updated",
+    "update_error": "Could not update the connection",
+    "deleted": "Connection deleted",
+    "delete_error": "Could not delete the connection. Check that no job or playbook uses it."
+  },
+  "delete": {
+    "confirm_title": "Delete \"{{label}}\"",
+    "confirm_description": "This action cannot be undone."
+  },
+  "variables": {
+    "title": "Variables",
+    "add": "Add variable",
+    "connection_label": "Infisical connection",
+    "environment_label": "Infisical environment",
+    "environment_placeholder": "Choose an environment",
+    "name_placeholder": "VARIABLE",
+    "value_placeholder": "value",
+    "name_aria": "Variable {{n}} name",
+    "value_aria": "Variable {{n}} value",
+    "kind_aria": "Variable {{n}} type",
+    "kind_text": "Text",
+    "kind_secret": "Secret",
+    "path_aria": "Variable {{n}} secret path",
+    "secret_aria": "Variable {{n}} secret",
+    "secret_placeholder": "Choose a secret",
+    "secret_not_listed": "{{name}} (no longer listed)",
+    "list_error": "Could not list the secrets: {{message}}",
+    "remove_aria": "Remove variable",
+    "from_playbook": "from the playbook",
+    "incomplete": "Choose a secret for: {{names}}",
+    "environment_no_project": "This connection has no project ID, so it cannot list its environments.",
+    "environment_edit_connection": "Edit the connection",
+    "environment_not_listed": "Infisical did not return the environment list: type the slug."
+  },
+  "declaration": {
+    "title": "Infisical secrets",
+    "empty": "This playbook declares no secrets.",
+    "summary_one": "{{count}} variable · {{connection}} · {{environment}}",
+    "summary_other": "{{count}} variables · {{connection}} · {{environment}}",
+    "edit": "Configure",
+    "description": "Declare the secrets this playbook needs and use them like any variable: {{example}}. The runner reads them before each run and they are never stored here.",
+    "environment_label": "Default environment",
+    "environment_hint": "Each run or job can choose another.",
+    "no_connection_hint": "Without a connection, the playbook has no secrets.",
+    "save": "Save secrets",
+    "saved": "Secrets saved",
+    "save_error": "Could not save the secrets"
+  }
+}

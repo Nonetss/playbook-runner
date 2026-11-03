@@ -1,0 +1,12 @@
+---
+import { InfisicalConnectionsPage } from "@/features/infisical"
+import WithSidebar from "@/layouts/WithSidebar.astro"
+import { getServerT } from "@/lib/i18n/server"
+
+const { locale } = Astro.locals
+const t = await getServerT(locale, "infisical")
+---
+
+<WithSidebar title={t("page.title")} scrollToTop>
+  <InfisicalConnectionsPage client:only="react" />
+</WithSidebar>

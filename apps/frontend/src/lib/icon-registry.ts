@@ -66,6 +66,7 @@ const identityIcons = {
 
 const resourceIcons = {
   apiKey: Lucide.KeyRound,
+  vault: Lucide.Vault,
   briefcase: Lucide.BriefcaseBusiness,
   book: Lucide.BookText,
   clipboard: Lucide.ClipboardList,

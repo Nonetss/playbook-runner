@@ -10,6 +10,7 @@
     "commands": "Commands",
     "scheduler": "Scheduler",
     "history": "History",
+    "infisical": "Infisical",
     "config": "API keys",
     "me": "My profile",
     "admin_users": "Users",
@@ -26,6 +27,7 @@
     "commands": "Run one-off remote commands.",
     "scheduler": "Create and manage recurring automations.",
     "history": "Review past runs and their outcomes.",
+    "infisical": "Connect playbooks to secrets stored in Infisical.",
     "home": "Your automation at a glance.",
     "config": "API keys for programmatic access.",
     "admin_users": "Manage accounts and their roles.",
@@ -61,7 +63,8 @@
       "playbooks": "Playbooks",
       "scripts": "Scripts",
       "jobs": "Scheduled jobs",
-      "groups": "Inventory groups"
+      "groups": "Inventory groups",
+      "infisical": "Infisical connections"
     }
   }
 }
