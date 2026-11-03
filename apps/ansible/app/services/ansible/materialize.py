@@ -29,6 +29,7 @@ import yaml
 
 from app.core.config import settings
 from app.services.ansible.models import GitPlaybookSource, ResolvedRunBundle
+from app.services.ansible.play_targets import retarget_playbook
 from app.services.ansible.runner import HostVars, Inventory
 from app.services.git.mirror import GitError, export_tree, safe_repo_path
 
@@ -250,6 +251,7 @@ def materialize(
             )
             playbook_path.write_text(bundle.playbook.content, encoding="utf-8")
             envvars = {}
+        retarget_playbook(playbook_path, project_dir)
         secret_vars_path = (
             _write_secret_vars(run_dir, secret_values) if secret_values else None
         )
