@@ -36,6 +36,8 @@ Abre **Ansible → Playbooks** y crea un playbook. Este comprueba que SSH y Pyth
       ansible.builtin.ping:
 ```
 
+Una play siempre se ejecuta en los dispositivos que selecciones para la ejecución: Playbook Runner ignora lo que diga `hosts`, incluido `localhost`. Para ejecutar una tarea en el runner, usa `delegate_to: localhost`.
+
 Guárdalo y pulsa **Ejecutar**. Elige el dispositivo (o un grupo), revisa el paso de confirmación y lanza la ejecución. Las líneas `PLAY`, `TASK` y el resumen final llegan a la consola a medida que Ansible las emite. Si cierras la pestaña, la ejecución se cancela en el ejecutor.
 
 La primera vez que Playbook Runner se conecta a un host guarda su clave SSH, y la rechaza si cambia más adelante. Consulta `SSH_HOST_KEY_POLICY` en [Configuración](../configuration/) para cambiar ese comportamiento.

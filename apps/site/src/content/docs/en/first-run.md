@@ -36,6 +36,8 @@ Open **Ansible → Playbooks** and create a playbook. This one checks that SSH a
       ansible.builtin.ping:
 ```
 
+A play always runs on the devices you select for the run: Playbook Runner ignores whatever `hosts` says, including `localhost`. To run a task on the runner, use `delegate_to: localhost`.
+
 Save it and press **Run**. Pick the device (or a group), review the confirmation step and start the run. The `PLAY`, `TASK` and recap lines stream into the console as Ansible emits them. Closing the tab cancels the run on the executor.
 
 The first time Playbook Runner connects to a host it records the host's SSH key and rejects it if it changes later. See `SSH_HOST_KEY_POLICY` in [Configuration](../configuration/) to change that.
