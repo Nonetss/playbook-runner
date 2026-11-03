@@ -76,6 +76,9 @@ describe("job inventory", () => {
       forks: 1,
       cronExpression: null,
       enabled: true,
+      infisicalConnectionId: null,
+      infisicalEnvironment: null,
+      secretVariables: [],
       createdAt: null,
       updatedAt: null,
     })

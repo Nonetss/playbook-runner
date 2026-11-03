@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { forks } from "#v1/jobs/cron"
 import { safeExtravars } from "#v1/run/extravars"
+import { infisicalEnvironment, secretVariables } from "#v1/run/secret-variables"
 import { inventorySelection } from "#v1/run/selection"
 import { idSchema } from "#v1/schemas"
 
@@ -12,6 +13,9 @@ export const runInput = {
     inventory: z.array(inventorySelection),
     forks: forks.default(1),
     extravars: safeExtravars.default({}),
+    infisicalConnectionId: idSchema.optional(),
+    infisicalEnvironment: infisicalEnvironment.optional(),
+    secretVariables: secretVariables.default([]),
   }),
 
   command: z.object({

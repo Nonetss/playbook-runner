@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, test } from "bun:test"
-import { IDS, playbookRow, scriptRow } from "@playbook-runner/db/testing"
+import {
+  IDS,
+  playbookRow,
+  playbookSecretVariableRow,
+  scriptRow,
+  stepArgs,
+} from "@playbook-runner/db/testing"
 import { fakeDb } from "#tests/fixtures/db"
 import { encryptSecret } from "#v1/credentials/crypto"
 import {
@@ -43,9 +49,28 @@ function hostRow(
 
 /** The playbook columns `resolveRun` selects. */
 function playbookSelection(overrides: Parameters<typeof playbookRow>[0] = {}) {
-  const { id, name, content, source, path, missing, repositoryId } =
-    playbookRow(overrides)
-  return { id, name, content, source, path, missing, repositoryId }
+  const {
+    id,
+    name,
+    content,
+    source,
+    path,
+    missing,
+    repositoryId,
+    infisicalConnectionId,
+    infisicalEnvironment,
+  } = playbookRow(overrides)
+  return {
+    id,
+    name,
+    content,
+    source,
+    path,
+    missing,
+    repositoryId,
+    infisicalConnectionId,
+    infisicalEnvironment,
+  }
 }
 
 /** What a rejected promise rejected with. */
@@ -170,6 +195,209 @@ describe("resolveDevice", () => {
   })
 })
 
+/** Whether a drizzle condition holds `needle` among its bound values. */
+function mentions(
+  value: unknown,
+  needle: string,
+  seen = new Set<unknown>()
+): boolean {
+  if (value === needle) return true
+  if (typeof value !== "object" || value === null || seen.has(value)) {
+    return false
+  }
+  seen.add(value)
+  return Object.values(value).some((item) => mentions(item, needle, seen))
+}
+
+describe("resolveRun secret variables", () => {
+  const CONNECTION = {
+    url: "https://app.infisical.com",
+    clientId: "client-id",
+    clientSecret: encryptSecret("client-secret"),
+    projectId: "project-id",
+  }
+  const DECLARED = playbookSecretVariableRow()
+  const DECLARED_REF = {
+    name: "db_password",
+    secret_name: "DB_PASSWORD",
+    secret_path: "/",
+  }
+  const API_TOKEN = {
+    name: "api_token",
+    secretName: "API_TOKEN",
+    secretPath: "/app",
+  }
+  const WITH_DECLARATION = {
+    infisicalConnectionId: IDS.infisicalConnection,
+    infisicalEnvironment: "dev",
+  }
+
+  test("none declared and none chosen means no lookup at all", async () => {
+    fakeDb.queue("select", [playbookSelection()], [hostRow()], [])
+
+    const bundle = await resolveRun(IDS.playbook, DEVICE)
+
+    expect(bundle.secretVariables).toBeUndefined()
+    expect(fakeDb.calls("select")).toHaveLength(3)
+  })
+
+  test("declared variables use the playbook's connection and environment", async () => {
+    fakeDb.queue(
+      "select",
+      [playbookSelection(WITH_DECLARATION)],
+      [hostRow()],
+      [DECLARED],
+      [CONNECTION]
+    )
+
+    const bundle = await resolveRun(IDS.playbook, DEVICE)
+
+    expect(bundle.secretVariables).toEqual({
+      auth: {
+        url: "https://app.infisical.com",
+        client_id: "client-id",
+        client_secret: "client-secret",
+      },
+      project_id: "project-id",
+      environment: "dev",
+      variables: [DECLARED_REF],
+    })
+  })
+
+  test("the run's connection and environment win over the playbook's", async () => {
+    fakeDb.queue(
+      "select",
+      [playbookSelection(WITH_DECLARATION)],
+      [hostRow()],
+      [DECLARED],
+      [CONNECTION]
+    )
+    const other = "00000000-0000-4000-8000-0000000000e1"
+
+    const bundle = await resolveRun(IDS.playbook, DEVICE, {
+      infisicalConnectionId: other,
+      infisicalEnvironment: "prod",
+    })
+
+    expect(bundle.secretVariables?.environment).toBe("prod")
+    const connectionSelect = fakeDb.calls("select")[3]
+    if (!connectionSelect) throw new Error("no connection lookup")
+    expect(mentions(stepArgs(connectionSelect, "where"), other)).toBe(true)
+    expect(
+      mentions(stepArgs(connectionSelect, "where"), IDS.infisicalConnection)
+    ).toBe(false)
+  })
+
+  test("a run adds variables and replaces declared ones by name", async () => {
+    fakeDb.queue(
+      "select",
+      [playbookSelection(WITH_DECLARATION)],
+      [hostRow()],
+      [DECLARED],
+      [CONNECTION]
+    )
+
+    const bundle = await resolveRun(IDS.playbook, DEVICE, {
+      secretVariables: [
+        API_TOKEN,
+        { name: "db_password", secretName: "OTHER", secretPath: "/" },
+      ],
+    })
+
+    expect(bundle.secretVariables?.variables).toEqual([
+      { name: "db_password", secret_name: "OTHER", secret_path: "/" },
+      { name: "api_token", secret_name: "API_TOKEN", secret_path: "/app" },
+    ])
+  })
+
+  test("a run's own variables work on a playbook declaring nothing", async () => {
+    fakeDb.queue("select", [playbookSelection()], [hostRow()], [], [CONNECTION])
+
+    const bundle = await resolveRun(IDS.playbook, DEVICE, {
+      infisicalConnectionId: IDS.infisicalConnection,
+      infisicalEnvironment: "dev",
+      secretVariables: [API_TOKEN],
+    })
+
+    expect(bundle.secretVariables?.variables).toHaveLength(1)
+  })
+
+  test("a chosen connection without variables is checked but sends nothing", async () => {
+    fakeDb.queue("select", [playbookSelection()], [hostRow()], [], [CONNECTION])
+
+    const bundle = await resolveRun(IDS.playbook, DEVICE, {
+      infisicalConnectionId: IDS.infisicalConnection,
+    })
+
+    expect(bundle.secretVariables).toBeUndefined()
+  })
+
+  test("an unknown connection is not found", async () => {
+    fakeDb.queue("select", [playbookSelection()], [hostRow()], [], [])
+
+    expect(
+      await rejection(
+        resolveRun(IDS.playbook, DEVICE, {
+          infisicalConnectionId: IDS.infisicalConnection,
+        })
+      )
+    ).toBeInstanceOf(ResolveRunNotFoundError)
+  })
+
+  test("variables without a connection are invalid", async () => {
+    fakeDb.queue("select", [playbookSelection()], [hostRow()], [])
+
+    expect(
+      await rejection(
+        resolveRun(IDS.playbook, DEVICE, { secretVariables: [API_TOKEN] })
+      )
+    ).toBeInstanceOf(ResolveRunValidationError)
+  })
+
+  test("variables without an environment are invalid", async () => {
+    fakeDb.queue("select", [playbookSelection()], [hostRow()], [], [CONNECTION])
+
+    expect(
+      await rejection(
+        resolveRun(IDS.playbook, DEVICE, {
+          infisicalConnectionId: IDS.infisicalConnection,
+          secretVariables: [API_TOKEN],
+        })
+      )
+    ).toBeInstanceOf(ResolveRunValidationError)
+  })
+
+  test("a connection without a project fails its precondition", async () => {
+    fakeDb.queue(
+      "select",
+      [playbookSelection(WITH_DECLARATION)],
+      [hostRow()],
+      [DECLARED],
+      [{ ...CONNECTION, projectId: null }]
+    )
+
+    expect(await rejection(resolveRun(IDS.playbook, DEVICE))).toBeInstanceOf(
+      ResolveRunPreconditionError
+    )
+  })
+
+  test("an extra var colliding with a variable is refused, naming it", async () => {
+    fakeDb.queue(
+      "select",
+      [playbookSelection(WITH_DECLARATION)],
+      [hostRow()],
+      [DECLARED]
+    )
+
+    const error = await rejection(
+      resolveRun(IDS.playbook, DEVICE, { extravars: { db_password: "typed" } })
+    )
+
+    expect(error).toBeInstanceOf(ResolveRunValidationError)
+    expect(String(error)).toContain("db_password")
+  })
+})
+
 describe("resolveScript", () => {
   test("bundles the script with its hosts", async () => {
     const { id, name, content, language } = scriptRow({ language: "python" })
@@ -193,7 +421,7 @@ describe("resolveScript", () => {
 
 describe("resolveRun", () => {
   test("an inline playbook runs its stored content", async () => {
-    fakeDb.queue("select", [playbookSelection()], [hostRow()])
+    fakeDb.queue("select", [playbookSelection()], [hostRow()], [])
 
     const bundle = await resolveRun(IDS.playbook, DEVICE)
 
@@ -231,7 +459,8 @@ describe("resolveRun", () => {
           privateKey: encryptSecret(KEY),
         },
       ],
-      [hostRow()]
+      [hostRow()],
+      []
     )
 
     const bundle = await resolveRun(IDS.playbook, DEVICE)

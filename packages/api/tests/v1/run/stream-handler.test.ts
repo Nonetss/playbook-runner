@@ -59,7 +59,8 @@ const resolves = {
     fakeDb.queue(
       "select",
       [{ id, name, content, source, path, missing, repositoryId }],
-      [HOST_ROW]
+      [HOST_ROW],
+      []
     )
   },
   command: () => fakeDb.queue("select", [HOST_ROW]),
@@ -80,6 +81,7 @@ const opens = {
         inventory: DEVICE,
         forks: 1,
         extravars: {},
+        secretVariables: [],
       },
     }),
   command: () =>
@@ -250,6 +252,149 @@ describe("run resolution errors", () => {
     )
 
     await expectErrorCode(opens.run().next(), "PRECONDITION_FAILED")
+  })
+})
+
+describe("run.run secret variables", () => {
+  const INPUT = {
+    playbookId: IDS.playbook,
+    inventory: DEVICE,
+    forks: 1,
+    extravars: {},
+    secretVariables: [],
+  }
+  const WITH_VARIABLE = {
+    ...INPUT,
+    infisicalConnectionId: IDS.infisicalConnection,
+    infisicalEnvironment: "prod",
+    secretVariables: [
+      { name: "api_token", secretName: "API_TOKEN", secretPath: "/" },
+    ],
+  }
+  const queueResolved = (...rest: unknown[][]) => {
+    const { id, name, content, source, path, missing, repositoryId } =
+      playbookRow()
+    fakeDb.queue(
+      "select",
+      [{ id, name, content, source, path, missing, repositoryId }],
+      [HOST_ROW],
+      ...rest
+    )
+  }
+
+  test("the gRPC request carries references and credentials, no values", async () => {
+    queueResolved(
+      [],
+      [
+        {
+          url: "https://app.infisical.com",
+          clientId: "client-id",
+          clientSecret: encryptSecret("client-secret"),
+          projectId: "project-id",
+        },
+      ]
+    )
+    grpc.serverStream.mockImplementation(() => streamOf([DONE]))
+
+    await drain(streamHandler.run({ context, input: WITH_VARIABLE }))
+
+    expect(grpc.serverStream.mock.calls[0]?.[1]).toMatchObject({
+      secret_variables: {
+        auth: {
+          url: "https://app.infisical.com",
+          client_id: "client-id",
+          client_secret: "client-secret",
+        },
+        project_id: "project-id",
+        environment: "prod",
+        variables: [
+          { name: "api_token", secret_name: "API_TOKEN", secret_path: "/" },
+        ],
+      },
+    })
+  })
+
+  test("without variables the request carries none", async () => {
+    resolves.run()
+    grpc.serverStream.mockImplementation(() => streamOf([DONE]))
+
+    await drain(streamHandler.run({ context, input: INPUT }))
+
+    expect(grpc.serverStream.mock.calls[0]?.[1]).toMatchObject({
+      secret_variables: undefined,
+    })
+  })
+
+  test("an unknown connection is NOT_FOUND and starts no run", async () => {
+    queueResolved([], [])
+
+    await expectErrorCode(
+      streamHandler.run({ context, input: WITH_VARIABLE }).next(),
+      "NOT_FOUND"
+    )
+    expect(grpc.serverStream).not.toHaveBeenCalled()
+  })
+
+  test("an extra var collision is BAD_REQUEST and starts no run", async () => {
+    queueResolved([])
+
+    await expectErrorCode(
+      streamHandler
+        .run({
+          context,
+          input: { ...WITH_VARIABLE, extravars: { api_token: "typed" } },
+        })
+        .next(),
+      "BAD_REQUEST"
+    )
+    expect(grpc.serverStream).not.toHaveBeenCalled()
+  })
+
+  test("variables with nothing to read from are BAD_REQUEST", async () => {
+    queueResolved([])
+
+    await expectErrorCode(
+      streamHandler
+        .run({
+          context,
+          input: { ...INPUT, secretVariables: WITH_VARIABLE.secretVariables },
+        })
+        .next(),
+      "BAD_REQUEST"
+    )
+    expect(grpc.serverStream).not.toHaveBeenCalled()
+  })
+
+  test("a connection without a project is PRECONDITION_FAILED", async () => {
+    queueResolved(
+      [],
+      [
+        {
+          url: "https://app.infisical.com",
+          clientId: "client-id",
+          clientSecret: encryptSecret("client-secret"),
+          projectId: null,
+        },
+      ]
+    )
+
+    await expectErrorCode(
+      streamHandler.run({ context, input: WITH_VARIABLE }).next(),
+      "PRECONDITION_FAILED"
+    )
+    expect(grpc.serverStream).not.toHaveBeenCalled()
+  })
+
+  test("an invalid environment is BAD_REQUEST before anything runs", async () => {
+    await expectErrorCode(
+      call(
+        runRouter.run,
+        { ...WITH_VARIABLE, infisicalEnvironment: "dev;prod" },
+        { context }
+      ),
+      "BAD_REQUEST"
+    )
+    expect(fakeDb.calls()).toEqual([])
   })
 })
 

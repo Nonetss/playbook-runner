@@ -1,5 +1,6 @@
 import { db } from "@playbook-runner/db"
 import { credentials } from "@playbook-runner/db/schema/credentials"
+import { infisicalConnections } from "@playbook-runner/db/schema/infisical-connections"
 import {
   inventoryDeviceGroups,
   inventoryDevices,
@@ -7,8 +8,14 @@ import {
 import { playbookRepositories } from "@playbook-runner/db/schema/playbook-repositories"
 import { playbooks } from "@playbook-runner/db/schema/playbooks"
 import { scripts } from "@playbook-runner/db/schema/scripts"
+import { playbookSecretVariables } from "@playbook-runner/db/schema/secret-variables"
 import { eq, inArray } from "drizzle-orm"
 import { decryptSecret } from "#v1/credentials/crypto"
+import {
+  mergeSecretVariables,
+  type SecretVariable,
+  toSecretVariable,
+} from "#v1/run/secret-variables"
 import { type RunInventorySelection, splitSelection } from "#v1/run/selection"
 
 export type ResolvedRunHost = {
@@ -28,9 +35,31 @@ export type ResolvedGitSource = {
   private_key?: string
 }
 
+export type ResolvedInfisicalAuth = {
+  url: string
+  client_id: string
+  client_secret: string
+}
+
+export type ResolvedSecretVariables = {
+  auth: ResolvedInfisicalAuth
+  project_id: string
+  environment: string
+  variables: { name: string; secret_name: string; secret_path: string }[]
+}
+
+/** What a run or job sets on top of its playbook's declaration. */
+export type RunSecretOptions = {
+  infisicalConnectionId?: string | null
+  infisicalEnvironment?: string | null
+  secretVariables?: SecretVariable[]
+  extravars?: Record<string, string>
+}
+
 export type ResolvedRunBundle = {
   playbook: { name: string; content: string; git?: ResolvedGitSource }
   hosts: ResolvedRunHost[]
+  secretVariables?: ResolvedSecretVariables
   /** Commit a Git-sourced playbook runs at; undefined for inline playbooks. */
   commitSha?: string
 }
@@ -55,7 +84,8 @@ function cidrToAddress(value: string): string {
 
 export async function resolveRun(
   playbookId: string,
-  inventory: RunInventorySelection[]
+  inventory: RunInventorySelection[],
+  options: RunSecretOptions = {}
 ): Promise<ResolvedRunBundle> {
   const playbook = await db
     .select({
@@ -66,6 +96,8 @@ export async function resolveRun(
       path: playbooks.path,
       missing: playbooks.missing,
       repositoryId: playbooks.repositoryId,
+      infisicalConnectionId: playbooks.infisicalConnectionId,
+      infisicalEnvironment: playbooks.infisicalEnvironment,
     })
     .from(playbooks)
     .where(eq(playbooks.id, playbookId))
@@ -80,10 +112,116 @@ export async function resolveRun(
 
   const hosts = await resolveHosts(inventory)
 
+  const secretVariables = await resolveSecretVariables(playbook, options)
+
   return {
     playbook: { name: playbook.name, content: playbook.content, git },
     hosts,
+    secretVariables,
     commitSha: git?.commit,
+  }
+}
+
+/**
+ * The playbook's secret variables plus the run's, read through one connection
+ * and one environment: the run's when it sets them, else the playbook's. A
+ * connection the run names must exist even when there is nothing to read.
+ */
+async function resolveSecretVariables(
+  playbook: {
+    id: string
+    infisicalConnectionId: string | null
+    infisicalEnvironment: string | null
+  },
+  options: RunSecretOptions
+): Promise<ResolvedSecretVariables | undefined> {
+  const declared = await db
+    .select()
+    .from(playbookSecretVariables)
+    .where(eq(playbookSecretVariables.playbookId, playbook.id))
+  const variables = mergeSecretVariables(
+    declared.map(toSecretVariable),
+    options.secretVariables
+  )
+  if (variables.length === 0 && !options.infisicalConnectionId) return undefined
+
+  // An extra var outranks the variables file in Ansible, so it would silently
+  // replace the secret.
+  const collision = variables.find(
+    (variable) => options.extravars?.[variable.name] !== undefined
+  )
+  if (collision) {
+    throw new ResolveRunValidationError(
+      `Extra var "${collision.name}" has the same name as a secret variable`
+    )
+  }
+
+  const connectionId =
+    options.infisicalConnectionId ?? playbook.infisicalConnectionId
+  if (!connectionId) {
+    throw new ResolveRunValidationError(
+      "Secret variables need an Infisical connection"
+    )
+  }
+  const { auth, projectId } = await resolveInfisicalConnection(connectionId)
+  if (variables.length === 0) return undefined
+
+  const environment =
+    options.infisicalEnvironment ?? playbook.infisicalEnvironment
+  if (!environment) {
+    throw new ResolveRunValidationError(
+      "Secret variables need an Infisical environment"
+    )
+  }
+  if (!projectId) {
+    throw new ResolveRunPreconditionError(
+      "The Infisical connection has no project id"
+    )
+  }
+
+  return {
+    auth,
+    project_id: projectId,
+    environment,
+    variables: variables.map((variable) => ({
+      name: variable.name,
+      secret_name: variable.secretName,
+      secret_path: variable.secretPath,
+    })),
+  }
+}
+
+/**
+ * The client secret is only decrypted here, like host keys, for a run or to
+ * list what a connection can see.
+ */
+export async function resolveInfisicalConnection(
+  connectionId: string
+): Promise<{ auth: ResolvedInfisicalAuth; projectId: string | null }> {
+  const connection = await db
+    .select({
+      url: infisicalConnections.url,
+      clientId: infisicalConnections.clientId,
+      clientSecret: infisicalConnections.clientSecret,
+      projectId: infisicalConnections.projectId,
+    })
+    .from(infisicalConnections)
+    .where(eq(infisicalConnections.id, connectionId))
+    .then((rows) => rows[0] ?? null)
+
+  if (!connection) {
+    throw new ResolveRunNotFoundError(
+      `Infisical connection ${connectionId} not found`
+    )
+  }
+
+  return {
+    auth: {
+      url: connection.url,
+      client_id: connection.clientId,
+      client_secret: decryptSecret(connection.clientSecret),
+    },
+    projectId: connection.projectId,
   }
 }
 

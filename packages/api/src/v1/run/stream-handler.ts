@@ -124,7 +124,7 @@ export const streamHandler = {
 
     let bundle: Awaited<ReturnType<typeof resolveRun>>
     try {
-      bundle = await resolveRun(input.playbookId, input.inventory)
+      bundle = await resolveRun(input.playbookId, input.inventory, input)
     } catch (err) {
       toResolveError(err)
     }
@@ -137,6 +137,7 @@ export const streamHandler = {
         hosts: bundle.hosts.map(toProtoHost),
         forks: input.forks,
         extravars: input.extravars,
+        secret_variables: bundle.secretVariables,
       },
       { token, timeoutMs: RUN_TIMEOUT_MS }
     )
