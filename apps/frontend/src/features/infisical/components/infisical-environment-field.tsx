@@ -1,3 +1,4 @@
+import * as React from "react"
 import { useTranslation } from "react-i18next"
 import { Text } from "@/components/shared/brand/typography"
 import { Input } from "@/components/ui/input"
@@ -14,8 +15,8 @@ import {
 } from "@/features/infisical/hooks/use-infisical-connections"
 
 /**
- * The environment of a connection's project: a select when Infisical lists
- * them, a typed slug when it does not. A connection without a project cannot
+ * The environment of a connection's project: a select starting on the first
+ * one when Infisical lists them, a typed slug when it does not. A connection without a project cannot
  * list anything, so it asks for the project instead of offering a text box.
  */
 export function InfisicalEnvironmentField({
@@ -36,6 +37,11 @@ export function InfisicalEnvironmentField({
     useInfisicalEnvironments(connectionId)
   const { data: connections = [] } = useInfisicalConnectionsList()
   const connection = connections.find((item) => item.id === connectionId)
+  const firstEnvironment = environments[0]?.slug
+
+  React.useEffect(() => {
+    if (!value && firstEnvironment && !disabled) onChange(firstEnvironment)
+  }, [value, firstEnvironment, disabled, onChange])
 
   if (connection && !connection.projectId) {
     return (
