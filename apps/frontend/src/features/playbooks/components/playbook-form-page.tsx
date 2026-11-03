@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { PlaybookSecretVariablesSection } from "@/features/playbooks/components/playbook-secret-variables-section"
 import {
   PLAYBOOK_ROOT_FOLDER_VALUE,
   toFolderId,
@@ -221,6 +222,11 @@ function PlaybookFormPageInner({ id }: PlaybookFormPageProps) {
           ) : undefined
         }
       />
+
+      {/* Outside the form: its dialog's submit would bubble through the portal. */}
+      {isEditing && id ? (
+        <PlaybookSecretVariablesSection playbookId={id} />
+      ) : null}
 
       <form
         onSubmit={handleSubmit}
