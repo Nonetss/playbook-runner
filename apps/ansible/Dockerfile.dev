@@ -43,6 +43,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 ENV PATH="/app/apps/ansible/.venv/bin:$PATH"
 
+# Same pinned collection as the production Dockerfile
+RUN ansible-galaxy collection install infisical.vault:1.2.3 \
+    -p /usr/share/ansible/collections
+
 EXPOSE 8000 50051
 
 # Host network (compose.dev.yml): same addresses as native `uv run fastapi dev`

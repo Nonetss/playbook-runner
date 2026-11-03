@@ -21,7 +21,10 @@ from app.grpc.stubs import (
     DeleteRepositoryResponse,
     Done,
     Heartbeat,
+    InfisicalEnvironment,
     ListBranchesResponse,
+    ListInfisicalEnvironmentsResponse,
+    ListInfisicalSecretNamesResponse,
     PlaybookFile,
     RunBundleResponse,
     RunCommandResponse,
@@ -33,12 +36,21 @@ from app.grpc.stubs import (
     TaskEvent,
 )
 from app.services.ansible.events import AnsibleEvent, log_event_handler
+from app.services.ansible.infisical import (
+    SecretFetchError,
+    fetch_secret_variables,
+    invalid_variable_names,
+    list_environments,
+    list_secret_names,
+    masked_values,
+)
 from app.services.ansible.materialize import (
     MaterializedHosts,
     MaterializedRun,
     cleanup,
     materialize,
     materialize_hosts,
+    secret_vars_cmdline,
     write_script_file,
 )
 from app.services.ansible.models import (
@@ -225,6 +237,38 @@ class RunnerServicer(RunnerServiceServicer):
                 yield RunBundleResponse(error=str(exc))
                 return
 
+        # The backend checks all this too, but a job's extra vars and its
+        # playbook's variables are stored apart. An extra var would silently
+        # outrank the secret.
+        secret_variables = (
+            request.secret_variables if request.HasField("secret_variables") else None
+        )
+        secret_values: dict[str, str] = {}
+        redact: list[str] = []
+        if secret_variables is not None:
+            names = [variable.name for variable in secret_variables.variables]
+            invalid = invalid_variable_names(names)
+            if invalid:
+                yield RunBundleResponse(
+                    error=f"Invalid secret variable names: {', '.join(invalid)}"
+                )
+                return
+            collisions = sorted(set(names) & set(request.extravars))
+            if collisions:
+                yield RunBundleResponse(
+                    error="Extra vars with the name of a secret variable: "
+                    f"{', '.join(collisions)}"
+                )
+                return
+            try:
+                secret_values = await fetch_secret_variables(secret_variables)
+            except SecretFetchError as exc:
+                yield RunBundleResponse(error=str(exc))
+                return
+            redact = masked_values(
+                secret_values.values(), secret_variables.auth.client_secret
+            )
+
         async def build_config(materialized: MaterializedRun) -> AnsibleRunnerConfig:
             return AnsibleRunnerConfig(
                 playbook=materialized.playbook,
@@ -237,11 +281,20 @@ class RunnerServicer(RunnerServiceServicer):
                     **dict(request.extravars),
                 },
                 envvars=materialized.envvars,
+                cmdline=(
+                    secret_vars_cmdline(materialized.secret_vars_path)
+                    if materialized.secret_vars_path
+                    else None
+                ),
+                redact=redact,
                 event_handler=log_event_handler,
             )
 
         async for frame in _serve(
-            context, RunBundleResponse, lambda: materialize(bundle), build_config
+            context,
+            RunBundleResponse,
+            lambda: materialize(bundle, secret_values),
+            build_config,
         ):
             yield frame
 
@@ -397,6 +450,26 @@ class RunnerServicer(RunnerServiceServicer):
         except GitError as exc:
             await context.abort(_GIT_STATUS[exc.kind], str(exc))
         return ListBranchesResponse(branches=branches, default_branch=default)
+
+    async def ListInfisicalEnvironments(self, request, context):
+        """Entornos de un proyecto para elegir uno en el formulario."""
+        logger.bind(peer=context.peer()).info("ListInfisicalEnvironments recibido")
+        environments = await list_environments(request)
+        return ListInfisicalEnvironmentsResponse(
+            environments=[
+                InfisicalEnvironment(slug=slug, name=name)
+                for slug, name in environments
+            ]
+        )
+
+    async def ListInfisicalSecretNames(self, request, context):
+        """Nombres de los secretos de un entorno y path, nunca sus valores."""
+        logger.bind(peer=context.peer()).info("ListInfisicalSecretNames recibido")
+        try:
+            names = await list_secret_names(request)
+        except SecretFetchError as exc:
+            await context.abort(grpc.StatusCode.UNAVAILABLE, str(exc))
+        return ListInfisicalSecretNamesResponse(names=names)
 
     async def DeleteRepository(self, request, context):
         """Borra el mirror de un repositorio eliminado en el backend."""

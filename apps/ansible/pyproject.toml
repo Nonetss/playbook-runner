@@ -11,6 +11,7 @@ dependencies = [
     "fastapi[standard]>=0.138.2",
     "grpc-toolkit",
     "grpcio>=1.68.0",
+    "infisicalsdk>=1.1.0",
     "loguru>=0.7.3",
     "protobuf>=6",
     "pyyaml>=6",

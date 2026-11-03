@@ -73,6 +73,11 @@ COPY --from=deps /app/apps/ansible/.venv /app/apps/ansible/.venv
 COPY --from=deps /app/python/grpc-toolkit /app/python/grpc-toolkit
 COPY --from=deps /app/apps/ansible/app /app/app
 
+# Pinned collection, on Ansible's default search path so Git runs (which use a
+# runner-controlled ANSIBLE_CONFIG) find it too. Bump it here and in Dockerfile.dev.
+RUN ansible-galaxy collection install infisical.vault:1.2.3 \
+    -p /usr/share/ansible/collections
+
 WORKDIR /app
 
 USER app

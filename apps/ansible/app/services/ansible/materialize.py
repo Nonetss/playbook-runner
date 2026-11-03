@@ -17,12 +17,15 @@ from __future__ import annotations
 import hashlib
 import os
 import re
+import shlex
 import tempfile
 import uuid
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+import yaml
 
 from app.core.config import settings
 from app.services.ansible.models import GitPlaybookSource, ResolvedRunBundle
@@ -57,6 +60,7 @@ class MaterializedRun:
         key_path_map: mapping device name -> ruta del fichero con la clave.
         inventory: inventario ya listo para ``ansible_runner.run``.
         envvars: variables de entorno extra para ansible-runner.
+        secret_vars_path: fichero con los valores de las variables de secreto.
     """
 
     run_dir: Path
@@ -65,6 +69,7 @@ class MaterializedRun:
     key_path_map: dict[str, Path]
     inventory: Inventory
     envvars: dict[str, str]
+    secret_vars_path: Path | None = None
 
     @property
     def playbook(self) -> str:
@@ -79,6 +84,39 @@ def _short_hash(s: str) -> str:
 def _safe_prefix(name: str) -> str:
     """Filename-safe prefix: device names are user input (no ``/`` or ``..``)."""
     return re.sub(r"[^A-Za-z0-9._-]", "_", name)[:48].strip(".") or "host"
+
+
+class _UnsafeString(str):
+    """Se escribe con ``!unsafe``: Ansible nunca lo evalúa como plantilla."""
+
+
+class _SecretVarsDumper(yaml.SafeDumper):
+    pass
+
+
+_SecretVarsDumper.add_representer(
+    _UnsafeString,
+    lambda dumper, value: dumper.represent_scalar("!unsafe", str(value), style='"'),
+)
+
+
+def _write_secret_vars(run_dir: Path, values: dict[str, str]) -> Path:
+    """Escribe las variables de secreto en un fichero ``0600`` dentro del run."""
+    path = run_dir / "secret-vars.yml"
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
+        yaml.dump(
+            {name: _UnsafeString(value) for name, value in values.items()},
+            fh,
+            Dumper=_SecretVarsDumper,
+            allow_unicode=True,
+        )
+    return path
+
+
+def secret_vars_cmdline(path: Path) -> str:
+    """Argumento de ``ansible-playbook``: ``run_dir`` incluye el nombre del playbook."""
+    return f"-e {shlex.quote(f'@{path}')}"
 
 
 def _write_key_file(key_dir: Path, host_name: str, private_key: str) -> Path:
@@ -192,7 +230,9 @@ def write_script_file(
     return script_path
 
 
-def materialize(bundle: ResolvedRunBundle) -> MaterializedRun:
+def materialize(
+    bundle: ResolvedRunBundle, secret_values: dict[str, str] | None = None
+) -> MaterializedRun:
     """Materializa el bundle en ficheros y devuelve un ``MaterializedRun``."""
     safe_name = bundle.playbook.name.replace("/", "_").replace(" ", "_") or "playbook"
     materialized_hosts = materialize_hosts(bundle.hosts, safe_name)
@@ -210,6 +250,9 @@ def materialize(bundle: ResolvedRunBundle) -> MaterializedRun:
             )
             playbook_path.write_text(bundle.playbook.content, encoding="utf-8")
             envvars = {}
+        secret_vars_path = (
+            _write_secret_vars(run_dir, secret_values) if secret_values else None
+        )
     except Exception:
         cleanup(materialized_hosts)
         raise
@@ -221,6 +264,7 @@ def materialize(bundle: ResolvedRunBundle) -> MaterializedRun:
         key_path_map=materialized_hosts.key_path_map,
         inventory=materialized_hosts.inventory,
         envvars=envvars,
+        secret_vars_path=secret_vars_path,
     )
 
 

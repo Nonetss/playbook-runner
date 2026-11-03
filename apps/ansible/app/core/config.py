@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     git_max_repo_mb: int = Field(default=512, ge=1)
     max_concurrent_syncs: int = Field(default=2, ge=1)
 
+    # Upper bound on each Infisical read: a run's secrets, or a picker listing.
+    infisical_timeout_s: float = Field(default=15, gt=0)
+
     # Shared secret guarding gRPC in both directions (backend <-> ansible).
     # Must match the backend's SERVICE_TOKEN. When empty the gRPC server here
     # still starts (grpc.aio has no "don't start" mode), but every call is

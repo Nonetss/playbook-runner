@@ -73,6 +73,22 @@ def _kill_run_processes(marker: str) -> int:
     return len(targets)
 
 
+REDACTED = "***"
+
+
+def redact_strings(value: Any, secrets: list[str]) -> Any:
+    """Copy of ``value`` with every secret replaced in its nested strings."""
+    if isinstance(value, str):
+        for secret in secrets:
+            value = value.replace(secret, REDACTED)
+        return value
+    if isinstance(value, dict):
+        return {k: redact_strings(v, secrets) for k, v in value.items()}
+    if isinstance(value, list):
+        return [redact_strings(v, secrets) for v in value]
+    return value
+
+
 class HostVars(TypedDict, total=False):
     """Variables de conexión de un host dentro del inventario."""
 
@@ -113,6 +129,10 @@ class AnsibleRunnerConfig(BaseModel):
     )
     # Extra environment on top of the SSH host-key policy variables.
     envvars: dict[str, str] = Field(default_factory=dict)
+    # Extra ansible-playbook arguments, split by ansible-runner with ``shlex``.
+    cmdline: str | None = None
+    # Literal values masked in every event before it is logged or streamed.
+    redact: list[str] = Field(default_factory=list)
     event_handler: EventHandler | None = None
     status_handler: StatusHandler | None = None
     finished_callback: FinishedCallback | None = None
@@ -148,6 +168,12 @@ class AnsibleRunnerConfig(BaseModel):
                 "extravars": self.extravars,
                 "envvars": {**ssh_envvars(), **self.envvars},
             }
+        # ansible-runner echoes Ansible's raw display to the process stdout,
+        # which would bypass the masking done on events.
+        if self.redact:
+            kwargs["quiet"] = True
+        if self.cmdline:
+            kwargs["cmdline"] = self.cmdline
         # Solo pasamos opcionales que tengan valor, para no pisar los
         # comportamientos por defecto de ansible-runner con ``None``/``""``.
         if self.event_handler is not None:
@@ -178,7 +204,11 @@ class AnsibleRunner:
         queue: asyncio.Queue[AnsibleEvent | None] = asyncio.Queue()
         user_handler = self.config.event_handler
 
+        secrets = [s for s in self.config.redact if s]
+
         def handler(event: AnsibleEvent) -> None:
+            if secrets:
+                event = redact_strings(event, secrets)
             if user_handler is not None:
                 user_handler(event)
             loop.call_soon_threadsafe(queue.put_nowait, event)
