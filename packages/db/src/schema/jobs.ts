@@ -10,6 +10,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core"
+import { infisicalConnections } from "./infisical-connections"
 import { playbooks } from "./playbooks"
 
 export const jobRunStatusEnum = pgEnum("job_run_status", [
@@ -37,6 +38,13 @@ export const jobs = pgTable("jobs", {
   forks: integer("forks").notNull().default(1),
   cronExpression: text("cron_expression"),
   enabled: boolean().notNull().default(true),
+  // Restrict, not set null: a scheduled job must not silently lose its
+  // credentials and fail at the lookup, far from the delete that caused it.
+  infisicalConnectionId: uuid("infisical_connection_id").references(
+    () => infisicalConnections.id,
+    { onDelete: "restrict" }
+  ),
+  infisicalEnvironment: text("infisical_environment"),
 
   createdAt: timestamp("created_at").default(sql`now()`),
   updatedAt: timestamp("updated_at").default(sql`now()`),

@@ -8,6 +8,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core"
 
+import { infisicalConnections } from "#schema/infisical-connections"
 import { playbookFolders } from "#schema/playbook-folders"
 import { playbookRepositories } from "#schema/playbook-repositories"
 
@@ -30,6 +31,13 @@ export const playbooks = pgTable(
     ),
     path: text(),
     missing: boolean().notNull().default(false),
+    // Set through `playbooks.secretVariables`, which a repository sync never
+    // touches. Restrict for the same reason as `jobs.infisical_connection_id`.
+    infisicalConnectionId: uuid("infisical_connection_id").references(
+      () => infisicalConnections.id,
+      { onDelete: "restrict" }
+    ),
+    infisicalEnvironment: text("infisical_environment"),
     createdAt: timestamp("created_at").default(sql`now()`),
     updatedAt: timestamp("updated_at").default(sql`now()`),
   },
