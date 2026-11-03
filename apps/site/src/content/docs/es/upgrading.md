@@ -17,6 +17,17 @@ El backend aplica las migraciones nuevas de la base de datos al arrancar. Actual
 
 Si fijaste versiones con las variables `*_IMAGE_TAG`, cambia antes las cuatro a la nueva etiqueta. Lee las [notas de versión](https://github.com/Nonetss/playbook-runner/releases) antes de saltar varias versiones, y aplica los pasos de abajo de cada versión que cruces.
 
+## v0.12.0
+
+No hay variables obligatorias nuevas ni cambios en el compose. Actualiza el backend **y** el ejecutor a la vez: el contrato gRPC ganó las variables secretas de Infisical y la imagen del ejecutor ahora incluye el SDK de Infisical. El backend aplica las migraciones nuevas al arrancar.
+
+**Ahora cada play se ejecuta en los dispositivos seleccionados para la ejecución, diga lo que diga su `hosts`.** Revisa tus playbooks antes de actualizar:
+
+- Una play con `hosts: localhost` ahora se ejecuta en los dispositivos seleccionados en lugar de en el ejecutor. Para mantener una tarea en el ejecutor, usa `delegate_to: localhost`.
+- Un playbook con plays para grupos distintos, como `hosts: db` y `hosts: web`, ejecuta cada una en toda la selección. Sepáralo en un playbook por destino, o selecciona lo que necesite cada ejecución.
+
+La variable opcional `INFISICAL_TIMEOUT_S` limita cada lectura de Infisical. Consulta [Secretos con Infisical](../infisical/) para empezar a usar variables secretas.
+
 ## v0.10.0
 
 La entrada pública salió de la imagen del frontend a una nueva imagen `playbook-runner-gateway` (Caddy), que sirve el sitio y enruta las llamadas gRPC del backend al ejecutor. El frontend ya no publica ningún puerto.
