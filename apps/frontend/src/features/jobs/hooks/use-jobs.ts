@@ -7,7 +7,12 @@ import {
   MAX_REATTACH_ATTEMPTS,
   reattachDelay,
 } from "@/features/jobs/lib/run-watch-retry"
-import type { InventoryItem, Job, JobRunEvent } from "@/features/jobs/types"
+import type {
+  InventoryItem,
+  Job,
+  JobDetail,
+  JobRunEvent,
+} from "@/features/jobs/types"
 import { useHydratedQuery } from "@/hooks/use-hydrated-query"
 import { useOrpcMutation } from "@/hooks/use-orpc-mutation"
 import { useResourceMutation } from "@/hooks/use-resource-mutation"
@@ -129,6 +134,9 @@ type CreateInput = {
   forks?: number
   cronExpression?: string | null
   enabled?: boolean
+  infisicalConnectionId?: string | null
+  infisicalEnvironment?: string | null
+  secretVariables?: JobDetail["secretVariables"]
 }
 
 type UpdateInput = CreateInput & { id: string }
@@ -147,6 +155,8 @@ function applyCreate(current: Job[] | undefined, input: CreateInput) {
       forks: input.forks ?? 1,
       cronExpression: input.cronExpression ?? null,
       enabled: input.enabled ?? true,
+      infisicalConnectionId: input.infisicalConnectionId ?? null,
+      infisicalEnvironment: input.infisicalEnvironment ?? null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     } as Job,
@@ -172,6 +182,14 @@ function applyUpdate(current: Job[] | undefined, input: UpdateInput) {
               ? input.cronExpression
               : j.cronExpression,
           enabled: input.enabled ?? j.enabled,
+          infisicalConnectionId:
+            input.infisicalConnectionId !== undefined
+              ? input.infisicalConnectionId
+              : j.infisicalConnectionId,
+          infisicalEnvironment:
+            input.infisicalEnvironment !== undefined
+              ? input.infisicalEnvironment
+              : j.infisicalEnvironment,
         }
       : j
   )
@@ -207,6 +225,9 @@ export const useJobCreate = () => {
         forks: input.forks ?? 1,
         cronExpression: input.cronExpression,
         enabled: input.enabled ?? true,
+        infisicalConnectionId: input.infisicalConnectionId,
+        infisicalEnvironment: input.infisicalEnvironment,
+        secretVariables: input.secretVariables ?? [],
       }) as Promise<Job>,
     listKey,
     applyOptimistic: applyCreate,
@@ -228,6 +249,9 @@ export const useJobUpdate = () => {
         forks: input.forks ?? 1,
         cronExpression: input.cronExpression,
         enabled: input.enabled ?? true,
+        infisicalConnectionId: input.infisicalConnectionId,
+        infisicalEnvironment: input.infisicalEnvironment,
+        secretVariables: input.secretVariables ?? [],
       }) as Promise<Job>,
     listKey,
     detailKey,

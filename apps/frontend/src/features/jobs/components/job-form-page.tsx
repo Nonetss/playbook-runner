@@ -1,16 +1,14 @@
 import { getIcon } from "@/lib/icon-registry"
 
 const Loader2 = getIcon("status", "loading")
-const Plus = getIcon("actions", "add")
-const Trash2 = getIcon("actions", "delete")
 
 import * as React from "react"
 import { Trans, useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
-import { dataFieldClass, Text } from "@/components/shared/brand/typography"
+import { Text } from "@/components/shared/brand/typography"
 import { InlineAlert } from "@/components/shared/feedback/inline-alert"
 import { StateCard } from "@/components/shared/feedback/state-card"
-import { FieldLabel, FormField } from "@/components/shared/form/field-label"
+import { FormField } from "@/components/shared/form/field-label"
 import { DetailFrame } from "@/components/shared/layout/detail-frame"
 import { PageHero } from "@/components/shared/layout/page-hero"
 import { AppLink } from "@/components/ui/app-link"
@@ -26,17 +24,21 @@ import {
   useJobGet,
   useJobUpdate,
 } from "@/features/jobs/hooks/use-jobs"
-import type { Job } from "@/features/jobs/types"
+import type { JobDetail } from "@/features/jobs/types"
 import { PlaybookPicker } from "@/features/playbooks/components/playbook-picker"
+import { usePlaybookSecretVariables } from "@/features/playbooks/hooks/use-playbook-secret-variables"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
+import { RunVariablesFields } from "@/features/run/components/run-variables-fields"
 import {
   fromRunSelection,
   toRunSelection,
 } from "@/features/run/lib/run-selection"
+import {
+  type RunVariableRow,
+  rowsFromSaved,
+  toRunVariables,
+} from "@/features/run/lib/run-variables"
 import { navigate } from "@/lib/navigate"
-import { cn } from "@/lib/utils"
-
-type ExtravarRow = { key: string; value: string }
 
 type FormValues = {
   name: string
@@ -45,6 +47,8 @@ type FormValues = {
   cronExpression: string
   forks: number
   enabled: boolean
+  infisicalConnectionId: string
+  infisicalEnvironment: string
 }
 
 const EMPTY: FormValues = {
@@ -54,9 +58,11 @@ const EMPTY: FormValues = {
   cronExpression: "",
   forks: 1,
   enabled: true,
+  infisicalConnectionId: "",
+  infisicalEnvironment: "",
 }
 
-function valuesFromJob(job: Job): FormValues {
+function valuesFromJob(job: JobDetail): FormValues {
   return {
     name: job.name,
     description: job.description ?? "",
@@ -64,6 +70,8 @@ function valuesFromJob(job: Job): FormValues {
     cronExpression: job.cronExpression ?? "",
     forks: job.forks,
     enabled: job.enabled,
+    infisicalConnectionId: job.infisicalConnectionId ?? "",
+    infisicalEnvironment: job.infisicalEnvironment ?? "",
   }
 }
 
@@ -145,9 +153,16 @@ function FormSection({
   )
 }
 
-function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
+function JobForm({
+  id,
+  initialJob,
+}: {
+  id?: string
+  initialJob: JobDetail | null
+}) {
   const { t } = useTranslation("jobs")
   const { t: tCommon } = useTranslation("common")
+  const { t: tInfisical } = useTranslation("infisical")
   const isEditing = !!id
   const createJob = useJobCreate()
   const updateJob = useJobUpdate()
@@ -166,11 +181,11 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
   const [selectedDevices, setSelectedDevices] = React.useState<Set<string>>(
     () => initialInventory.devices
   )
-  const [extravars, setExtravars] = React.useState<ExtravarRow[]>(() =>
-    Object.entries(initialJob?.extravarsJson ?? {}).map(([key, value]) => ({
-      key,
-      value,
-    }))
+  const [variableRows, setVariableRows] = React.useState<RunVariableRow[]>(() =>
+    rowsFromSaved(initialJob?.extravarsJson, initialJob?.secretVariables)
+  )
+  const { data: declaredVariables } = usePlaybookSecretVariables(
+    values.playbookId
   )
   const [error, setError] = React.useState<string | null>(null)
 
@@ -180,29 +195,21 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
     setValues((v) => ({ ...v, [key]: value }))
   }
 
-  function addExtravar() {
-    setExtravars((e) => [...e, { key: "", value: "" }])
-  }
-
-  function removeExtravar(i: number) {
-    setExtravars((e) => e.filter((_, j) => j !== i))
-  }
-
-  function updateExtravar(i: number, field: "key" | "value", value: string) {
-    setExtravars((e) =>
-      e.map((x, j) => (j === i ? { ...x, [field]: value } : x))
-    )
-  }
-
   async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
 
     const inventory = toRunSelection(selectedGroups, selectedDevices)
 
-    const extravarsMap = Object.fromEntries(
-      extravars.filter((x) => x.key.trim()).map((x) => [x.key.trim(), x.value])
-    )
+    const variables = toRunVariables(variableRows)
+    if (variables.incomplete.length > 0) {
+      setError(
+        tInfisical("variables.incomplete", {
+          names: variables.incomplete.join(", "),
+        })
+      )
+      return
+    }
 
     const payload = {
       name: values.name.trim(),
@@ -211,10 +218,13 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
       description: values.description.trim() || null,
       playbookId: values.playbookId || null,
       inventoryJson: inventory,
-      extravarsJson: extravarsMap,
+      extravarsJson: variables.extravars,
+      secretVariables: variables.secretVariables,
       forks: values.forks,
       cronExpression: values.cronExpression.trim() || null,
       enabled: values.enabled,
+      infisicalConnectionId: values.infisicalConnectionId || null,
+      infisicalEnvironment: values.infisicalEnvironment || null,
     }
 
     try {
@@ -435,58 +445,18 @@ function JobForm({ id, initialJob }: { id?: string; initialJob: Job | null }) {
             />
           </FormField>
 
-          <div className="space-y-2 border-t pt-4">
-            <div className="flex items-center justify-between gap-2">
-              <FieldLabel>{t("form.extravars_label")}</FieldLabel>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addExtravar}
-                disabled={isSubmitting}
-              >
-                <Plus className="size-3.5" />
-                {t("form.extravars_add")}
-              </Button>
-            </div>
-            {extravars.length === 0 ? (
-              <StateCard className="py-6" title={t("form.no_extravars")} />
-            ) : (
-              <ul className="space-y-2">
-                {extravars.map((row, i) => (
-                  <li key={i} className="flex min-w-0 items-center gap-2">
-                    <Input
-                      placeholder={t("form.extravars_key_placeholder")}
-                      aria-label={t("form.extravars_key_aria", { n: i + 1 })}
-                      value={row.key}
-                      onChange={(e) => updateExtravar(i, "key", e.target.value)}
-                      disabled={isSubmitting}
-                      className={cn(dataFieldClass, "min-w-0 flex-1")}
-                    />
-                    <Input
-                      placeholder={t("form.extravars_value_placeholder")}
-                      aria-label={t("form.extravars_value_aria", { n: i + 1 })}
-                      value={row.value}
-                      onChange={(e) =>
-                        updateExtravar(i, "value", e.target.value)
-                      }
-                      disabled={isSubmitting}
-                      className={cn(dataFieldClass, "min-w-0 flex-1")}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => removeExtravar(i)}
-                      disabled={isSubmitting}
-                      aria-label={t("form.extravars_remove_aria")}
-                    >
-                      <Trash2 className="size-3.5" />
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            )}
+          <div className="border-t pt-4">
+            <RunVariablesFields
+              idPrefix="job"
+              declared={values.playbookId ? declaredVariables : undefined}
+              connectionId={values.infisicalConnectionId}
+              onConnectionChange={(next) => set("infisicalConnectionId", next)}
+              environment={values.infisicalEnvironment}
+              onEnvironmentChange={(next) => set("infisicalEnvironment", next)}
+              rows={variableRows}
+              onRowsChange={setVariableRows}
+              disabled={isSubmitting}
+            />
           </div>
         </FormSection>
 

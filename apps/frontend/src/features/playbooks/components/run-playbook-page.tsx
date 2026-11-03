@@ -1,24 +1,22 @@
 import { getIcon } from "@/lib/icon-registry"
 
 const Pencil = getIcon("actions", "edit")
-const Plus = getIcon("actions", "add")
-const Trash2 = getIcon("actions", "delete")
 
 import type * as React from "react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
-import { dataFieldClass } from "@/components/shared/brand/typography"
+import { InlineAlert } from "@/components/shared/feedback/inline-alert"
 import { StateCard } from "@/components/shared/feedback/state-card"
 import { DetailFrame } from "@/components/shared/layout/detail-frame"
 import { PageHero } from "@/components/shared/layout/page-hero"
 import { AppLink } from "@/components/ui/app-link"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { useDevicesList } from "@/features/inventory/hooks/use-devices"
 import { useGroupsList } from "@/features/inventory/hooks/use-groups"
 import { useSelectableGroups } from "@/features/inventory/hooks/use-selectable-groups"
 import { PlaybookSwitcher } from "@/features/playbooks/components/playbook-switcher"
+import { usePlaybookSecretVariables } from "@/features/playbooks/hooks/use-playbook-secret-variables"
 import { usePlaybookGet } from "@/features/playbooks/hooks/use-playbooks"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { PlaybookRunConsole } from "@/features/run/components/playbook-run-console"
@@ -26,6 +24,7 @@ import { RunButton } from "@/features/run/components/run-button"
 import { RunForksOption } from "@/features/run/components/run-options"
 import { RunResultBanner } from "@/features/run/components/run-result-banner"
 import { RunStreamStatus } from "@/features/run/components/run-stream-status"
+import { RunVariablesFields } from "@/features/run/components/run-variables-fields"
 import {
   TerminalFrame,
   TerminalPanelSection,
@@ -34,14 +33,19 @@ import { useRunInventorySelection } from "@/features/run/hooks/use-run-inventory
 import { useRunPlaybook } from "@/features/run/hooks/use-run-playbook"
 import { toggleIn } from "@/features/run/hooks/use-selection-toggle"
 import { toRunSelection } from "@/features/run/lib/run-selection"
+import {
+  type RunVariableRow,
+  toRunVariables,
+} from "@/features/run/lib/run-variables"
 import { useConfirm } from "@/hooks/use-confirm"
-import { cn } from "@/lib/utils"
 
 // ── RunPlaybookPageInner ──────────────────────────────────────────────────────
 
 function RunPlaybookPageInner({ id }: { id: string }) {
   const { t } = useTranslation("playbooks")
+  const { t: tInfisical } = useTranslation("infisical")
   const { data: playbook, isPending: playbookLoading } = usePlaybookGet(id)
+  const { data: declaredVariables } = usePlaybookSecretVariables(id)
   const { data: storedGroups = [], isPending: groupsLoading } = useGroupsList()
   const { data: devices = [], isPending: devicesLoading } = useDevicesList()
   const groups = useSelectableGroups(storedGroups, devices)
@@ -61,9 +65,10 @@ function RunPlaybookPageInner({ id }: { id: string }) {
     ready: inventoryReady,
   })
   const [forks, setForks] = useState(1)
-  const [extravars, setExtravars] = useState<{ key: string; value: string }[]>(
-    []
-  )
+  const [variableRows, setVariableRows] = useState<RunVariableRow[]>([])
+  const [infisicalConnectionId, setInfisicalConnectionId] = useState("")
+  const [infisicalEnvironment, setInfisicalEnvironment] = useState("")
+  const [variablesError, setVariablesError] = useState<string | null>(null)
 
   const selectionCount = selectedGroups.size + selectedDevices.size
   const isRunning = phase === "running"
@@ -71,9 +76,15 @@ function RunPlaybookPageInner({ id }: { id: string }) {
   async function handleRun() {
     if (!playbook || selectionCount === 0) return
     const inventory = toRunSelection(selectedGroups, selectedDevices)
-    const extravarMap = Object.fromEntries(
-      extravars.filter((e) => e.key.trim()).map((e) => [e.key.trim(), e.value])
+    const variables = toRunVariables(variableRows)
+    setVariablesError(
+      variables.incomplete.length > 0
+        ? tInfisical("variables.incomplete", {
+            names: variables.incomplete.join(", "),
+          })
+        : null
     )
+    if (variables.incomplete.length > 0) return
 
     const targetNames = [
       ...groups
@@ -93,14 +104,23 @@ function RunPlaybookPageInner({ id }: { id: string }) {
         targets: targetSummary,
         count: selectionCount,
         forks,
-        variables: Object.keys(extravarMap).length,
+        variables:
+          Object.keys(variables.extravars).length +
+          variables.secretVariables.length +
+          (declaredVariables?.variables.length ?? 0),
       }),
       confirmLabel: t("run.confirm_run"),
       cancelLabel: t("run.cancel"),
     })
     if (!confirmed) return
 
-    start(playbook.id, inventory, { forks, extravars: extravarMap })
+    start(playbook.id, inventory, {
+      forks,
+      extravars: variables.extravars,
+      secretVariables: variables.secretVariables,
+      infisicalConnectionId: infisicalConnectionId || undefined,
+      infisicalEnvironment: infisicalEnvironment || undefined,
+    })
   }
 
   const frame = (children: React.ReactNode) => (
@@ -215,66 +235,20 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                 disabled={isRunning}
               />
 
-              <div className="space-y-2">
-                <p className="text-sm">{t("run.panel.extravars")}</p>
-                {extravars.map((entry, i) => (
-                  <div key={i} className="flex min-w-0 items-center gap-1.5">
-                    <Input
-                      placeholder={t("run.panel.extravars_key_placeholder")}
-                      aria-label={t("run.panel.extravars_key_aria", {
-                        n: i + 1,
-                      })}
-                      value={entry.key}
-                      onChange={(e) =>
-                        setExtravars((prev) =>
-                          prev.map((x, j) =>
-                            j === i ? { ...x, key: e.target.value } : x
-                          )
-                        )
-                      }
-                      className={cn(dataFieldClass, "h-9 min-w-0 flex-1")}
-                    />
-                    <Input
-                      placeholder={t("run.panel.extravars_value_placeholder")}
-                      aria-label={t("run.panel.extravars_value_aria", {
-                        n: i + 1,
-                      })}
-                      value={entry.value}
-                      onChange={(e) =>
-                        setExtravars((prev) =>
-                          prev.map((x, j) =>
-                            j === i ? { ...x, value: e.target.value } : x
-                          )
-                        )
-                      }
-                      className={cn(dataFieldClass, "h-9 min-w-0 flex-1")}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="shrink-0 text-muted-foreground"
-                      aria-label={t("run.panel.extravars_remove_aria")}
-                      onClick={() =>
-                        setExtravars((prev) => prev.filter((_, j) => j !== i))
-                      }
-                    >
-                      <Trash2 className="size-3.5" />
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setExtravars((prev) => [...prev, { key: "", value: "" }])
-                  }
-                >
-                  <Plus className="size-3.5" />
-                  {t("run.panel.extravars_add")}
-                </Button>
-              </div>
+              <RunVariablesFields
+                idPrefix="run"
+                declared={declaredVariables}
+                connectionId={infisicalConnectionId}
+                onConnectionChange={setInfisicalConnectionId}
+                environment={infisicalEnvironment}
+                onEnvironmentChange={setInfisicalEnvironment}
+                rows={variableRows}
+                onRowsChange={setVariableRows}
+                disabled={isRunning}
+              />
+              {variablesError ? (
+                <InlineAlert>{variablesError}</InlineAlert>
+              ) : null}
             </TerminalPanelSection>
           </>
         }

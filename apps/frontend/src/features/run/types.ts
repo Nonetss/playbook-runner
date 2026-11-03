@@ -39,4 +39,7 @@ export type RunPhase = "idle" | "running" | "done" | "error" | "cancelled"
 export type RunOptions = {
   forks?: number
   extravars?: Record<string, string>
+  infisicalConnectionId?: string
+  infisicalEnvironment?: string
+  secretVariables?: { name: string; secretName: string; secretPath: string }[]
 }

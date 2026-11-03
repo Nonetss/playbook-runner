@@ -143,14 +143,7 @@
       "no_match": "No group or device matches the search.",
       "empty_inventory": "No inventory. Create groups or devices first.",
       "options": "OPTIONS",
-      "forks": "Forks",
-      "extravars": "Extra variables",
-      "extravars_key_placeholder": "VARIABLE",
-      "extravars_value_placeholder": "value",
-      "extravars_key_aria": "Variable {{n}} name",
-      "extravars_value_aria": "Variable {{n}} value",
-      "extravars_remove_aria": "Remove variable",
-      "extravars_add": "Add variable"
+      "forks": "Forks"
     },
     "result_finished_with_status": "Run finished — status {{status}} (rc={{rc}})",
     "switcher": {

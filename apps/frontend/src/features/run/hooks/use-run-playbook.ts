@@ -17,6 +17,9 @@ const subscribe = (
     inventory: RunSelection[]
     forks?: number
     extravars?: Record<string, string>
+    infisicalConnectionId?: string
+    infisicalEnvironment?: string
+    secretVariables?: RunOptions["secretVariables"]
   },
   callbacks: RunStreamCallbacks
 ) => consumeEventIterator(client.v1.run.run(request), callbacks)

@@ -12,8 +12,15 @@ export type Job = {
   forks: number
   cronExpression: string | null
   enabled: boolean
+  infisicalConnectionId: string | null
+  infisicalEnvironment: string | null
   createdAt: Date | string | null
   updatedAt: Date | string | null
+}
+
+/** A job with its own secret variables, not those its playbook declares. */
+export type JobDetail = Job & {
+  secretVariables: { name: string; secretName: string; secretPath: string }[]
 }
 
 export type JobRunStatus = "pending" | "running" | "ok" | "failed"

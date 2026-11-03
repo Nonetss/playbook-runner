@@ -143,14 +143,7 @@
       "no_match": "Ningún grupo ni dispositivo coincide con la búsqueda.",
       "empty_inventory": "No hay inventario. Crea grupos o dispositivos primero.",
       "options": "OPCIONES",
-      "forks": "Paralelismo",
-      "extravars": "Variables extra",
-      "extravars_key_placeholder": "VARIABLE",
-      "extravars_value_placeholder": "valor",
-      "extravars_key_aria": "Nombre de la variable {{n}}",
-      "extravars_value_aria": "Valor de la variable {{n}}",
-      "extravars_remove_aria": "Eliminar variable",
-      "extravars_add": "Añadir variable"
+      "forks": "Paralelismo"
     },
     "result_finished_with_status": "Ejecución finalizada — estado {{status}} (rc={{rc}})",
     "switcher": {
