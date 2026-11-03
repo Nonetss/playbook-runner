@@ -54,6 +54,19 @@ export function createSeeder(request: APIRequestContext, prefix: string) {
           "credentials/delete"
         )
       ),
+    infisicalConnection: (overrides: Record<string, unknown> = {}) =>
+      create<Created & { name: string }>(
+        "infisicalConnections/create",
+        {
+          name: name("infisical"),
+          url: "https://infisical.example.com",
+          clientId: "e2e-client-id",
+          clientSecret: "e2e-client-secret",
+          projectId: "e2e-project-id",
+          ...overrides,
+        },
+        "infisicalConnections/delete"
+      ),
     device: (overrides: Record<string, unknown> = {}) =>
       create<Created & { name: string }>(
         "inventory/devices/create",
