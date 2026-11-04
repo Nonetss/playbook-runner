@@ -26,6 +26,7 @@ class GitPlaybookSource(BaseModel):
     commit: str
     path: str
     private_key: str | None = None
+    vault_password: str | None = None
 
 
 class ResolvedPlaybook(BaseModel):
@@ -51,6 +52,9 @@ def playbook_from_proto(playbook) -> ResolvedPlaybook:
             commit=source.commit,
             path=source.path,
             private_key=source.private_key if source.HasField("private_key") else None,
+            vault_password=(
+                source.vault_password if source.HasField("vault_password") else None
+            ),
         )
     return ResolvedPlaybook(name=playbook.name, content=playbook.content, git=git)
 

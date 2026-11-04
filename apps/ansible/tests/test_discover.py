@@ -41,6 +41,10 @@ def test_is_playbook_rejects_non_playbooks(content: str) -> None:
     assert not is_playbook(content)
 
 
+def test_a_fully_encrypted_file_is_not_a_playbook() -> None:
+    assert not is_playbook("$ANSIBLE_VAULT;1.1;AES256\n6162636465666768\n")
+
+
 def test_discover_finds_only_playbooks(
     git_mirror, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -365,6 +369,21 @@ class TestDiscoverRoles:
             ("extra", "on_entry", "web"),
             ("root", "/srv", "web"),
         ]
+
+    def test_encrypted_variable_files_add_nothing_and_do_not_fail(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        encrypted = "$ANSIBLE_VAULT;1.1;AES256\n6162636465666768\n"
+        files = {
+            "site.yml": (
+                "- hosts: all\n  vars: {port: 80}\n  vars_files: [secretos.yml]\n"
+                "  roles: [web]\n"
+            ),
+            "secretos.yml": encrypted,
+            "roles/web/vars/main.yml": encrypted,
+            "roles/web/tasks/main.yml": "[]\n",
+        }
+        assert self.variables(monkeypatch, files) == [("port", "80", None)]
 
     def test_values_that_are_never_returned(
         self, monkeypatch: pytest.MonkeyPatch

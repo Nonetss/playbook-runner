@@ -65,6 +65,7 @@ from app.services.ansible.models import (
     playbook_from_proto,
 )
 from app.services.ansible.payload import event_payload
+from app.services.ansible.play_targets import EncryptedPlaybookError
 from app.services.ansible.runner import (
     RUN_SLOTS,
     AnsibleRunner,
@@ -255,7 +256,7 @@ class RunnerServicer(RunnerServiceServicer):
             request.secret_variables if request.HasField("secret_variables") else None
         )
         secret_values: dict[str, str] = {}
-        redact: list[str] = []
+        client_secret = ""
         if secret_variables is not None:
             names = [variable.name for variable in secret_variables.variables]
             invalid = invalid_variable_names(names)
@@ -276,9 +277,13 @@ class RunnerServicer(RunnerServiceServicer):
             except SecretFetchError as exc:
                 yield RunBundleResponse(error=str(exc))
                 return
-            redact = masked_values(
-                secret_values.values(), secret_variables.auth.client_secret
-            )
+            client_secret = secret_variables.auth.client_secret
+        # What Vault decrypts only Ansible sees, so its password is all that can
+        # be masked here.
+        known_values = list(secret_values.values())
+        if git is not None and git.vault_password:
+            known_values.append(git.vault_password)
+        redact = masked_values(known_values, client_secret)
 
         async def build_config(materialized: MaterializedRun) -> AnsibleRunnerConfig:
             return AnsibleRunnerConfig(
@@ -309,7 +314,7 @@ class RunnerServicer(RunnerServiceServicer):
                 build_config,
             ):
                 yield frame
-        except GitError as exc:
+        except (GitError, EncryptedPlaybookError) as exc:
             yield RunBundleResponse(error=str(exc))
 
     async def RunPing(self, request, context):

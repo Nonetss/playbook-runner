@@ -15,6 +15,11 @@ from loguru import logger
 
 _IMPORT_KEYS = {"import_playbook", "ansible.builtin.import_playbook"}
 _TARGET = "all"
+_VAULT_HEADER = "$ANSIBLE_VAULT;"
+
+
+class EncryptedPlaybookError(Exception):
+    """Un playbook cifrado entero: sus plays no se pueden llevar a la selección."""
 
 
 def _plays(text: str) -> list[yaml.MappingNode]:
@@ -70,7 +75,9 @@ def retarget_playbook(playbook_path: Path, project_dir: Path) -> None:
     """Reescribe el playbook y los que importe, sin salir de ``project_dir``.
 
     Un fichero que no se puede leer como YAML se deja tal cual: Ansible informará
-    del error con sus propias palabras al cargarlo.
+    del error con sus propias palabras al cargarlo. Uno cifrado con Vault sí se lee
+    bien, como un único texto sin plays, así que se rechaza: Ansible lo descifraría
+    y sus plays correrían sobre su propio ``hosts``.
     """
     root = project_dir.resolve()
     pending = [playbook_path]
@@ -82,6 +89,11 @@ def retarget_playbook(playbook_path: Path, project_dir: Path) -> None:
         seen.add(path)
         try:
             text = path.read_text(encoding="utf-8")
+            if text.startswith(_VAULT_HEADER):
+                raise EncryptedPlaybookError(
+                    f"Playbook {path.relative_to(root)} is encrypted with Vault: "
+                    "encrypt its variables instead of the whole file"
+                )
             rewritten = retarget_plays(text)
             if not _targets_only_all(rewritten):
                 raise ValueError("hosts could not be rewritten")

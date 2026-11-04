@@ -116,6 +116,19 @@ def _write_secret_vars(run_dir: Path, values: dict[str, str]) -> Path:
     return path
 
 
+def _write_vault_password(run_dir: Path, password: str) -> Path:
+    """Escribe la contraseña de Vault en un fichero ``0600`` dentro del run.
+
+    Ansible ejecuta como script un fichero de contraseña ejecutable: este nunca
+    debe tener ese bit, y queda fuera de ``project/``, el árbol del repositorio.
+    """
+    path = run_dir / "vault-password"
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
+        fh.write(password)
+    return path
+
+
 def secret_vars_cmdline(path: Path) -> str:
     """Argumento de ``ansible-playbook``: ``run_dir`` incluye el nombre del playbook."""
     return f"-e {shlex.quote(f'@{path}')}"
@@ -321,6 +334,10 @@ def _materialize_git(
     runner_cfg = run_dir / "runner-ansible.cfg"
     runner_cfg.write_text("", encoding="utf-8")
     envvars = {"ANSIBLE_CONFIG": str(runner_cfg)}
+    if source.vault_password:
+        envvars["ANSIBLE_VAULT_PASSWORD_FILE"] = str(
+            _write_vault_password(run_dir, source.vault_password)
+        )
     roles_path = role_search_path(playbook_path, project_dir)
     if roles_path is not None:
         envvars["ANSIBLE_ROLES_PATH"] = roles_path

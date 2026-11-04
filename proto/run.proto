@@ -52,6 +52,8 @@ message GitSource {
   string commit = 3;
   string path = 4;
   optional string private_key = 5;
+  // Lets Ansible decrypt Vault content in this run; never stored by the runner.
+  optional string vault_password = 6;
 }
 
 message Script {

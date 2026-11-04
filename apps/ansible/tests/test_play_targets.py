@@ -14,7 +14,11 @@ from app.services.ansible.models import (
     ResolvedPlaybook,
     ResolvedRunBundle,
 )
-from app.services.ansible.play_targets import retarget_playbook, retarget_plays
+from app.services.ansible.play_targets import (
+    EncryptedPlaybookError,
+    retarget_playbook,
+    retarget_plays,
+)
 from app.services.ansible.runner import AnsibleRunner, AnsibleRunnerConfig
 
 
@@ -122,6 +126,46 @@ def test_what_cannot_be_rewritten_stays_for_ansible_to_judge(
     retarget_playbook(path, tmp_path)
 
     assert path.read_text() == text
+
+
+ENCRYPTED = "$ANSIBLE_VAULT;1.1;AES256\n6162636465666768\n"
+
+
+def test_an_encrypted_import_is_refused_naming_the_file(tmp_path: Path) -> None:
+    (tmp_path / "nested").mkdir()
+    (tmp_path / "nested/cifrado.yml").write_text(ENCRYPTED)
+    path = tmp_path / "site.yml"
+    path.write_text("- import_playbook: nested/cifrado.yml\n")
+
+    with pytest.raises(EncryptedPlaybookError, match="nested/cifrado.yml"):
+        retarget_playbook(path, tmp_path)
+
+
+def test_an_encrypted_playbook_is_refused(tmp_path: Path) -> None:
+    path = tmp_path / "site.yml"
+    path.write_text(ENCRYPTED)
+
+    with pytest.raises(EncryptedPlaybookError, match="site.yml"):
+        retarget_playbook(path, tmp_path)
+
+
+def test_vaulted_values_do_not_stop_a_playbook_from_being_retargeted(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "site.yml"
+    path.write_text(
+        "- hosts: web\n"
+        "  vars:\n"
+        "    clave: !vault |\n"
+        "      $ANSIBLE_VAULT;1.1;AES256\n"
+        "      6162\n"
+    )
+
+    retarget_playbook(path, tmp_path)
+
+    text = path.read_text()
+    assert "- hosts: all\n" in text
+    assert "clave: !vault |\n      $ANSIBLE_VAULT;1.1;AES256\n      6162\n" in text
 
 
 def _bundle(content: str) -> ResolvedRunBundle:

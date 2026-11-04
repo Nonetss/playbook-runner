@@ -190,6 +190,56 @@ class TestMaterialize:
 
         cleanup(run)
 
+    @posix_only
+    def test_vault_password_is_a_private_file_removed_with_the_run(
+        self, git_mirror
+    ) -> None:
+        bundle = ResolvedRunBundle(
+            playbook=ResolvedPlaybook(
+                name="web",
+                content="",
+                git=GitPlaybookSource(
+                    repository_id=git_mirror.repository_id,
+                    url="https://example.com/repo.git",
+                    commit=git_mirror.commit,
+                    path="site.yml",
+                    vault_password="s3cret",
+                ),
+            ),
+            hosts=[host("web")],
+        )
+        run = materialize(bundle)
+
+        path = Path(run.envvars["ANSIBLE_VAULT_PASSWORD_FILE"])
+        assert path.parent == run.run_dir
+        assert path.read_text() == "s3cret"
+        # Ansible would run an executable password file as a script.
+        assert mode(path) == 0o600
+
+        cleanup(run)
+        assert not path.exists()
+
+    def test_no_vault_password_writes_nothing(self, git_mirror) -> None:
+        bundle = ResolvedRunBundle(
+            playbook=ResolvedPlaybook(
+                name="web",
+                content="",
+                git=GitPlaybookSource(
+                    repository_id=git_mirror.repository_id,
+                    url="https://example.com/repo.git",
+                    commit=git_mirror.commit,
+                    path="site.yml",
+                ),
+            ),
+            hosts=[host("web")],
+        )
+        run = materialize(bundle)
+
+        assert "ANSIBLE_VAULT_PASSWORD_FILE" not in run.envvars
+        assert not (run.run_dir / "vault-password").exists()
+
+        cleanup(run)
+
     def test_git_playbook_disables_roles_in_its_copy(self, git_mirror) -> None:
         bundle = ResolvedRunBundle(
             playbook=ResolvedPlaybook(
