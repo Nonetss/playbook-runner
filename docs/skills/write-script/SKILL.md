@@ -11,7 +11,11 @@ Read the recipe, with its comparison table and its templates: `/playbook-runner/
 
 ## Rules that fail silently
 
-- A script takes no arguments, variables, secrets or standard input: put values in constants at the top. If it needs any of those, or a cron schedule, propose a playbook and follow the `playbook-runner-write-playbook` skill.
+- A script takes no arguments, variables, secrets or standard input: put values in constants at the top. If it needs any of those, or a cron schedule, propose a playbook and follow the `playbook-runner-write-playbook` skill. A job can still reuse a script by calling it from a playbook.
+- Every run repeats everything: check before changing, so it can be launched again.
+- `become` is a switch at launch, not something the script asks for: it runs as root with it, and as the credential's user without it.
+- The interpreter must exist on the host, so in Python use only the standard library unless you know what else is there.
+- An ad-hoc `command` runs without a shell, so pipes, redirections and environment variables do not work: those need `shell`.
 - Its exit code decides the result. `stderr` may carry harmless SSH notices.
 
 Never run a script or a command on real hosts unless the user asks for it, and suggest one device first.
