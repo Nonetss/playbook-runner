@@ -1,0 +1,27 @@
+---
+title: Datos
+description: Qué guarda cada tabla de PostgreSQL, qué nunca se guarda en claro y quién puede tocar las migraciones
+services: [postgres]
+workspaces: [packages-db]
+order: 2
+updated: 2026-11-04
+---
+
+El esquema está en `packages/db/src/schema/`, y el backend aplica las migraciones al arrancar.
+
+<Entities type="tablas" group="domain" columns="table,purpose" />
+
+## Lo que no se guarda en claro
+
+- **Claves privadas SSH y client secrets de Infisical:** se cifran con AES-256-GCM usando `CREDENTIALS_ENCRYPTION_KEY`, con el prefijo `v1:`. La API nunca los devuelve.
+- **Valores de Infisical:** no se guardan ni llegan al backend. Las tablas solo tienen referencias.
+
+Perder `CREDENTIALS_ENCRYPTION_KEY` hace irrecuperables las claves guardadas.
+
+## Migraciones
+
+<Callout type="danger" title="Las migraciones son del usuario">
+Un agente puede leer lo que hay en `packages/db/src/migrations/`, pero no ejecutar `db:generate`, `db:push` ni `db:migrate`, ni editar el esquema sin que se lo pidan. Si una tarea necesita una migración, se detiene y lo dice.
+</Callout>
+
+Cada migración es una carpeta `<timestamp>_<name>/` con `migration.sql` y `snapshot.json`. `DATABASE_URL` se lee de `apps/backend/.env`, porque no existe `packages/db/.env`.

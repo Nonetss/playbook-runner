@@ -1,0 +1,26 @@
+name: Tabla
+plural: Tablas
+icon: table
+description: Las tablas de PostgreSQL definidas en packages/db/src/schema. El id es el nombre SQL con guiones
+title_field: table
+fields:
+  table:
+    type: text
+    description: Nombre SQL
+  domain:
+    type: enum
+    values:
+    - autenticacion
+    - inventario
+    - playbooks
+    - automatizacion
+    - secretos
+    description: El área a la que pertenece
+  purpose:
+    type: text
+    description: Qué guarda, en una frase
+view:
+  columns:
+  - table
+  - domain
+  - purpose

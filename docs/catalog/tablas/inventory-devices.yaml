@@ -1,0 +1,5 @@
+table: inventory_devices
+domain: inventario
+purpose: Dispositivos, cada uno con su credencial
+source: packages/db/src/schema/inventory.ts
+updated: 2026-11-04

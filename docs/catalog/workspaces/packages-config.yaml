@@ -1,0 +1,6 @@
+path: packages/config
+kind: package
+language: typescript
+purpose: tsconfig base compartido
+source: packages/config/package.json
+updated: 2026-11-04

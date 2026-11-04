@@ -1,0 +1,6 @@
+name: AGENTS.md no cita la feature auth-config
+kind: documentacion
+effect: Existe y está montada en v1/router.ts
+fix: Añadirla a la lista de features
+source: AGENTS.md
+updated: 2026-11-04

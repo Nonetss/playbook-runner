@@ -1,0 +1,58 @@
+---
+title: Panorama
+description: Los servicios de Playbook Runner, las decisiones que explican su forma y el recorrido de una ejecución
+services: [gateway, frontend, backend, ansible, postgres]
+order: 1
+updated: 2026-11-04
+---
+
+Tres servicios detrás de un gateway Caddy, más PostgreSQL. El backend es dueño de los datos y de las reglas de negocio. El ejecutor de Ansible no tiene base de datos: recibe todo resuelto y solo ejecuta.
+
+<Diagram id="arquitectura" />
+
+<Entities type="services" />
+
+## Decisiones que explican el resto
+
+- **Un solo origen.** El navegador solo ve el gateway y no necesita CORS. Las cookies de Better Auth son `sameSite=lax`, así que frontend y backend tienen que compartir sitio.
+- **El ejecutor es tonto a propósito.** No conoce usuarios ni base de datos. Toda autorización ocurre en el backend, y el ejecutor solo confía en quien presente `SERVICE_TOKEN`.
+- **El ejecutor no se publica nunca.** Solo se llega a él por la red interna, a través del router gRPC del gateway. Un paquete proto nuevo con servicio necesita una ruta en `apps/gateway/Caddyfile`.
+- **Los secretos cruzan lo mínimo.** Las claves SSH se cifran en reposo y solo se descifran para construir una ejecución. Los valores de Infisical solo existen en el ejecutor: el backend envía referencias.
+- **Contrato gRPC único.** `proto/run.proto` genera los stubs de TypeScript y de Python, ambos fuera de Git.
+
+## Recorrido de una ejecución
+
+<Diagram id="ejecucion-secuencia" />
+
+1. `packages/api/src/v1/run/stream-handler.ts` comprueba la sesión y `run/resolve.ts` resuelve la ejecución.
+2. El ejecutor (`apps/ansible/app/grpc/services/runner.py`) comprueba la entrada, lee los secretos y llama a `materialize`, que prepara el directorio temporal. Lo que ocurre ahí se explica en [Materialización](../ejecucion/materializacion.mdx).
+3. `ansible-runner` corre en un hilo del pool. Cada evento se reduce con `event_payload` y vuelve por el mismo flujo. Tras `RUN_HEARTBEAT_INTERVAL_S` de silencio se envía un `heartbeat`, que el backend descarta, para mantener viva la conexión.
+4. Al terminar o cancelarse, el ejecutor detiene Ansible, mata los procesos que queden y borra el directorio del run, claves incluidas.
+
+Un job programado sigue el mismo camino desde `packages/api/src/v1/jobs/executor.ts`, pero guarda los eventos en [`job_runs`](catalog:tablas/job-runs). Una ejecución interactiva no se guarda: solo existe mientras dura el flujo.
+
+## Estado persistente
+
+| Dónde | Qué |
+| --- | --- |
+| PostgreSQL | Todo lo de negocio: ver [Datos](../plataforma/datos.mdx) |
+| `STATE_DIR` del ejecutor | `known_hosts` y mirrors de Git. Volumen `ansible_state` en Docker, `.data/ansible-runner/` en local |
+| `RUN_SCRATCH_DIR` del ejecutor | Directorio temporal de cada run, borrado al terminar |
+
+## Límites
+
+| Límite | Valor | Dónde |
+| --- | --- | --- |
+| Procesos de Ansible a la vez | `MAX_CONCURRENT_RUNS`, 8 por defecto. Lo que excede se rechaza, no se encola | `apps/ansible/app/core/config.py` |
+| Duración de una ejecución | 1 hora | `RUN_TIMEOUT_MS` en `packages/api/src/v1/run/proto.ts` |
+| `forks` | 1 por defecto, 50 como máximo | `packages/api/src/v1/jobs/cron.ts` |
+| Solapamiento de un job | Nunca consigo mismo, con bloqueo consultivo | `openRun` en `packages/api/src/v1/jobs/executor.ts` |
+| Sincronizaciones de Git | `MAX_CONCURRENT_SYNCS`, `GIT_TIMEOUT_S`, `GIT_MAX_REPO_MB` | `apps/ansible/app/core/config.py` |
+
+## Cuando se rompe el flujo
+
+| Síntoma | Causa | Qué hacer |
+| --- | --- | --- |
+| `TOO_MANY_REQUESTS` al lanzar | Ya hay `MAX_CONCURRENT_RUNS` procesos | Reintentar, o subir el límite en el ejecutor |
+| «Se perdió la conexión con el servicio de Ansible» | El flujo gRPC se cortó (`describeStreamError`) | Revisar los hosts: la ejecución pudo seguir o terminar allí |
+| `CONFLICT` al lanzar un job | Ya hay una ejecución `running` de ese job | Esperar: un job no se puede cancelar |

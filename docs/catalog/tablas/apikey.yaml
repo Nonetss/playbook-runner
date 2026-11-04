@@ -1,0 +1,5 @@
+table: apikey
+domain: autenticacion
+purpose: API keys personales
+source: packages/db/src/schema/auth.ts
+updated: 2026-11-04

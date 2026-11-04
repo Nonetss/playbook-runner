@@ -1,0 +1,8 @@
+name: Los prompts cuelgan la ejecución
+area: desatendida
+effect: vars_prompt y pause sin seconds no terminan hasta el límite de 1 hora, y ocupan una plaza mientras tanto
+do: 'No pedir nada: usar variables con valor por defecto y pause con seconds'
+checked: probado
+page: ejecucion
+source: packages/api/src/v1/run/proto.ts
+updated: 2026-11-04

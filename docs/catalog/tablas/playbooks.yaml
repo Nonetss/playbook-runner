@@ -1,0 +1,5 @@
+table: playbooks
+domain: playbooks
+purpose: Playbooks inline o de Git; los de Git se identifican por repositorio y ruta
+source: packages/db/src/schema/playbooks.ts
+updated: 2026-11-04

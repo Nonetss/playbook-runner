@@ -1,0 +1,5 @@
+table: inventory_groups
+domain: inventario
+purpose: Grupos; el grupo All no es una fila, se resuelve al ejecutar
+source: packages/db/src/schema/inventory.ts
+updated: 2026-11-04

@@ -1,0 +1,8 @@
+name: Un msg de tipo lista sale como JSON
+area: salida
+effect: Se ve en una sola línea, como un array JSON
+do: Unirlo con el filtro join
+checked: probado
+page: ejecucion
+source: apps/ansible/app/services/ansible/payload.py
+updated: 2026-11-04

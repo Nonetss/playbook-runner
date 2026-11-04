@@ -1,0 +1,39 @@
+---
+title: Playbook Runner por dentro
+description: Cómo funciona Playbook Runner, qué le hace a un playbook y cómo escribir lo que ejecuta
+updated: 2026-11-04
+---
+
+Playbook Runner es una consola web autoalojada para Ansible: inventario, credenciales SSH, playbooks, scripts y jobs con cron, con la salida de cada ejecución en directo en el navegador.
+
+<Diagram id="arquitectura" />
+
+> [!WARNING]
+> Un playbook válido para `ansible-playbook` puede comportarse de otra forma aquí: `hosts` y `become_user` no deciden nada, las variables llegan como texto y `debug` con `var` no se ve. Antes de escribir uno, lee [las reglas del runner](ejecucion/index.mdx).
+
+## ¿Dónde encuentro…?
+
+| Busco… | Página |
+| --- | --- |
+| Escribir un playbook | [Crear un playbook](guias/crear-playbook.mdx) |
+| Escribir un rol o montar un repositorio de playbooks | [Crear un rol](guias/crear-rol.mdx) |
+| Elegir entre script, comando y playbook | [Crear un script o un comando](guias/crear-script.mdx) |
+| Por qué un playbook falla o no enseña nada solo aquí | [Lo que cambia el runner](ejecucion/index.mdx) |
+| Qué servicios hay y cómo viaja una ejecución | [Panorama](fundamentos/panorama.mdx) |
+| Qué hay en cada carpeta del monorepo | [El monorepo](fundamentos/monorepo.mdx) |
+| La API, los datos y la interfaz | [Plataforma](plataforma/index.mdx) |
+| Arrancar el proyecto, comprobar y publicar | [Operación](operacion/index.mdx) |
+| Qué está roto o a medias | [Estado del proyecto](estado.mdx) |
+| Las reglas y los problemas como tablas | [Reglas](catalog:reglas) y [Problemas](catalog:problemas) |
+
+## Otras fuentes de verdad
+
+Esta documentación explica cómo encajan las piezas. El resto se enlaza desde aquí y no se copia:
+
+- [La web pública](https://nonetss.github.io/playbook-runner/docs/): instalación y uso, en inglés y español (`apps/site`).
+- `AGENTS.md` de la raíz del monorepo: reglas y convenciones exhaustivas para trabajar en el código.
+- `openspec/specs/`: el comportamiento exigido de cada capacidad.
+- `apps/frontend/DESIGN.md`: el sistema de diseño, normativo.
+- `PRODUCT.md`: propósito y modelo de operación.
+
+Si dos sitios se contradicen, manda el código.

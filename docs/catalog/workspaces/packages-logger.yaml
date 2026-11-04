@@ -1,0 +1,9 @@
+path: packages/logger
+kind: package
+language: typescript
+purpose: Logger pino compartido
+depends_on:
+- packages-config
+- packages-env
+source: packages/logger/package.json
+updated: 2026-11-04

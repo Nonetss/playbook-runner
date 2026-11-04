@@ -1,0 +1,35 @@
+---
+title: El monorepo
+description: Qué hay en cada carpeta de playbook-runner y qué workspace depende de cuál
+order: 2
+updated: 2026-11-04
+---
+
+Bun, Turborepo y Biome para TypeScript; `uv`, Ruff y BasedPyright para Python. Las versiones se fijan en `workspaces.catalog` del `package.json` raíz.
+
+<Entities type="workspaces" group="kind" columns="path,language,purpose" />
+
+## Lo que no es un workspace
+
+| Carpeta | Qué es |
+| --- | --- |
+| `apps/gateway` | `Caddyfile` y `Dockerfile` del gateway |
+| `proto/` | El contrato gRPC, del que salen los stubs de los dos lenguajes |
+| `playbooks/` | Playbooks de ejemplo, también usados como repositorio Git de prueba |
+| `openspec/` | Especificaciones por capacidad y cambios archivados |
+| `scripts/` | `bootstrap.sh`, el instalador |
+| `docs/` | Este sitio: el contenido de colofon |
+
+## Dónde mirar en el ejecutor
+
+| Busco… | Fichero, dentro de `apps/ansible/app/` |
+| --- | --- |
+| Los RPC | `grpc/services/runner.py` |
+| Preparar el directorio de un run | `services/ansible/materialize.py` |
+| Reescribir `hosts` | `services/ansible/play_targets.py` |
+| Desactivar roles | `services/ansible/disabled_roles.py` |
+| Lanzar Ansible y cancelarlo | `services/ansible/runner.py` |
+| Lo que recibe la consola | `services/ansible/payload.py` |
+| Leer secretos | `services/ansible/infisical.py` |
+| Mirrors y descubrimiento en Git | `services/git/mirror.py`, `services/git/discover.py`, `services/git/role_usage.py` |
+| Ajustes | `core/config.py` |

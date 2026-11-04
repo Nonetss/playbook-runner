@@ -1,0 +1,97 @@
+---
+title: Crear un playbook
+description: Cómo escribir un playbook para Playbook Runner, con una plantilla probada y la lista de lo que hay que comprobar antes de entregarlo
+order: 1
+updated: 2026-11-04
+---
+
+Parte de esta plantilla. Hace lo que casi todo playbook necesita: valores por defecto, conversión de lo que llega de fuera y salida visible en la consola.
+
+```yaml
+# Qué hace, si cambia algo en los hosts y qué variables admite.
+- name: Asegurar el servicio de la aplicación
+  hosts: all # El runner lo sustituye: mandan los hosts elegidos al lanzarlo.
+  gather_facts: true
+  become: true
+  vars:
+    # Valores por defecto. Una variable de la ejecución llega siempre como texto,
+    # así que se convierten donde se usan (| bool, | int).
+    servicio_nombre: nginx
+    servicio_reiniciar: false
+    servicio_espera_segundos: 30
+
+  tasks:
+    - name: Comprobar que el sistema está soportado
+      ansible.builtin.assert:
+        that: ansible_facts['os_family'] == 'Debian'
+        fail_msg: "Solo Debian o Ubuntu, y este host es {{ ansible_facts['os_family'] }}"
+
+    - name: Leer el estado actual
+      ansible.builtin.command: systemctl is-active {{ servicio_nombre }}
+      register: servicio_estado
+      changed_when: false
+      failed_when: false
+
+    - name: Reiniciar el servicio
+      ansible.builtin.service:
+        name: "{{ servicio_nombre }}"
+        state: restarted
+      when: servicio_reiniciar | bool
+
+    - name: Esperar a que el servicio esté activo
+      ansible.builtin.command: systemctl is-active {{ servicio_nombre }}
+      register: servicio_final
+      changed_when: false
+      retries: "{{ (servicio_espera_segundos | int) // 5 }}"
+      delay: 5
+      until: servicio_final.rc == 0
+
+    # msg es lo que se ve en la consola. debug con var no muestra nada.
+    - name: Mostrar el resultado
+      ansible.builtin.debug:
+        msg: "{{ servicio_nombre }}: {{ servicio_estado.stdout }} -> {{ servicio_final.stdout }}"
+```
+
+## Elegir dónde vive
+
+| Necesitas | Usa |
+| --- | --- |
+| Un solo fichero, sin plantillas ni ficheros auxiliares | Playbook **inline**, escrito en la app |
+| Roles, `templates/`, `files/`, `vars_files`, `include_tasks`, `import_playbook`, `group_vars` o revisión por Git | Playbook en un **repositorio Git**. Con roles, sigue también [Crear un rol](crear-rol.mdx) |
+| Un programa sin variables ni cron, o un comando suelto | [Un script o un comando](crear-script.mdx) |
+
+Un playbook inline es un único fichero: para escribir un fichero en el host, usa `ansible.builtin.copy` con `content: |`, que admite Jinja.
+
+## Cómo escribirlo
+
+- Pon `hosts: all` en cada play. Si los trabajos son distintos, haz un playbook por trabajo: [`hosts` no reparte nada](catalog:reglas/hosts-no-decide).
+- Pon `name` a cada tarea y usa FQCN (`ansible.builtin.copy`): sin nombre, la consola enseña el del módulo.
+- Hazlo repetible, porque un job lo lanzará muchas veces. Usa módulos declarativos antes que `command`, y `changed_when: false` en lo que solo lee.
+- Empieza con un comentario que diga qué hace, si cambia algo en los hosts y qué variables admite.
+- Pon en `vars` todo lo configurable y convierte donde lo uses: [`bool` e `int`](../ejecucion/variables.mdx).
+- Saca lo útil por `msg` o `stdout`. Un `msg` que es una lista se ve como JSON: únela con `join('\n')` si quieres líneas.
+- Usa `gather_facts: false` si no usas facts.
+- Si un host falla, los demás siguen. Usa `any_errors_fatal: true` cuando un fallo deba parar todo.
+- Para una tarea en el runner, usa `delegate_to: localhost` y `become: false`.
+
+## Secretos
+
+Escribe `{{ db_password }}` y nunca un secreto en el YAML. La variable se asocia al secreto en la app, en el panel **Secretos de Infisical** del playbook, también en los de Git. Pon `no_log: true` en cada tarea que lo maneje. El detalle está en [Variables y secretos](../ejecucion/variables.mdx#secretos).
+
+## Si va en un repositorio Git
+
+Para que aparezca debe [cumplir la detección](../ejecucion/repositorios-git.mdx#qué-se-detecta-como-playbook). Tras hacer push hay que pulsar **Sincronizar**. Renombrarlo deja atrás a sus jobs, y **Hacer copia en Playbook Runner** copia solo ese fichero.
+
+## Antes de entregarlo
+
+1. Comprueba la sintaxis y, si cambia algo delicado, la salida: [Probar un playbook sin hosts](probar-un-playbook.mdx).
+2. Repasa esta lista:
+   - [ ] `hosts: all` en cada play, sin depender de grupos.
+   - [ ] Sin `become_user`, `vars_prompt`, `pause` sin `seconds` ni `!vault`.
+   - [ ] Cada variable que pueda venir de fuera lleva `bool` o `int` si no es texto.
+   - [ ] Toda salida útil sale por `msg` o `stdout`, nunca por `var`.
+   - [ ] `no_log: true` donde haya secretos.
+   - [ ] Si es inline, no referencia ningún otro fichero.
+3. Pruébalo primero en un solo dispositivo. La app no ofrece `--check`: si quieres un modo de prueba, añade una variable que lo active.
+
+Si algo falla al ejecutarlo, busca el mensaje en [Síntomas](../ejecucion/index.mdx#síntomas).

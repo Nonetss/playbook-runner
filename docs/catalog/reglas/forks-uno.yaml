@@ -1,0 +1,8 @@
+name: forks vale 1 por defecto
+area: desatendida
+effect: Los hosts van de uno en uno salvo que quien lanza suba forks, con un máximo de 50
+do: Tenerlo en cuenta al estimar duración
+checked: leido
+page: ejecucion
+source: packages/api/src/v1/jobs/cron.ts
+updated: 2026-11-04

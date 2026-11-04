@@ -1,0 +1,8 @@
+name: become_user se ignora
+area: privilegios
+effect: become siempre es root, porque el runner fija ansible_become_user como extra var; tampoco sirve como variable de tarea
+do: 'Usar become: true y el comando con runuser -u usuario --'
+checked: probado
+page: ejecucion/variables
+source: apps/ansible/app/grpc/services/runner.py
+updated: 2026-11-04

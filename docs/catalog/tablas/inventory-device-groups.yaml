@@ -1,0 +1,5 @@
+table: inventory_device_groups
+domain: inventario
+purpose: Qué dispositivos hay en cada grupo
+source: packages/db/src/schema/inventory.ts
+updated: 2026-11-04

@@ -1,0 +1,6 @@
+name: debug con var no muestra nada
+kind: runner
+effect: La tarea sale OK con la salida vacía
+fix: Incluir el valor de var en el payload, o avisarlo en la guía pública
+source: apps/ansible/app/services/ansible/payload.py
+updated: 2026-11-04

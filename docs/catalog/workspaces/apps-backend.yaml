@@ -1,0 +1,15 @@
+path: apps/backend
+kind: app
+language: typescript
+purpose: Arranque, migraciones, routers HTTP y scheduler
+depends_on:
+- packages-api
+- packages-auth
+- packages-config
+- packages-db
+- packages-env
+- packages-grpc
+- packages-logger
+page: plataforma/backend
+source: apps/backend/package.json
+updated: 2026-11-04

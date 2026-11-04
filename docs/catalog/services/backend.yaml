@@ -1,0 +1,9 @@
+name: Backend
+technology: Bun, Hono, oRPC, Better Auth, Drizzle
+ports:
+- :3000 HTTP
+workspace: apps-backend
+role: Autenticación, API, reglas de negocio y scheduler; el único con acceso a la base de datos
+page: plataforma/backend
+source: apps/backend/src/index.ts
+updated: 2026-11-04

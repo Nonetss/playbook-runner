@@ -1,0 +1,44 @@
+name: Regla del runner
+plural: Reglas del runner
+icon: shield-alert
+description: Lo que el runner cambia respecto a Ansible normal. El id describe la regla. source es el código que la impone
+title_field: name
+fields:
+  name:
+    type: text
+    description: La regla, en pocas palabras
+  area:
+    type: enum
+    values:
+    - destino
+    - privilegios
+    - variables
+    - salida
+    - desatendida
+    - disponibilidad
+    - git
+    description: De qué parte del playbook trata
+  effect:
+    type: text
+    description: Qué ocurre
+  do:
+    type: text
+    label: Qué hacer
+    description: Cómo escribir el playbook para no chocar con ella
+  checked:
+    type: enum
+    label: Comprobado
+    values:
+    - probado
+    - leido
+    description: 'probado: ejecutado con ansible-runner contra localhost; leido: leído del código'
+  page:
+    type: page
+    optional: true
+    description: La página que la explica
+view:
+  columns:
+  - name
+  - effect
+  - do
+  - checked

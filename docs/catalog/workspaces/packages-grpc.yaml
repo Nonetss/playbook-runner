@@ -1,0 +1,10 @@
+path: packages/grpc
+kind: package
+language: typescript
+purpose: Cliente gRPC y stubs generados de proto/
+depends_on:
+- packages-config
+- packages-env
+- packages-logger
+source: packages/grpc/package.json
+updated: 2026-11-04

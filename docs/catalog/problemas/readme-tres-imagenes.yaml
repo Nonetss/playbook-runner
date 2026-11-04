@@ -1,0 +1,6 @@
+name: El README cuenta tres imágenes
+kind: documentacion
+effect: compose.prod.yml descarga cuatro, con el gateway
+fix: Corregir el inicio rápido de producción
+source: compose.prod.yml
+updated: 2026-11-04

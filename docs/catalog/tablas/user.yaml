@@ -1,0 +1,5 @@
+table: user
+domain: autenticacion
+purpose: Usuarios y su rol
+source: packages/db/src/schema/auth.ts
+updated: 2026-11-04

@@ -1,0 +1,5 @@
+table: organization_role
+domain: autenticacion
+purpose: Roles por organización de Better Auth
+source: packages/db/src/schema/auth.ts
+updated: 2026-11-04

@@ -1,0 +1,14 @@
+path: packages/api
+kind: package
+language: typescript
+purpose: Procedimientos oRPC por feature; el grueso de la lógica de negocio
+depends_on:
+- packages-auth
+- packages-config
+- packages-db
+- packages-env
+- packages-grpc
+- packages-logger
+page: plataforma/backend
+source: packages/api/package.json
+updated: 2026-11-04

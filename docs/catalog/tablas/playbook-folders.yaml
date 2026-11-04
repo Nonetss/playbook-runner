@@ -1,0 +1,5 @@
+table: playbook_folders
+domain: playbooks
+purpose: Carpetas de playbooks inline
+source: packages/db/src/schema/playbook-folders.ts
+updated: 2026-11-04

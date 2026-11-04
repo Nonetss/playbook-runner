@@ -1,0 +1,147 @@
+{
+  "title": "Arquitectura de Playbook Runner",
+  "desc": "El navegador solo llega al gateway, que reparte entre frontend y backend. El backend guarda en PostgreSQL y, a través del router gRPC del propio gateway, llama al ejecutor de Ansible, que se conecta a los hosts por SSH.",
+  "width": 896,
+  "height": 336,
+  "zones": [
+    {
+      "id": "internal",
+      "x": 448,
+      "y": 16,
+      "w": 240,
+      "h": 304,
+      "label": "RED INTERNA"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "browser",
+      "name": "Navegador",
+      "kind": "input",
+      "shape": "pill",
+      "x": 40,
+      "y": 64,
+      "w": 120,
+      "h": 72,
+      "trace": true
+    },
+    {
+      "id": "gateway",
+      "entity": "services/gateway",
+      "sub": ["Caddy", ":80 público", ":50050 gRPC interno"],
+      "x": 232,
+      "y": 40,
+      "w": 160,
+      "h": 264,
+      "info": "Es el único puerto publicado y el único sitio que asocia peticiones con aplicaciones"
+    },
+    {
+      "id": "frontend",
+      "entity": "services/frontend",
+      "sub": "Astro SSR, islas React",
+      "x": 472,
+      "y": 48,
+      "w": 192,
+      "h": 64,
+      "zone": "internal"
+    },
+    {
+      "id": "backend",
+      "entity": "services/backend",
+      "kind": "focal",
+      "tag": "Núcleo",
+      "sub": "Hono, oRPC, scheduler",
+      "x": 472,
+      "y": 136,
+      "w": 192,
+      "h": 72,
+      "zone": "internal",
+      "needs": ["db"]
+    },
+    {
+      "id": "ansible",
+      "entity": "services/ansible",
+      "sub": "sin base de datos",
+      "x": 472,
+      "y": 232,
+      "w": 192,
+      "h": 72,
+      "zone": "internal"
+    },
+    {
+      "id": "db",
+      "entity": "services/postgres",
+      "kind": "store",
+      "shape": "cylinder",
+      "x": 752,
+      "y": 136,
+      "w": 128,
+      "h": 72
+    },
+    {
+      "id": "hosts",
+      "name": "Hosts",
+      "sub": "tu inventario",
+      "kind": "external",
+      "x": 752,
+      "y": 232,
+      "w": 128,
+      "h": 72
+    }
+  ],
+  "edges": [
+    {
+      "from": "browser",
+      "to": "gateway",
+      "kind": "accent",
+      "points": [[160, 100], [232, 100]],
+      "label": "HTTP",
+      "at": [196, 90]
+    },
+    {
+      "from": "gateway",
+      "to": "frontend",
+      "points": [[392, 80], [472, 80]],
+      "label": "RESTO",
+      "at": [432, 70]
+    },
+    {
+      "from": "gateway",
+      "to": "backend",
+      "kind": "accent",
+      "points": [[392, 156], [472, 156]],
+      "label": "/RPC /API",
+      "at": [432, 146]
+    },
+    {
+      "from": "backend",
+      "to": "gateway",
+      "kind": "dash",
+      "points": [[472, 192], [392, 192]],
+      "label": "GRPC",
+      "at": [432, 182]
+    },
+    {
+      "from": "gateway",
+      "to": "ansible",
+      "points": [[392, 268], [472, 268]],
+      "label": "/RUN.*",
+      "at": [432, 258]
+    },
+    {
+      "from": "backend",
+      "to": "db",
+      "kind": "accent",
+      "points": [[664, 172], [752, 172]],
+      "label": "SQL",
+      "at": [708, 162]
+    },
+    {
+      "from": "ansible",
+      "to": "hosts",
+      "points": [[664, 268], [752, 268]],
+      "label": "SSH",
+      "at": [708, 258]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+name: Feature de la API
+plural: Features de la API
+icon: plug
+description: Las features de packages/api/src/v1. El id es el nombre de su carpeta
+title_field: key
+fields:
+  key:
+    type: text
+    description: Clave con la que se monta en v1/router.ts
+  purpose:
+    type: text
+    description: Qué hace, en una frase
+  anonymous:
+    type: boolean
+    description: Si tiene algún procedimiento que admite llamadas sin autenticar
+  page:
+    type: page
+    optional: true
+    description: La página que la explica
+view:
+  columns:
+  - key
+  - purpose
+  - anonymous

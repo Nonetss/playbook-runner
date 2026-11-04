@@ -1,0 +1,6 @@
+path: python/grpc-toolkit
+kind: python-toolkit
+language: python
+purpose: Interceptor del token de servicio
+source: python/grpc-toolkit/pyproject.toml
+updated: 2026-11-04

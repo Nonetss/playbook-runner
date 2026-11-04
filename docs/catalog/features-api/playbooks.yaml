@@ -1,0 +1,6 @@
+key: playbooks
+purpose: Playbooks, carpetas, variables secretas y variables detectadas
+anonymous: false
+page: plataforma/backend
+source: packages/api/src/v1/router.ts
+updated: 2026-11-04

@@ -1,0 +1,5 @@
+table: playbook_repositories
+domain: playbooks
+purpose: URL, rama, subdirectorio, credencial y último commit sincronizado
+source: packages/db/src/schema/playbook-repositories.ts
+updated: 2026-11-04

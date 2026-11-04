@@ -1,0 +1,5 @@
+table: infisical_connections
+domain: secretos
+purpose: Conexiones con Infisical, con el client secret cifrado
+source: packages/db/src/schema/infisical-connections.ts
+updated: 2026-11-04

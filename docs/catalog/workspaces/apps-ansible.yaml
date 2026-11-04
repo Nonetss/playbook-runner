@@ -1,0 +1,9 @@
+path: apps/ansible
+kind: app
+language: python
+purpose: 'Ejecutor: servicios gRPC, ejecución de Ansible y mirrors de Git'
+depends_on:
+- python-grpc-toolkit
+page: ejecucion
+source: apps/ansible/pyproject.toml
+updated: 2026-11-04

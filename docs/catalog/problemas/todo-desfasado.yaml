@@ -1,0 +1,6 @@
+name: TODO.md tiene pendientes ya hechos
+kind: documentacion
+effect: 'Dejar de exigir hosts: all, grupo all integrado y secretos para extra vars ya están hechos'
+fix: Limpiar TODO.md
+source: TODO.md
+updated: 2026-11-04

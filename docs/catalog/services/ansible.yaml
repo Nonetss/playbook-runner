@@ -1,0 +1,10 @@
+name: Ejecutor de Ansible
+technology: Python, FastAPI, gRPC, ansible-runner
+ports:
+- :8000 HTTP
+- :50051 gRPC
+workspace: apps-ansible
+role: Ejecuta Ansible y mantiene los mirrors de Git; no tiene base de datos
+page: ejecucion
+source: apps/ansible/app/main.py
+updated: 2026-11-04

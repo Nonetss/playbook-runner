@@ -1,0 +1,41 @@
+---
+title: Desarrollo
+description: Levantar Playbook Runner en local y comprobar un cambio antes de subirlo
+order: 1
+updated: 2026-11-04
+---
+
+Requiere Bun 1.3.14, Docker, `uv` y un PostgreSQL propio, porque el entorno de desarrollo no lo incluye.
+
+```bash
+bun install
+cp apps/backend/.env.example apps/backend/.env
+cp apps/frontend/.env.example apps/frontend/.env
+# En apps/backend/.env: BETTER_AUTH_SECRET, CREDENTIALS_ENCRYPTION_KEY y SERVICE_TOKEN
+# (el mismo SERVICE_TOKEN en apps/ansible/.env)
+bun run dev
+```
+
+El backend aplica las migraciones y crea el administrador al arrancar. El usuario por defecto está en `SEED_ADMIN_*`, con los valores de `apps/backend/.env.example`.
+
+| Comando | Qué levanta |
+| --- | --- |
+| `bun run dev` | Todo en Docker con recarga en caliente. El gateway queda en `:8080`. Se limpia con `bun run dev:down` |
+| `bun run dev:local` y `bun run gateway` | Aplicaciones nativas y gateway en Docker. No lo uses a la vez que el anterior: comparten puertos |
+| `bun run dev:frontend`, `bun run dev:backend` | Solo esa aplicación |
+| `bun run --filter site dev` | La web pública en `:4322` |
+
+## Comprobar
+
+| Comando | Qué hace |
+| --- | --- |
+| `bun run check` | Biome con escritura: formato y lint |
+| `bun run format` | Formatea TypeScript con Biome y Python con Ruff |
+| `bun run check-types` | `tsc`, `astro check` y BasedPyright |
+| `bun run test` | Tests unitarios de API, frontend y ejecutor. No necesitan base de datos, red ni `.env` |
+| `bunx turbo run test --filter=<workspace>` | Solo `@playbook-runner/api`, `frontend` o `ansible` |
+| `bun run test:e2e` | Playwright. Necesita el backend en marcha con el administrador creado. Nunca corre en CI |
+
+Un cambio en un handler, un helper compartido o la corrección de un bug debe llevar su test. La organización está en `AGENTS.md`, sección «Misc».
+
+Para un playbook, ver [Probar un playbook sin hosts](../guias/probar-un-playbook.mdx).

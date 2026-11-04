@@ -1,0 +1,8 @@
+name: delegate_to localhost corre en el contenedor
+area: destino
+effect: Se ejecuta como el usuario del ejecutor (UID 10001), en una imagen sin sudo
+do: 'Añadir become: false a esa tarea'
+checked: probado
+page: ejecucion/materializacion
+source: apps/ansible/Dockerfile
+updated: 2026-11-04

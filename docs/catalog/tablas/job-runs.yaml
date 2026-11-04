@@ -1,0 +1,5 @@
+table: job_runs
+domain: automatizacion
+purpose: Cada ejecución de un job, con sus eventos, recuento de hosts y commit
+source: packages/db/src/schema/jobs.ts
+updated: 2026-11-04

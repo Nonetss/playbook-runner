@@ -1,0 +1,29 @@
+# Configuración del sitio. El menú está en menu.yaml, las páginas en docs/, los
+# datos en catalog/, los diagramas en diagrams/ y las skills en skills/.
+#
+# Las claves de este fichero son el contrato de la plataforma y se leen tal
+# cual. Los valores, los ids de los tipos y los nombres de los campos son propios
+# de este sitio.
+
+name: Playbook Runner
+description: Cómo funciona Playbook Runner por dentro, qué le hace a un playbook y cómo escribir lo que ejecuta
+contract: "2" # versión mayor del contrato de la plataforma a la que apunta este sitio
+
+# Campos extra de cabecera para las páginas. La plataforma ya da a cada página
+# title, description, icon, order y updated.
+header:
+  services:
+    type: list
+    of: { type: ref, to: services }
+    optional: true
+    description: Servicios que explica la página
+  workspaces:
+    type: list
+    of: { type: ref, to: workspaces }
+    optional: true
+    description: Workspaces del monorepo que explica la página
+  open_questions:
+    type: list
+    of: { type: text }
+    optional: true
+    description: Preguntas aún abiertas; una ronda de preguntas las responde (colofon-questions)

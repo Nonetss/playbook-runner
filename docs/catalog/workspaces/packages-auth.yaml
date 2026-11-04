@@ -1,0 +1,11 @@
+path: packages/auth
+kind: package
+language: typescript
+purpose: Fábrica de Better Auth
+depends_on:
+- packages-config
+- packages-db
+- packages-env
+page: plataforma/backend
+source: packages/auth/package.json
+updated: 2026-11-04

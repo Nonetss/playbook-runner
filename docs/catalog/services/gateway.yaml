@@ -1,0 +1,9 @@
+name: Gateway
+technology: Caddy
+ports:
+- :80 HTTP público
+- :50050 gRPC interno
+role: Entrada HTTP pública y router gRPC interno; el único puerto publicado
+page: fundamentos/panorama
+source: apps/gateway/Caddyfile
+updated: 2026-11-04

@@ -1,0 +1,6 @@
+name: La web dice que toda ejecución queda en el historial
+kind: documentacion
+effect: architecture dice que el backend la registra, pero solo se guardan los jobs
+fix: Corregir el paso 5 de architecture
+source: packages/api/src/v1/run/stream-handler.ts
+updated: 2026-11-04

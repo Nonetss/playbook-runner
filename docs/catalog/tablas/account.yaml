@@ -1,0 +1,5 @@
+table: account
+domain: autenticacion
+purpose: Cuentas de contraseña y de SSO
+source: packages/db/src/schema/auth.ts
+updated: 2026-11-04

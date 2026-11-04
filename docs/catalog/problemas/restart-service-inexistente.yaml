@@ -1,0 +1,6 @@
+name: Se cita restart-service.yml, que no existe
+kind: documentacion
+effect: Lo listan el README y first-run, en inglés y español, pero no está en playbooks/
+fix: Quitarlo de las listas o recuperar el fichero
+source: README.md
+updated: 2026-11-04

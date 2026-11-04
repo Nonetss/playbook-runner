@@ -1,0 +1,43 @@
+---
+title: Repositorios Git
+description: Cómo se sincroniza un repositorio, qué se detecta como playbook y como rol, y qué ocurre al desmarcar un rol
+services: [ansible]
+order: 3
+updated: 2026-11-04
+---
+
+Un repositorio se sincroniza al guardarlo y cada vez que se pulsa **Sincronizar**, nunca solo. `repositories.sync` llama a `SyncRepository`: el ejecutor actualiza su mirror y devuelve el commit y los playbooks encontrados, y el backend hace upsert por `(repository_id, path)`.
+
+Por eso las ejecuciones y los jobs usan `last_commit_sha`, no la punta de la rama, y renombrar un fichero crea otro playbook: el antiguo queda como `missing` y al ejecutarlo falla con «no longer exists in its repository».
+
+## Qué se detecta como playbook
+
+`apps/ansible/app/services/git/discover.py` acepta un fichero si cumple todo esto:
+
+- Es `.yml` o `.yaml` y pesa hasta 256 KiB.
+- Está bajo el subdirectorio configurado, y fuera de `roles/`, `group_vars/`, `host_vars/`, `collections/` y carpetas ocultas.
+- Es una lista en la que **cada** elemento tiene `hosts` o `import_playbook`.
+
+Se aceptan hasta 500 por repositorio.
+
+## Roles
+
+- **Búsqueda:** `role_search_path` pasa en `ANSIBLE_ROLES_PATH` cada `roles/` desde el playbook hasta la raíz, el más cercano primero. Sustituye las rutas por defecto de Ansible.
+- **Qué es un rol:** un directorio directamente bajo `roles/` con `tasks/main` o `meta/main`, bajo el subdirectorio o en el `roles/` de una carpeta superior.
+- **Qué declara un playbook:** se leen `roles`, `include_role` e `import_role` en sus plays, siguiendo `import_playbook`. No se siguen `include_tasks` ni las dependencias. Un nombre con plantilla solo lo marca como dinámico.
+- **`requirements.yml`:** solo se informa de que existe. Un rol externo falla con un error de rol no encontrado.
+
+## Desmarcar un rol
+
+`apps/ansible/app/services/ansible/disabled_roles.py` vacía `tasks/` y las dependencias del rol en la copia del run, en **todos** los `roles/` del árbol. Conserva `defaults`, `vars` y `handlers`, y no escribe nunca a través de un enlace simbólico. Un rol que no aparece es un error.
+
+Las tareas propias del playbook se ejecutan siempre. Solo se puede hacer en una ejecución interactiva y no queda registrado: los jobs ejecutan todos los roles.
+
+## Cuando falla
+
+| Síntoma | Causa | Qué hacer |
+| --- | --- | --- |
+| Falla un rol que dependía del desmarcado | Usaba un `register` o `set_fact` que ya no existe | Darle un `default(...)` en el rol que lo usa |
+| `Roles not found` | El commit sincronizado ya no tiene ese rol | Sincronizar y volver a abrir el formulario |
+| La sincronización falla por tamaño | El mirror supera `GIT_MAX_REPO_MB` | Subir el límite o reducir el repositorio |
+| Solo se aceptan `https` y `ssh` | Una URL local o de otro transporte | Usar `https://`, `ssh://` o `usuario@host:ruta` |

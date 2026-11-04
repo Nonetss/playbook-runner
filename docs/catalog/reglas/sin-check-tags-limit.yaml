@@ -1,0 +1,8 @@
+name: Sin --check, --tags ni --limit
+area: desatendida
+effect: La app no ofrece esas opciones
+do: Añadir una variable que active el modo de prueba
+checked: leido
+page: ejecucion
+source: packages/api/src/v1/run/input.ts
+updated: 2026-11-04

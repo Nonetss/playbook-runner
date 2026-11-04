@@ -1,0 +1,82 @@
+---
+title: Probar un playbook sin hosts
+description: Comprobar la sintaxis de un playbook y ver lo que enseñaría la consola, con el código real del runner y sin tocar ningún host
+workspaces: [apps-ansible]
+order: 4
+updated: 2026-11-04
+---
+
+Comprobar la sintaxis, con el Ansible del venv del ejecutor:
+
+```bash
+cd apps/ansible
+uv run ansible-playbook --syntax-check -i localhost, ../../playbooks/ping.yml
+```
+
+Si usa roles, añade delante `ANSIBLE_ROLES_PATH=/ruta/a/roles`.
+
+## Ver lo que enseñaría la consola
+
+La sintaxis no detecta nada de lo que [cambia el runner](../ejecucion/index.mdx). Para eso, ejecútalo contra `localhost` con las mismas piezas que el ejecutor:
+
+1. Guarda este script fuera del repositorio, como `probar.py`:
+
+   ```python
+   import sys
+   import tempfile
+   from pathlib import Path
+
+   import ansible_runner
+   from app.services.ansible.payload import event_payload
+   from app.services.ansible.play_targets import retarget_playbook
+
+   project = Path(tempfile.mkdtemp())
+   playbook = project / "playbook.yml"
+   playbook.write_text(Path(sys.argv[1]).read_text())
+   retarget_playbook(playbook, project)
+
+   def show(event):
+       data = event_payload(event)
+       if data["event"].startswith("runner_on") and not data["event"].endswith("start"):
+           print(data["event"], data["task"], data["msg"], data["stdout"], sep=" | ")
+       return True
+
+   host = {"ansible_connection": "local", "ansible_python_interpreter": sys.executable}
+   result = ansible_runner.run(
+       playbook="playbook.yml",
+       private_data_dir=str(project),
+       project_dir=str(project),
+       inventory={"all": {"hosts": {"prueba": host}}},
+       extravars={"ansible_become_user": "root"},
+       event_handler=show,
+       quiet=True,
+       timeout=60,
+   )
+   print(result.status, result.rc)
+   ```
+
+2. Ejecútalo desde `apps/ansible`, con el venv en el `PATH` para que encuentre `ansible-playbook`:
+
+   ```bash
+   cd apps/ansible
+   PATH="$PWD/.venv/bin:$PATH" PYTHONPATH=. .venv/bin/python /ruta/a/probar.py /ruta/al/playbook.yml
+   ```
+
+3. Lee la salida: cada línea es lo que recibe la consola. Si una tarea no enseña nada aquí, tampoco lo hará allí.
+
+Las tareas corren de verdad en tu máquina: usa `become: false` y un playbook que no cambie nada, o ejecútalo en un contenedor.
+
+Para añadir variables, ponlas en `extravars` como texto, igual que las pasa la app.
+
+## Qué no comprueba
+
+- La conexión SSH ni los permisos de `sudo` en un host real.
+- Los módulos que necesitan librerías en el host de destino.
+- Todo lo de Git: la exportación del árbol, `ANSIBLE_CONFIG` y los roles.
+
+## Cuando falla
+
+| Síntoma | Causa | Qué hacer |
+| --- | --- | --- |
+| `failed` con `rc=127` y ninguna tarea | `ansible-playbook` no está en el `PATH` | Añadir `.venv/bin`, como en el paso 2 |
+| `timeout` con `rc=254` | El playbook se colgó: [es la regla de los prompts](catalog:reglas/prompts-se-cuelgan) | Quitar `vars_prompt` o `pause` |

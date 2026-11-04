@@ -1,0 +1,49 @@
+---
+title: Frontend
+description: Las rutas de la interfaz, cómo se organizan las features y por qué la consola solo enseña ciertos campos
+services: [frontend]
+workspaces: [apps-frontend]
+order: 3
+updated: 2026-11-04
+---
+
+Astro 7 SSR con islas de React, siempre con `client:only="react"`. La norma visual es `apps/frontend/DESIGN.md`, y la estructura está en `AGENTS.md`, secciones «Frontend feature structure» y «Frontend design system».
+
+## Secciones y rutas
+
+Las páginas están en `src/pages/`. La identidad y la navegación de cada una salen de un único registro: `src/lib/app-surfaces.ts`.
+
+| Sección | Rutas principales |
+| --- | --- |
+| Inicio | `/`. `/dashboard` solo redirige aquí |
+| Inventario | `/inventory`, `/inventory/devices`, `/inventory/groups`, `/inventory/credentials` |
+| Ansible | `/ansible`, `/playbooks`, `/playbooks/new`, `/jobs`, `/jobs/scheduler`, `/jobs/history`, `/history`, `/ansible/infisical` |
+| Bash | `/bash`, `/scripts`, `/scripts/new`, `/commands` |
+| Cuenta | `/me`, `/config`, `/admin/users` |
+| Acceso | `/login`. `/signup` solo redirige a `/login` |
+
+`src/middleware.ts` protege todo salvo los recursos públicos: manda a los `pending` a `/me` y a quien no es administrador fuera de `/admin/*`.
+
+## Features
+
+Cada una vive en `src/features/<nombre>/`: `admin`, `app-shell`, `auth`, `commands`, `config`, `credentials`, `dashboard`, `history`, `infisical`, `inventory`, `jobs`, `me`, `playbooks`, `run` y `scripts`.
+
+- **`run`** es dueña de todo lo de ejecutar: flujos, tipos, selección de inventario y consola. Las demás features la importan a ella, nunca a `playbooks`.
+- **`app-shell`** contiene la navegación y el buscador (`⌘K`).
+- Lo reutilizable sin dominio va en `src/components/ui/`, y las piezas compartidas de recursos en `src/components/shared/`.
+
+## La consola de ejecución
+
+| Componente, en `features/run/components/` | Para | Muestra |
+| --- | --- | --- |
+| `playbook-run-console.tsx` | Playbooks | `PLAY` y `TASK` por host, y el resumen final |
+| `run-host-console.tsx` | Scripts y comandos | Una tarjeta por host con la salida en bruto |
+
+Ambas pintan solo `msg`, `stdout` y `stderr`, que es lo que envía el ejecutor: ver [Salida en la consola](../ejecucion/index.mdx#salida-en-la-consola).
+
+## Datos e idioma
+
+- Cliente oRPC del mismo origen (`${window.location.origin}/rpc`), con TanStack Query.
+- Dos clientes de Better Auth: `lib/auth-client.ts` en el navegador y `lib/auth-server.ts` en SSR.
+- Traducciones con i18next. Los tests unitarios arrancan en español.
+- PWA instalable: `public/sw.js` nunca intercepta `/rpc`, `/api`, `/scalar` ni `/openapi.json`. Sube `CACHE` para invalidar.

@@ -1,0 +1,5 @@
+table: invitation
+domain: autenticacion
+purpose: Invitaciones de Better Auth
+source: packages/db/src/schema/auth.ts
+updated: 2026-11-04

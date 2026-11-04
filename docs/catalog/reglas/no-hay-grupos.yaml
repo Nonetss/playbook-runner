@@ -1,0 +1,8 @@
+name: No hay grupos de Ansible
+area: destino
+effect: group_names vale ungrouped y groups de un grupo no existe, aunque se elija un grupo en la app
+do: Distinguir hosts por facts o por una lista de inventory_hostname
+checked: probado
+page: ejecucion/materializacion
+source: apps/ansible/app/services/ansible/materialize.py
+updated: 2026-11-04

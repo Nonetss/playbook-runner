@@ -1,0 +1,8 @@
+name: De group_vars solo se aplica all
+area: destino
+effect: Junto al playbook se cargan group_vars/all.yml y host_vars con el nombre del dispositivo; otro group_vars no se aplica nunca
+do: Poner los valores comunes en group_vars/all.yml
+checked: probado
+page: ejecucion/materializacion
+source: apps/ansible/app/services/ansible/materialize.py
+updated: 2026-11-04

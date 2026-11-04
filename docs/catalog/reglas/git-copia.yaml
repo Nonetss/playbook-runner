@@ -1,0 +1,8 @@
+name: Hacer copia solo copia el fichero
+area: git
+effect: La copia editable pierde roles, plantillas y ficheros
+do: Copiar solo playbooks autosuficientes
+checked: leido
+page: ejecucion/repositorios-git
+source: apps/frontend/src/features/playbooks/components/playbook-form-page.tsx
+updated: 2026-11-04

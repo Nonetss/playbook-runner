@@ -1,0 +1,29 @@
+name: Problema conocido
+plural: Problemas conocidos
+icon: bug
+description: Fallos del producto y documentación desfasada, sin corregir. Una entidad corregida se borra. El id describe el problema
+title_field: name
+fields:
+  name:
+    type: text
+    description: El problema, en pocas palabras
+  kind:
+    type: enum
+    values:
+    - runner
+    - producto
+    - ejemplo
+    - documentacion
+    description: 'runner: comportamiento del ejecutor; producto: falta una función; ejemplo: un playbook de playbooks/; documentacion: un texto desfasado'
+  effect:
+    type: text
+    description: Qué ocurre, o qué dice el texto y qué es cierto
+  fix:
+    type: text
+    label: Arreglo
+    description: Qué cambiar
+view:
+  columns:
+  - name
+  - effect
+  - fix

@@ -1,0 +1,140 @@
+---
+title: Crear un rol
+description: Cómo estructurar un repositorio de playbooks y escribir un rol que se detecte, se pueda desmarcar y no rompa a los demás
+order: 2
+updated: 2026-11-04
+---
+
+Los roles solo existen en repositorios Git: un playbook escrito en la app es un único fichero y no los encuentra. Las reglas de [Crear un playbook](crear-playbook.mdx) también valen dentro de un rol.
+
+```text
+playbooks/
+  site.yml                 # solo decide qué roles se usan y con qué valores
+  group_vars/all.yml       # opcional: valores comunes
+  roles/                   # se busca primero
+    mi_rol/
+      meta/main.yml        # descripción visible en la app
+      defaults/main.yml    # lo que se puede cambiar desde fuera
+      tasks/main.yml
+      handlers/main.yml
+      templates/
+      files/
+roles/                     # se busca después
+```
+
+## Un rol completo
+
+Probado en el runner: escribe el fichero, la extra var `ejemplo_rol_recargar: "false"` salta el handler y desmarcarlo deja la ejecución en verde sin tareas.
+
+`site.yml`:
+
+```yaml
+# El playbook solo decide qué roles se usan y con qué valores.
+- name: Configurar la aplicación
+  hosts: all
+  gather_facts: false
+  become: true
+  roles:
+    - role: ejemplo_rol
+      vars:
+        ejemplo_rol_puerto: 9090
+```
+
+`roles/ejemplo_rol/meta/main.yml`:
+
+```yaml
+galaxy_info:
+  # La página de Playbooks muestra este texto junto al rol.
+  description: Escribe el fichero de configuración de la aplicación y recarga el servicio
+dependencies: []
+```
+
+`roles/ejemplo_rol/defaults/main.yml`:
+
+```yaml
+# Lo que se puede cambiar desde fuera, con el nombre del rol como prefijo.
+ejemplo_rol_ruta: /etc/ejemplo/app.conf
+ejemplo_rol_puerto: 8080
+ejemplo_rol_recargar: true
+```
+
+`roles/ejemplo_rol/tasks/main.yml`:
+
+```yaml
+- name: Crear el directorio de configuración
+  ansible.builtin.file:
+    path: "{{ ejemplo_rol_ruta | dirname }}"
+    state: directory
+    mode: "0755"
+
+- name: Escribir la configuración
+  ansible.builtin.template:
+    src: app.conf.j2
+    dest: "{{ ejemplo_rol_ruta }}"
+    mode: "0644"
+  notify: Avisar de la recarga
+
+- name: Mostrar la configuración aplicada
+  ansible.builtin.debug:
+    msg: "{{ ejemplo_rol_ruta }} escuchando en el puerto {{ ejemplo_rol_puerto | int }}"
+```
+
+`roles/ejemplo_rol/handlers/main.yml`:
+
+```yaml
+- name: Avisar de la recarga
+  ansible.builtin.debug:
+    msg: "Configuración cambiada: aquí iría la recarga del servicio"
+  when: ejemplo_rol_recargar | bool
+```
+
+`roles/ejemplo_rol/templates/app.conf.j2`:
+
+```jinja
+# Gestionado por Playbook Runner: los cambios a mano se pierden.
+port={{ ejemplo_rol_puerto | int }}
+```
+
+## Reglas
+
+**Para que se detecte**
+
+- Debe ser un directorio directamente bajo `roles/`, con `tasks/main.yml` o `meta/main.yml` (también `.yaml`).
+- Debe estar bajo el subdirectorio configurado o en el `roles/` de una carpeta superior, sin carpetas ocultas ni `collections/` en la ruta.
+- Pon `galaxy_info.description`: es el texto que muestra la app, hasta 500 caracteres.
+
+**Para que se pueda desmarcar**
+
+- Decláralo en `roles:` o con `include_role`/`import_role` dentro de las tareas de la play, con el nombre literal.
+- Un nombre con plantilla solo se marca como rol dinámico.
+- Lo que llega por `include_tasks` o por `dependencies` no cuenta como declarado, aunque se ejecute.
+
+**Para que desmarcarlo no rompa nada**
+
+- No uses en otro rol un `register` o `set_fact` de este sin un `default(...)`.
+- Da a cada rol un nombre único en el repositorio: [desmarcar actúa sobre todos](../ejecucion/repositorios-git.mdx#desmarcar-un-rol) los directorios con ese nombre.
+
+**Variables**
+
+- Pon el nombre del rol como prefijo (`mi_rol_puerto`) para que no choquen.
+- Pon en `defaults/` lo configurable y en `vars/` lo que no debe cambiarse. Una extra var gana a ambos y llega como texto, también en plantillas.
+- Un dato sensible no lleva valor en `defaults/`: el rol lo lee sin definirlo y se asigna como variable secreta del playbook. La app [sugiere ese nombre](../ejecucion/variables.mdx#variables-detectadas) en el panel de secretos, sin tocar el YAML.
+
+**Dependencias**
+
+- `requirements.yml` no se instala: copia el rol externo dentro del repositorio.
+- Las `dependencies` de `meta/main.yml` funcionan si el rol está en el árbol.
+
+## Publicar un cambio
+
+1. Comprueba la sintaxis, con `ANSIBLE_ROLES_PATH`: [Probar un playbook sin hosts](probar-un-playbook.mdx).
+2. Haz commit y push.
+3. Pulsa **Sincronizar** en el repositorio dentro de la app. Hasta entonces, ejecuciones y jobs siguen usando el commit anterior.
+
+## Cuando falla
+
+| Síntoma | Causa | Qué hacer |
+| --- | --- | --- |
+| `the role 'x' was not found` | Playbook inline, rol externo, `roles_path` de `ansible.cfg` o una copia hecha con **Hacer copia en Playbook Runner** | Poner el rol en un `roles/` del árbol y usar el playbook de Git |
+| El rol no aparece en la app | Falta `tasks/main` y `meta/main`, o está anidado | Moverlo directamente bajo `roles/` |
+| No se ofrece desmarcarlo | Llega por `include_tasks`, `dependencies` o un nombre con plantilla | Declararlo en `roles:` con su nombre |

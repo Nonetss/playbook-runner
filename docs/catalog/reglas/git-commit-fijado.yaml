@@ -1,0 +1,8 @@
+name: Se ejecuta el commit sincronizado
+area: git
+effect: Las ejecuciones y los jobs usan last_commit_sha, no la punta de la rama
+do: Pulsar Sincronizar después de cada push
+checked: leido
+page: ejecucion/repositorios-git
+source: packages/api/src/v1/run/resolve.ts
+updated: 2026-11-04

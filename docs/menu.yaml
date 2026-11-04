@@ -1,0 +1,35 @@
+# La barra lateral. Cada grupo lista, en orden, las páginas y carpetas de docs/
+# que muestra. Lo que ningún grupo muestra acaba en un último grupo "Otros".
+
+sections:
+  - title: Empezar
+    icon: compass
+    description: Qué es Playbook Runner, sus servicios y el monorepo
+    pages:
+      - { path: fundamentos, icon: book-open }
+
+  - title: Escribir para el runner
+    icon: file-code
+    description: Lo que el runner cambia respecto a Ansible y cómo escribir playbooks, roles y scripts
+    pages:
+      - { path: ejecucion, icon: play }
+      - { path: guias, icon: list-checks }
+
+  - title: Código
+    icon: code
+    description: El backend, el modelo de datos y el frontend
+    pages:
+      - { path: plataforma, icon: layers }
+
+  - title: Trabajar en el proyecto
+    icon: wrench
+    description: Arrancar, comprobar, publicar y en qué estado está
+    pages:
+      - { path: operacion, icon: settings }
+      - { path: estado, icon: activity }
+
+  - title: Datos
+    icon: database
+    description: Servicios, workspaces, reglas y problemas como tablas
+    pages:
+      - catalog

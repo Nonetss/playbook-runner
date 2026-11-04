@@ -1,0 +1,6 @@
+name: El README da un valor antiguo de ANSIBLE_GRPC_TARGET
+kind: documentacion
+effect: Dice localhost:50051 por defecto y es localhost:50050
+fix: Corregir la tabla de configuración
+source: packages/env/src/server.ts
+updated: 2026-11-04

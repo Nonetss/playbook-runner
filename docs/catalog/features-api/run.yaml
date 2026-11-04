@@ -1,0 +1,6 @@
+key: run
+purpose: Ejecuciones interactivas con flujo de eventos
+anonymous: false
+page: plataforma/backend
+source: packages/api/src/v1/router.ts
+updated: 2026-11-04

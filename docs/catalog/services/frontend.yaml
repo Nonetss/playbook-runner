@@ -1,0 +1,9 @@
+name: Frontend
+technology: Astro SSR, React
+ports:
+- :4321 HTTP
+workspace: apps-frontend
+role: Sirve la interfaz web
+page: plataforma/frontend
+source: apps/frontend/astro.config.mjs
+updated: 2026-11-04

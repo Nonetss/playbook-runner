@@ -1,0 +1,8 @@
+name: Renombrar crea otro playbook
+area: git
+effect: 'La identidad es la ruta: el antiguo queda como desaparecido y sus jobs fallan'
+do: Editar los jobs después de renombrar
+checked: leido
+page: ejecucion/repositorios-git
+source: packages/api/src/v1/run/resolve.ts
+updated: 2026-11-04

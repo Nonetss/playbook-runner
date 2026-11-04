@@ -1,0 +1,5 @@
+table: session
+domain: autenticacion
+purpose: Sesiones de Better Auth
+source: packages/db/src/schema/auth.ts
+updated: 2026-11-04

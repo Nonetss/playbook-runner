@@ -1,0 +1,33 @@
+---
+title: Estado del proyecto
+description: Qué funciona, qué está a medias, qué está roto y qué documentación está desfasada, a fecha de la última revisión
+order: 10
+updated: 2026-11-04
+---
+
+Foto sobre `v0.13.1` más los commits posteriores. Lo que deje de ser cierto se actualiza o se borra.
+
+## Qué funciona
+
+- Inventario, credenciales SSH cifradas y grupos, con el grupo integrado *All*.
+- Playbooks inline con carpetas, y de repositorios Git con commit fijado.
+- Roles de Git: listado, «usado por» y desmarcarlos en una ejecución interactiva.
+- [Variables detectadas](ejecucion/variables.mdx#variables-detectadas) de cada playbook, para sobrescribirlas al ejecutar o asignarles un secreto.
+- Ejecuciones en directo, scripts Bash y Python, y comandos ad-hoc.
+- Jobs con cron, historial y métricas.
+- Secretos con Infisical.
+- Usuarios y roles, SSO por OIDC, API keys y PWA.
+
+## Problemas conocidos
+
+Ninguno está corregido. Una entidad se borra cuando se corrige.
+
+<Entities type="problemas" group="kind" columns="name,effect,fix" />
+
+## Limitaciones por diseño
+
+- Las ejecuciones interactivas no quedan en el historial: `run/stream-handler.ts` no escribe en `job_runs`.
+- Los scripts no se pueden programar: un job solo referencia un playbook.
+- Sin historial de revisiones de playbooks ni de scripts.
+- Sin notificaciones ni permisos por área: solo `admin`, `user` y `pending`.
+- Sin grupos de Ansible reales en el inventario de una ejecución.

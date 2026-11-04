@@ -1,0 +1,6 @@
+name: become_user no tiene efecto
+kind: runner
+effect: 'Una tarea con become_user: postgres corre como root sin ningún aviso'
+fix: Pasar ansible_become_user con menor precedencia que las extra vars y comprobar el resto de casos
+source: apps/ansible/app/grpc/services/runner.py
+updated: 2026-11-04

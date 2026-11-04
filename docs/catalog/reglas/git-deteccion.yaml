@@ -1,0 +1,8 @@
+name: Qué se detecta como playbook
+area: git
+effect: yml o yaml de hasta 256 KiB, bajo el subdirectorio, fuera de roles, group_vars, host_vars, collections y carpetas ocultas, y con hosts o import_playbook en cada elemento
+do: Mantener hosts en cada play
+checked: leido
+page: ejecucion/repositorios-git
+source: apps/ansible/app/services/git/discover.py
+updated: 2026-11-04

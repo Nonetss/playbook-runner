@@ -1,0 +1,8 @@
+name: debug con var no se ve
+area: salida
+effect: La tarea sale OK y la consola no muestra nada, porque solo recibe msg, stdout y stderr
+do: Usar debug con msg
+checked: probado
+page: ejecucion
+source: apps/ansible/app/services/ansible/payload.py
+updated: 2026-11-04

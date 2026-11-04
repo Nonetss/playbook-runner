@@ -1,0 +1,60 @@
+{
+  "type": "sequence",
+  "title": "Una ejecución interactiva",
+  "desc": "El navegador abre un flujo, el backend resuelve la ejecución y se la pasa al ejecutor, que prepara un directorio temporal y lanza Ansible. Cada evento vuelve por el mismo flujo hasta la consola, y al terminar el ejecutor borra el directorio.",
+  "actors": [
+    { "id": "browser", "name": "Navegador" },
+    { "id": "backend", "name": "Backend", "entity": "services/backend" },
+    {
+      "id": "runner",
+      "name": "Ejecutor",
+      "entity": "services/ansible",
+      "focal": true
+    },
+    { "id": "ansible", "name": "ansible-runner" },
+    { "id": "hosts", "name": "Hosts" }
+  ],
+  "messages": [
+    { "from": "browser", "to": "backend", "label": "v1.run.run" },
+    {
+      "from": "backend",
+      "to": "backend",
+      "label": "resuelve la ejecución",
+      "info": "Contenido o commit fijado, hosts sin duplicados, claves descifradas y referencias a secretos"
+    },
+    { "from": "backend", "to": "runner", "label": "RunBundle" },
+    {
+      "from": "runner",
+      "to": "runner",
+      "label": "lee secretos y materializa",
+      "info": "Claves, inventario, árbol de Git, roles desactivados y hosts reescrito"
+    },
+    { "from": "runner", "to": "ansible", "label": "lanza el playbook" },
+    { "from": "ansible", "to": "hosts", "label": "tarea por SSH" },
+    {
+      "from": "hosts",
+      "to": "ansible",
+      "label": "resultado",
+      "kind": "return"
+    },
+    { "from": "ansible", "to": "runner", "label": "evento", "kind": "return" },
+    {
+      "from": "runner",
+      "to": "backend",
+      "label": "TaskEvent",
+      "kind": "return",
+      "info": "Solo event, host, play, task, changed, msg, stdout, stderr y rc"
+    },
+    {
+      "from": "backend",
+      "to": "browser",
+      "label": "línea en la consola",
+      "kind": "accent"
+    },
+    { "from": "runner", "to": "backend", "label": "Done", "kind": "return" },
+    { "from": "runner", "to": "runner", "label": "borra el directorio del run" }
+  ],
+  "fragments": [
+    { "kind": "loop", "label": "por cada tarea y host", "first": 5, "last": 9 }
+  ]
+}

@@ -1,0 +1,31 @@
+---
+title: Cambios y publicación
+description: Qué ficheros hay que tocar a la vez según el cambio, qué hace cada workflow y cómo se escriben los commits
+order: 2
+updated: 2026-11-04
+---
+
+| Cambio | Hay que tocar |
+| --- | --- |
+| RPC o campo nuevo | `proto/run.proto`, regenerar con `bun run generate-grpc`, y los reexports `packages/grpc/src/stubs.ts` y `apps/ansible/app/grpc/stubs.py` |
+| Paquete proto con servicio | También una ruta en `apps/gateway/Caddyfile` |
+| Workspace nuevo | Una línea `COPY` del `package.json` en cuatro ficheros: `Dockerfile` y `Dockerfile.dev` de backend y frontend |
+| Tabla nueva que leen los handlers | Una factoría en `packages/db/testing/rows.ts` |
+| Colección fijada | `apps/ansible/Dockerfile` y `Dockerfile.dev` |
+| Página nueva de la app | Registrarla en `apps/frontend/src/lib/app-surfaces.ts` |
+| Documentación pública | Inglés y español en `apps/site/src/content/docs/` |
+| Cómo trata el runner un playbook | [Las reglas](catalog:reglas), la sección [Lo que cambia el runner](../ejecucion/index.mdx), las guías y las skills de este sitio |
+
+## Workflows
+
+| Workflow | Cuándo | Qué hace |
+| --- | --- | --- |
+| `test.yml` | Cada PR y push a `main` | `biome ci`, `check-types` y `test` |
+| `docker-build.yml` | Push a `main` y tags `v*` | Publica las cuatro imágenes multiarquitectura en GHCR |
+| `pages.yml` | Push a `main` que toque `apps/site/**`, `img/**` o `bun.lock` | Publica la web en GitHub Pages |
+
+Las versiones se marcan con tags `vX.Y.Z`. El `version` del `package.json` raíz no se usa para esto. Las notas de actualización están en `apps/site/src/content/docs/*/upgrading.md`.
+
+## Commits
+
+Conventional Commits en inglés, con scope: `feat(ansible,grpc): …`, `docs(site,agents,openspec): …`. Una unidad lógica por commit.

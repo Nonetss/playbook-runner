@@ -1,0 +1,6 @@
+name: disk-usage.yml no enseña la tabla
+kind: ejemplo
+effect: Usa debug con var, así que no se ve nada en la consola
+fix: Cambiarlo a msg
+source: playbooks/disk-usage.yml
+updated: 2026-11-04

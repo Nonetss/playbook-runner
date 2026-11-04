@@ -1,0 +1,6 @@
+key: health
+purpose: Comprobación pública de que la API responde
+anonymous: true
+page: plataforma/backend
+source: packages/api/src/v1/router.ts
+updated: 2026-11-04

@@ -1,0 +1,5 @@
+table: scripts
+domain: automatizacion
+purpose: Scripts con su lenguaje
+source: packages/db/src/schema/scripts.ts
+updated: 2026-11-04

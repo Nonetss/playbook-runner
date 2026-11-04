@@ -1,0 +1,84 @@
+---
+title: Crear un script o un comando
+description: Cuándo conviene un script, un comando ad-hoc o un playbook, y cómo escribir un script que se pueda relanzar
+order: 3
+updated: 2026-11-04
+---
+
+| Capacidad | Comando | Script | Playbook |
+| --- | --- | --- | --- |
+| Se guarda en la app | No | Sí | Sí |
+| Admite variables | No | No | Sí |
+| Admite secretos de Infisical | No | No | Sí |
+| Se puede programar como job | No | No | Sí |
+| `become` | Interruptor al lanzarlo | Interruptor al lanzarlo | En el YAML |
+
+Un comando sirve para algo puntual de una línea, y un script para un programa reutilizable sin parámetros. Para variables, secretos, cron o varios pasos, [escribe un playbook](crear-playbook.mdx).
+
+Para reutilizar un script en un job, llámalo desde un playbook: con `ansible.builtin.script` en un repositorio Git, o con `ansible.builtin.copy` y `content: |` en uno inline.
+
+## Plantilla Bash
+
+```bash
+#!/usr/bin/env bash
+# Qué hace y si cambia algo en el host.
+set -euo pipefail
+
+UMBRAL=90
+
+uso=$(df --output=pcent / | tail -1 | tr -dc '0-9')
+echo "Uso de /: ${uso}%"
+
+if [ "$uso" -ge "$UMBRAL" ]; then
+  echo "Supera el ${UMBRAL}%" >&2
+  exit 1
+fi
+```
+
+## Plantilla Python
+
+Usa solo la biblioteca estándar, salvo que sepas que el host tiene lo demás.
+
+```python
+#!/usr/bin/env python3
+"""Qué hace y si cambia algo en el host."""
+
+import shutil
+import sys
+
+UMBRAL = 90
+
+total, usado, _ = shutil.disk_usage("/")
+porcentaje = usado * 100 // total
+print(f"Uso de /: {porcentaje}%")
+
+if porcentaje >= UMBRAL:
+    print(f"Supera el {UMBRAL}%", file=sys.stderr)
+    sys.exit(1)
+```
+
+## Reglas de los scripts
+
+- El lenguaje es `bash` o `python`. Sin `#!` al principio, el runner añade `#!/usr/bin/env bash` o `#!/usr/bin/env python3`. Si escribes tu propio shebang, se respeta.
+- El intérprete tiene que existir en el host.
+- Se copia y se ejecuta en cada host, sin argumentos y sin entrada estándar: nada de `read` ni `input()`. Los valores van al principio como constantes.
+- Con `become` corre como root; sin él, como el usuario de la credencial.
+- Distinto de 0 marca el host como fallido. `stdout` y `stderr` aparecen en la tarjeta de cada host.
+- `stderr` puede traer avisos inofensivos de SSH: no lo uses para deducir el resultado.
+- Cada ejecución repite todo: compruébalo antes de cambiar.
+
+## Comandos ad-hoc
+
+- `command` ejecuta sin shell: sin tuberías, redirecciones ni variables de entorno. Úsalo por defecto.
+- `shell` admite todo lo anterior.
+- `become` corre como root.
+- `forks` vale 1 por defecto, con un máximo de 50.
+
+## Antes de entregarlo
+
+```bash
+bash -n script.sh                # o: python3 -m py_compile script.py
+shellcheck script.sh             # si está instalado
+```
+
+Pruébalo primero en un solo dispositivo.

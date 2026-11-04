@@ -1,0 +1,8 @@
+name: Un playbook inline es un solo fichero
+area: disponibilidad
+effect: Roles, import_playbook, vars_files y src relativos no encuentran nada
+do: Usar copy con content, o pasar a un repositorio Git
+checked: leido
+page: ejecucion/materializacion
+source: apps/ansible/app/services/ansible/materialize.py
+updated: 2026-11-04

@@ -1,0 +1,10 @@
+path: apps/frontend
+kind: app
+language: typescript
+purpose: Páginas Astro y features de React
+depends_on:
+- packages-api
+- packages-config
+page: plataforma/frontend
+source: apps/frontend/package.json
+updated: 2026-11-04

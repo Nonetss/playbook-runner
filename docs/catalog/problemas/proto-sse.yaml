@@ -1,0 +1,6 @@
+name: run.proto cita sse.py, que ya no existe
+kind: documentacion
+effect: La lógica está en payload.py
+fix: Corregir los comentarios
+source: proto/run.proto
+updated: 2026-11-04

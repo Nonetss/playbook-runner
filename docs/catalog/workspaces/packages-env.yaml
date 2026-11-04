@@ -1,0 +1,8 @@
+path: packages/env
+kind: package
+language: typescript
+purpose: Validación de variables de entorno
+depends_on:
+- packages-config
+source: packages/env/package.json
+updated: 2026-11-04

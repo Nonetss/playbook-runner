@@ -1,0 +1,49 @@
+---
+title: Lo que cambia el runner
+description: Cada regla por la que un playbook se comporta aquí de otra forma que con ansible-playbook, y qué hacer con ella
+services: [ansible]
+workspaces: [apps-ansible]
+updated: 2026-11-04
+---
+
+Un playbook no se ejecuta tal cual: el ejecutor prepara un directorio temporal, modifica la copia y lanza `ansible-runner` con parámetros fijos. Estas son las reglas que resultan.
+
+<Entities type="reglas" group="area" columns="name,effect,do,checked" />
+
+`probado` significa ejecutado con `ansible-runner` y `ansible-core` 2.21 contra `localhost`, pasando por `retarget_playbook` y `event_payload` reales, el 2026-11-04. `leido` significa leído del código. Nada se ha probado contra un host real por SSH.
+
+## Síntomas
+
+| Síntoma | Causa | Qué hacer |
+| --- | --- | --- |
+| La tarea sale OK y no se ve nada | [`debug` con `var`](catalog:reglas/debug-var-no-se-ve), o un módulo sin `msg` ni `stdout` | Imprimirlo con `debug` y `msg` |
+| `Conditional result ... derived from value of type 'str'` | [Variable de texto](catalog:reglas/extra-vars-texto) usada sin `bool` | `when: flag \| bool` |
+| `'>' not supported between instances of ...` | Variable de texto usada sin `int` | `(n \| int) > 5` |
+| La ejecución no avanza ni termina | [`vars_prompt` o `pause` sin `seconds`](catalog:reglas/prompts-se-cuelgan) | Cerrar la pestaña, o esperar a la hora si es un job |
+| Una tarea corre como root y debía ser otro usuario | [`become_user` se ignora](catalog:reglas/become-user-ignorado) | `runuser -u usuario --` |
+| Una play corre en hosts que no debería | [`hosts` no decide](catalog:reglas/hosts-no-decide) | Un playbook por trabajo, o una condición con `when` |
+| `the role 'x' was not found` | Playbook inline, rol de `requirements.yml` o `roles_path` de `ansible.cfg` | [Crear un rol](../guias/crear-rol.mdx) |
+| `Attempt to use undecryptable variable` | [`!vault`](catalog:reglas/vault-no) en el playbook | Secretos de Infisical |
+| Un cambio subido a Git no se aplica | [Se ejecuta el commit sincronizado](catalog:reglas/git-commit-fijado) | Pulsar **Sincronizar** |
+| El fichero no aparece tras sincronizar | [No cumple la detección](catalog:reglas/git-deteccion) | Revisar `hosts`, carpeta y tamaño |
+
+## Salida en la consola
+
+`apps/ansible/app/services/ansible/payload.py` reduce cada evento a `event`, `host`, `play`, `task`, `task_action`, `changed`, `msg`, `stdout`, `stderr` y `rc`. Eso es lo que recibe el navegador y lo que se guarda en `job_runs`. Lo demás se pierde.
+
+| Tarea | Se ve |
+| --- | --- |
+| `debug` con `msg` de texto | El texto |
+| `debug` con `msg` de tipo lista | JSON en una línea |
+| `debug` con `var` | Nada |
+| `command` o `shell` | `stdout` y `stderr` |
+| Módulos que devuelven otros campos | Nada |
+
+## ¿Dónde encuentro…?
+
+| Busco… | Página |
+| --- | --- |
+| Qué se monta en cada run, inline y Git, y cómo se reescribe `hosts` | [Materialización](materializacion.mdx) |
+| Extra vars, `become_user`, variables detectadas y secretos | [Variables y secretos](variables.mdx) |
+| Sincronización, detección de playbooks y roles | [Repositorios Git](repositorios-git.mdx) |
+| Comprobarlo por mi cuenta sin tocar hosts | [Probar un playbook sin hosts](../guias/probar-un-playbook.mdx) |

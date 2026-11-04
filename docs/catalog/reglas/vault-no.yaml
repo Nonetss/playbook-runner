@@ -1,0 +1,8 @@
+name: Ansible Vault no funciona
+area: disponibilidad
+effect: Un !vault falla al usarse con Attempt to use undecryptable variable, porque no hay contraseña
+do: Usar secretos de Infisical
+checked: probado
+page: ejecucion/variables
+source: apps/ansible/app/services/ansible/runner.py
+updated: 2026-11-04

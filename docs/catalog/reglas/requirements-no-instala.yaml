@@ -1,0 +1,8 @@
+name: requirements.yml no se instala
+area: disponibilidad
+effect: Solo hay las colecciones del paquete ansible e infisical.vault; un rol externo falla como no encontrado
+do: Copiar el rol en el repositorio
+checked: leido
+page: ejecucion/repositorios-git
+source: apps/ansible/app/services/git/discover.py
+updated: 2026-11-04

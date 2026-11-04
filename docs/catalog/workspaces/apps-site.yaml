@@ -1,0 +1,8 @@
+path: apps/site
+kind: app
+language: typescript
+purpose: Web y documentación pública, en GitHub Pages
+depends_on:
+- packages-config
+source: apps/site/package.json
+updated: 2026-11-04

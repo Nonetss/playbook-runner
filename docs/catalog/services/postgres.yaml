@@ -1,0 +1,8 @@
+name: PostgreSQL
+technology: PostgreSQL 17
+ports:
+- :5432
+role: Guarda usuarios, inventario, credenciales, playbooks, jobs e historial
+page: plataforma/datos
+source: compose.prod.yml
+updated: 2026-11-04

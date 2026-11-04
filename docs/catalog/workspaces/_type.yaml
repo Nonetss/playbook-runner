@@ -1,0 +1,42 @@
+name: Workspace
+plural: Workspaces
+icon: boxes
+description: Los workspaces del monorepo. El id es la ruta con guiones en lugar de barras, por ejemplo packages-api
+title_field: path
+fields:
+  path:
+    type: text
+    description: Ruta desde la raíz del monorepo
+  kind:
+    type: enum
+    values:
+    - app
+    - package
+    - python-toolkit
+    description: 'app: desplegable de apps/; package: librería TypeScript de packages/; python-toolkit: librería Python de python/'
+  language:
+    type: enum
+    values:
+    - typescript
+    - python
+    description: Lenguaje principal
+  purpose:
+    type: text
+    description: Qué contiene, en una frase
+  depends_on:
+    type: list
+    optional: true
+    of:
+      type: ref
+      to: workspaces
+    description: Workspaces internos de los que depende directamente
+  page:
+    type: page
+    optional: true
+    description: La página que lo explica
+view:
+  columns:
+  - path
+  - kind
+  - language
+  - purpose

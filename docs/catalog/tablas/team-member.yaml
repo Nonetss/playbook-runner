@@ -1,0 +1,5 @@
+table: team_member
+domain: autenticacion
+purpose: Miembros de un equipo de Better Auth
+source: packages/db/src/schema/auth.ts
+updated: 2026-11-04

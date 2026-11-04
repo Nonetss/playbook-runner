@@ -1,0 +1,5 @@
+table: jobs
+domain: automatizacion
+purpose: Cron, selección de inventario y extra vars
+source: packages/db/src/schema/jobs.ts
+updated: 2026-11-04

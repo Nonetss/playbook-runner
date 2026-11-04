@@ -1,0 +1,8 @@
+name: Nombres de extra vars acotados
+area: variables
+effect: Tienen que ser identificadores y no pueden empezar por ansible_
+do: Usar nombres con el prefijo del playbook o del rol
+checked: leido
+page: ejecucion/variables
+source: packages/api/src/v1/run/extravars.ts
+updated: 2026-11-04

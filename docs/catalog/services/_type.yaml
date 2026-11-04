@@ -1,0 +1,36 @@
+name: Servicio
+plural: Servicios
+icon: server
+description: Los procesos que forman Playbook Runner en ejecución. El id es el nombre corto del servicio en minúsculas
+title_field: name
+fields:
+  name:
+    type: text
+    description: Nombre con el que se le llama en la documentación
+  technology:
+    type: text
+    description: Tecnología principal, en pocas palabras
+  ports:
+    type: list
+    optional: true
+    of:
+      type: text
+    description: Puertos internos y publicados
+  workspace:
+    type: ref
+    to: workspaces
+    optional: true
+    description: El workspace que lo implementa; falta en gateway y PostgreSQL
+  role:
+    type: text
+    description: Qué hace, en una frase
+  page:
+    type: page
+    optional: true
+    description: La página que lo explica
+view:
+  columns:
+  - name
+  - technology
+  - ports
+  - role

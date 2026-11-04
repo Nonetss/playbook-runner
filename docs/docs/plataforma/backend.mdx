@@ -1,0 +1,40 @@
+---
+title: Backend
+description: Dónde vive la lógica de negocio, cómo se sirve la API, cómo corren los jobs y qué puede hacer cada rol
+services: [backend]
+workspaces: [apps-backend, packages-api, packages-auth]
+order: 1
+updated: 2026-11-04
+---
+
+`apps/backend` es solo el arranque: aplica las migraciones y la semilla del administrador (`src/index.ts`), monta los routers HTTP (`src/routers/`) y lanza el scheduler (`src/jobs/scheduler.ts`). La lógica de negocio vive en `packages/api`, versionada bajo `src/v1/`.
+
+<Entities type="features-api" />
+
+Cada feature se reparte en `input.ts`, `output.ts`, `handler.ts` y `router.ts`. Lo que también corre fuera de una petición va en módulos aparte como funciones normales: por ejemplo `run/resolve.ts`, compartido por las ejecuciones interactivas y por los jobs. El detalle está en `AGENTS.md`, sección «Backend API layering».
+
+## Cómo se sirve
+
+| Ruta | Protocolo | Quién la usa |
+| --- | --- | --- |
+| `/rpc/v1/<feature>/<método>` | oRPC | El frontend, con cookie y `x-csrf-token: orpc` |
+| `/api/v1/<feature>/<método>` | OpenAPI | Scripts, con `x-api-key` |
+| `/scalar`, `/openapi.json` | Documentación | Referencia interactiva y especificación |
+
+Solo `health.check` y `authConfig.get` admiten llamadas anónimas, y `packages/api/tests/v1/router.test.ts` lo comprueba.
+
+## Jobs y scheduler
+
+`apps/backend/src/jobs/scheduler.ts` mantiene un `Bun.cron` por cada job activo y lo reconcilia periódicamente con la base de datos. Se apaga con `JOB_SCHEDULER_ENABLED=0`, por ejemplo con varias réplicas.
+
+`jobs/executor.ts` abre la fila en `job_runs`, lanza el RPC y guarda los eventos. Sigue corriendo aunque nadie lo esté viendo, y `jobs.runs.watch` permite suscribirse mientras tanto. [No se puede cancelar](catalog:problemas/job-sin-cancelacion).
+
+## Autenticación
+
+Better Auth (`packages/auth`) con `admin()`, `apiKey()` y `genericOAuth` opcional. No hay registro público: las cuentas las crea un administrador o se aprovisionan por SSO.
+
+| Rol | Puede |
+| --- | --- |
+| `admin` | Todo, incluido `/admin/users` |
+| `user` | Usar la aplicación |
+| `pending` | Iniciar sesión y ver `/me`. La API responde `FORBIDDEN` |

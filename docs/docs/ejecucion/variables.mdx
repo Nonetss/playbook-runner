@@ -1,0 +1,59 @@
+---
+title: Variables y secretos
+description: Por qué una variable llega como texto, qué pasa con become_user, qué variables detecta la app y cómo llegan los secretos
+services: [ansible]
+order: 2
+updated: 2026-11-04
+---
+
+Lo que se pasa al lanzar una ejecución o desde un job llega **como texto** y con la precedencia más alta de Ansible, porque `RunBundleRequest.extravars` es `map<string, string>`. Con la versión actual, usarlo sin convertir da un error, no un resultado raro:
+
+| Expresión, con `flag="false"` y `n="41"` | Resultado |
+| --- | --- |
+| `when: flag` | Falla: `derived from value of type 'str'` |
+| `when: n > 5` | Falla: `'>' not supported` |
+| `when: flag \| bool` | Correcto, se salta la tarea |
+| `(n \| int) + 1` | Correcto, `42` |
+
+Los nombres se validan dos veces, en `packages/api/src/v1/run/extravars.ts` y en el ejecutor: deben ser identificadores y no empezar por `ansible_`.
+
+## become_user
+
+El ejecutor añade siempre `ansible_become_user` como extra var, con el valor de `ANSIBLE_BECOME_USER` (`root` por defecto). Como gana a todo, `become_user` no tiene efecto ni en la play ni como variable de tarea: con `become_user: postgres` el comando resultante fue `sudo -u root`.
+
+Es un [problema conocido](catalog:problemas/become-user-sin-efecto). Mientras exista, para actuar como otro usuario:
+
+```yaml
+- name: Crear la base de datos
+  ansible.builtin.command: runuser -u postgres -- createdb app
+  become: true
+```
+
+El host necesita `sudo` sin contraseña, que es lo que configura el script de aprovisionamiento de la credencial. `runuser` no se ha probado contra un host real.
+
+## Variables detectadas
+
+La página de ejecución lista lo que define el playbook, para sobrescribirlo sin saberse el nombre, y el panel de secretos sugiere los mismos nombres una vez elegidos conexión y entorno. En un playbook de Git salen de `vars` y `vars_files` de sus plays, de los `vars` de cada entrada de `roles:` y de `defaults` y `vars` de los roles que declara; en uno inline, de los `vars` de sus plays.
+
+Detrás van las variables que esos roles leen en `tasks/`, `handlers/` y `templates/` sin que nada las defina ni las asigne (`used_only`), así que un rol puede pedir un secreto sin que el playbook lo mencione. `apps/ansible/app/services/git/role_usage.py` analiza las plantillas con Jinja sin renderizarlas. Es una sugerencia: una variable creada por `include_vars` o por un módulo sale de más, y las tareas del propio playbook no se miran.
+
+- El valor solo se muestra si es simple. Los `!vault`, las listas, los diccionarios y los nombres que parecen sensibles (`password`, `token`, `key`…) salen sin valor.
+- No se detectan `group_vars`, `include_vars` ni las dependencias de un rol.
+- Las `ansible_*` se omiten, porque una ejecución no puede sobrescribirlas.
+- Sobrescribir una es pasarla como extra var, así que llega como texto.
+
+## Secretos
+
+El playbook usa variables normales y nunca menciona Infisical. El backend envía solo referencias: `apps/ansible/app/services/ansible/infisical.py` lee todos los valores antes de arrancar Ansible, y cualquier fallo detiene la ejecución. Los valores van a `secret-vars.yml` con `!unsafe`, para que nunca se evalúen como plantilla, y se pasan con `-e @fichero`.
+
+`redact` enmascara el valor literal en cada evento si tiene al menos 4 caracteres, además del client secret. Un valor transformado no se puede enmascarar, así que esas tareas necesitan `no_log: true`.
+
+Vault no es una alternativa: el runner no tiene contraseña y [falla al usar el valor](catalog:reglas/vault-no).
+
+Cómo declararlos en la app está en [la guía pública de Infisical](https://nonetss.github.io/playbook-runner/es/docs/infisical/).
+
+| Síntoma | Causa | Qué hacer |
+| --- | --- | --- |
+| La ejecución se detiene antes de Ansible, indicando una variable | Infisical inaccesible, secreto ausente o sin permiso de lectura | Revisar la conexión, el entorno y la ruta del secreto |
+| `Extra vars with the name of a secret variable` | Una extra var se llama como un secreto | Cambiar uno de los dos nombres |
+| `Reserved extra vars are not allowed` | Un nombre empieza por `ansible_` | Cambiar el nombre |

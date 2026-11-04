@@ -1,0 +1,8 @@
+name: Las extra vars son texto
+area: variables
+effect: 'Una variable pasada al lanzar llega como cadena y gana a todo; when: flag y n > 5 hacen fallar la tarea'
+do: Convertir donde se usa, con los filtros bool e int
+checked: probado
+page: ejecucion/variables
+source: proto/run.proto
+updated: 2026-11-04

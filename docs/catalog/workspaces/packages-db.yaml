@@ -1,0 +1,10 @@
+path: packages/db
+kind: package
+language: typescript
+purpose: Esquema Drizzle, migraciones y fakes para tests
+depends_on:
+- packages-config
+- packages-env
+page: plataforma/datos
+source: packages/db/package.json
+updated: 2026-11-04

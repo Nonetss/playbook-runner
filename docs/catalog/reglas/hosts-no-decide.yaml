@@ -1,0 +1,8 @@
+name: hosts no decide
+area: destino
+effect: Cada hosts se reescribe a all en la copia del run, también en los playbooks importados
+do: 'Escribir hosts: all y elegir los hosts al lanzar'
+checked: probado
+page: ejecucion/materializacion
+source: apps/ansible/app/services/ansible/play_targets.py
+updated: 2026-11-04
