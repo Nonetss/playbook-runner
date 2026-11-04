@@ -51,6 +51,26 @@ describe("inventory.devices.create", () => {
     expect(fakeDb.calls()).toEqual([])
   })
 
+  test.each([
+    ["10.0.0.10/32", "10.0.0.10"],
+    ["10.0.0.0/24", "10.0.0.0"],
+    ["2001:db8::1/128", "2001:db8::1"],
+  ])("%s is accepted and stored as %s", async (ipAddress, stored) => {
+    fakeDb.queue("insert", [deviceRow()])
+
+    await call(
+      inventoryRouter.devices.create,
+      { ...DEVICE, ipAddress },
+      { context }
+    )
+
+    const [insert] = fakeDb.calls("insert")
+    if (!insert) throw new Error("no insert recorded")
+    expect(stepArgs(insert, "values")).toEqual([
+      { ...DEVICE, ipAddress: stored },
+    ])
+  })
+
   test("an address that is not an IP or CIDR is BAD_REQUEST", async () => {
     await expectErrorCode(
       call(

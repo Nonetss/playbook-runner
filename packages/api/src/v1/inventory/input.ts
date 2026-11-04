@@ -1,9 +1,15 @@
 import { z } from "zod"
+import { hostAddress } from "#v1/inventory/address"
 import { groupName, inventoryName } from "#v1/inventory/name"
 import { idSchema } from "#v1/schemas"
 
-/** Postgres `cidr` column: IPv4/IPv6 address with an optional /prefix. */
-const ipAddress = z.union([z.cidrv4(), z.cidrv6(), z.ipv4(), z.ipv6()])
+/**
+ * IPv4/IPv6 address. A /prefix is still accepted, so callers from when the
+ * column was `cidr` keep working, but only the address is stored.
+ */
+const ipAddress = z
+  .union([z.cidrv4(), z.cidrv6(), z.ipv4(), z.ipv6()])
+  .transform(hostAddress)
 
 const group = z.object({
   name: inventoryName,

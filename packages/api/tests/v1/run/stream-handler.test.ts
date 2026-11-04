@@ -25,7 +25,7 @@ const DEVICE = [{ type: "device" as const, id: IDS.device }]
 const HOST_ROW = {
   deviceId: IDS.device,
   deviceName: "web-1",
-  ipAddress: "10.0.0.10/32",
+  ipAddress: "10.0.0.10",
   portSSH: 22,
   credentialId: IDS.credential,
   username: "ansible",

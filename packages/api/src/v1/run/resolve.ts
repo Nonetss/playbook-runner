@@ -11,6 +11,7 @@ import { scripts } from "@playbook-runner/db/schema/scripts"
 import { playbookSecretVariables } from "@playbook-runner/db/schema/secret-variables"
 import { eq, inArray } from "drizzle-orm"
 import { decryptSecret } from "#v1/credentials/crypto"
+import { hostAddress } from "#v1/inventory/address"
 import {
   mergeSecretVariables,
   type SecretVariable,
@@ -68,19 +69,6 @@ export type ResolvedRunBundle = {
 export type ResolvedScriptBundle = {
   script: { name: string; content: string; language: "bash" | "python" }
   hosts: ResolvedRunHost[]
-}
-
-/**
- * Derive the host address from a Postgres `cidr` value.
- *
- * The `ip_address` column is typed as `cidr`, so values are returned as
- * "host/prefix" strings (e.g. "192.168.1.10/32"). For Ansible we need just
- * the host portion. If the column is ever populated with a bare IP, we still
- * want to round-trip it without the mask.
- */
-function cidrToAddress(value: string): string {
-  const slash = value.indexOf("/")
-  return slash === -1 ? value : value.slice(0, slash)
 }
 
 export async function resolveRun(
@@ -356,7 +344,7 @@ export async function resolveDevice(
 
   return {
     name: rows.deviceName,
-    address: cidrToAddress(rows.ipAddress),
+    address: hostAddress(rows.ipAddress),
     port: rows.portSSH ?? undefined,
     username: rows.username,
     privateKey: decryptSecret(rows.privateKey),
@@ -435,7 +423,7 @@ export async function resolveHosts(
       credentialless.push(r.deviceName)
       return {
         name: r.deviceName,
-        address: cidrToAddress(r.ipAddress),
+        address: hostAddress(r.ipAddress),
         port: r.portSSH ?? undefined,
         username: "",
         privateKey: "",
@@ -444,7 +432,7 @@ export async function resolveHosts(
     }
     return {
       name: r.deviceName,
-      address: cidrToAddress(r.ipAddress),
+      address: hostAddress(r.ipAddress),
       port: r.portSSH ?? undefined,
       username: r.username,
       privateKey: decryptSecret(r.privateKey),

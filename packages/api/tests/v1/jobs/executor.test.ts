@@ -29,7 +29,7 @@ const COMMIT = "0123456789abcdef0123456789abcdef01234567"
 const HOST_ROW = {
   deviceId: IDS.device,
   deviceName: "web-1",
-  ipAddress: "10.0.0.10/32",
+  ipAddress: "10.0.0.10",
   portSSH: 22,
   credentialId: IDS.credential,
   username: "ansible",
