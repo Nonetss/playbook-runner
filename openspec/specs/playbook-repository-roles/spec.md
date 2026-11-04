@@ -183,7 +183,7 @@ The form to run a Git playbook by hand SHALL list the roles it declares that exi
 - **THEN** the system SHALL replace the links and SHALL NOT write to their targets
 
 ### Requirement: Report the variables each playbook defines
-The role listing SHALL report, for each playbook in the configured subdirectory of the synced commit that defines variables, their names and origin: `vars` and non-templated `vars_files` of its plays, following `import_playbook`, and `defaults/main` and `vars/main` of the roles it declares, resolved to the nearest `roles/` directory. It SHALL NOT report `ansible_*` variables, and SHALL NOT read `group_vars`, `include_vars` or role dependencies. A value SHALL only be returned when it is a short plain scalar, and never when it is tagged (such as `!vault`) or its name looks sensitive. Nothing SHALL be stored.
+The role listing SHALL report, for each playbook in the configured subdirectory of the synced commit that defines variables, their names and origin: `vars` and non-templated `vars_files` of its plays, following `import_playbook`, and, for the roles it declares, the `vars` of their `roles:` entry and `defaults/main` and `vars/main`, resolved to the nearest `roles/` directory. It SHALL NOT report `ansible_*` variables, and SHALL NOT read `group_vars`, `include_vars` or role dependencies. A value SHALL only be returned when it is a short plain scalar, and never when it is tagged (such as `!vault`) or its name looks sensitive. Nothing SHALL be stored.
 
 #### Scenario: Variables of a play and its role
 - **WHEN** a playbook sets `port` in `vars` and declares a role whose `defaults/main.yml` sets `web_root`
@@ -226,3 +226,18 @@ The system SHALL report the `vars` of the plays of a playbook written in the app
 #### Scenario: Runner unreachable
 - **WHEN** the variables cannot be listed
 - **THEN** the form SHALL still let the user run the playbook
+
+### Requirement: Suggest detected variables as secrets
+Once a connection and an environment are chosen, a playbook's secrets panel SHALL suggest the detected variables that have no row yet. Choosing one SHALL add a row with that name for the user to point at a secret, and SHALL NOT save anything by itself.
+
+#### Scenario: Choose a suggestion
+- **WHEN** a user chooses the suggested `db_password`
+- **THEN** a row named `db_password` SHALL appear and the suggestion SHALL leave the list
+
+#### Scenario: No connection chosen
+- **WHEN** the playbook has no connection or environment
+- **THEN** the panel SHALL NOT show suggestions
+
+#### Scenario: Variables cannot be listed
+- **WHEN** the variables cannot be listed
+- **THEN** the panel SHALL keep working without suggestions
