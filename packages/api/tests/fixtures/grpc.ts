@@ -1,7 +1,8 @@
 import { mock } from "bun:test"
-import type {
-  ServerStreamOptions,
-  UnaryOptions,
+import {
+  grpcStatus,
+  type ServerStreamOptions,
+  type UnaryOptions,
 } from "@playbook-runner/grpc/client"
 
 /** A `ServiceError`-shaped error that `isGrpcError` recognizes. */
@@ -135,6 +136,24 @@ export function controlledStream<TEvent>() {
       notify()
     },
   }
+}
+
+/**
+ * Programs `grpc.serverStream` to serve `runner` as the real helper would: an
+ * abort of the caller's signal cancels the call, failing it with `CANCELLED`.
+ */
+export function serveCancellable<TEvent>(
+  runner: ReturnType<typeof controlledStream<TEvent>>
+) {
+  grpc.serverStream.mockImplementation((_call, _request, { signal }) => {
+    signal?.throwIfAborted()
+    signal?.addEventListener(
+      "abort",
+      () => runner.fail(grpcError(grpcStatus.CANCELLED, "Cancelled on client")),
+      { once: true }
+    )
+    return runner.stream()
+  })
 }
 
 /** Lets detached work (a job run's background completion) catch up. */

@@ -104,6 +104,13 @@ export type ServerStreamOptions = {
   token: string
   /** Defaults to 60s: streaming scrapes run far longer than a unary call. */
   timeoutMs?: number
+  /**
+   * Cancels the call at once, whatever the stream is waiting for. `.return()`
+   * only reaches a generator at its next `yield`, so a consumer that drops
+   * frames (heartbeats) cannot stop a silent call that way. The cancelled
+   * stream then fails with `CANCELLED`; an aborted signal never opens a call.
+   */
+  signal?: AbortSignal
 }
 
 /**
@@ -126,14 +133,18 @@ export type ServerStreamOptions = {
 export async function* serverStream<TRequest, TResponse>(
   call: ServerStreamCall<TRequest, TResponse>,
   request: TRequest,
-  { token, timeoutMs = 60_000 }: ServerStreamOptions
+  { token, timeoutMs = 60_000, signal }: ServerStreamOptions
 ): AsyncGenerator<TResponse, void, undefined> {
+  signal?.throwIfAborted()
   const stream = call(request, authMetadata(token), {
     deadline: Date.now() + timeoutMs,
   })
+  const cancel = () => stream.cancel()
+  signal?.addEventListener("abort", cancel, { once: true })
   try {
     yield* stream as unknown as AsyncIterable<TResponse>
   } finally {
+    signal?.removeEventListener("abort", cancel)
     stream.cancel()
   }
 }

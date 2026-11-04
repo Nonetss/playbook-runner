@@ -60,15 +60,19 @@ function toResolveError(err: unknown): never {
  * stream becomes `BAD_GATEWAY` with a message saying the hosts may have
  * kept going.
  *
- * `yield*` forwards oRPC's `.return()` (client disconnected) down to
- * `serverStream`, which cancels the gRPC call and so stops the run.
+ * `yield*` forwards oRPC's `.return()` down to `serverStream`, but it only
+ * lands at the next event, so `signal` is what stops the gRPC call during a
+ * silent task. A caller that left is not a lost stream: nobody is listening
+ * and the run was stopped on purpose.
  */
 async function* interactive<T, R>(
-  iterator: AsyncGenerator<T, R, void>
+  iterator: AsyncGenerator<T, R, void>,
+  signal?: AbortSignal
 ): AsyncGenerator<T, R, void> {
   try {
     return yield* iterator
   } catch (err) {
+    if (signal?.aborted) throw err
     if (isGrpcError(err) && err.code === grpcStatus.RESOURCE_EXHAUSTED) {
       throw errors.TOO_MANY_REQUESTS({
         message: "Too many concurrent runs, try again in a moment",
@@ -92,9 +96,11 @@ async function* interactive<T, R>(
 export const streamHandler = {
   async *ping({
     input,
+    signal,
   }: {
     context: Context
     input: z.infer<typeof runInput.ping>
+    signal?: AbortSignal
   }) {
     const token = requireServiceToken()
 
@@ -109,16 +115,18 @@ export const streamHandler = {
     const stream = serverStream(
       client.runPing.bind(client),
       { host: toProtoHost(host) },
-      { token, timeoutMs: RUN_TIMEOUT_MS }
+      { token, timeoutMs: RUN_TIMEOUT_MS, signal }
     )
-    return yield* interactive(toEventIterator(stream))
+    return yield* interactive(toEventIterator(stream), signal)
   },
 
   async *run({
     input,
+    signal,
   }: {
     context: Context
     input: z.infer<typeof runInput.run>
+    signal?: AbortSignal
   }) {
     const token = requireServiceToken()
 
@@ -140,16 +148,18 @@ export const streamHandler = {
         secret_variables: bundle.secretVariables,
         disabled_roles: input.disabledRoles,
       },
-      { token, timeoutMs: RUN_TIMEOUT_MS }
+      { token, timeoutMs: RUN_TIMEOUT_MS, signal }
     )
-    return yield* interactive(toEventIterator(stream))
+    return yield* interactive(toEventIterator(stream), signal)
   },
 
   async *command({
     input,
+    signal,
   }: {
     context: Context
     input: z.infer<typeof runInput.command>
+    signal?: AbortSignal
   }) {
     const token = requireServiceToken()
 
@@ -170,16 +180,18 @@ export const streamHandler = {
         become: input.become,
         forks: input.forks,
       },
-      { token, timeoutMs: RUN_TIMEOUT_MS }
+      { token, timeoutMs: RUN_TIMEOUT_MS, signal }
     )
-    return yield* interactive(toEventIterator(stream))
+    return yield* interactive(toEventIterator(stream), signal)
   },
 
   async *script({
     input,
+    signal,
   }: {
     context: Context
     input: z.infer<typeof runInput.script>
+    signal?: AbortSignal
   }) {
     const token = requireServiceToken()
 
@@ -199,8 +211,8 @@ export const streamHandler = {
         become: input.become,
         forks: input.forks,
       },
-      { token, timeoutMs: RUN_TIMEOUT_MS }
+      { token, timeoutMs: RUN_TIMEOUT_MS, signal }
     )
-    return yield* interactive(toEventIterator(stream))
+    return yield* interactive(toEventIterator(stream), signal)
   },
 }

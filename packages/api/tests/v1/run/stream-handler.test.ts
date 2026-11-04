@@ -12,6 +12,8 @@ import {
   grpc,
   grpcError,
   resetGrpc,
+  serveCancellable,
+  settle,
   streamOf,
 } from "#tests/fixtures/grpc"
 import { encryptSecret } from "#v1/credentials/crypto"
@@ -72,10 +74,12 @@ const resolves = {
 
 /** Opens each kind of interactive run with a valid input. */
 const opens = {
-  ping: () => streamHandler.ping({ context, input: { deviceId: IDS.device } }),
-  run: () =>
+  ping: (signal?: AbortSignal) =>
+    streamHandler.ping({ context, signal, input: { deviceId: IDS.device } }),
+  run: (signal?: AbortSignal) =>
     streamHandler.run({
       context,
+      signal,
       input: {
         playbookId: IDS.playbook,
         inventory: DEVICE,
@@ -85,9 +89,10 @@ const opens = {
         disabledRoles: [],
       },
     }),
-  command: () =>
+  command: (signal?: AbortSignal) =>
     streamHandler.command({
       context,
+      signal,
       input: {
         inventory: DEVICE,
         command: "uptime",
@@ -96,9 +101,10 @@ const opens = {
         forks: 1,
       },
     }),
-  script: () =>
+  script: (signal?: AbortSignal) =>
     streamHandler.script({
       context,
+      signal,
       input: {
         scriptId: IDS.script,
         inventory: DEVICE,
@@ -192,6 +198,23 @@ for (const kind of KINDS) {
       await stream.return({ status: "cancelled", rc: -1, ok: false })
 
       expect(runner.cancelled).toBe(true)
+    })
+
+    test("leaving during a silent task stops the runner at once, as a cancellation", async () => {
+      resolves[kind]()
+      const runner = controlledStream<RunBundleResponse>()
+      serveCancellable(runner)
+      const controller = new AbortController()
+      const stream = opens[kind](controller.signal)
+
+      const reading = stream.next().catch((error: unknown) => error)
+      runner.push(HEARTBEAT, HEARTBEAT)
+      await settle()
+      controller.abort()
+
+      const error = await reading
+      expect(error).toMatchObject({ code: grpcStatus.CANCELLED })
+      expect(error).not.toMatchObject({ code: "BAD_GATEWAY" })
     })
   })
 }

@@ -33,7 +33,9 @@ export const runRouter = {
     .input(runInput.ping)
     .output(runOutput.ping)
     .errors(resolveErrors)
-    .handler(({ context, input }) => streamHandler.ping({ context, input })),
+    .handler(({ context, input, signal }) =>
+      streamHandler.ping({ context, input, signal })
+    ),
 
   run: protectedProcedure
     .route({
@@ -46,7 +48,9 @@ export const runRouter = {
     .input(runInput.run)
     .output(runOutput.run)
     .errors(resolveErrors)
-    .handler(({ context, input }) => streamHandler.run({ context, input })),
+    .handler(({ context, input, signal }) =>
+      streamHandler.run({ context, input, signal })
+    ),
 
   command: protectedProcedure
     .route({
@@ -59,7 +63,9 @@ export const runRouter = {
     .input(runInput.command)
     .output(runOutput.command)
     .errors(resolveErrors)
-    .handler(({ context, input }) => streamHandler.command({ context, input })),
+    .handler(({ context, input, signal }) =>
+      streamHandler.command({ context, input, signal })
+    ),
 
   script: protectedProcedure
     .route({
@@ -72,5 +78,7 @@ export const runRouter = {
     .input(runInput.script)
     .output(runOutput.script)
     .errors(resolveErrors)
-    .handler(({ context, input }) => streamHandler.script({ context, input })),
+    .handler(({ context, input, signal }) =>
+      streamHandler.script({ context, input, signal })
+    ),
 }
