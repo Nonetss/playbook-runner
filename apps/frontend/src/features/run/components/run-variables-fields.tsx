@@ -53,7 +53,7 @@ type InfisicalFieldsProps = InfisicalState & {
   onEnvironmentChange: (value: string) => void
 }
 
-function effectiveInfisical({
+export function effectiveInfisical({
   declared,
   connectionId,
   environment,

@@ -36,3 +36,37 @@ export function offeredVariables(
     return true
   })
 }
+
+export type VariableGroup = {
+  kind: "undefined" | "play" | "role"
+  role: string | null
+  variables: DetectedVariable[]
+}
+
+/**
+ * What nothing defines comes first, since a run may need it; then the play's,
+ * then one group per role in the order the runner found them.
+ */
+export function groupedVariables(
+  variables: DetectedVariable[]
+): VariableGroup[] {
+  const undefinedOnes = variables.filter((variable) => variable.usedOnly)
+  const defined = variables.filter((variable) => !variable.usedOnly)
+  const roles = [...new Set(defined.flatMap((variable) => variable.role ?? []))]
+  const groups: VariableGroup[] = [
+    { kind: "undefined", role: null, variables: undefinedOnes },
+    {
+      kind: "play",
+      role: null,
+      variables: defined.filter((variable) => !variable.role),
+    },
+    ...roles.map(
+      (role): VariableGroup => ({
+        kind: "role",
+        role,
+        variables: defined.filter((variable) => variable.role === role),
+      })
+    ),
+  ]
+  return groups.filter((group) => group.variables.length > 0)
+}

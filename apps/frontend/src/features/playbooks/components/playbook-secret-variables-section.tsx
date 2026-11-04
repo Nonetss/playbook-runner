@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next"
 import { dataFieldClass, Text } from "@/components/shared/brand/typography"
 import { InlineAlert } from "@/components/shared/feedback/inline-alert"
 import { FormField } from "@/components/shared/form/field-label"
+import { PanelResizeHandle } from "@/components/shared/layout/panel-resize-handle"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -15,6 +16,7 @@ import {
   InfisicalEnvironmentField,
   InfisicalSecretPicker,
 } from "@/features/infisical"
+import { DetectedVariableGroups } from "@/features/playbooks/components/detected-variable-groups"
 import {
   usePlaybookSecretVariables,
   usePlaybookSecretVariablesSet,
@@ -31,6 +33,7 @@ import {
   suggestVariableName,
   toRunVariables,
 } from "@/features/run/lib/run-variables"
+import { useResizablePanel } from "@/hooks/use-resizable-panel"
 import { cn } from "@/lib/utils"
 
 type Declaration = {
@@ -53,12 +56,18 @@ export function PlaybookSecretVariablesSection({
   const { data: declaration } = usePlaybookSecretVariables(playbookId)
   const { data: playbook } = usePlaybookGet(playbookId)
   const { variables: detected } = usePlaybookRoles(playbook)
+  const { panelStyle, handleProps } = useResizablePanel({
+    storageKey: "playbook-secrets",
+    defaultWidth: 320,
+  })
 
   return (
     <aside
       aria-label={t("declaration.title")}
-      className="flex min-h-0 shrink-0 flex-col overflow-hidden rounded-xl border max-lg:split:max-h-[46dvh] lg:w-80"
+      style={panelStyle}
+      className="relative flex min-h-0 shrink-0 flex-col overflow-hidden rounded-xl border max-lg:split:max-h-[46dvh] lg:w-(--panel-width) lg:max-w-1/2"
     >
+      <PanelResizeHandle {...handleProps} />
       {declaration ? (
         <SecretVariablesForm
           playbookId={playbookId}
@@ -260,20 +269,20 @@ function SecretVariablesForm({
                 <Text as="p" variant="meta" tone="muted">
                   {t("declaration.suggestions")}
                 </Text>
-                <ul className="flex flex-wrap gap-1.5">
-                  {suggestions.map((variable) => (
-                    <li key={variable.name} className="min-w-0 max-w-full">
+                <DetectedVariableGroups
+                  variables={suggestions}
+                  action={(variable) => {
+                    const label = t("declaration.suggestion_aria", {
+                      name: variable.name,
+                    })
+                    return (
                       <Button
                         type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-auto max-w-full py-1 font-mono text-xs"
-                        title={t("declaration.suggestion_aria", {
-                          name: variable.name,
-                        })}
-                        aria-label={t("declaration.suggestion_aria", {
-                          name: variable.name,
-                        })}
+                        variant="ghost"
+                        size="icon-sm"
+                        className="shrink-0 text-muted-foreground"
+                        aria-label={label}
+                        title={label}
                         onClick={() =>
                           setRows((current) => [
                             ...current,
@@ -285,12 +294,11 @@ function SecretVariablesForm({
                         }
                         disabled={save.isPending}
                       >
-                        <Plus className="size-3 shrink-0" />
-                        <span className="truncate">{variable.name}</span>
+                        <Plus className="size-3.5" />
                       </Button>
-                    </li>
-                  ))}
-                </ul>
+                    )
+                  }}
+                />
               </div>
             ) : null}
           </div>

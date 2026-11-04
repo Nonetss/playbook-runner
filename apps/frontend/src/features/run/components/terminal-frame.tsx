@@ -7,6 +7,8 @@ const XCircle = getIcon("status", "error")
 
 import { type ReactNode, useEffect, useRef, useState } from "react"
 import { Text } from "@/components/shared/brand/typography"
+import { PanelResizeHandle } from "@/components/shared/layout/panel-resize-handle"
+import { useResizablePanel } from "@/hooks/use-resizable-panel"
 import { cn } from "@/lib/utils"
 
 export type TerminalBannerTone = "muted" | "ok" | "changed" | "failed"
@@ -94,16 +96,24 @@ export function TerminalPanelSection({
 export function TerminalPanelCollapsible({
   label,
   aside,
+  defaultOpen = true,
+  openWhen = false,
   children,
   className,
 }: {
   label: ReactNode
   /** Shown closed too, e.g. how many items the block holds. */
   aside?: ReactNode
+  defaultOpen?: boolean
+  /** Opens it when this turns true, and the user can still fold it again. */
+  openWhen?: boolean
   children: ReactNode
   className?: string
 }) {
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(defaultOpen)
+  useEffect(() => {
+    if (openWhen) setOpen(true)
+  }, [openWhen])
   return (
     // Only open: the header would keep its margin above the hidden content.
     <section className={cn(open && "space-y-3", className)}>
@@ -192,6 +202,11 @@ export function TerminalFrame({
     })
   }, [active, setupFirst])
 
+  const { panelStyle, handleProps } = useResizablePanel({
+    storageKey: "run",
+    defaultWidth: 288,
+  })
+
   return (
     <div
       className={cn(
@@ -218,12 +233,14 @@ export function TerminalFrame({
 
       {panel ? (
         <aside
+          style={panelStyle}
           className={cn(
-            "flex min-h-0 shrink-0 flex-col overflow-hidden border-t bg-background max-lg:split:max-h-[46dvh] lg:w-72 lg:border-t-0 lg:border-l",
+            "relative flex min-h-0 shrink-0 flex-col overflow-hidden border-t bg-background max-lg:split:max-h-[46dvh] lg:w-(--panel-width) lg:max-w-1/2 lg:border-t-0 lg:border-l",
             setupFirst &&
               "stacked:order-first stacked:border-t-0 stacked:border-b"
           )}
         >
+          <PanelResizeHandle {...handleProps} />
           <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
             {panel}
           </div>
