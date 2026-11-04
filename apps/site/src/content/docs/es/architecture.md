@@ -27,7 +27,7 @@ El backend llega al ejecutor por gRPC a través del router interno del gateway e
 3. Envía ese paquete completo al ejecutor en una sola llamada gRPC con streaming desde el servidor, autenticada con el `SERVICE_TOKEN` compartido.
 4. El ejecutor escribe un inventario y unos ficheros de clave temporales (y, para playbooks de Git, exporta el commit fijado desde su mirror), y se los pasa a `ansible-runner`.
 5. Cada evento que emite Ansible vuelve por la misma llamada gRPC, y el backend lo reenvía al navegador. El backend registra la ejecución en el historial.
-6. Cuando la ejecución termina, o cierras la pestaña y la llamada se cancela, el ejecutor detiene Ansible, mata los procesos que queden y borra los ficheros de clave de esa ejecución.
+6. Cuando la ejecución termina, o la cancelas (también al cerrar la pestaña) y la llamada se corta, el ejecutor detiene Ansible, mata los procesos que queden y borra los ficheros de clave de esa ejecución.
 
 Los jobs programados siguen el mismo camino, lanzados por el bucle cron del backend en lugar de por un navegador.
 

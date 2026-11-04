@@ -27,7 +27,7 @@ Solo `health.check` y `authConfig.get` admiten llamadas anónimas, y `packages/a
 
 `apps/backend/src/jobs/scheduler.ts` mantiene un `Bun.cron` por cada job activo y lo reconcilia periódicamente con la base de datos. Se apaga con `JOB_SCHEDULER_ENABLED=0`, por ejemplo con varias réplicas.
 
-`jobs/executor.ts` abre la fila en `job_runs`, lanza el RPC y guarda los eventos. Sigue corriendo aunque nadie lo esté viendo, y `jobs.runs.watch` permite suscribirse mientras tanto. [No se puede cancelar](catalog:problemas/job-sin-cancelacion).
+`jobs/executor.ts` abre la fila en `job_runs`, lanza el RPC y guarda los eventos. Sigue corriendo aunque nadie lo esté viendo, y `jobs.runs.watch` permite suscribirse mientras tanto. Una ejecución lanzada a mano se cancela con `jobs.runs.cancel` y queda como `cancelled`, con quién la canceló en `error`; [una programada no se puede cancelar](catalog:problemas/job-sin-cancelacion).
 
 ## Autenticación
 

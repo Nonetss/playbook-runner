@@ -27,7 +27,7 @@ The backend reaches the executor over gRPC through the gateway's internal router
 3. It sends that complete payload to the executor in one server-streaming gRPC call, authenticated with the shared `SERVICE_TOKEN`.
 4. The executor writes a temporary inventory and key files (and, for Git playbooks, exports the pinned commit from its mirror), then hands them to `ansible-runner`.
 5. Every event Ansible emits travels back on the same gRPC call, and the backend forwards it to the browser. The backend records the run in the history.
-6. When the run ends, or you close the tab and the call is cancelled, the executor stops Ansible, kills leftover processes and deletes the run's key files.
+6. When the run ends, or you cancel it (closing the tab does too) and the call is cut, the executor stops Ansible, kills leftover processes and deletes the run's key files.
 
 Scheduled jobs follow the same path, started by the backend's in-process cron loop instead of a browser.
 

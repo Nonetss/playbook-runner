@@ -48,4 +48,6 @@ Consecuencias, todas probadas:
 
 ## Cancelación
 
-Una ejecución interactiva se cancela al cerrar el flujo: `serverStream` cancela la llamada y el ejecutor para Ansible, mata lo que quede y borra las claves. Un job no se puede cancelar.
+Una ejecución interactiva se cancela al cerrar el flujo, y la lanzada a mano desde un job con `jobs.runs.cancel`; una programada [no se puede cancelar](catalog:problemas/job-sin-cancelacion). En ambos casos una señal hace que `serverStream` cancele la llamada al momento, también durante una tarea silenciosa, y el ejecutor para Ansible, mata lo que quede y borra las claves.
+
+Cancelar no deshace nada: los cambios aplicados se quedan, y un comando ya lanzado en un host puede seguir allí aunque muera su `ssh`. El backend da la ejecución por terminada en cuanto cancela la llamada, hasta 30 s (`CANCEL_WAIT_S`) antes de que Ansible pare del todo, así que relanzar un job enseguida puede solaparse con la anterior en los mismos hosts.

@@ -1,6 +1,6 @@
-name: Un job no se puede cancelar
+name: Una ejecución programada de un job no se puede cancelar
 kind: producto
-effect: Uno colgado ocupa una plaza hasta 1 hora y bloquea su siguiente lanzamiento
-fix: Añadir un procedimiento de cancelación
+effect: Una colgada ocupa una plaza hasta 1 hora y bloquea el siguiente lanzamiento del job
+fix: Dejar que `jobs.runs.cancel` acepte también el disparo `schedule`
 source: packages/api/src/v1/jobs/router.ts
 updated: 2026-11-04

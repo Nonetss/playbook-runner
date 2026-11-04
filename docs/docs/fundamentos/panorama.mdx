@@ -55,4 +55,4 @@ Un job programado sigue el mismo camino desde `packages/api/src/v1/jobs/executor
 | --- | --- | --- |
 | `TOO_MANY_REQUESTS` al lanzar | Ya hay `MAX_CONCURRENT_RUNS` procesos | Reintentar, o subir el límite en el ejecutor |
 | «Se perdió la conexión con el servicio de Ansible» | El flujo gRPC se cortó (`describeStreamError`) | Revisar los hosts: la ejecución pudo seguir o terminar allí |
-| `CONFLICT` al lanzar un job | Ya hay una ejecución `running` de ese job | Esperar: un job no se puede cancelar |
+| `CONFLICT` al lanzar un job | Ya hay una ejecución `running` de ese job | Esperar o, si se lanzó a mano, cancelarla: una programada no se puede cancelar |
