@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm"
 import {
-  cidr,
+  inet,
   integer,
   pgTable,
   text,
@@ -25,7 +25,7 @@ export const inventoryDevices = pgTable("inventory_devices", {
   id: uuid().defaultRandom().primaryKey(),
   name: text().notNull(),
   description: text(),
-  ipAddress: cidr("ip_address").notNull(),
+  ipAddress: inet("ip_address").notNull(),
   portSSH: integer("port_ssh").notNull().default(22),
 
   credentialId: uuid("credential_id").references(() => credentials.id, {
