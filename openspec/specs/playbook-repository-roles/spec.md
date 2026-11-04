@@ -256,3 +256,18 @@ The roles listing SHALL also report, after the defined ones and marked `usedOnly
 #### Scenario: A file cannot be parsed
 - **WHEN** a role's task file or template cannot be parsed
 - **THEN** that file SHALL add no variables and the listing SHALL still succeed
+
+### Requirement: Keep a playbook's variables readable
+The run form and the secrets panel SHALL show detected variables as one line each, grouped: those nothing defines first, then the play's, then one group per role, folded. In the run form, the roles, Infisical and variables blocks SHALL start folded with a summary in their header, and SHALL open by themselves when something needs attention.
+
+#### Scenario: A role needs an undefined variable
+- **WHEN** a run form opens for a playbook with a variable nothing defines
+- **THEN** the variables block SHALL open and that variable's group SHALL be first and expanded
+
+#### Scenario: Searching
+- **WHEN** a user searches a long list of variables
+- **THEN** every group with a match SHALL show it, even a folded one
+
+#### Scenario: Nothing needs attention
+- **WHEN** a run form opens and the playbook has only defined variables
+- **THEN** the variables block SHALL stay folded and show how many there are
