@@ -1,5 +1,6 @@
 import { getIcon } from "@/lib/icon-registry"
 
+const Ban = getIcon("status", "error")
 const Clock = getIcon("scheduling", "time")
 const Loader2 = getIcon("status", "loading")
 const Pencil = getIcon("actions", "edit")
@@ -22,6 +23,7 @@ import {
 } from "@/features/jobs/components/run-widgets"
 import { useOnRunChange } from "@/features/jobs/hooks/use-job-run-changes"
 import {
+  useCancelJobRun,
   useJobGet,
   useJobRun,
   useJobRunGet,
@@ -57,6 +59,8 @@ function JobDetailPageInner({ id }: { id: string }) {
   const { t, i18n } = useTranslation("jobs")
   const { data: job, isPending: jobLoading, isError } = useJobGet(id)
   const runJob = useJobRun()
+  const cancelRun = useCancelJobRun()
+  const [cancellingRunId, setCancellingRunId] = useState<string | null>(null)
   const watch = useJobRunWatch()
   const confirm = useConfirm()
 
@@ -194,6 +198,24 @@ function JobDetailPageInner({ id }: { id: string }) {
     }
   }
 
+  async function handleCancelRun(runId: string) {
+    const confirmed = await confirm({
+      title: t("cancel_run.confirm_title"),
+      description: t("cancel_run.confirm_description"),
+      confirmLabel: t("cancel_run.confirm"),
+      cancelLabel: t("cancel_run.dismiss"),
+      variant: "destructive",
+    })
+    if (!confirmed) return
+
+    setCancellingRunId(runId)
+    try {
+      await cancelRun.mutateAsync({ runId })
+    } catch {
+      setCancellingRunId(null) // useCancelJobRun already showed the toast.
+    }
+  }
+
   function handleSelectRun(runId: string) {
     if (watch.watchingRunId !== runId) watch.reset()
     focusRun(runId)
@@ -226,6 +248,14 @@ function JobDetailPageInner({ id }: { id: string }) {
   }
 
   const running = runJob.isPending || watch.phase === "running"
+  const cancellableRun =
+    selectedRun?.status === "running" && selectedRun.trigger === "manual"
+      ? selectedRun
+      : null
+  // The row settles through the run-change subscription; until then a request
+  // already accepted keeps the action busy. A reload offers it again.
+  const cancelling = cancellableRun?.id === cancellingRunId && !!cancellableRun
+  const cancelledResult = watch.result?.status === "cancelled"
 
   return frame(
     <>
@@ -249,6 +279,22 @@ function JobDetailPageInner({ id }: { id: string }) {
         }
         action={
           <div className="flex gap-2">
+            {cancellableRun ? (
+              <Button
+                variant="outline"
+                disabled={cancelling}
+                onClick={() => handleCancelRun(cancellableRun.id)}
+              >
+                {cancelling ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Ban className="size-4" />
+                )}
+                {cancelling
+                  ? t("cancel_run.cancelling")
+                  : t("cancel_run.action")}
+              </Button>
+            ) : null}
             <Button asChild variant="outline">
               <AppLink href={`/jobs/${job.id}/edit`}>
                 <Pencil className="size-4" />
@@ -295,13 +341,24 @@ function JobDetailPageInner({ id }: { id: string }) {
             {isWatchingSelected && watch.phase === "done" && watch.result ? (
               <RunResultBanner
                 result={watch.result}
-                message={t("detail.result_finished_with_status", {
-                  status: watch.result.status,
-                })}
+                tone={cancelledResult ? "changed" : undefined}
+                message={
+                  cancelledResult
+                    ? selectedRun?.status === "cancelled" && selectedRun.error
+                      ? selectedRun.error
+                      : t("detail.result_cancelled")
+                    : t("detail.result_finished_with_status", {
+                        status: watch.result.status,
+                      })
+                }
               />
             ) : null}
             {!isWatchingSelected && selectedRun?.error ? (
-              <TerminalBanner tone="failed">{selectedRun.error}</TerminalBanner>
+              <TerminalBanner
+                tone={selectedRun.status === "cancelled" ? "changed" : "failed"}
+              >
+                {selectedRun.error}
+              </TerminalBanner>
             ) : null}
           </>
         }

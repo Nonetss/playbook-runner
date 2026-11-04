@@ -37,7 +37,10 @@
     "toggle_error": "Could not change the job state",
     "run_started": "Run started",
     "run_error": "Could not run the job",
-    "network_error": "Network error"
+    "network_error": "Network error",
+    "cancel_requested": "Cancellation requested",
+    "cancel_error": "Could not cancel the run",
+    "cancel_not_running": "The run had already finished."
   },
   "form": {
     "back_aria": "Back",
@@ -136,12 +139,21 @@
     "confirm": "Start job",
     "cancel": "Cancel"
   },
+  "cancel_run": {
+    "action": "Cancel run",
+    "cancelling": "Cancelling…",
+    "confirm_title": "Cancel the run?",
+    "confirm_description": "Ansible will stop, but changes already applied are not rolled back and a command already launched on a host may keep running there.",
+    "confirm": "Cancel run",
+    "dismiss": "Keep running"
+  },
   "status": {
     "pending": "Pending",
     "running": "Running",
     "ok": "Success",
     "partial": "Partial",
-    "failed": "Failed"
+    "failed": "Failed",
+    "cancelled": "Cancelled"
   },
   "history": {
     "page": {
@@ -197,7 +209,8 @@
     "connection_error": "The live run connection ended",
     "reconnecting": "Connection lost. Reconnecting to the live output…",
     "result_finished_with_status": "Run finished — status {{status}}",
-    "not_found": "Job not found."
+    "not_found": "Job not found.",
+    "result_cancelled": "Run cancelled"
   },
   "hosts": {
     "ok": "{{count}} ok",

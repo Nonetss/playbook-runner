@@ -37,7 +37,10 @@
     "toggle_error": "No se pudo cambiar el estado del job",
     "run_started": "Ejecución iniciada",
     "run_error": "No se pudo ejecutar el job",
-    "network_error": "Error de red"
+    "network_error": "Error de red",
+    "cancel_requested": "Cancelación solicitada",
+    "cancel_error": "No se pudo cancelar la ejecución",
+    "cancel_not_running": "La ejecución ya había terminado."
   },
   "form": {
     "back_aria": "Volver",
@@ -136,12 +139,21 @@
     "confirm": "Iniciar job",
     "cancel": "Cancelar"
   },
+  "cancel_run": {
+    "action": "Cancelar ejecución",
+    "cancelling": "Cancelando…",
+    "confirm_title": "¿Cancelar la ejecución?",
+    "confirm_description": "Ansible se detendrá, pero los cambios ya aplicados no se deshacen y un comando ya lanzado en un host puede seguir ejecutándose allí.",
+    "confirm": "Cancelar ejecución",
+    "dismiss": "Seguir ejecutando"
+  },
   "status": {
     "pending": "Pendiente",
     "running": "En curso",
     "ok": "Correcto",
     "partial": "Parcial",
-    "failed": "Fallido"
+    "failed": "Fallido",
+    "cancelled": "Cancelada"
   },
   "history": {
     "page": {
@@ -197,7 +209,8 @@
     "connection_error": "La conexión de la ejecución terminó",
     "reconnecting": "Se perdió la conexión. Reconectando con la salida en tiempo real…",
     "result_finished_with_status": "Ejecución finalizada — estado {{status}}",
-    "not_found": "Job no encontrado."
+    "not_found": "Job no encontrado.",
+    "result_cancelled": "Ejecución cancelada"
   },
   "hosts": {
     "ok": "{{count}} OK",

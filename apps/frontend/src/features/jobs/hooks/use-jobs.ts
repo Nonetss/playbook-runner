@@ -1,4 +1,4 @@
-import { consumeEventIterator } from "@orpc/client"
+import { consumeEventIterator, ORPCError } from "@orpc/client"
 import { useInfiniteQuery } from "@tanstack/react-query"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -298,6 +298,26 @@ export const useJobRun = () => {
   })
 }
 
+/**
+ * Ask a manual run in progress to stop. Resolves as soon as the backend took
+ * the request; the run-change subscription and the live watch report how it
+ * settled.
+ */
+export const useCancelJobRun = () => {
+  const { t } = useTranslation("jobs")
+  return useOrpcMutation({
+    mutationFn: (input: { runId: string }) =>
+      orpc.jobs.runs.cancel.call(input).catch((error: unknown) => {
+        if (error instanceof ORPCError && error.code === "CONFLICT") {
+          throw new Error(t("toast.cancel_not_running"))
+        }
+        throw error
+      }),
+    success: t("toast.cancel_requested"),
+    error: t("toast.cancel_error"),
+  })
+}
+
 export type JobRunWatchPhase =
   | "idle"
   | "running"
@@ -307,7 +327,7 @@ export type JobRunWatchPhase =
 
 export type JobRunWatchResult = {
   runId: string
-  status: "ok" | "failed"
+  status: "ok" | "failed" | "cancelled"
   ok: boolean
 }
 
@@ -431,11 +451,11 @@ export function useJobRunWatch() {
     [detach, t]
   )
 
+  // A run that finished in the meantime keeps its result.
   const stopWatching = useCallback(() => {
-    if (phase !== "running") return
     detach()
-    setPhase("cancelled")
-  }, [detach, phase])
+    setPhase((current) => (current === "running" ? "cancelled" : current))
+  }, [detach])
 
   const reset = useCallback(() => {
     detach()

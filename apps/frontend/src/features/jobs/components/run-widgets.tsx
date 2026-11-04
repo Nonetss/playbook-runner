@@ -39,6 +39,7 @@ export const RUN_OUTCOME_TONE: Record<RunOutcome, StatusDotTone> = {
   ok: "foreground",
   partial: "destructive",
   failed: "destructive",
+  cancelled: "muted",
 }
 
 export function RunStatusTag({

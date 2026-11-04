@@ -4,7 +4,13 @@ import { fakeJobRuns, resetFakeJobRuns } from "@test/unit/fixtures/orpc"
 import { act, cleanup, renderHook } from "@testing-library/react"
 
 type WatchEnd =
-  | { result: { runId: string; status: "ok" | "failed"; ok: boolean } | null }
+  | {
+      result: {
+        runId: string
+        status: "ok" | "failed" | "cancelled"
+        ok: boolean
+      } | null
+    }
   | { error: unknown }
 
 /** What one `jobs.runs.watch` call does: refuse at once, or stream then end. */
@@ -78,6 +84,19 @@ describe("useJobRunWatch", () => {
     expect(result.current.phase).toBe("done")
     expect(result.current.result).toEqual(ok)
     expect(result.current.reconnecting).toBe(false)
+  })
+
+  test("a run that finished during a confirmation keeps its result", async () => {
+    scripts = [{ events: ["a"], end: { result: ok } }]
+    const { result } = renderHook(() => useJobRunWatch())
+
+    act(() => result.current.start("r1"))
+    const heldDuringConfirmation = result.current.stopWatching
+    await flush()
+    act(() => heldDuringConfirmation())
+
+    expect(result.current.phase).toBe("done")
+    expect(result.current.result).toEqual(ok)
   })
 
   test("falls back to the stored run when it is no longer live on reattach", async () => {

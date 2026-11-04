@@ -7,7 +7,7 @@ import type { Seeder } from "@test/e2e/helpers/seed"
 type Named = { id: string; name: string }
 
 /** A stored run that is no longer pending or running: never asserts which. */
-const RUN_SETTLED = /Correcto|Parcial|Fallido/
+const RUN_SETTLED = /Correcto|Parcial|Fallido|Cancelada/
 
 const SCHEDULE = "0 0 1 1 *"
 
@@ -230,6 +230,41 @@ test.describe("Jobs: detalle e historial", () => {
       "href",
       `/jobs/${job.id}/edit`
     )
+  })
+
+  test("cancelar una ejecución manual en curso la deja terminada", async ({
+    page,
+    seed,
+  }) => {
+    test.setTimeout(150_000)
+    const { job } = await seedJob(seed)
+    await page.goto(`/jobs/${job.id}`)
+
+    const runNow = page.getByRole("button", {
+      name: "Ejecutar ahora",
+      exact: true,
+    })
+    await waitForHydration(runNow)
+    await runNow.click()
+    await page
+      .getByRole("dialog", { name: `¿Ejecutar "${job.name}" ahora?` })
+      .getByRole("button", { name: "Iniciar job" })
+      .click()
+
+    await page
+      .getByRole("button", { name: "Cancelar ejecución", exact: true })
+      .click()
+    await page
+      .getByRole("dialog", { name: "¿Cancelar la ejecución?" })
+      .getByRole("button", { name: "Cancelar ejecución" })
+      .click()
+
+    // It may still have finished first: asserts only that it settles.
+    await expect(page.getByRole("button", { name: /Manual/ })).toContainText(
+      RUN_SETTLED,
+      { timeout: 90_000 }
+    )
+    await expect(runNow).toBeEnabled()
   })
 
   test("ejecutar ahora termina y aparece en el historial", async ({

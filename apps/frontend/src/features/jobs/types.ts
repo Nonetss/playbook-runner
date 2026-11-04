@@ -23,7 +23,7 @@ export type JobDetail = Job & {
   secretVariables: { name: string; secretName: string; secretPath: string }[]
 }
 
-export type JobRunStatus = "pending" | "running" | "ok" | "failed"
+export type JobRunStatus = "pending" | "running" | "ok" | "failed" | "cancelled"
 
 /** A single SSE event captured during a run (Ansible event payload). */
 export type JobRunEvent = Record<string, unknown> & { event?: string }
@@ -93,6 +93,6 @@ export type JobRollup = {
 export type JobRunChange = {
   runId: string
   jobId: string
-  status: "running" | "ok" | "failed"
+  status: "running" | "ok" | "failed" | "cancelled"
   trigger: "manual" | "schedule"
 }
