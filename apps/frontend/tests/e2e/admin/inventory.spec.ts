@@ -133,6 +133,40 @@ test.describe("Inventario: dispositivos", () => {
     await expect(card).toContainText(group.name)
   })
 
+  test("el buscador filtra por lo que muestra la tarjeta y se puede limpiar", async ({
+    page,
+    seed,
+  }) => {
+    const group = await seed.group()
+    const grouped = await seed.device()
+    const other = await seed.device()
+    await seed.assign(grouped.id, group.id)
+
+    await page.goto("/inventory/devices")
+    const search = page.getByRole("searchbox", {
+      name: "Buscar dispositivos",
+    })
+    await waitForHydration(search)
+    await expect(buttonCard(page, grouped.name)).toBeVisible()
+    await expect(buttonCard(page, other.name)).toBeVisible()
+
+    await search.fill(group.name)
+    await expect(buttonCard(page, grouped.name)).toBeVisible()
+    await expect(buttonCard(page, other.name)).toBeHidden()
+
+    await search.fill(other.name)
+    await expect(buttonCard(page, other.name)).toBeVisible()
+    await expect(buttonCard(page, grouped.name)).toBeHidden()
+
+    await search.fill(`${other.name} sin-coincidencia`)
+    await expect(page.getByText("Sin resultados")).toBeVisible()
+
+    await page.getByRole("button", { name: "Limpiar filtros" }).click()
+    await expect(search).toHaveValue("")
+    await expect(buttonCard(page, grouped.name)).toBeVisible()
+    await expect(buttonCard(page, other.name)).toBeVisible()
+  })
+
   test("crear un dispositivo desde el diálogo", async ({ page, seed }) => {
     const name = seed.name("ui-dev")
     await page.goto("/inventory/devices")

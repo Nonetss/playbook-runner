@@ -2,6 +2,7 @@ import { getIcon } from "@/lib/icon-registry"
 
 const Computer = getIcon("resources", "device")
 const Plus = getIcon("actions", "add")
+const Search = getIcon("views", "search")
 
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -10,13 +11,17 @@ import { HeroCount } from "@/components/shared/layout/page-hero"
 import { EntityCardGrid } from "@/components/shared/resource/entity-list"
 import { ResourceOverview } from "@/components/shared/resource/resource-overview"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { useCredentialsList } from "@/features/credentials/hooks/use-credentials"
 import { ALL_GROUP_ID, makeAllGroup } from "@/features/inventory/all-group"
 import { DeviceFormModal } from "@/features/inventory/components/device-form-modal"
 import { GroupFormModal } from "@/features/inventory/components/group-form-modal"
 import { PingDeviceModal } from "@/features/inventory/components/ping-device-modal"
 import { RelationsDialog } from "@/features/inventory/components/relations-dialog"
-import { deviceDefinition } from "@/features/inventory/definitions/device.definition"
+import {
+  deviceAddress,
+  deviceDefinition,
+} from "@/features/inventory/definitions/device.definition"
 import { groupDefinition } from "@/features/inventory/definitions/group.definition"
 import { useDeviceGroupsList } from "@/features/inventory/hooks/use-device-groups"
 import {
@@ -33,6 +38,7 @@ import type {
   InventoryGroup,
 } from "@/features/inventory/types"
 import { useConfirm } from "@/hooks/use-confirm"
+import { matchesEveryWord } from "@/lib/fold-text"
 
 type InventorySection = "groups" | "devices"
 
@@ -66,6 +72,8 @@ function InventoryPageInner({ section }: { section: InventorySection }) {
   const [pingDevice, setPingDevice] = useState<InventoryDevice | null>(null)
 
   const [relationsTarget, setRelationsTarget] = useState<RelationsTarget>(null)
+
+  const [deviceSearch, setDeviceSearch] = useState("")
 
   const groupsById = useMemo(
     () => new Map(groups.map((group) => [group.id, group])),
@@ -112,6 +120,23 @@ function InventoryPageInner({ section }: { section: InventorySection }) {
     }
     return { groupsByDevice: byDevice, devicesByGroup: byGroup }
   }, [deviceGroups, groupsById, devicesById, devices])
+
+  // Searches what a device card shows.
+  const filteredDevices = useMemo(
+    () =>
+      devices.filter((device) =>
+        matchesEveryWord(deviceSearch, [
+          device.name,
+          device.description ?? "",
+          deviceAddress(device),
+          (device.credentialId &&
+            credentialsById.get(device.credentialId)?.name) ||
+            "",
+          ...(groupsByDevice.get(device.id) ?? []).map((group) => group.name),
+        ])
+      ),
+    [devices, deviceSearch, credentialsById, groupsByDevice]
+  )
 
   function openCreateGroup() {
     setEditingGroup(null)
@@ -245,8 +270,30 @@ function InventoryPageInner({ section }: { section: InventorySection }) {
           surface="devices"
           heroMeta={totalCount}
           heroAction={createButton}
-          query={devicesQuery}
+          filters={
+            devices.length > 0 ? (
+              <div className="relative min-w-0 md:max-w-sm">
+                <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  value={deviceSearch}
+                  onChange={(event) => setDeviceSearch(event.target.value)}
+                  placeholder={t("device.search_placeholder")}
+                  aria-label={t("device.search_label")}
+                  className="pl-8"
+                />
+              </div>
+            ) : null
+          }
+          query={{
+            data: devicesQuery.data ? filteredDevices : undefined,
+            isPending: devicesQuery.isPending,
+            isError: devicesQuery.isError,
+            refetch: devicesQuery.refetch,
+          }}
           isEmpty={(items) => items.length === 0}
+          hasActiveFilters={deviceSearch.trim().length > 0}
+          filteredEmpty={{ onClear: () => setDeviceSearch("") }}
           empty={{
             icon: <Computer />,
             title: t("device.empty_title"),
