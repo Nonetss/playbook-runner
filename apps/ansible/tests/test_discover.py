@@ -300,6 +300,23 @@ class TestDiscoverRoles:
             ("db_port", "5432", "db"),
         ]
 
+    def test_vars_of_a_role_entry_win_over_its_defaults(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = {
+            "site.yml": (
+                "- hosts: all\n  roles:\n    - role: web\n"
+                "      vars: {port: 80, extra: on_entry}\n"
+            ),
+            "roles/web/defaults/main.yml": "port: 90\nroot: /srv\n",
+            "roles/web/tasks/main.yml": "[]\n",
+        }
+        assert self.variables(monkeypatch, files) == [
+            ("port", "80", "web"),
+            ("extra", "on_entry", "web"),
+            ("root", "/srv", "web"),
+        ]
+
     def test_values_that_are_never_returned(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:

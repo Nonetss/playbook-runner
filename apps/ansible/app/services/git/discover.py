@@ -14,7 +14,7 @@ Los roles que usa cada playbook salen de leer su YAML: ``roles:``, y
 ``import_playbook``. No se siguen ``include_tasks`` ni las dependencias de un rol.
 
 Las variables que define salen de ``vars`` y ``vars_files`` de cada play y de
-``defaults`` y ``vars`` de esos roles. Solo se devuelve el valor si es simple y no
+``vars`` de cada entrada de ``roles:`` y de ``defaults`` y ``vars`` de esos roles. Solo se devuelve el valor si es simple y no
 parece sensible: un ``!vault`` o un ``db_password`` se listan sin valor.
 """
 
@@ -312,6 +312,15 @@ def _shown_value(name: str, value: Any) -> str | None:
     return None if len(text) > _MAX_VALUE_CHARS else text
 
 
+def _role_entry_vars(play: dict[Any, Any], name: str) -> Any:
+    """``vars`` de la entrada de ``roles:`` con ese nombre: mandan sobre ``defaults``."""
+    roles = play.get("roles")
+    for role in roles if isinstance(roles, list) else []:
+        if isinstance(role, dict) and name in (role.get("role"), role.get("name")):
+            return role.get("vars")
+    return None
+
+
 def _nearest_role(file: str, name: str, role_paths: Container[str]) -> str | None:
     """El rol que encontraría una ejecución: el ``roles/`` más cercano al fichero."""
     directory = posixpath.dirname(file)
@@ -369,6 +378,7 @@ def _playbook_variables(
         for name in _play_role_names(play):
             if not isinstance(name, str) or "{{" in name:
                 continue
+            add(_role_entry_vars(play, name), name)
             role_path = _nearest_role(file, name, role_paths)
             if role_path is not None:
                 for variable_file in _role_variable_files(role_path, tree):
