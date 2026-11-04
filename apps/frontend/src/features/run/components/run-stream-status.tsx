@@ -20,9 +20,9 @@ export type RunStreamStatusLabels = {
 }
 
 /**
- * Communicates the difference between stopping the browser stream and
- * stopping the server-side execution. The latter requires a backend API and
- * is intentionally not implied here.
+ * Status of a live run stream and the action that stops it. What stopping
+ * means depends on the run, so the caller's labels state it: leaving a job's
+ * console does not stop the job, while closing an interactive stream does.
  *
  * `terminal` renders inside `TerminalFrame` on terminal tokens; `default`
  * renders on the page theme (e.g. the ping dialog). `reconnecting` keeps the

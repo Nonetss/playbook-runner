@@ -155,6 +155,17 @@ function RunPlaybookPageInner({ id }: { id: string }) {
     })
   }
 
+  async function handleCancelRun() {
+    const confirmed = await confirm({
+      title: t("run.cancel_confirm_title"),
+      description: t("run.cancel_confirm_description"),
+      confirmLabel: t("run.cancel_confirm"),
+      cancelLabel: t("run.cancel_dismiss"),
+      variant: "destructive",
+    })
+    if (confirmed) stopWatching()
+  }
+
   const variableView = viewVariables(
     declaredVariables?.variables ?? [],
     variableRows
@@ -264,13 +275,13 @@ function RunPlaybookPageInner({ id }: { id: string }) {
             <RunStreamStatus
               phase={phase}
               errorMessage={errorMessage}
-              onStopWatching={stopWatching}
+              onStopWatching={handleCancelRun}
               variant="terminal"
               labels={{
                 connecting: t("run.connecting"),
-                stopWatching: t("run.stop_watching"),
-                stoppedWatching: t("run.stopped_watching"),
-                serverMayStillBeRunning: t("run.server_may_still_be_running"),
+                stopWatching: t("run.cancel_action"),
+                stoppedWatching: t("run.cancelled_title"),
+                serverMayStillBeRunning: t("run.cancelled_detail"),
                 connectionError: t("run.connection_error"),
               }}
             />

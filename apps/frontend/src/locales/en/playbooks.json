@@ -124,9 +124,9 @@
     "running": "Running…",
     "run_button": "Run",
     "connecting": "Live output is connected.",
-    "stop_watching": "Stop watching",
-    "stopped_watching": "Live watching stopped",
-    "server_may_still_be_running": "The server-side run may still be active. Review it before starting another run.",
+    "cancel_action": "Cancel run",
+    "cancelled_title": "Cancellation sent",
+    "cancelled_detail": "Ansible stops within seconds. Changes already applied are not rolled back and a command already launched on a host may keep running there.",
     "connection_error": "The live run connection ended",
     "confirm_title": "Run \"{{name}}\"?",
     "confirm_description": "This will run against {{count}} selected target(s): {{targets}}. Forks: {{forks}}. Extra variables: {{variables}}.",
@@ -163,7 +163,11 @@
       "search_label": "Search playbooks",
       "no_results": "No playbooks",
       "no_match": "No playbooks match your search"
-    }
+    },
+    "cancel_confirm_title": "Cancel the run?",
+    "cancel_confirm_description": "Ansible will stop, but changes already applied are not rolled back and a command already launched on a host may keep running there.",
+    "cancel_confirm": "Cancel run",
+    "cancel_dismiss": "Keep running"
   },
   "run_modal": {
     "title": "Run \"{{name}}\"",

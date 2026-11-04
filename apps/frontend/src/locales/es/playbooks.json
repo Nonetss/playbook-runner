@@ -124,9 +124,9 @@
     "running": "Ejecutando…",
     "run_button": "Ejecutar",
     "connecting": "Salida en tiempo real conectada.",
-    "stop_watching": "Dejar de ver",
-    "stopped_watching": "Se detuvo la visualización en tiempo real",
-    "server_may_still_be_running": "La ejecución del servidor podría seguir activa. Revísala antes de iniciar otra.",
+    "cancel_action": "Cancelar ejecución",
+    "cancelled_title": "Cancelación enviada",
+    "cancelled_detail": "Ansible se detiene en unos segundos. Los cambios ya aplicados no se deshacen y un comando ya lanzado en un host puede seguir ejecutándose allí.",
     "connection_error": "La conexión de la ejecución terminó",
     "confirm_title": "¿Ejecutar \"{{name}}\"?",
     "confirm_description": "Se ejecutará contra {{count}} destino(s): {{targets}}. Paralelismo: {{forks}}. Variables extra: {{variables}}.",
@@ -163,7 +163,11 @@
       "search_label": "Buscar playbooks",
       "no_results": "No hay playbooks",
       "no_match": "Ningún playbook coincide con la búsqueda"
-    }
+    },
+    "cancel_confirm_title": "¿Cancelar la ejecución?",
+    "cancel_confirm_description": "Ansible se detendrá, pero los cambios ya aplicados no se deshacen y un comando ya lanzado en un host puede seguir ejecutándose allí.",
+    "cancel_confirm": "Cancelar ejecución",
+    "cancel_dismiss": "Seguir ejecutando"
   },
   "run_modal": {
     "title": "Ejecutar \"{{name}}\"",

@@ -18,9 +18,9 @@ function formatError(error: unknown, fallback: string) {
 }
 
 /**
- * Shared lifecycle for live run streams. Stopping only detaches the browser
- * from the stream; it deliberately does not claim that the server-side run
- * was terminated.
+ * Shared lifecycle for live run streams. Stopping closes the stream, which
+ * makes the backend cancel the run, but the browser gets no confirmation that
+ * it has stopped: the stream that would carry it is gone.
  */
 export function useRunStream<TRequest>(
   subscribe: RunStreamSubscribe<TRequest>
@@ -77,11 +77,12 @@ export function useRunStream<TRequest>(
     [detach, subscribe, t]
   )
 
+  // Callers may hold this across a confirmation: a run that finished in the
+  // meantime keeps its result.
   const stopWatching = useCallback(() => {
-    if (phase !== "running") return
     detach()
-    setPhase("cancelled")
-  }, [detach, phase])
+    setPhase((current) => (current === "running" ? "cancelled" : current))
+  }, [detach])
 
   const retry = useCallback(() => {
     if (requestRef.current) start(requestRef.current)
