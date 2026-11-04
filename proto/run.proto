@@ -89,6 +89,8 @@ message RunBundleRequest {
   map<string, string> extravars = 4;
   reserved 5;
   optional SecretVariables secret_variables = 6;
+  // Roles left without tasks in this run's copy of a Git playbook's tree.
+  repeated string disabled_roles = 7;
 }
 
 message RunPingRequest {

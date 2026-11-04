@@ -190,6 +190,48 @@ class TestMaterialize:
 
         cleanup(run)
 
+    def test_git_playbook_disables_roles_in_its_copy(self, git_mirror) -> None:
+        bundle = ResolvedRunBundle(
+            playbook=ResolvedPlaybook(
+                name="web",
+                content="",
+                git=GitPlaybookSource(
+                    repository_id=git_mirror.repository_id,
+                    url="https://example.com/repo.git",
+                    commit=git_mirror.commit,
+                    path="site.yml",
+                ),
+            ),
+            hosts=[host("web")],
+            disabled_roles=["x"],
+        )
+        run = materialize(bundle)
+
+        assert (run.project_dir / "roles/x/tasks/main.yml").read_text() == "[]\n"
+
+        cleanup(run)
+
+    def test_unknown_disabled_role_leaves_nothing_behind(self, git_mirror) -> None:
+        bundle = ResolvedRunBundle(
+            playbook=ResolvedPlaybook(
+                name="web",
+                content="",
+                git=GitPlaybookSource(
+                    repository_id=git_mirror.repository_id,
+                    url="https://example.com/repo.git",
+                    commit=git_mirror.commit,
+                    path="site.yml",
+                ),
+            ),
+            hosts=[host("web")],
+            disabled_roles=["gone"],
+        )
+
+        with pytest.raises(GitError):
+            materialize(bundle)
+
+        assert list(runs_dir().iterdir()) == []
+
     def test_inline_playbook_has_no_role_path(self) -> None:
         bundle = ResolvedRunBundle(
             playbook=ResolvedPlaybook(name="a:b", content=PLAY),

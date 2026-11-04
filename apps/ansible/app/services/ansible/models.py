@@ -38,6 +38,7 @@ class ResolvedPlaybook(BaseModel):
 class ResolvedRunBundle(BaseModel):
     playbook: ResolvedPlaybook
     hosts: list[ResolvedHost]
+    disabled_roles: list[str] = []
 
 
 def playbook_from_proto(playbook) -> ResolvedPlaybook:

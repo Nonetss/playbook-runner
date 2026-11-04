@@ -227,6 +227,7 @@ class RunnerServicer(RunnerServiceServicer):
         bundle = ResolvedRunBundle(
             playbook=playbook_from_proto(request.playbook),
             hosts=[host_from_proto(h) for h in request.hosts],
+            disabled_roles=list(request.disabled_roles),
         )
 
         # A fresh state volume has no mirror: fetch the pinned commit first.
@@ -293,13 +294,16 @@ class RunnerServicer(RunnerServiceServicer):
                 event_handler=log_event_handler,
             )
 
-        async for frame in _serve(
-            context,
-            RunBundleResponse,
-            lambda: materialize(bundle, secret_values),
-            build_config,
-        ):
-            yield frame
+        try:
+            async for frame in _serve(
+                context,
+                RunBundleResponse,
+                lambda: materialize(bundle, secret_values),
+                build_config,
+            ):
+                yield frame
+        except GitError as exc:
+            yield RunBundleResponse(error=str(exc))
 
     async def RunPing(self, request, context):
         async for frame in _heartbeats(

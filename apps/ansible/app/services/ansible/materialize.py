@@ -28,6 +28,7 @@ from typing import Any
 import yaml
 
 from app.core.config import settings
+from app.services.ansible.disabled_roles import disable_roles
 from app.services.ansible.models import GitPlaybookSource, ResolvedRunBundle
 from app.services.ansible.play_targets import retarget_playbook
 from app.services.ansible.runner import HostVars, Inventory
@@ -244,6 +245,7 @@ def materialize(
             project_dir, playbook_path, envvars = _materialize_git(
                 run_dir, bundle.playbook.git
             )
+            disable_roles(project_dir, bundle.disabled_roles)
         else:
             project_dir = run_dir
             playbook_path = (

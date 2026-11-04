@@ -7,6 +7,7 @@ import pytest
 from app.grpc.services import runner as runner_module
 from app.grpc.services.runner import RunnerServicer
 from app.grpc.stubs import Host, Playbook, RunBundleRequest
+from app.services.git.mirror import GitError
 
 
 class FakeContext:
@@ -58,6 +59,20 @@ def test_reserved_extra_vars_are_refused(key: str) -> None:
     assert len(frames) == 1
     assert frames[0].HasField("error")
     assert key in frames[0].error
+
+
+def test_a_role_that_cannot_be_disabled_ends_the_run(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fail(*_args, **_kwargs):
+        raise GitError("not_found", "Roles not found: gone")
+
+    monkeypatch.setattr(runner_module, "materialize", fail)
+
+    frames = asyncio.run(collect(request({})))
+
+    assert len(frames) == 1
+    assert frames[0].error == "Roles not found: gone"
 
 
 @pytest.mark.usefixtures("materialize_spy")
