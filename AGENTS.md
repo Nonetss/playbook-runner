@@ -114,7 +114,7 @@ Per-package dev: `apps/backend` runs `bun run --hot src/index.ts`; `apps/fronten
 
 ## Lint / format
 
-Biome 2.5.1, pinned exactly (root `biome.json`): 2-space indent, double quotes, no semicolons, 80-col, organize imports on. One override: `**/*.svelte|astro|vue` disables `useConst`, `useImportType`, unused-vars/imports.
+Biome 2.5.1, pinned exactly (root `biome.json`): 2-space indent, double quotes, no semicolons, 80-col, organize imports on. `packages/db/src/migrations` is excluded, since drizzle-kit generates it. One override: `**/*.svelte|astro|vue` disables `useConst`, `useImportType`, unused-vars/imports.
 
 No ESLint, no Prettier, no Husky.
 
