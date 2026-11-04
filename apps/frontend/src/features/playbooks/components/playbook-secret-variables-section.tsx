@@ -19,6 +19,12 @@ import {
   usePlaybookSecretVariables,
   usePlaybookSecretVariablesSet,
 } from "@/features/playbooks/hooks/use-playbook-secret-variables"
+import { usePlaybookGet } from "@/features/playbooks/hooks/use-playbooks"
+import { usePlaybookRoles } from "@/features/playbooks/hooks/use-repositories"
+import {
+  type DetectedVariable,
+  offeredVariables,
+} from "@/features/playbooks/lib/playbook-roles"
 import {
   newVariableRow,
   type RunVariableRow,
@@ -45,6 +51,8 @@ export function PlaybookSecretVariablesSection({
 }) {
   const { t } = useTranslation("infisical")
   const { data: declaration } = usePlaybookSecretVariables(playbookId)
+  const { data: playbook } = usePlaybookGet(playbookId)
+  const { variables: detected } = usePlaybookRoles(playbook)
 
   return (
     <aside
@@ -55,6 +63,7 @@ export function PlaybookSecretVariablesSection({
         <SecretVariablesForm
           playbookId={playbookId}
           declaration={declaration}
+          detected={detected}
         />
       ) : null}
     </aside>
@@ -64,9 +73,11 @@ export function PlaybookSecretVariablesSection({
 function SecretVariablesForm({
   playbookId,
   declaration,
+  detected,
 }: {
   playbookId: string
   declaration: Declaration
+  detected: DetectedVariable[]
 }) {
   const { t } = useTranslation("infisical")
   const save = usePlaybookSecretVariablesSet(playbookId)
@@ -117,6 +128,11 @@ function SecretVariablesForm({
   }
 
   const canPickSecrets = !!connectionId && !!environment
+  const suggestions = offeredVariables(
+    detected,
+    new Set(),
+    new Set(rows.map((row) => row.name.trim()))
+  )
   // This form saves on its own, so leaving through the playbook's save would
   // lose its edits without this hint.
   const isDirty =
@@ -239,6 +255,44 @@ function SecretVariablesForm({
               <Plus className="size-3.5" />
               {t("variables.add")}
             </Button>
+            {suggestions.length > 0 ? (
+              <div className="space-y-1.5">
+                <Text as="p" variant="meta" tone="muted">
+                  {t("declaration.suggestions")}
+                </Text>
+                <ul className="flex flex-wrap gap-1.5">
+                  {suggestions.map((variable) => (
+                    <li key={variable.name} className="min-w-0 max-w-full">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-auto max-w-full py-1 font-mono text-xs"
+                        title={t("declaration.suggestion_aria", {
+                          name: variable.name,
+                        })}
+                        aria-label={t("declaration.suggestion_aria", {
+                          name: variable.name,
+                        })}
+                        onClick={() =>
+                          setRows((current) => [
+                            ...current,
+                            newVariableRow({
+                              name: variable.name,
+                              kind: "secret",
+                            }),
+                          ])
+                        }
+                        disabled={save.isPending}
+                      >
+                        <Plus className="size-3 shrink-0" />
+                        <span className="truncate">{variable.name}</span>
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
         ) : null}
 

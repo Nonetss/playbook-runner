@@ -79,6 +79,8 @@
     "section": "Infisical"
   },
   "declaration": {
+    "suggestions": "Definidas en el playbook",
+    "suggestion_aria": "Usar un secreto para {{name}}",
     "title": "Secretos de Infisical",
     "description": "Declara los secretos que necesita este playbook y úsalos como cualquier variable: {{example}}. El runner los lee antes de cada ejecución y nunca se guardan aquí.",
     "environment_label": "Entorno por defecto",
