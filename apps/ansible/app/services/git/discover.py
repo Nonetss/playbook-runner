@@ -14,8 +14,10 @@ Los roles que usa cada playbook salen de leer su YAML: ``roles:``, y
 ``import_playbook``. No se siguen ``include_tasks`` ni las dependencias de un rol.
 
 Las variables que define salen de ``vars`` y ``vars_files`` de cada play y de
-``vars`` de cada entrada de ``roles:`` y de ``defaults`` y ``vars`` de esos roles. Solo se devuelve el valor si es simple y no
-parece sensible: un ``!vault`` o un ``db_password`` se listan sin valor.
+``vars`` de cada entrada de ``roles:`` y de ``defaults`` y ``vars`` de esos roles.
+Solo se devuelve el valor si es simple y no parece sensible: un ``!vault`` o un
+``db_password`` se listan sin valor. Detrás van las que esos roles usan sin que nada
+las defina (``used_only``), según ``role_usage``.
 """
 
 from __future__ import annotations
@@ -23,7 +25,7 @@ from __future__ import annotations
 import json
 import posixpath
 import re
-from collections.abc import Callable, Container, Iterator
+from collections.abc import Callable, Container, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field
 from pathlib import PurePosixPath
 from typing import Any
@@ -31,6 +33,7 @@ from typing import Any
 import yaml
 
 from app.services.git.mirror import GitError, list_tree, read_blob, safe_repo_path
+from app.services.git.role_usage import assigned_names, used_in_tasks, used_in_template
 
 _EXCLUDED_DIRS = {"roles", "group_vars", "host_vars", "collections"}
 _IMPORT_KEYS = ("import_playbook", "ansible.builtin.import_playbook")
@@ -42,9 +45,12 @@ MAX_PLAYBOOKS = 500
 MAX_ROLES = 500
 MAX_ROLE_DESCRIPTION_CHARS = 500
 _YAML_MAIN = {"main.yml", "main.yaml"}
+_YAML_SUFFIXES = (".yml", ".yaml")
+_ROLE_TASK_DIRS = {"tasks", "handlers"}
 _REQUIREMENTS = ("requirements.yml", "requirements.yaml")
 _MAX_IMPORT_DEPTH = 32
 _MAX_VARIABLES = 200
+_MAX_ROLE_FILES = 200
 _MAX_VALUE_CHARS = 200
 _VARIABLE_NAME = re.compile(r"[A-Za-z_]\w*")
 _SENSITIVE_NAME = re.compile(r"pass|pwd|secret|token|key|credential", re.IGNORECASE)
@@ -83,6 +89,8 @@ class DiscoveredVariable:
     name: str
     value: str | None = None
     role: str | None = None
+    # Un rol la usa y nada la define: no hay valor que enseñar.
+    used_only: bool = False
 
 
 @dataclass
@@ -121,6 +129,17 @@ _AnsibleLoader.add_multi_constructor("!", _ignore_tag)
 
 
 _ReadYaml = Callable[[str], Any]
+
+
+@dataclass
+class _RoleCode:
+    """Lo que hace un rol con las variables, para no releerlo por cada playbook."""
+
+    used: list[str] = field(default_factory=list)
+    assigned: set[str] = field(default_factory=set)
+
+
+_ReadRole = Callable[[str], _RoleCode]
 
 
 def _is_candidate(path: str) -> bool:
@@ -342,11 +361,55 @@ def _role_variable_files(role_path: str, tree: Container[str]) -> Iterator[str]:
                 break
 
 
+def _files_by_role(
+    tree: Iterable[str], role_paths: Container[str]
+) -> dict[str, list[str]]:
+    """Tareas, handlers y plantillas de cada rol, en el orden del árbol."""
+    files: dict[str, list[str]] = {}
+    for path in tree:
+        parts = path.split("/")
+        for index, part in enumerate(parts[:-3]):
+            role_path = "/".join(parts[: index + 2])
+            if (
+                part == "roles"
+                and parts[index + 2] in {*_ROLE_TASK_DIRS, "templates"}
+                and role_path in role_paths
+            ):
+                files.setdefault(role_path, []).append(path)
+                break
+    return files
+
+
+def _role_code(
+    role_path: str,
+    files: list[str],
+    read: _ReadYaml,
+    read_text: Callable[[str], str | None],
+) -> _RoleCode:
+    code = _RoleCode()
+    used: dict[str, None] = {}
+    for file in files[:_MAX_ROLE_FILES]:
+        folder = file[len(role_path) + 1 :].split("/", 1)[0]
+        if folder == "templates":
+            text = read_text(file)
+            names = used_in_template(text) if text is not None else set()
+        elif file.endswith(_YAML_SUFFIXES):
+            tasks = read(file)
+            names = used_in_tasks(tasks)
+            code.assigned |= assigned_names(tasks)
+        else:
+            continue
+        used.update(dict.fromkeys(sorted(names)))
+    code.used = list(used)
+    return code
+
+
 def _playbook_variables(
     path: str,
     read: _ReadYaml,
     role_paths: Container[str],
     tree: Container[str],
+    read_role: _ReadRole | None = None,
 ) -> PlaybookVariableUsage:
     """Variables de ``path``: primero las del play, y una por nombre y procedencia."""
     usage = PlaybookVariableUsage(path=path)
@@ -374,6 +437,7 @@ def _playbook_variables(
         for target in files if isinstance(files, list) else []:
             if isinstance(target, str) and "{{" not in target:
                 add(read(_imported_path(file, target)), None)
+    declared: list[tuple[str, str]] = []
     for file, play in plays:
         for name in _play_role_names(play):
             if not isinstance(name, str) or "{{" in name:
@@ -381,8 +445,26 @@ def _playbook_variables(
             add(_role_entry_vars(play, name), name)
             role_path = _nearest_role(file, name, role_paths)
             if role_path is not None:
+                declared.append((name, role_path))
                 for variable_file in _role_variable_files(role_path, tree):
                     add(read(variable_file), name)
+    if read_role is None:
+        return usage
+
+    # Lo que otro rol o el propio play dejan asignado tampoco hay que pedirlo.
+    codes = [(name, read_role(role_path)) for name, role_path in declared]
+    known = {name for name, _role in seen}
+    for _file, play in plays:
+        known |= assigned_names([play.get(key) for key in _TASK_LISTS])
+    for _name, code in codes:
+        known |= code.assigned
+    for role, code in codes:
+        for name in code.used:
+            if name not in known and len(usage.variables) < _MAX_VARIABLES:
+                known.add(name)
+                usage.variables.append(
+                    DiscoveredVariable(name, None, role, used_only=True)
+                )
     return usage
 
 
@@ -403,7 +485,7 @@ def _playbook_details(
     repository_id: str,
     commit: str,
     subdir: str,
-    tree: dict[str, tuple[str, int]],
+    tree: Mapping[str, tuple[str, int]],
     role_paths: Container[str],
 ) -> tuple[list[PlaybookRoleUsage], list[PlaybookVariableUsage]]:
     """Roles y variables de cada playbook de ``subdir`` que declara alguno."""
@@ -414,10 +496,23 @@ def _playbook_details(
             cache[path] = _read_yaml(repository_id, tree.get(path))
         return cache[path]
 
+    files = _files_by_role(tree, role_paths)
+    role_cache: dict[str, _RoleCode] = {}
+
+    def read_role(role_path: str) -> _RoleCode:
+        if role_path not in role_cache:
+            role_cache[role_path] = _role_code(
+                role_path,
+                files.get(role_path, []),
+                read,
+                lambda file: _read_text(repository_id, tree.get(file)),
+            )
+        return role_cache[role_path]
+
     playbooks = discover(repository_id, commit, subdir)
     roles = [_playbook_usage(playbook.path, read) for playbook in playbooks]
     variables = [
-        _playbook_variables(playbook.path, read, role_paths, tree)
+        _playbook_variables(playbook.path, read, role_paths, tree, read_role)
         for playbook in playbooks
     ]
     return (
@@ -426,14 +521,24 @@ def _playbook_details(
     )
 
 
-def _read_yaml(repository_id: str, entry: tuple[str, int] | None) -> Any:
-    """Contenido de un fichero; cualquier problema significa que no hay nada que seguir."""
+def _read_text(repository_id: str, entry: tuple[str, int] | None) -> str | None:
+    """Texto de un fichero; cualquier problema significa que no hay nada que seguir."""
     if entry is None or entry[1] > MAX_PLAYBOOK_BYTES:
         return None
     try:
-        content = read_blob(repository_id, entry[0]).decode("utf-8")
+        return read_blob(repository_id, entry[0]).decode("utf-8")
+    except (GitError, ValueError):
+        return None
+
+
+def _read_yaml(repository_id: str, entry: tuple[str, int] | None) -> Any:
+    """Contenido YAML de un fichero; si no se puede leer, no hay nada que seguir."""
+    content = _read_text(repository_id, entry)
+    if content is None:
+        return None
+    try:
         return yaml.load(content, Loader=_AnsibleLoader)  # noqa: S506 - SafeLoader subclass
-    except (GitError, ValueError, RecursionError, yaml.YAMLError):
+    except (ValueError, RecursionError, yaml.YAMLError):
         return None
 
 

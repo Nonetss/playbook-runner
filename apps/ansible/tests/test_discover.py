@@ -300,6 +300,55 @@ class TestDiscoverRoles:
             ("db_port", "5432", "db"),
         ]
 
+    def test_lists_what_a_role_uses_and_nothing_defines_last(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = {
+            "site.yml": "- hosts: all\n  vars: {port: 80}\n  roles: [web]\n",
+            "roles/web/defaults/main.yml": "root: /srv\n",
+            "roles/web/tasks/main.yml": (
+                "- debug: {msg: '{{ port }} {{ root }} {{ db_password }}'}\n"
+                "  register: shown\n"
+                "- debug: {msg: '{{ shown.msg }}'}\n"
+            ),
+            "roles/web/templates/app.conf.j2": "token={{ api_token }}\n",
+        }
+        found = self.discover(monkeypatch, {p: c.encode() for p, c in files.items()})
+        usage = next(u for u in found.playbook_variables if u.path == "site.yml")
+        assert [(v.name, v.value, v.role, v.used_only) for v in usage.variables] == [
+            ("port", "80", None, False),
+            ("root", "/srv", "web", False),
+            ("db_password", None, "web", True),
+            ("api_token", None, "web", True),
+        ]
+
+    def test_a_variable_another_role_or_the_play_assigns_is_not_asked_for(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = {
+            "site.yml": (
+                "- hosts: all\n  pre_tasks:\n"
+                "    - set_fact: {from_play: 1}\n"
+                "  roles: [first, second]\n"
+            ),
+            "roles/first/tasks/main.yml": "- set_fact: {from_role: 1}\n",
+            "roles/second/tasks/main.yml": (
+                "- debug: {msg: '{{ from_play }} {{ from_role }}'}\n"
+            ),
+        }
+        found = self.discover(monkeypatch, {p: c.encode() for p, c in files.items()})
+        assert found.playbook_variables == []
+
+    def test_a_role_nobody_declares_adds_nothing(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = {
+            "site.yml": "- hosts: all\n  tasks: []\n",
+            "roles/web/tasks/main.yml": "- debug: {msg: '{{ db_password }}'}\n",
+        }
+        found = self.discover(monkeypatch, {p: c.encode() for p, c in files.items()})
+        assert found.playbook_variables == []
+
     def test_vars_of_a_role_entry_win_over_its_defaults(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:

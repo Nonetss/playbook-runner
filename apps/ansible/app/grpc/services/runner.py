@@ -458,7 +458,9 @@ class RunnerServicer(RunnerServiceServicer):
         variables = await asyncio.to_thread(inline_playbook_variables, request.content)
         return ListPlaybookVariablesResponse(
             variables=[
-                PlaybookVariable(name=v.name, value=v.value, role=v.role)
+                PlaybookVariable(
+                    name=v.name, value=v.value, role=v.role, used_only=v.used_only
+                )
                 for v in variables
             ]
         )
@@ -495,7 +497,12 @@ class RunnerServicer(RunnerServiceServicer):
                 PlaybookVariables(
                     path=u.path,
                     variables=[
-                        PlaybookVariable(name=v.name, value=v.value, role=v.role)
+                        PlaybookVariable(
+                            name=v.name,
+                            value=v.value,
+                            role=v.role,
+                            used_only=v.used_only,
+                        )
                         for v in u.variables
                     ],
                 )
