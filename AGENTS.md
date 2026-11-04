@@ -132,10 +132,10 @@ This repo uses OpenSpec for spec-driven changes.
 - Changes are scaffolded with `openspec new change <name>` and go through `proposal → tasks → specs → design → apply`. Use the `/opsx-*` slash commands in `.opencode/commands/` or load the matching skill under `.opencode/skills/openspec-*/SKILL.md` (propose, apply-change, archive-change, sync-specs, explore). The CLI is `openspec` — `openspec status --change <name> --json` and `openspec instructions <artifact> --change <name> --json` are the canonical entry points.
 - `openspec/config.yaml` defines the schema as `spec-driven`.
 
-## Internal docs & skills
+## Internal docs (colofon site)
 
-- `docs/` (Spanish) explains how the project works and where it stands: architecture, backend, frontend, what the runner does to a playbook (`docs/ejecucion.md`) and known problems (`docs/estado.md`, a dated snapshot). User-facing guides stay in `apps/site`.
-- Before writing a playbook, a role or a script to run on Playbook Runner, load the `crear-playbook`, `crear-rol` or `crear-script` skill (`.opencode/skills/`, symlinked from the ignored `.claude/skills/`; `docs/README.md` has the command). A change to how the runner treats a playbook updates `docs/ejecucion.md` and these skills, including `crear-playbook/references/comportamiento.md`.
+- `docs/` is a colofon content folder (Spanish): how the project works, what the runner does to a playbook and known problems. Before changing anything there, read `docs/AGENTS.md` (its «Este sitio» section) and load the `colofon-documentation` skill. User-facing guides stay in `apps/site`.
+- Before writing a playbook, a role or a script to run on Playbook Runner, read its recipe in `docs/docs/guias/` and the rules in `docs/docs/ejecucion/index.mdx`. A change to how the runner treats a playbook updates the `reglas` catalog type, `docs/docs/ejecucion/`, `docs/docs/guias/` and the served skills in `docs/skills/` in the same change.
 
 ## Migrations — agent hands off
 
