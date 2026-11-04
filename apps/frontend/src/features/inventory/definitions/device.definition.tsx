@@ -25,7 +25,7 @@ export interface DeviceRowContext {
   onPing: (device: InventoryDevice) => void
 }
 
-function address(device: InventoryDevice) {
+export function deviceAddress(device: InventoryDevice) {
   return device.portSSH && device.portSSH !== 22
     ? `${device.ipAddress}:${device.portSSH}`
     : device.ipAddress
@@ -44,7 +44,7 @@ export const deviceDefinition: EntityListDefinition<
     {
       key: "address",
       label: ({ t }) => t("device.address"),
-      value: (device) => <Text variant="data">{address(device)}</Text>,
+      value: (device) => <Text variant="data">{deviceAddress(device)}</Text>,
     },
     {
       key: "credential",

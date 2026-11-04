@@ -60,6 +60,8 @@
     "devices_count_other": "{{count}} devices"
   },
   "device": {
+    "search_placeholder": "Search by name, address, group…",
+    "search_label": "Search devices",
     "empty_title": "No devices",
     "empty_description": "Add your first device to start managing your inventory.",
     "delete_confirm_title": "Delete \"{{label}}\"",
