@@ -181,3 +181,48 @@ The form to run a Git playbook by hand SHALL list the roles it declares that exi
 #### Scenario: Symbolic links in the repository
 - **WHEN** a disabled role's files are symbolic links to paths outside the role
 - **THEN** the system SHALL replace the links and SHALL NOT write to their targets
+
+### Requirement: Report the variables each playbook defines
+The role listing SHALL report, for each playbook in the configured subdirectory of the synced commit that defines variables, their names and origin: `vars` and non-templated `vars_files` of its plays, following `import_playbook`, and `defaults/main` and `vars/main` of the roles it declares, resolved to the nearest `roles/` directory. It SHALL NOT report `ansible_*` variables, and SHALL NOT read `group_vars`, `include_vars` or role dependencies. A value SHALL only be returned when it is a short plain scalar, and never when it is tagged (such as `!vault`) or its name looks sensitive. Nothing SHALL be stored.
+
+#### Scenario: Variables of a play and its role
+- **WHEN** a playbook sets `port` in `vars` and declares a role whose `defaults/main.yml` sets `web_root`
+- **THEN** the listing SHALL report `port` with no role and `web_root` with that role
+
+#### Scenario: Encrypted value
+- **WHEN** a variable is defined with `!vault`
+- **THEN** the listing SHALL report its name without a value
+
+#### Scenario: Sensitive-looking name
+- **WHEN** a variable is named `db_password` with a plain value
+- **THEN** the listing SHALL report its name without a value
+
+#### Scenario: Unreadable source
+- **WHEN** a `vars_files` entry is templated, missing or invalid
+- **THEN** the listing SHALL still succeed with the variables it could read
+
+### Requirement: Offer detected variables when running by hand
+The form to run a Git playbook by hand SHALL list the detected variables, one per name, each with its origin and value when known, and SHALL let the user override one for that run as an extra var. It SHALL NOT list those of an unchecked role or those that already have a row. Nothing SHALL be sent for a variable the user does not override.
+
+#### Scenario: Override a detected variable
+- **WHEN** a user overrides a detected `port` whose value is `80`
+- **THEN** an editable variable row SHALL appear with that name and value, and `port` SHALL leave the list
+
+#### Scenario: Role unchecked
+- **WHEN** a user unchecks a role
+- **THEN** the variables only that role defines SHALL leave the list
+
+### Requirement: Variables of a playbook written in the application
+The system SHALL report the `vars` of the plays of a playbook written in the application under the same rules for names and values, and the form to run it by hand SHALL offer them like those of a Git playbook. It SHALL return an empty list for a Git playbook and for content that cannot be parsed, and SHALL store nothing.
+
+#### Scenario: Written playbook with variables
+- **WHEN** a user opens the run form of a written playbook whose play sets `port: 80`
+- **THEN** the form SHALL offer `port` with the value `80` and no role
+
+#### Scenario: Written playbook that cannot be parsed
+- **WHEN** a written playbook's content is not valid YAML
+- **THEN** the listing SHALL be empty and the form SHALL still let the user run it
+
+#### Scenario: Runner unreachable
+- **WHEN** the variables cannot be listed
+- **THEN** the form SHALL still let the user run the playbook
