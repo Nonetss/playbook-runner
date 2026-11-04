@@ -13,6 +13,10 @@ import {
   listRepositoryRoles,
   syncRepository,
 } from "#v1/repositories/sync"
+import {
+  hideVaultPassword,
+  vaultPasswordColumn,
+} from "#v1/repositories/vault-password"
 
 type Input = typeof repositoriesInput
 
@@ -35,15 +39,19 @@ export const repositoriesHandler = {
     context: Context
     input: z.infer<Input["create"]>
   }) => {
-    await assertCredentialExists(input.credentialId)
-    const rows = await db.insert(playbookRepositories).values(input).returning()
+    const { vaultPassword, ...repository } = input
+    await assertCredentialExists(repository.credentialId)
+    const rows = await db
+      .insert(playbookRepositories)
+      .values({ ...repository, ...vaultPasswordColumn(vaultPassword) })
+      .returning()
     const row = rows[0]
     if (!row) throw errors.INTERNAL_SERVER_ERROR()
-    return row
+    return hideVaultPassword(row)
   },
 
   list: async (_: { context: Context; input?: undefined }) => {
-    return db
+    const rows = await db
       .select({
         ...getTableColumns(playbookRepositories),
         // Nested in its own expression so the columns stay qualified: a
@@ -52,6 +60,7 @@ export const repositoriesHandler = {
       })
       .from(playbookRepositories)
       .orderBy(asc(playbookRepositories.name))
+    return rows.map(hideVaultPassword)
   },
 
   get: async ({
@@ -66,7 +75,7 @@ export const repositoriesHandler = {
       .where(eq(playbookRepositories.id, input.id))
     const row = rows[0]
     if (!row) throw errors.NOT_FOUND()
-    return row
+    return hideVaultPassword(row)
   },
 
   update: async ({
@@ -75,16 +84,20 @@ export const repositoriesHandler = {
     context: Context
     input: z.infer<Input["update"]>
   }) => {
-    const { id, ...repository } = input
+    const { id, vaultPassword, ...repository } = input
     await assertCredentialExists(repository.credentialId)
     const rows = await db
       .update(playbookRepositories)
-      .set({ ...repository, updatedAt: new Date() })
+      .set({
+        ...repository,
+        ...vaultPasswordColumn(vaultPassword),
+        updatedAt: new Date(),
+      })
       .where(eq(playbookRepositories.id, id))
       .returning()
     const row = rows[0]
     if (!row) throw errors.NOT_FOUND()
-    return row
+    return hideVaultPassword(row)
   },
 
   delete: async ({
@@ -101,7 +114,7 @@ export const repositoriesHandler = {
     const row = rows[0]
     if (!row) throw errors.NOT_FOUND()
     await deleteRepositoryMirror(row.id)
-    return row
+    return hideVaultPassword(row)
   },
 
   sync: async ({

@@ -18,6 +18,7 @@ import { logger } from "@playbook-runner/logger"
 import { and, eq, notInArray, sql } from "drizzle-orm"
 import { errors } from "#errors"
 import { decryptSecret } from "#v1/credentials/crypto"
+import { hideVaultPassword } from "#v1/repositories/vault-password"
 
 /** A sync is a full fetch of the branch: allow far more than a unary default. */
 const SYNC_TIMEOUT_MS = 5 * 60 * 1000
@@ -162,7 +163,7 @@ export async function syncRepository(repositoryId: string) {
 
     const added = paths.filter((path) => !known.has(path)).length
     return {
-      repository: updated,
+      repository: hideVaultPassword(updated),
       added,
       updated: paths.length - added,
       missing: missing.length,

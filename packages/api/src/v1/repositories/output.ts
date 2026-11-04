@@ -9,6 +9,8 @@ const repository = z.object({
   branch: z.string(),
   subdir: z.string().nullable(),
   credentialId: idSchema.nullable(),
+  // The Vault password itself is never returned.
+  hasVaultPassword: z.boolean(),
   // Sync state: null until the first successful sync.
   lastCommitSha: z.string().nullable(),
   lastSyncedAt: z.coerce.date().nullable(),

@@ -414,6 +414,42 @@ describe("run.run secret variables", () => {
     })
   })
 
+  test("a Git playbook's Vault password reaches the runner", async () => {
+    const { id, name, content, missing } = playbookRow()
+    fakeDb.queue(
+      "select",
+      [
+        {
+          id,
+          name,
+          content,
+          source: "git",
+          path: "site.yml",
+          missing,
+          repositoryId: IDS.repository,
+        },
+      ],
+      [
+        {
+          id: IDS.repository,
+          url: "https://x/y.git",
+          lastCommitSha: "abc",
+          vaultPassword: encryptSecret("correct-horse-battery"),
+          privateKey: null,
+        },
+      ],
+      [HOST_ROW],
+      []
+    )
+    grpc.serverStream.mockImplementation(() => streamOf([DONE]))
+
+    await drain(streamHandler.run({ context, input: INPUT }))
+
+    expect(grpc.serverStream.mock.calls[0]?.[1]).toMatchObject({
+      playbook: { git: { vault_password: "correct-horse-battery" } },
+    })
+  })
+
   test("disabling a role on an inline playbook is BAD_REQUEST", async () => {
     queueResolved()
 

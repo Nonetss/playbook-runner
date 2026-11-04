@@ -34,6 +34,7 @@ export type ResolvedGitSource = {
   commit: string
   path: string
   private_key?: string
+  vault_password?: string
 }
 
 export type ResolvedInfisicalAuth = {
@@ -241,6 +242,7 @@ async function resolveGitSource(playbook: {
           id: playbookRepositories.id,
           url: playbookRepositories.url,
           lastCommitSha: playbookRepositories.lastCommitSha,
+          vaultPassword: playbookRepositories.vaultPassword,
           privateKey: credentials.privateKey,
         })
         .from(playbookRepositories)
@@ -270,6 +272,9 @@ async function resolveGitSource(playbook: {
     path: playbook.path,
     private_key: repository.privateKey
       ? decryptSecret(repository.privateKey)
+      : undefined,
+    vault_password: repository.vaultPassword
+      ? decryptSecret(repository.vaultPassword)
       : undefined,
   }
 }

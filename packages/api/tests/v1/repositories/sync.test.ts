@@ -26,6 +26,11 @@ function repositoryWithKey(privateKey: string | null = null) {
   return { id, url, branch, subdir, privateKey }
 }
 
+function withoutVaultColumn(row: ReturnType<typeof repositoryRow>) {
+  const { vaultPassword: _, ...rest } = row
+  return rest
+}
+
 /** Queues the reads and writes of a successful sync, in await order. */
 function queueSuccessfulSync(options: {
   known: string[]
@@ -143,7 +148,10 @@ describe("syncRepository", () => {
     const result = await syncRepository(IDS.repository)
 
     expect(result).toEqual({
-      repository: repositoryRow({ lastCommitSha: COMMIT }),
+      repository: {
+        ...withoutVaultColumn(repositoryRow({ lastCommitSha: COMMIT })),
+        hasVaultPassword: false,
+      },
       added: 1,
       updated: 2,
       missing: 0,
@@ -204,6 +212,26 @@ describe("syncRepository", () => {
     const [flag] = fakeDb.calls("update")
     if (!flag) throw new Error("no update recorded")
     expect(stepArgs(flag, "set")[0]).toMatchObject({ missing: true })
+  })
+
+  test("the result reports the Vault password without its value, and the runner never gets it", async () => {
+    const stored = encryptSecret("correct-horse-battery")
+    grpc.unary.mockResolvedValue(
+      SyncRepositoryResponse.fromPartial({ commit: COMMIT, playbooks: [] })
+    )
+    fakeDb.queue("select", [repositoryWithKey()], [])
+    fakeDb.queue("delete", [])
+    fakeDb.queue(
+      "update",
+      [],
+      [repositoryRow({ lastCommitSha: COMMIT, vaultPassword: stored })]
+    )
+
+    const { repository } = await syncRepository(IDS.repository)
+
+    expect(repository.hasVaultPassword).toBe(true)
+    expect(JSON.stringify(repository)).not.toContain(stored)
+    expect(grpc.unary.mock.calls[0]?.[1]).not.toHaveProperty("vault_password")
   })
 
   test("records the synced commit and clears the last error", async () => {

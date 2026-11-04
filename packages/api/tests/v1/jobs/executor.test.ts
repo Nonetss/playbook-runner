@@ -281,6 +281,42 @@ describe("executeJob", () => {
     expect(persisted()).toMatchObject({ status: "ok", commitSha: COMMIT })
   })
 
+  test("a Git playbook's Vault password reaches the runner", async () => {
+    fakeDb.queue("execute", undefined)
+    fakeDb.queue("select", [JOB], [])
+    fakeDb.queue("insert", [{ id: freshRunId() }])
+    fakeDb.queue(
+      "select",
+      [],
+      [
+        playbookSelection({
+          source: "git",
+          repositoryId: IDS.repository,
+          path: "site.yml",
+        }),
+      ],
+      [
+        {
+          id: IDS.repository,
+          url: "https://git.example.com/infra.git",
+          lastCommitSha: COMMIT,
+          vaultPassword: encryptSecret("correct-horse-battery"),
+          privateKey: null,
+        },
+      ],
+      [HOST_ROW],
+      []
+    )
+    fakeDb.queue("update", undefined)
+    grpc.serverStream.mockImplementation(() => streamOf([DONE_OK]))
+
+    await executeJob(IDS.job)
+
+    expect(grpc.serverStream.mock.calls[0]?.[1]).toMatchObject({
+      playbook: { git: { vault_password: "correct-horse-battery" } },
+    })
+  })
+
   test("a run whose result cannot be stored is still marked failed", async () => {
     queueOpenedRun(freshRunId())
     fakeDb.queueError("update", new Error("db down"))

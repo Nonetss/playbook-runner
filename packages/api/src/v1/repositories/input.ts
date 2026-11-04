@@ -31,12 +31,26 @@ const subdir = z
   })
   .transform((value) => value.replace(/^\/+|\/+$/g, "") || null)
 
+/**
+ * Ansible strips a password file's content, so a password with surrounding
+ * whitespace would be stored and then never decrypt anything.
+ */
+const vaultPassword = z
+  .string()
+  .min(1)
+  .max(1024)
+  .refine((value) => value === value.trim(), {
+    message: "Vault password must not start or end with whitespace",
+  })
+
 const repository = z.object({
   name: z.string().trim().min(1),
   url,
   branch: branch.default("main"),
   subdir: subdir.nullish(),
   credentialId: idSchema.nullish(),
+  // Omitted keeps the stored password, null removes it.
+  vaultPassword: vaultPassword.nullish(),
 })
 
 export const repositoriesInput = {

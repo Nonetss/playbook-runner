@@ -475,6 +475,62 @@ describe("resolveRun", () => {
     expect(bundle.commitSha).toBe(COMMIT)
   })
 
+  test("a Git playbook carries its repository's decrypted Vault password", async () => {
+    fakeDb.queue(
+      "select",
+      [
+        playbookSelection({
+          source: "git",
+          repositoryId: IDS.repository,
+          path: "site.yml",
+        }),
+      ],
+      [
+        {
+          id: IDS.repository,
+          url: "https://git.example.com/infra.git",
+          lastCommitSha: COMMIT,
+          vaultPassword: encryptSecret("correct-horse-battery"),
+          privateKey: null,
+        },
+      ],
+      [hostRow()],
+      []
+    )
+
+    const bundle = await resolveRun(IDS.playbook, DEVICE)
+
+    expect(bundle.playbook.git?.vault_password).toBe("correct-horse-battery")
+  })
+
+  test("a repository without a Vault password sends none", async () => {
+    fakeDb.queue(
+      "select",
+      [
+        playbookSelection({
+          source: "git",
+          repositoryId: IDS.repository,
+          path: "site.yml",
+        }),
+      ],
+      [
+        {
+          id: IDS.repository,
+          url: "https://git.example.com/infra.git",
+          lastCommitSha: COMMIT,
+          vaultPassword: null,
+          privateKey: null,
+        },
+      ],
+      [hostRow()],
+      []
+    )
+
+    const bundle = await resolveRun(IDS.playbook, DEVICE)
+
+    expect(bundle.playbook.git?.vault_password).toBeUndefined()
+  })
+
   test("a Git playbook whose repository was never synced is a precondition failure", async () => {
     fakeDb.queue(
       "select",

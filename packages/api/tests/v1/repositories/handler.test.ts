@@ -14,14 +14,22 @@ import { fakeDb } from "#tests/fixtures/db"
 import { resetEnv, testEnv } from "#tests/fixtures/env"
 import { expectErrorCode } from "#tests/fixtures/errors"
 import { grpc, grpcError, resetGrpc } from "#tests/fixtures/grpc"
+import { decryptSecret, encryptSecret } from "#v1/credentials/crypto"
 import { repositoriesHandler } from "#v1/repositories/handler"
 import { repositoriesRouter } from "#v1/repositories/router"
 
 const context = userContext()
+const PASSWORD = "correct-horse-battery"
 const REPOSITORY = {
   name: "infra",
   url: "https://git.example.com/infra.git",
   branch: "main",
+}
+
+/** A repository as the API returns it. */
+function repositoryOutput() {
+  const { vaultPassword: _, ...row } = repositoryRow()
+  return { ...row, hasVaultPassword: false }
 }
 
 beforeEach(() => {
@@ -36,7 +44,7 @@ describe("repositories.create", () => {
 
     expect(
       await repositoriesHandler.create({ context, input: REPOSITORY })
-    ).toEqual(repositoryRow())
+    ).toEqual(repositoryOutput())
     expect(fakeDb.calls("select")).toEqual([])
     const [insert] = fakeDb.calls("insert")
     if (!insert) throw new Error("no insert recorded")
@@ -102,10 +110,11 @@ describe("repositories.create", () => {
 
 describe("repositories.list", () => {
   test("returns the repositories with their playbook counts", async () => {
-    const rows = [{ ...repositoryRow(), playbookCount: 3 }]
-    fakeDb.queue("select", rows)
+    fakeDb.queue("select", [{ ...repositoryRow(), playbookCount: 3 }])
 
-    expect(await repositoriesHandler.list({ context })).toEqual(rows)
+    expect(await repositoriesHandler.list({ context })).toEqual([
+      { ...repositoryOutput(), playbookCount: 3 },
+    ])
   })
 
   test("counts each repository's playbooks with qualified columns", async () => {
@@ -134,7 +143,7 @@ describe("repositories.get", () => {
 
     expect(
       await repositoriesHandler.get({ context, input: { id: IDS.repository } })
-    ).toEqual(repositoryRow())
+    ).toEqual(repositoryOutput())
   })
 
   test("an unknown id is NOT_FOUND", async () => {
@@ -204,7 +213,7 @@ describe("repositories.delete", () => {
         context,
         input: { id: IDS.repository },
       })
-    ).toEqual(repositoryRow())
+    ).toEqual(repositoryOutput())
     expect(grpc.unary.mock.calls[0]?.[1]).toEqual({
       repository_id: IDS.repository,
     })
@@ -219,7 +228,7 @@ describe("repositories.delete", () => {
         context,
         input: { id: IDS.repository },
       })
-    ).toEqual(repositoryRow())
+    ).toEqual(repositoryOutput())
   })
 
   test("without a service token the mirror is left alone", async () => {
@@ -239,6 +248,102 @@ describe("repositories.delete", () => {
       "NOT_FOUND"
     )
     expect(grpc.unary).not.toHaveBeenCalled()
+  })
+})
+
+describe("the Vault password", () => {
+  const STORED = encryptSecret(PASSWORD)
+
+  /** The values written by the only update recorded. */
+  function updatedValues() {
+    const [update] = fakeDb.calls("update")
+    if (!update) throw new Error("no update recorded")
+    return stepArgs(update, "set")[0]
+  }
+
+  test("create stores it encrypted and returns only that there is one", async () => {
+    fakeDb.queue("insert", [repositoryRow({ vaultPassword: STORED })])
+
+    const output = await repositoriesHandler.create({
+      context,
+      input: { ...REPOSITORY, vaultPassword: PASSWORD },
+    })
+
+    const [insert] = fakeDb.calls("insert")
+    if (!insert) throw new Error("no insert recorded")
+    const [values] = stepArgs(insert, "values") as [{ vaultPassword: string }]
+    expect(values.vaultPassword).toStartWith("v1:")
+    expect(decryptSecret(values.vaultPassword)).toBe(PASSWORD)
+    expect(output.hasVaultPassword).toBe(true)
+    expect(output).not.toHaveProperty("vaultPassword")
+  })
+
+  test("an update that omits it leaves the stored one alone", async () => {
+    fakeDb.queue("update", [repositoryRow({ vaultPassword: STORED })])
+
+    const output = await repositoriesHandler.update({
+      context,
+      input: { ...REPOSITORY, id: IDS.repository },
+    })
+
+    expect(updatedValues()).not.toHaveProperty("vaultPassword")
+    expect(output.hasVaultPassword).toBe(true)
+  })
+
+  test("an update with a new one replaces it, encrypted", async () => {
+    fakeDb.queue("update", [repositoryRow({ vaultPassword: STORED })])
+
+    await repositoriesHandler.update({
+      context,
+      input: { ...REPOSITORY, id: IDS.repository, vaultPassword: "otra" },
+    })
+
+    const { vaultPassword } = updatedValues() as { vaultPassword: string }
+    expect(decryptSecret(vaultPassword)).toBe("otra")
+  })
+
+  test("an update with null removes it", async () => {
+    fakeDb.queue("update", [repositoryRow()])
+
+    const output = await repositoriesHandler.update({
+      context,
+      input: { ...REPOSITORY, id: IDS.repository, vaultPassword: null },
+    })
+
+    expect(updatedValues()).toHaveProperty("vaultPassword", null)
+    expect(output.hasVaultPassword).toBe(false)
+  })
+
+  for (const vaultPassword of ["", " padded", "padded ", "padded\n"]) {
+    test(`${JSON.stringify(vaultPassword)} is BAD_REQUEST and nothing is written`, async () => {
+      await expectErrorCode(
+        call(
+          repositoriesRouter.create,
+          { ...REPOSITORY, vaultPassword },
+          { context }
+        ),
+        "BAD_REQUEST"
+      )
+      expect(fakeDb.calls()).toEqual([])
+    })
+  }
+
+  test("no procedure returns it or its encrypted form", async () => {
+    const row = repositoryRow({ vaultPassword: STORED })
+    fakeDb.queue("select", [{ ...row, playbookCount: 0 }], [row])
+    fakeDb.queue("delete", [row])
+    grpc.unary.mockResolvedValue(DeleteRepositoryResponse.fromPartial({}))
+    const input = { id: IDS.repository }
+
+    const outputs = [
+      await call(repositoriesRouter.list, undefined, { context }),
+      await call(repositoriesRouter.get, input, { context }),
+      await call(repositoriesRouter.delete, input, { context }),
+    ]
+
+    expect(JSON.stringify(outputs)).not.toContain(STORED)
+    expect(JSON.stringify(outputs)).not.toContain("vaultPassword")
+    expect(outputs[1]).toHaveProperty("hasVaultPassword", true)
   })
 })
 
