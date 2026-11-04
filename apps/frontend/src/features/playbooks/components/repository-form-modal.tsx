@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 import { InlineAlert } from "@/components/shared/feedback/inline-alert"
 import { FormField } from "@/components/shared/form/field-label"
 import { FormDialog } from "@/components/shared/form/form-dialog"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -27,6 +28,8 @@ type RepositoryFormValues = {
   branch: string
   subdir: string
   credentialId: string
+  vaultPassword: string
+  removeVaultPassword: boolean
 }
 
 type RepositoryFormModalProps = {
@@ -43,6 +46,8 @@ const emptyValues: RepositoryFormValues = {
   branch: "main",
   subdir: "",
   credentialId: "",
+  vaultPassword: "",
+  removeVaultPassword: false,
 }
 
 /** Radix Select cannot use `value=""`; this sentinel means "no credential". */
@@ -59,7 +64,9 @@ function looksLikeGitUrl(value: string) {
   )
 }
 
-function valuesFrom(repository: PlaybookRepository | null) {
+function valuesFrom(
+  repository: PlaybookRepository | null
+): RepositoryFormValues {
   if (!repository) return emptyValues
   return {
     name: repository.name,
@@ -67,6 +74,8 @@ function valuesFrom(repository: PlaybookRepository | null) {
     branch: repository.branch,
     subdir: repository.subdir ?? "",
     credentialId: repository.credentialId ?? "",
+    vaultPassword: "",
+    removeVaultPassword: false,
   }
 }
 
@@ -160,7 +169,10 @@ export function RepositoryFormModal({
     )
   }, [remote.data, keepsSavedBranch, repository?.branch])
 
-  function updateField(key: keyof RepositoryFormValues, value: string) {
+  function updateField<Key extends keyof RepositoryFormValues>(
+    key: Key,
+    value: RepositoryFormValues[Key]
+  ) {
     setValues((current) => ({ ...current, [key]: value }))
   }
 
@@ -173,6 +185,10 @@ export function RepositoryFormModal({
       branch: values.branch.trim() || "main",
       subdir: values.subdir || null,
       credentialId: values.credentialId || null,
+      // Left empty, the stored password stays as it is.
+      vaultPassword: values.removeVaultPassword
+        ? null
+        : values.vaultPassword || undefined,
     }
     try {
       if (repository) {
@@ -342,6 +358,43 @@ export function RepositoryFormModal({
           spellCheck={false}
         />
       </FormField>
+
+      <FormField
+        label={t("repository.vault_password_label")}
+        htmlFor="repository-vault-password"
+        hint={
+          repository?.hasVaultPassword
+            ? `${t("repository.vault_password_keep_hint")} ${t("repository.vault_password_hint")}`
+            : t("repository.vault_password_hint")
+        }
+      >
+        <Input
+          id="repository-vault-password"
+          type="password"
+          autoComplete="new-password"
+          disabled={isSubmitting || values.removeVaultPassword}
+          value={values.vaultPassword}
+          onChange={(e) => updateField("vaultPassword", e.target.value)}
+          className="font-mono"
+        />
+      </FormField>
+
+      {repository?.hasVaultPassword ? (
+        <label
+          htmlFor="repository-vault-password-remove"
+          className="flex items-center gap-2 text-meta"
+        >
+          <Checkbox
+            id="repository-vault-password-remove"
+            disabled={isSubmitting}
+            checked={values.removeVaultPassword}
+            onCheckedChange={(checked) =>
+              updateField("removeVaultPassword", checked === true)
+            }
+          />
+          {t("repository.vault_password_remove")}
+        </label>
+      ) : null}
 
       {error ? <InlineAlert>{error}</InlineAlert> : null}
     </FormDialog>

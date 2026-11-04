@@ -16,6 +16,8 @@ export type RepositoryInput = {
   branch: string
   subdir: string | null
   credentialId: string | null
+  /** Omitted keeps the stored password, null removes it. */
+  vaultPassword?: string | null
 }
 
 export function useRepositoriesList() {
@@ -105,7 +107,7 @@ export function useRepositoryUpdate() {
     mutationFn: (input) =>
       orpc.repositories.update.call(input) as Promise<PlaybookRepository>,
     listKey,
-    applyOptimistic: (current, input) =>
+    applyOptimistic: (current, { vaultPassword: _, ...input }) =>
       current?.map((repository) =>
         repository.id === input.id ? { ...repository, ...input } : repository
       ),
