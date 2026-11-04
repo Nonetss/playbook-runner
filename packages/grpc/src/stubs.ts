@@ -7,6 +7,7 @@ export {
   Host,
   ListBranchesRequest,
   ListBranchesResponse,
+  ListRepositoryRolesResponse,
   Playbook,
   PlaybookFile,
   RunBundleRequest,

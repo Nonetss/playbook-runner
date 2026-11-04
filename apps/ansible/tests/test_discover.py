@@ -1,7 +1,13 @@
 import pytest
 
 from app.services.git import discover as discover_module
-from app.services.git.discover import discover, is_playbook
+from app.services.git.discover import (
+    DiscoveredRole,
+    DiscoveredRoles,
+    discover,
+    discover_roles,
+    is_playbook,
+)
 
 
 @pytest.mark.parametrize(
@@ -64,3 +70,183 @@ def test_discover_stops_at_max_playbooks(
 ) -> None:
     monkeypatch.setattr(discover_module, "MAX_PLAYBOOKS", 1)
     assert len(discover(git_mirror.repository_id, git_mirror.commit, "")) == 1
+
+
+class TestDiscoverRoles:
+    @staticmethod
+    def discover(
+        monkeypatch: pytest.MonkeyPatch,
+        files: dict[str, bytes],
+        subdir: str = "",
+    ) -> DiscoveredRoles:
+        monkeypatch.setattr(
+            discover_module,
+            "list_tree",
+            lambda _repo, _commit, _subdir: [
+                (path, path, len(content)) for path, content in sorted(files.items())
+            ],
+        )
+        monkeypatch.setattr(
+            discover_module, "read_blob", lambda _repo, blob: files[blob]
+        )
+        return discover_roles("repo", "commit", subdir)
+
+    @staticmethod
+    def paths(found: DiscoveredRoles) -> list[str]:
+        return [role.path for role in found.roles]
+
+    def test_on_a_real_mirror(self, git_mirror) -> None:
+        found = discover_roles(git_mirror.repository_id, git_mirror.commit, "")
+        assert found.roles == [DiscoveredRole(name="x", path="roles/x")]
+        assert found.requirements_files == []
+
+    @pytest.mark.parametrize(
+        "marker",
+        ["tasks/main.yml", "tasks/main.yaml", "meta/main.yml", "meta/main.yaml"],
+    )
+    def test_markers(self, monkeypatch: pytest.MonkeyPatch, marker: str) -> None:
+        found = self.discover(monkeypatch, {f"roles/web/{marker}": b"[]\n"})
+        assert found.roles == [DiscoveredRole(name="web", path="roles/web")]
+
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "roles/web/README.md",
+            "roles/web/tasks/install.yml",
+            "roles/web/handlers/main.yml",
+            "roles/main.yml",
+            "roles/requirements.yml",
+            "roles/a/roles/b/tasks/main.yml",
+            "collections/ansible_collections/acme/web/roles/x/tasks/main.yml",
+            ".github/roles/x/tasks/main.yml",
+            "roles/.hidden/tasks/main.yml",
+            "site.yml",
+        ],
+    )
+    def test_not_a_role(self, monkeypatch: pytest.MonkeyPatch, path: str) -> None:
+        assert self.discover(monkeypatch, {path: b"[]\n"}).roles == []
+
+    def test_nested_role_does_not_hide_its_parent(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        found = self.discover(
+            monkeypatch,
+            {
+                "roles/a/tasks/main.yml": b"[]\n",
+                "roles/a/roles/b/tasks/main.yml": b"[]\n",
+            },
+        )
+        assert self.paths(found) == ["roles/a"]
+
+    def test_subdir_scope(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        found = self.discover(
+            monkeypatch,
+            {
+                "roles/base/tasks/main.yml": b"[]\n",
+                "infra/roles/web/tasks/main.yml": b"[]\n",
+                "infra/deep/roles/db/tasks/main.yml": b"[]\n",
+                "apps/roles/api/tasks/main.yml": b"[]\n",
+                "infrastructure/roles/other/tasks/main.yml": b"[]\n",
+            },
+            subdir="/infra/",
+        )
+        assert self.paths(found) == [
+            "infra/deep/roles/db",
+            "infra/roles/web",
+            "roles/base",
+        ]
+
+    def test_ordered_by_path_and_capped(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(discover_module, "MAX_ROLES", 2)
+        found = self.discover(
+            monkeypatch,
+            {
+                "roles/c/tasks/main.yml": b"[]\n",
+                "roles/a/tasks/main.yml": b"[]\n",
+                "roles/b/tasks/main.yml": b"[]\n",
+            },
+        )
+        assert self.paths(found) == ["roles/a", "roles/b"]
+
+    def test_description(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        found = self.discover(
+            monkeypatch,
+            {
+                "roles/web/meta/main.yml": (
+                    b"galaxy_info:\n  description: ' Installs nginx '\n"
+                    b"secret: !vault |\n  $ANSIBLE_VAULT\n"
+                ),
+            },
+        )
+        assert found.roles[0].description == "Installs nginx"
+
+    def test_description_is_capped(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        text = "x" * (discover_module.MAX_ROLE_DESCRIPTION_CHARS + 10)
+        found = self.discover(
+            monkeypatch,
+            {
+                "roles/web/meta/main.yml": f"galaxy_info:\n  description: {text}\n".encode()
+            },
+        )
+        assert found.roles[0].description == text[:-10]
+
+    @pytest.mark.parametrize(
+        "content",
+        [
+            b"galaxy_info: [unclosed\n",
+            b"\xff\xfe\x00",
+            b"just a string\n",
+            b"galaxy_info: not a mapping\n",
+            b"galaxy_info:\n  description: 12\n",
+            b"galaxy_info:\n  description: '  '\n",
+        ],
+    )
+    def test_bad_metadata_keeps_the_role(
+        self, monkeypatch: pytest.MonkeyPatch, content: bytes
+    ) -> None:
+        found = self.discover(monkeypatch, {"roles/web/meta/main.yml": content})
+        assert found.roles == [DiscoveredRole(name="web", path="roles/web")]
+
+    def test_oversized_metadata_is_not_read(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(discover_module, "MAX_PLAYBOOK_BYTES", 10)
+        found = self.discover(
+            monkeypatch,
+            {"roles/web/meta/main.yml": b"galaxy_info:\n  description: big\n"},
+        )
+        assert found.roles == [DiscoveredRole(name="web", path="roles/web")]
+
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "requirements.yml",
+            "requirements.yaml",
+            "roles/requirements.yml",
+            "collections/requirements.yaml",
+            "infra/requirements.yml",
+            "infra/roles/requirements.yml",
+            "infra/collections/requirements.yml",
+        ],
+    )
+    def test_requirements_locations(
+        self, monkeypatch: pytest.MonkeyPatch, path: str
+    ) -> None:
+        found = self.discover(monkeypatch, {path: b"[]\n"}, subdir="infra")
+        assert found.requirements_files == [path]
+        assert found.roles == []
+
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "other/requirements.yml",
+            "infra/deep/requirements.yml",
+            "roles/web/requirements.yml",
+            "requirements.txt",
+        ],
+    )
+    def test_requirements_elsewhere_are_ignored(
+        self, monkeypatch: pytest.MonkeyPatch, path: str
+    ) -> None:
+        found = self.discover(monkeypatch, {path: b"[]\n"}, subdir="infra")
+        assert found.requirements_files == []

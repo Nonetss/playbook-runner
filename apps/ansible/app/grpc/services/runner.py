@@ -25,7 +25,9 @@ from app.grpc.stubs import (
     ListBranchesResponse,
     ListInfisicalEnvironmentsResponse,
     ListInfisicalSecretNamesResponse,
+    ListRepositoryRolesResponse,
     PlaybookFile,
+    RepositoryRole,
     RunBundleResponse,
     RunCommandResponse,
     RunnerServiceServicer,
@@ -65,7 +67,7 @@ from app.services.ansible.runner import (
     AnsibleRunnerConfig,
 )
 from app.services.git import mirror
-from app.services.git.discover import discover
+from app.services.git.discover import discover, discover_roles
 from app.services.git.mirror import GitError
 
 _GIT_STATUS = {
@@ -436,6 +438,32 @@ class RunnerServicer(RunnerServiceServicer):
         return SyncRepositoryResponse(
             commit=commit,
             playbooks=[PlaybookFile(path=p.path, content=p.content) for p in found],
+        )
+
+    async def ListRepositoryRoles(self, request, context):
+        """Roles y ``requirements`` de un commit; solo lee el mirror."""
+        logger.bind(peer=context.peer(), repository=request.repository_id).info(
+            "ListRepositoryRoles recibido"
+        )
+        try:
+            # A fresh state volume has no mirror: fetch the pinned commit first.
+            await mirror.ensure_commit(
+                request.repository_id,
+                request.url,
+                request.commit,
+                request.private_key if request.HasField("private_key") else None,
+            )
+            found = await asyncio.to_thread(
+                discover_roles, request.repository_id, request.commit, request.subdir
+            )
+        except GitError as exc:
+            await context.abort(_GIT_STATUS[exc.kind], str(exc))
+        return ListRepositoryRolesResponse(
+            roles=[
+                RepositoryRole(name=r.name, path=r.path, description=r.description)
+                for r in found.roles
+            ],
+            requirements_files=found.requirements_files,
         )
 
     async def ListBranches(self, request, context):

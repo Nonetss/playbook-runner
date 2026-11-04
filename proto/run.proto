@@ -17,6 +17,8 @@ service RunnerService {
   rpc SyncRepository(SyncRepositoryRequest) returns (SyncRepositoryResponse);
   // List the branches of a remote (no mirror involved), to pick one in the UI.
   rpc ListBranches(ListBranchesRequest) returns (ListBranchesResponse);
+  // List the Ansible roles and dependency files of a repository at a commit.
+  rpc ListRepositoryRoles(ListRepositoryRolesRequest) returns (ListRepositoryRolesResponse);
   // Drop a repository's mirror cache (the repository was deleted).
   rpc DeleteRepository(DeleteRepositoryRequest) returns (DeleteRepositoryResponse);
   // List a project's environments, to pick one in the UI. Empty when the
@@ -124,6 +126,26 @@ message PlaybookFile {
 message SyncRepositoryResponse {
   string commit = 1;
   repeated PlaybookFile playbooks = 2;
+}
+
+message ListRepositoryRolesRequest {
+  string repository_id = 1;
+  string url = 2;
+  string commit = 3;
+  string subdir = 4; // "" = repository root
+  optional string private_key = 5;
+}
+
+message RepositoryRole {
+  string name = 1;
+  string path = 2; // relative to the repository root
+  optional string description = 3;
+}
+
+message ListRepositoryRolesResponse {
+  repeated RepositoryRole roles = 1;
+  // `requirements.yml` files found; their dependencies are not installed.
+  repeated string requirements_files = 2;
 }
 
 message ListBranchesRequest {
