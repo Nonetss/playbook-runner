@@ -76,4 +76,6 @@ To see one working, sync the example repository above and run `system-report.yml
 
 Each repository on the Playbooks page lists its roles read-only. To change a role, commit to the repository and sync it. Roles are not available to playbooks written in Playbook Runner, because those are a single file.
 
+While a repository is expanded, each playbook card names the roles it declares and each role names the playbooks declaring it. This comes from `roles`, `include_role` and `import_role` in the playbook's plays, following `import_playbook`. Roles reached through `include_tasks` or another role's dependencies are not counted, so "no playbook declares it directly" doesn't mean a role is unused. A name only known at run time appears as "dynamic role".
+
 Dependencies in `requirements.yml` **are not installed**. The page warns you when it finds that file at the repository root, in the configured subdirectory, or directly in `roles/` or `collections/` at those levels. A playbook using one of those external roles fails with a "role not found" error; to use it, copy the role into the repository.

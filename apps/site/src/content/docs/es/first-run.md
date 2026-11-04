@@ -76,4 +76,6 @@ Para verlo funcionando, sincroniza el repositorio de ejemplo anterior y ejecuta 
 
 Cada repositorio de la página de Playbooks muestra sus roles en solo lectura. Para cambiar un rol, haz un commit en el repositorio y sincronízalo. Los roles no están disponibles para los playbooks escritos en Playbook Runner, porque son un único fichero.
 
+Con un repositorio desplegado, cada tarjeta de playbook nombra los roles que declara y cada rol nombra los playbooks que lo declaran. Sale de `roles`, `include_role` e `import_role` en los plays del playbook, siguiendo `import_playbook`. No se cuentan los roles a los que se llega por `include_tasks` o por las dependencias de otro rol, así que «ningún playbook lo declara directamente» no significa que el rol no se use. Un nombre que solo se conoce al ejecutar aparece como «rol dinámico».
+
 Las dependencias de `requirements.yml` **no se instalan**. La página avisa cuando encuentra ese fichero en la raíz del repositorio, en el subdirectorio configurado, o directamente en `roles/` o `collections/` de esos niveles. Un playbook que use uno de esos roles externos falla con un error de rol no encontrado; para usarlo, copia el rol en el repositorio.

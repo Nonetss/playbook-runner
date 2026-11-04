@@ -116,3 +116,41 @@ The repository section of the Playbooks page SHALL show the repository's roles r
 #### Scenario: Sync brings a new role
 - **WHEN** a user syncs a repository whose new commit adds a role
 - **THEN** the section SHALL show the new role without a page reload
+
+### Requirement: Report the roles each playbook declares
+The role listing SHALL report, for each playbook in the configured subdirectory of the synced commit that declares roles, its path and the role names it declares: entries in a play's `roles`, and `include_role` or `import_role` (including `ansible.builtin.*`) in its `pre_tasks`, `tasks`, `post_tasks` and `handlers`, inside `block`, `rescue` and `always` too. It SHALL follow `import_playbook` relative to the importing file, and SHALL flag a playbook as dynamic when a role name or import path is templated. It SHALL NOT follow `include_tasks` or role dependencies in `meta/main.yml`, and SHALL compute this without storing anything.
+
+#### Scenario: Playbook with a role in each form
+- **WHEN** a playbook lists a role under `roles` and another through `include_role` inside a `block`
+- **THEN** the listing SHALL report both names for that playbook
+
+#### Scenario: Roles behind an import
+- **WHEN** a playbook only contains `import_playbook` of a file that declares a role
+- **THEN** the listing SHALL report that role for the importing playbook
+
+#### Scenario: Import cycle or unreadable import
+- **WHEN** imports form a cycle, or an imported file is missing or is not valid YAML
+- **THEN** the listing SHALL still succeed with the roles it could read
+
+#### Scenario: Templated role name
+- **WHEN** a playbook uses `include_role` with `name: "{{ which }}"`
+- **THEN** the listing SHALL flag that playbook as dynamic and SHALL NOT report the template as a role name
+
+#### Scenario: Playbook without roles
+- **WHEN** a playbook declares no role and no templated one
+- **THEN** the listing SHALL NOT include it
+
+### Requirement: Show role usage in the UI
+While a repository section is expanded, each of its playbook cards that declares roles SHALL show their names, with a generic label for dynamic ones, and each listed role SHALL show the playbooks declaring it by name, or state that no playbook declares it directly. The page SHALL NOT make any additional request for this while the section is collapsed.
+
+#### Scenario: Playbook using roles
+- **WHEN** a user expands a repository with a playbook declaring `system_report`
+- **THEN** that playbook's card SHALL show `system_report` and the role SHALL show that playbook's path
+
+#### Scenario: Role nobody declares
+- **WHEN** a role is not declared by any playbook
+- **THEN** the role SHALL state that no playbook declares it directly, without claiming it is unused
+
+#### Scenario: Roles cannot be loaded
+- **WHEN** the roles request fails
+- **THEN** the playbook cards SHALL be shown without a roles row
