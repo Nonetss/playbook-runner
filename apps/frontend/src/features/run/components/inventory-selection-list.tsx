@@ -227,7 +227,7 @@ export function InventorySelectionList({
   const { t } = useTranslation("inventory")
   const { data: relations = NO_RELATIONS } = useDeviceGroupsList()
   const [search, setSearch] = useState("")
-  const [groupsExpanded, setGroupsExpanded] = useState(true)
+  const [groupsExpanded, setGroupsExpanded] = useState(false)
   const [devicesExpanded, setDevicesExpanded] = useState(false)
   const query = search.trim().toLowerCase()
 

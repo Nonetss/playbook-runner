@@ -5,6 +5,15 @@ import { rpc } from "@test/e2e/helpers/rpc"
 
 const PAGE = "/ansible/infisical"
 
+/** The run panel starts with these blocks folded. */
+async function openRunBlock(page: Page, name: "Infisical" | "Variables") {
+  const block = page.getByRole("button", { name, exact: true })
+  await waitForHydration(block)
+  if ((await block.getAttribute("aria-expanded")) === "false") {
+    await block.click()
+  }
+}
+
 type ConnectionRow = { id: string; name: string }
 
 /**
@@ -266,6 +275,8 @@ test.describe("Conexiones de Infisical", () => {
     })
 
     await page.goto(`/playbooks/${playbook.id}/run`)
+    await openRunBlock(page, "Infisical")
+    await openRunBlock(page, "Variables")
     const select = page.getByLabel("Conexión de Infisical")
     await waitForHydration(select)
 
@@ -290,6 +301,7 @@ test.describe("Conexiones de Infisical", () => {
     const playbook = await seed.playbook()
 
     await page.goto(`/playbooks/${playbook.id}/run`)
+    await openRunBlock(page, "Variables")
     const add = page.getByRole("button", { name: "Añadir variable" })
     await waitForHydration(add)
     await add.click()
@@ -307,7 +319,14 @@ test.describe("Conexiones de Infisical", () => {
       "debug"
     )
 
-    await page.getByRole("button", { name: "Infisical", exact: true }).click()
+    const infisical = page.getByRole("button", {
+      name: "Infisical",
+      exact: true,
+    })
+    await expect(page.getByLabel("Conexión de Infisical")).toBeHidden()
+    await infisical.click()
+    await expect(page.getByLabel("Conexión de Infisical")).toBeVisible()
+    await infisical.click()
     await expect(page.getByLabel("Conexión de Infisical")).toBeHidden()
 
     await page.getByRole("button", { name: "INVENTARIO", exact: true }).click()
@@ -322,6 +341,7 @@ test.describe("Conexiones de Infisical", () => {
     const playbook = await seed.playbook()
 
     await page.goto(`/playbooks/${playbook.id}/run`)
+    await openRunBlock(page, "Variables")
     const add = page.getByRole("button", { name: "Añadir variable" })
     await waitForHydration(add)
     await add.click()
@@ -346,6 +366,7 @@ test.describe("Conexiones de Infisical", () => {
     })
 
     await page.goto(`/playbooks/${playbook.id}/run`)
+    await openRunBlock(page, "Infisical")
     const select = page.getByLabel("Conexión de Infisical")
     await waitForHydration(select)
     await select.click()
@@ -368,6 +389,7 @@ test.describe("Conexiones de Infisical", () => {
     const playbook = await seed.playbook()
 
     await page.goto(`/playbooks/${playbook.id}/run`)
+    await openRunBlock(page, "Infisical")
     const select = page.getByLabel("Conexión de Infisical")
     await waitForHydration(select)
     await select.click()

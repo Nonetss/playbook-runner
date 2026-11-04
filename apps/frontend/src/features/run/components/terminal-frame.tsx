@@ -94,16 +94,24 @@ export function TerminalPanelSection({
 export function TerminalPanelCollapsible({
   label,
   aside,
+  defaultOpen = true,
+  openWhen = false,
   children,
   className,
 }: {
   label: ReactNode
   /** Shown closed too, e.g. how many items the block holds. */
   aside?: ReactNode
+  defaultOpen?: boolean
+  /** Opens it when this turns true, and the user can still fold it again. */
+  openWhen?: boolean
   children: ReactNode
   className?: string
 }) {
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(defaultOpen)
+  useEffect(() => {
+    if (openWhen) setOpen(true)
+  }, [openWhen])
   return (
     // Only open: the header would keep its margin above the hidden content.
     <section className={cn(open && "space-y-3", className)}>

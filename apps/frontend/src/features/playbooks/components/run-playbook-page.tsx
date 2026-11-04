@@ -13,6 +13,7 @@ import { DetailFrame } from "@/components/shared/layout/detail-frame"
 import { PageHero } from "@/components/shared/layout/page-hero"
 import { AppLink } from "@/components/ui/app-link"
 import { Button } from "@/components/ui/button"
+import { useInfisicalConnectionsList } from "@/features/infisical/hooks/use-infisical-connections"
 import { useDevicesList } from "@/features/inventory/hooks/use-devices"
 import { useGroupsList } from "@/features/inventory/hooks/use-groups"
 import { useSelectableGroups } from "@/features/inventory/hooks/use-selectable-groups"
@@ -22,6 +23,7 @@ import { RunRolesSelection } from "@/features/playbooks/components/run-roles-sel
 import { usePlaybookSecretVariables } from "@/features/playbooks/hooks/use-playbook-secret-variables"
 import { usePlaybookGet } from "@/features/playbooks/hooks/use-playbooks"
 import { usePlaybookRoles } from "@/features/playbooks/hooks/use-repositories"
+import { offeredVariables } from "@/features/playbooks/lib/playbook-roles"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { PlaybookRunConsole } from "@/features/run/components/playbook-run-console"
 import { RunButton } from "@/features/run/components/run-button"
@@ -29,6 +31,7 @@ import { RunForksOption } from "@/features/run/components/run-options"
 import { RunResultBanner } from "@/features/run/components/run-result-banner"
 import { RunStreamStatus } from "@/features/run/components/run-stream-status"
 import {
+  effectiveInfisical,
   RunInfisicalFields,
   RunVariableRows,
 } from "@/features/run/components/run-variables-fields"
@@ -58,6 +61,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
   const { data: playbook, isPending: playbookLoading } = usePlaybookGet(id)
   const { data: declaredVariables } = usePlaybookSecretVariables(id)
   const { roles, variables: detectedVariables } = usePlaybookRoles(playbook)
+  const { data: infisicalConnections } = useInfisicalConnectionsList()
   const { data: storedGroups = [], isPending: groupsLoading } = useGroupsList()
   const { data: devices = [], isPending: devicesLoading } = useDevicesList()
   const groups = useSelectableGroups(storedGroups, devices)
@@ -160,6 +164,40 @@ function RunPlaybookPageInner({ id }: { id: string }) {
     ...variableView.declared.map((variable) => variable.name),
     ...variableView.own.map((row) => row.name.trim()),
   ])
+  const offeredCount = offeredVariables(
+    detectedVariables,
+    uncheckedRoles,
+    new Set()
+  ).length
+  const hasUndefinedVariable = offeredVariables(
+    detectedVariables,
+    uncheckedRoles,
+    takenVariableNames
+  ).some((variable) => variable.usedOnly)
+  const variableSummary = [
+    offeredCount > 0 ? offeredCount : null,
+    variableCount > 0
+      ? t("run.panel.variables_assigned", { count: variableCount })
+      : null,
+  ]
+    .filter((part) => part !== null)
+    .join(" · ")
+
+  const { effectiveConnection, effectiveEnvironment } = effectiveInfisical({
+    declared: declaredVariables,
+    connectionId: infisicalConnectionId,
+    environment: infisicalEnvironment,
+  })
+  const infisicalSummary = effectiveConnection
+    ? [
+        infisicalConnections?.find(
+          (connection) => connection.id === effectiveConnection
+        )?.name,
+        effectiveEnvironment,
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : tInfisical("select.none")
 
   const frame = (children: React.ReactNode) => (
     <DetailFrame
@@ -281,21 +319,12 @@ function RunPlaybookPageInner({ id }: { id: string }) {
               disabled={isRunning}
             />
 
-            <TerminalPanelSection
-              label={t("run.panel.options")}
-              className="border-t pt-5"
-            >
-              <RunForksOption
-                id="run-forks"
-                label={t("run.panel.forks")}
-                value={forks}
-                onChange={setForks}
-                disabled={isRunning}
-              />
-            </TerminalPanelSection>
-
             <TerminalPanelCollapsible
               label={tInfisical("variables.section")}
+              aside={<PanelSummary>{infisicalSummary}</PanelSummary>}
+              defaultOpen={false}
+              // Without an environment its secrets cannot be read.
+              openWhen={!!effectiveConnection && !effectiveEnvironment}
               className="border-t pt-5"
             >
               <RunInfisicalFields
@@ -313,7 +342,9 @@ function RunPlaybookPageInner({ id }: { id: string }) {
 
             <TerminalPanelCollapsible
               label={tInfisical("variables.title")}
-              aside={<PanelCount count={variableCount} />}
+              aside={<PanelSummary>{variableSummary}</PanelSummary>}
+              defaultOpen={false}
+              openWhen={variableView.own.length > 0 || hasUndefinedVariable}
               className="border-t pt-5"
             >
               <RunDetectedVariables
@@ -340,6 +371,19 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                 disabled={isRunning}
               />
             </TerminalPanelCollapsible>
+
+            <TerminalPanelSection
+              label={t("run.panel.options")}
+              className="border-t pt-5"
+            >
+              <RunForksOption
+                id="run-forks"
+                label={t("run.panel.forks")}
+                value={forks}
+                onChange={setForks}
+                disabled={isRunning}
+              />
+            </TerminalPanelSection>
 
             {/* Outside the block: a folded one must not hide why a run stopped. */}
             {variablesError ? (
@@ -382,6 +426,20 @@ export function RunPlaybookPage({ id }: { id?: string }) {
       <RunPlaybookPageInner id={id} />
     </AppProviders>
   )
+}
+
+/** What a block holds, in one line, so it can stay folded. */
+function PanelSummary({ children }: { children: string }) {
+  return children ? (
+    <Text
+      variant="meta"
+      tone="muted"
+      title={children}
+      className="min-w-0 max-w-[60%] truncate"
+    >
+      {children}
+    </Text>
+  ) : null
 }
 
 function PanelCount({ count }: { count: number }) {

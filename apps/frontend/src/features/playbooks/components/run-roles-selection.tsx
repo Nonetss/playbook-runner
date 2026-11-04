@@ -29,6 +29,7 @@ export function RunRolesSelection({
   return (
     <TerminalPanelCollapsible
       label={t("run.panel.roles")}
+      defaultOpen={false}
       aside={
         <Text variant="data" tone="muted">
           {checkedCount}/{roles.length}
