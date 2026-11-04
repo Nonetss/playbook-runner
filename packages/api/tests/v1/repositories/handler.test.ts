@@ -292,6 +292,11 @@ describe("repositories.roles", () => {
 
     expect(
       await call(repositoriesRouter.roles, { id: IDS.repository }, { context })
-    ).toEqual({ commit: null, roles: [], requirementsFiles: [] })
+    ).toEqual({
+      commit: null,
+      roles: [],
+      requirementsFiles: [],
+      playbookRoles: [],
+    })
   })
 })

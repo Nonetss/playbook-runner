@@ -236,7 +236,7 @@ export async function listRepositoryRoles(repositoryId: string) {
     .then((rows) => rows[0] ?? null)
   if (!repository) throw errors.NOT_FOUND()
   if (!repository.lastCommitSha) {
-    return { commit: null, roles: [], requirementsFiles: [] }
+    return { commit: null, roles: [], requirementsFiles: [], playbookRoles: [] }
   }
 
   const token = serviceToken()
@@ -264,6 +264,11 @@ export async function listRepositoryRoles(repositoryId: string) {
         description: role.description ?? null,
       })),
       requirementsFiles: response.requirements_files,
+      playbookRoles: response.playbook_roles.map((usage) => ({
+        path: usage.path,
+        roles: usage.roles,
+        dynamic: usage.dynamic,
+      })),
     }
   } catch (err) {
     const message = isGrpcError(err)

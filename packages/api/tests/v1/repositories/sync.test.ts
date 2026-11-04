@@ -326,6 +326,7 @@ describe("listRepositoryRoles", () => {
       commit: null,
       roles: [],
       requirementsFiles: [],
+      playbookRoles: [],
     })
     expect(grpc.unary).not.toHaveBeenCalled()
   })
@@ -359,6 +360,10 @@ describe("listRepositoryRoles", () => {
           { name: "docker", path: "roles/docker" },
         ],
         requirements_files: ["roles/requirements.yml"],
+        playbook_roles: [
+          { path: "site.yml", roles: ["nginx"], dynamic: true },
+          { path: "web.yml", roles: ["docker"] },
+        ],
       })
     )
 
@@ -369,6 +374,10 @@ describe("listRepositoryRoles", () => {
         { name: "docker", path: "roles/docker", description: null },
       ],
       requirementsFiles: ["roles/requirements.yml"],
+      playbookRoles: [
+        { path: "site.yml", roles: ["nginx"], dynamic: true },
+        { path: "web.yml", roles: ["docker"], dynamic: false },
+      ],
     })
     expect(fakeDb.calls("update")).toEqual([])
     expect(fakeDb.calls("insert")).toEqual([])

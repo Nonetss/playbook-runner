@@ -51,6 +51,15 @@ const roles = z.object({
   ),
   // `requirements.yml` files found; their dependencies are not installed.
   requirementsFiles: z.array(z.string()),
+  // Roles each playbook declares; only those declaring some are listed.
+  playbookRoles: z.array(
+    z.object({
+      path: z.string(),
+      roles: z.array(z.string()),
+      // It also uses a role whose name is only known when it runs.
+      dynamic: z.boolean(),
+    })
+  ),
 })
 
 export type PlaybookRepository = z.infer<typeof repository>
