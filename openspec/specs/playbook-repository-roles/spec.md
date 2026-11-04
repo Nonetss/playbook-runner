@@ -241,3 +241,18 @@ Once a connection and an environment are chosen, a playbook's secrets panel SHAL
 #### Scenario: Variables cannot be listed
 - **WHEN** the variables cannot be listed
 - **THEN** the panel SHALL keep working without suggestions
+
+### Requirement: Detect variables a role reads without defining them
+The roles listing SHALL also report, after the defined ones and marked `usedOnly`, the variables that the `tasks`, `handlers` and `templates` of a playbook's declared roles read and that nothing the playbook declares defines or assigns. The system SHALL only parse those templates, never render them, and SHALL leave out what Ansible provides.
+
+#### Scenario: A role reads a variable nothing defines
+- **WHEN** a role's template reads `{{ api_token }}` and nothing defines it
+- **THEN** the playbook's variables SHALL include `api_token`, with that role, no value and `usedOnly`
+
+#### Scenario: Another role assigns it
+- **WHEN** another declared role, or the play's tasks, assign the variable with `set_fact` or `register`
+- **THEN** it SHALL NOT be reported
+
+#### Scenario: A file cannot be parsed
+- **WHEN** a role's task file or template cannot be parsed
+- **THEN** that file SHALL add no variables and the listing SHALL still succeed
