@@ -15,6 +15,7 @@ import {
   InfisicalEnvironmentField,
   InfisicalSecretPicker,
 } from "@/features/infisical"
+import { DetectedVariableGroups } from "@/features/playbooks/components/detected-variable-groups"
 import {
   usePlaybookSecretVariables,
   usePlaybookSecretVariablesSet,
@@ -260,20 +261,20 @@ function SecretVariablesForm({
                 <Text as="p" variant="meta" tone="muted">
                   {t("declaration.suggestions")}
                 </Text>
-                <ul className="flex flex-wrap gap-1.5">
-                  {suggestions.map((variable) => (
-                    <li key={variable.name} className="min-w-0 max-w-full">
+                <DetectedVariableGroups
+                  variables={suggestions}
+                  action={(variable) => {
+                    const label = t("declaration.suggestion_aria", {
+                      name: variable.name,
+                    })
+                    return (
                       <Button
                         type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-auto max-w-full py-1 font-mono text-xs"
-                        title={t("declaration.suggestion_aria", {
-                          name: variable.name,
-                        })}
-                        aria-label={t("declaration.suggestion_aria", {
-                          name: variable.name,
-                        })}
+                        variant="ghost"
+                        size="icon-sm"
+                        className="shrink-0 text-muted-foreground"
+                        aria-label={label}
+                        title={label}
                         onClick={() =>
                           setRows((current) => [
                             ...current,
@@ -285,12 +286,11 @@ function SecretVariablesForm({
                         }
                         disabled={save.isPending}
                       >
-                        <Plus className="size-3 shrink-0" />
-                        <span className="truncate">{variable.name}</span>
+                        <Plus className="size-3.5" />
                       </Button>
-                    </li>
-                  ))}
-                </ul>
+                    )
+                  }}
+                />
               </div>
             ) : null}
           </div>
