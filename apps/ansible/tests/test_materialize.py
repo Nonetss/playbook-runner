@@ -1,7 +1,9 @@
 import os
 import stat
+import sys
 from pathlib import Path
 
+import ansible_runner
 import pytest
 
 from app.core.config import settings
@@ -9,6 +11,7 @@ from app.services.ansible.materialize import (
     cleanup,
     materialize,
     materialize_hosts,
+    role_search_path,
     write_script_file,
 )
 from app.services.ansible.models import (
@@ -165,6 +168,40 @@ class TestMaterialize:
         cleanup(run)
         assert list(runs_dir().iterdir()) == []
 
+    def test_git_playbook_finds_the_roots_roles(self, git_mirror) -> None:
+        bundle = ResolvedRunBundle(
+            playbook=ResolvedPlaybook(
+                name="nested:web.yaml",
+                content="",
+                git=GitPlaybookSource(
+                    repository_id=git_mirror.repository_id,
+                    url="https://example.com/repo.git",
+                    commit=git_mirror.commit,
+                    path="nested/web.yaml",
+                ),
+            ),
+            hosts=[host("web")],
+        )
+        run = materialize(bundle)
+
+        # A ``:`` in the playbook's name must not split the path list.
+        assert ":" not in run.run_dir.name
+        assert run.envvars["ANSIBLE_ROLES_PATH"] == str(run.project_dir / "roles")
+
+        cleanup(run)
+
+    def test_inline_playbook_has_no_role_path(self) -> None:
+        bundle = ResolvedRunBundle(
+            playbook=ResolvedPlaybook(name="a:b", content=PLAY),
+            hosts=[host("web")],
+        )
+        run = materialize(bundle)
+
+        assert ":" not in run.run_dir.name
+        assert "ANSIBLE_ROLES_PATH" not in run.envvars
+
+        cleanup(run)
+
     @pytest.mark.parametrize("path", ["../escape.yml", "/etc/passwd", "missing.yml"])
     def test_git_playbook_outside_the_tree_is_rejected(
         self, git_mirror, path: str
@@ -186,3 +223,130 @@ class TestMaterialize:
             materialize(bundle)
         # The failed run cleaned up after itself (keys included).
         assert list(runs_dir().iterdir()) == []
+
+
+class TestRoleSearchPath:
+    @staticmethod
+    def playbook(project: Path, path: str = "playbooks/site.yml") -> Path:
+        playbook = project / path
+        playbook.parent.mkdir(parents=True, exist_ok=True)
+        playbook.write_text(PLAY)
+        return playbook
+
+    def test_root_roles(self, tmp_path: Path) -> None:
+        (tmp_path / "roles").mkdir()
+        assert role_search_path(self.playbook(tmp_path), tmp_path) == str(
+            tmp_path / "roles"
+        )
+
+    def test_two_levels_nearest_first(self, tmp_path: Path) -> None:
+        playbook = self.playbook(tmp_path)
+        (tmp_path / "roles").mkdir()
+        (tmp_path / "playbooks" / "roles").mkdir()
+        assert role_search_path(playbook, tmp_path) == os.pathsep.join(
+            [str(tmp_path / "playbooks" / "roles"), str(tmp_path / "roles")]
+        )
+
+    def test_none_when_there_are_no_roles(self, tmp_path: Path) -> None:
+        assert role_search_path(self.playbook(tmp_path), tmp_path) is None
+
+    def test_does_not_look_above_the_project(self, tmp_path: Path) -> None:
+        (tmp_path / "roles").mkdir()
+        project = tmp_path / "project"
+        assert role_search_path(self.playbook(project), project) is None
+
+    def test_skips_a_symlink_out_of_the_tree(self, tmp_path: Path) -> None:
+        outside = tmp_path / "outside"
+        outside.mkdir()
+        project = tmp_path / "project"
+        playbook = self.playbook(project)
+        (project / "roles").symlink_to(outside)
+        assert role_search_path(playbook, project) is None
+
+    def test_skips_a_directory_with_the_separator(self, tmp_path: Path) -> None:
+        playbook = self.playbook(tmp_path, "a:b/site.yml")
+        (tmp_path / "a:b" / "roles").mkdir()
+        (tmp_path / "roles").mkdir()
+        assert role_search_path(playbook, tmp_path) == str(tmp_path / "roles")
+
+
+class TestRoleResolution:
+    """Through ``ansible_runner``, as a run does, on a local connection."""
+
+    @staticmethod
+    def run(project: Path, monkeypatch: pytest.MonkeyPatch) -> ansible_runner.Runner:
+        monkeypatch.setenv(
+            "PATH", f"{Path(sys.executable).parent}{os.pathsep}{os.environ['PATH']}"
+        )
+        data_dir = project.parent
+        config = data_dir / "empty.cfg"
+        config.write_text("")
+        playbook = project / "playbooks" / "site.yml"
+        playbook.parent.mkdir(parents=True, exist_ok=True)
+        playbook.write_text(
+            "- hosts: all\n  connection: local\n  gather_facts: false\n"
+            "  roles:\n    - demo\n"
+        )
+        # The repository's own setting must lose to the runner's empty config.
+        (project / "ansible.cfg").write_text("[defaults]\nroles_path = ./elsewhere\n")
+        envvars = {
+            "ANSIBLE_CONFIG": str(config),
+            "ANSIBLE_HOME": str(data_dir / "home"),
+        }
+        roles_path = role_search_path(playbook, project)
+        if roles_path:
+            envvars["ANSIBLE_ROLES_PATH"] = roles_path
+        return ansible_runner.run(
+            private_data_dir=str(data_dir),
+            project_dir=str(project),
+            playbook="playbooks/site.yml",
+            inventory="localhost,",
+            envvars=envvars,
+            quiet=True,
+        )
+
+    @staticmethod
+    def write_role(roles: Path, message: str) -> None:
+        tasks = roles / "demo" / "tasks"
+        tasks.mkdir(parents=True)
+        (tasks / "main.yml").write_text(
+            f"- ansible.builtin.debug:\n    msg: {message}\n"
+        )
+
+    def test_role_at_the_root(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        project = tmp_path / "project"
+        self.write_role(project / "roles", "from-root")
+
+        result = self.run(project, monkeypatch)
+
+        assert result.rc == 0
+        assert "from-root" in result.stdout.read()
+
+    def test_nearest_role_wins(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        project = tmp_path / "project"
+        self.write_role(project / "roles", "from-root")
+        self.write_role(project / "playbooks" / "roles", "from-playbooks")
+
+        result = self.run(project, monkeypatch)
+
+        output = result.stdout.read()
+        assert result.rc == 0
+        assert "from-playbooks" in output
+        assert "from-root" not in output
+
+    def test_role_nowhere_fails(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        project = tmp_path / "project"
+        self.write_role(project / "elsewhere", "from-repo-config")
+
+        result = self.run(project, monkeypatch)
+
+        output = result.stdout.read()
+        assert result.rc != 0
+        assert "demo" in output
+        assert "from-repo-config" not in output

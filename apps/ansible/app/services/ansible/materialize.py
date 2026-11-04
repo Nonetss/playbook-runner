@@ -163,8 +163,8 @@ def _build_inventory(hosts: Iterable[Any], keys: dict[str, Path]) -> Inventory:
 def _new_run_dir(label: str) -> Path:
     scratch = Path(settings.run_scratch_dir)
     scratch.mkdir(parents=True, exist_ok=True)
-    safe_label = label.replace("/", "_").replace(" ", "_") or "run"
-    run_dir = scratch / f"{safe_label}-{uuid.uuid4().hex[:12]}"
+    # Filename-safe: a ``:`` here would split ``ANSIBLE_ROLES_PATH``.
+    run_dir = scratch / f"{_safe_prefix(label)}-{uuid.uuid4().hex[:12]}"
     run_dir.mkdir(parents=True, exist_ok=True)
     return run_dir
 
@@ -270,6 +270,29 @@ def materialize(
     )
 
 
+def role_search_path(playbook_path: Path, project_dir: Path) -> str | None:
+    """``ANSIBLE_ROLES_PATH`` de un playbook, o ``None`` si no hay ``roles/``.
+
+    Recorre desde el directorio del playbook hasta ``project_dir``: el ``roles/``
+    más cercano va primero. Se omite el que salga del árbol y el que contenga el
+    separador de rutas, que partiría la lista (Ansible sigue encontrando por su
+    cuenta el ``roles/`` junto al playbook).
+    """
+    root = project_dir.resolve()
+    paths: list[str] = []
+    directory = playbook_path.parent
+    while directory.is_relative_to(root):
+        candidate = directory / "roles"
+        if (
+            candidate.is_dir()
+            and candidate.resolve().is_relative_to(root)
+            and os.pathsep not in str(candidate)
+        ):
+            paths.append(str(candidate))
+        directory = directory.parent
+    return os.pathsep.join(paths) or None
+
+
 def _materialize_git(
     run_dir: Path, source: GitPlaybookSource
 ) -> tuple[Path, Path, dict[str, str]]:
@@ -277,7 +300,8 @@ def _materialize_git(
 
     El ``ansible.cfg`` del repositorio se ignora: ``ANSIBLE_CONFIG`` apunta a
     un fichero vacío controlado por el runner (tiene prioridad sobre el
-    ``ansible.cfg`` del directorio de trabajo).
+    ``ansible.cfg`` del directorio de trabajo). Por eso los ``roles/`` del
+    repositorio se pasan con ``ANSIBLE_ROLES_PATH``.
     """
     project_dir = run_dir / "project"
     export_tree(source.repository_id, source.commit, project_dir)
@@ -294,7 +318,11 @@ def _materialize_git(
 
     runner_cfg = run_dir / "runner-ansible.cfg"
     runner_cfg.write_text("", encoding="utf-8")
-    return project_dir.resolve(), playbook_path, {"ANSIBLE_CONFIG": str(runner_cfg)}
+    envvars = {"ANSIBLE_CONFIG": str(runner_cfg)}
+    roles_path = role_search_path(playbook_path, project_dir)
+    if roles_path is not None:
+        envvars["ANSIBLE_ROLES_PATH"] = roles_path
+    return project_dir.resolve(), playbook_path, envvars
 
 
 def cleanup(materialized: MaterializedHosts | MaterializedRun) -> None:
