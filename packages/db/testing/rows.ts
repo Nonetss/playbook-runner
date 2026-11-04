@@ -191,6 +191,7 @@ export function repositoryRow(
     branch: "main",
     subdir: null,
     credentialId: null,
+    vaultPassword: null,
     lastCommitSha: null,
     lastSyncedAt: null,
     lastSyncError: null,

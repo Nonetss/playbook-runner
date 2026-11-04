@@ -12,6 +12,8 @@ export const playbookRepositories = pgTable("playbook_repositories", {
   credentialId: uuid("credential_id").references(() => credentials.id, {
     onDelete: "set null",
   }),
+  // Encrypted like a credential's private key; never returned by the API.
+  vaultPassword: text("vault_password"),
   lastCommitSha: text("last_commit_sha"),
   lastSyncedAt: timestamp("last_synced_at"),
   lastSyncError: text("last_sync_error"),

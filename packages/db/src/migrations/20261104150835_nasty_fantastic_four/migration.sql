@@ -1,0 +1,1 @@
+ALTER TABLE "playbook_repositories" ADD COLUMN "vault_password" text;
