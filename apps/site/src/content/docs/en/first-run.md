@@ -59,3 +59,19 @@ To try the Git integration with them, choose **Add repository** on the Playbooks
 | Subdirectory | `playbooks` |
 
 Each file appears as a read-only playbook you can run and schedule. **Copy to Playbook Runner** turns one into a regular, editable playbook.
+
+## Roles in a Git repository
+
+A Git playbook can use the [Ansible roles](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html) stored in its repository, at the same synced commit. A run searches every `roles/` directory from the playbook's folder up to the repository root, and the nearest one wins:
+
+```text
+playbooks/site.yml      # runs roles from both directories below
+playbooks/roles/        # searched first
+roles/                  # searched next
+```
+
+The repository's own `ansible.cfg` is ignored, so a custom `roles_path` has no effect. When a run finds any of these directories, they replace Ansible's default role paths such as `/usr/share/ansible/roles`, which only matters if you built your own image with roles installed there.
+
+Each repository on the Playbooks page lists its roles read-only. To change a role, commit to the repository and sync it. Roles are not available to playbooks written in Playbook Runner, because those are a single file.
+
+Dependencies in `requirements.yml` **are not installed**. The page warns you when it finds that file at the repository root, in the configured subdirectory, or directly in `roles/` or `collections/` at those levels. A playbook using one of those external roles fails with a "role not found" error; to use it, copy the role into the repository.

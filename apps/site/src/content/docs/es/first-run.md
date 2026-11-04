@@ -59,3 +59,19 @@ Para probar con ellos la integración con Git, pulsa **Añadir repositorio** en 
 | Subdirectorio | `playbooks` |
 
 Cada fichero aparece como un playbook de solo lectura que puedes ejecutar y programar. **Hacer copia en Playbook Runner** lo convierte en un playbook normal y editable.
+
+## Roles en un repositorio Git
+
+Un playbook de Git puede usar los [roles de Ansible](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html) guardados en su repositorio, en el mismo commit sincronizado. Una ejecución busca en cada directorio `roles/` desde la carpeta del playbook hasta la raíz del repositorio, y gana el más cercano:
+
+```text
+playbooks/site.yml      # usa roles de los dos directorios siguientes
+playbooks/roles/        # se busca primero
+roles/                  # se busca después
+```
+
+El `ansible.cfg` propio del repositorio se ignora, así que un `roles_path` personalizado no tiene efecto. Cuando una ejecución encuentra alguno de estos directorios, sustituyen a las rutas de roles por defecto de Ansible, como `/usr/share/ansible/roles`; esto solo importa si has creado tu propia imagen con roles instalados allí.
+
+Cada repositorio de la página de Playbooks muestra sus roles en solo lectura. Para cambiar un rol, haz un commit en el repositorio y sincronízalo. Los roles no están disponibles para los playbooks escritos en Playbook Runner, porque son un único fichero.
+
+Las dependencias de `requirements.yml` **no se instalan**. La página avisa cuando encuentra ese fichero en la raíz del repositorio, en el subdirectorio configurado, o directamente en `roles/` o `collections/` de esos niveles. Un playbook que use uno de esos roles externos falla con un error de rol no encontrado; para usarlo, copia el rol en el repositorio.
