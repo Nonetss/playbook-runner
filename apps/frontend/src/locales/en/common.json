@@ -1,5 +1,6 @@
 {
   "actions": {
+    "resize_panel": "Resize panel",
     "save": "Save",
     "save_changes": "Save changes",
     "create": "Create",

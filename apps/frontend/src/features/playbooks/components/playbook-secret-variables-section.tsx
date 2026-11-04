@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next"
 import { dataFieldClass, Text } from "@/components/shared/brand/typography"
 import { InlineAlert } from "@/components/shared/feedback/inline-alert"
 import { FormField } from "@/components/shared/form/field-label"
+import { PanelResizeHandle } from "@/components/shared/layout/panel-resize-handle"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -32,6 +33,7 @@ import {
   suggestVariableName,
   toRunVariables,
 } from "@/features/run/lib/run-variables"
+import { useResizablePanel } from "@/hooks/use-resizable-panel"
 import { cn } from "@/lib/utils"
 
 type Declaration = {
@@ -54,12 +56,18 @@ export function PlaybookSecretVariablesSection({
   const { data: declaration } = usePlaybookSecretVariables(playbookId)
   const { data: playbook } = usePlaybookGet(playbookId)
   const { variables: detected } = usePlaybookRoles(playbook)
+  const { panelStyle, handleProps } = useResizablePanel({
+    storageKey: "playbook-secrets",
+    defaultWidth: 320,
+  })
 
   return (
     <aside
       aria-label={t("declaration.title")}
-      className="flex min-h-0 shrink-0 flex-col overflow-hidden rounded-xl border max-lg:split:max-h-[46dvh] lg:w-80"
+      style={panelStyle}
+      className="relative flex min-h-0 shrink-0 flex-col overflow-hidden rounded-xl border max-lg:split:max-h-[46dvh] lg:w-(--panel-width) lg:max-w-1/2"
     >
+      <PanelResizeHandle {...handleProps} />
       {declaration ? (
         <SecretVariablesForm
           playbookId={playbookId}

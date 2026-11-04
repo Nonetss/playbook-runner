@@ -1,5 +1,6 @@
 {
   "actions": {
+    "resize_panel": "Cambiar el ancho del panel",
     "save": "Guardar",
     "save_changes": "Guardar cambios",
     "create": "Crear",
