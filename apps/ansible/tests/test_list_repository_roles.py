@@ -7,9 +7,19 @@ import pytest
 
 from app.grpc.services import runner as runner_module
 from app.grpc.services.runner import RunnerServicer
-from app.grpc.stubs import ListRepositoryRolesRequest, PlaybookRoles, RepositoryRole
+from app.grpc.stubs import (
+    ListRepositoryRolesRequest,
+    PlaybookRoles,
+    PlaybookVariable,
+    RepositoryRole,
+)
 from app.services.git import mirror
-from app.services.git.discover import DiscoveredRoles, PlaybookRoleUsage
+from app.services.git.discover import (
+    DiscoveredRoles,
+    DiscoveredVariable,
+    PlaybookRoleUsage,
+    PlaybookVariableUsage,
+)
 
 
 class Aborted(Exception):
@@ -59,6 +69,36 @@ def test_maps_each_playbooks_roles(git_mirror, monkeypatch: pytest.MonkeyPatch) 
     assert list(response.playbook_roles) == [
         PlaybookRoles(path="site.yml", roles=["x"], dynamic=True)
     ]
+
+
+def test_maps_each_playbooks_variables(
+    git_mirror, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        runner_module,
+        "discover_roles",
+        lambda *_args: DiscoveredRoles(
+            playbook_variables=[
+                PlaybookVariableUsage(
+                    path="site.yml",
+                    variables=[
+                        DiscoveredVariable("port", "80", "nginx"),
+                        DiscoveredVariable("db_password"),
+                    ],
+                )
+            ]
+        ),
+    )
+
+    response = call(git_mirror, git_mirror.commit)
+
+    assert response.playbook_variables[0].path == "site.yml"
+    variables = response.playbook_variables[0].variables
+    assert list(variables) == [
+        PlaybookVariable(name="port", value="80", role="nginx"),
+        PlaybookVariable(name="db_password"),
+    ]
+    assert not variables[1].HasField("value")
 
 
 def test_invalid_commit_is_a_grpc_error(git_mirror) -> None:

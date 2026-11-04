@@ -19,6 +19,7 @@ service RunnerService {
   rpc ListBranches(ListBranchesRequest) returns (ListBranchesResponse);
   // List the Ansible roles and dependency files of a repository at a commit.
   rpc ListRepositoryRoles(ListRepositoryRolesRequest) returns (ListRepositoryRolesResponse);
+  rpc ListPlaybookVariables(ListPlaybookVariablesRequest) returns (ListPlaybookVariablesResponse);
   // Drop a repository's mirror cache (the repository was deleted).
   rpc DeleteRepository(DeleteRepositoryRequest) returns (DeleteRepositoryResponse);
   // List a project's environments, to pick one in the UI. Empty when the
@@ -153,11 +154,35 @@ message PlaybookRoles {
   bool dynamic = 3;
 }
 
+// A variable a playbook defines. `role` is unset when it comes from the play.
+message PlaybookVariable {
+  string name = 1;
+  // Unset when it is not a plain value, or looks sensitive.
+  optional string value = 2;
+  optional string role = 3;
+}
+
+// Only playbooks defining some are listed.
+message PlaybookVariables {
+  string path = 1; // relative to the repository root
+  repeated PlaybookVariable variables = 2;
+}
+
+// The variables a single-file playbook defines: its plays' `vars`.
+message ListPlaybookVariablesRequest {
+  string content = 1;
+}
+
+message ListPlaybookVariablesResponse {
+  repeated PlaybookVariable variables = 1;
+}
+
 message ListRepositoryRolesResponse {
   repeated RepositoryRole roles = 1;
   // `requirements.yml` files found; their dependencies are not installed.
   repeated string requirements_files = 2;
   repeated PlaybookRoles playbook_roles = 3;
+  repeated PlaybookVariables playbook_variables = 4;
 }
 
 message ListBranchesRequest {

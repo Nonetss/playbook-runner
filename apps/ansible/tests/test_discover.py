@@ -264,6 +264,129 @@ class TestDiscoverRoles:
         )
         return {u.path: (u.roles, u.dynamic) for u in found.playbook_roles}
 
+    def variables(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        files: dict[str, str],
+        path: str = "site.yml",
+    ) -> list[tuple[str, str | None, str | None]]:
+        found = self.discover(monkeypatch, {p: c.encode() for p, c in files.items()})
+        usage = next(u for u in found.playbook_variables if u.path == path)
+        return [(v.name, v.value, v.role) for v in usage.variables]
+
+    def test_variables_of_the_play_and_its_roles(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = {
+            "site.yml": (
+                "- hosts: all\n  vars: {port: 80}\n  vars_files: [vars/app.yml]\n"
+                "  roles: [web]\n"
+                "  tasks:\n    - include_role: {name: db}\n"
+            ),
+            "vars/app.yml": "app_name: demo\n",
+            "roles/web/defaults/main.yml": "web_root: /srv\n",
+            "roles/web/vars/main.yaml": "web_user: www\n",
+            "roles/web/tasks/main.yml": "[]\n",
+            "roles/db/defaults/main.yml": "db_port: 5432\n",
+            "roles/db/tasks/main.yml": "[]\n",
+            "roles/unused/defaults/main.yml": "unused_var: 1\n",
+            "roles/unused/tasks/main.yml": "[]\n",
+        }
+        assert self.variables(monkeypatch, files) == [
+            ("port", "80", None),
+            ("app_name", "demo", None),
+            ("web_root", "/srv", "web"),
+            ("web_user", "www", "web"),
+            ("db_port", "5432", "db"),
+        ]
+
+    def test_values_that_are_never_returned(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        playbook = """
+- hosts: all
+  vars:
+    vaulted: !vault |
+      $ANSIBLE_VAULT;1.1;AES256
+      6162
+    db_password: hunter2
+    API_TOKEN: abc
+    ssh_key_path: /x
+    compound: {a: 1}
+    items_list: [1, 2]
+    empty:
+    long_text: %s
+    plain: ok
+    enabled: true
+""" % ("x" * 201)
+        assert self.variables(monkeypatch, {"site.yml": playbook}) == [
+            ("vaulted", None, None),
+            ("db_password", None, None),
+            ("API_TOKEN", None, None),
+            ("ssh_key_path", None, None),
+            ("compound", None, None),
+            ("items_list", None, None),
+            ("empty", None, None),
+            ("long_text", None, None),
+            ("plain", "ok", None),
+            ("enabled", "true", None),
+        ]
+
+    def test_connection_variables_and_odd_names_are_left_out(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        playbook = (
+            "- hosts: all\n  vars:\n    ansible_user: root\n"
+            '    ANSIBLE_port: 22\n    "not valid": 1\n    kept: 1\n'
+        )
+        assert self.variables(monkeypatch, {"site.yml": playbook}) == [
+            ("kept", "1", None)
+        ]
+
+    def test_nearest_role_wins_and_import_is_followed(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = {
+            "play/site.yml": "- import_playbook: inner.yml\n",
+            "play/inner.yml": "- hosts: all\n  roles: [web]\n",
+            "play/roles/web/defaults/main.yml": "near: 1\n",
+            "play/roles/web/tasks/main.yml": "[]\n",
+            "roles/web/defaults/main.yml": "far: 1\n",
+            "roles/web/tasks/main.yml": "[]\n",
+        }
+        assert self.variables(monkeypatch, files, "play/site.yml") == [
+            ("near", "1", "web")
+        ]
+
+    def test_same_variable_is_listed_per_origin(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = {
+            "site.yml": "- hosts: all\n  vars: {port: 1}\n  roles: [web]\n",
+            "roles/web/defaults/main.yml": "port: 2\n",
+            "roles/web/tasks/main.yml": "[]\n",
+        }
+        assert self.variables(monkeypatch, files) == [
+            ("port", "1", None),
+            ("port", "2", "web"),
+        ]
+
+    def test_broken_or_templated_variable_sources_are_ignored(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = {
+            "site.yml": (
+                "- hosts: all\n  vars: {kept: 1}\n"
+                '  vars_files: ["{{ env }}.yml", missing.yml, broken.yml, list.yml]\n'
+                "  roles: [web, external.role]\n"
+            ),
+            "broken.yml": "a: [unclosed\n",
+            "list.yml": "- a\n",
+            "roles/web/defaults/main.yml": "- not\n- a\n- mapping\n",
+            "roles/web/tasks/main.yml": "[]\n",
+        }
+        assert self.variables(monkeypatch, files) == [("kept", "1", None)]
+
     def test_roles_in_every_form(self, monkeypatch: pytest.MonkeyPatch) -> None:
         playbook = """
 - hosts: all

@@ -25,9 +25,12 @@ from app.grpc.stubs import (
     ListBranchesResponse,
     ListInfisicalEnvironmentsResponse,
     ListInfisicalSecretNamesResponse,
+    ListPlaybookVariablesResponse,
     ListRepositoryRolesResponse,
     PlaybookFile,
     PlaybookRoles,
+    PlaybookVariable,
+    PlaybookVariables,
     RepositoryRole,
     RunBundleResponse,
     RunCommandResponse,
@@ -68,7 +71,11 @@ from app.services.ansible.runner import (
     AnsibleRunnerConfig,
 )
 from app.services.git import mirror
-from app.services.git.discover import discover, discover_roles
+from app.services.git.discover import (
+    discover,
+    discover_roles,
+    inline_playbook_variables,
+)
 from app.services.git.mirror import GitError
 
 _GIT_STATUS = {
@@ -445,6 +452,17 @@ class RunnerServicer(RunnerServiceServicer):
             playbooks=[PlaybookFile(path=p.path, content=p.content) for p in found],
         )
 
+    async def ListPlaybookVariables(self, request, context):
+        """Variables de un playbook de un solo fichero; no toca ningún mirror."""
+        logger.bind(peer=context.peer()).info("ListPlaybookVariables recibido")
+        variables = await asyncio.to_thread(inline_playbook_variables, request.content)
+        return ListPlaybookVariablesResponse(
+            variables=[
+                PlaybookVariable(name=v.name, value=v.value, role=v.role)
+                for v in variables
+            ]
+        )
+
     async def ListRepositoryRoles(self, request, context):
         """Roles y ``requirements`` de un commit; solo lee el mirror."""
         logger.bind(peer=context.peer(), repository=request.repository_id).info(
@@ -472,6 +490,16 @@ class RunnerServicer(RunnerServiceServicer):
             playbook_roles=[
                 PlaybookRoles(path=u.path, roles=u.roles, dynamic=u.dynamic)
                 for u in found.playbook_roles
+            ],
+            playbook_variables=[
+                PlaybookVariables(
+                    path=u.path,
+                    variables=[
+                        PlaybookVariable(name=v.name, value=v.value, role=v.role)
+                        for v in u.variables
+                    ],
+                )
+                for u in found.playbook_variables
             ],
         )
 

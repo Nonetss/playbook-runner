@@ -12,13 +12,18 @@ ancestros, donde un run puede encontrarlos.
 Los roles que usa cada playbook salen de leer su YAML: ``roles:``, y
 ``include_role``/``import_role`` en las tareas del play, siguiendo
 ``import_playbook``. No se siguen ``include_tasks`` ni las dependencias de un rol.
+
+Las variables que define salen de ``vars`` y ``vars_files`` de cada play y de
+``defaults`` y ``vars`` de esos roles. Solo se devuelve el valor si es simple y no
+parece sensible: un ``!vault`` o un ``db_password`` se listan sin valor.
 """
 
 from __future__ import annotations
 
+import json
 import posixpath
 import re
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Container, Iterator
 from dataclasses import dataclass, field
 from pathlib import PurePosixPath
 from typing import Any
@@ -39,6 +44,10 @@ MAX_ROLE_DESCRIPTION_CHARS = 500
 _YAML_MAIN = {"main.yml", "main.yaml"}
 _REQUIREMENTS = ("requirements.yml", "requirements.yaml")
 _MAX_IMPORT_DEPTH = 32
+_MAX_VARIABLES = 200
+_MAX_VALUE_CHARS = 200
+_VARIABLE_NAME = re.compile(r"[A-Za-z_]\w*")
+_SENSITIVE_NAME = re.compile(r"pass|pwd|secret|token|key|credential", re.IGNORECASE)
 _TASK_LISTS = ("pre_tasks", "tasks", "post_tasks", "handlers")
 _TASK_BLOCKS = ("block", "rescue", "always")
 _ROLE_TASKS = {
@@ -70,19 +79,37 @@ class PlaybookRoleUsage:
 
 
 @dataclass
+class DiscoveredVariable:
+    name: str
+    value: str | None = None
+    role: str | None = None
+
+
+@dataclass
+class PlaybookVariableUsage:
+    path: str
+    variables: list[DiscoveredVariable] = field(default_factory=list)
+
+
+@dataclass
 class DiscoveredRoles:
     roles: list[DiscoveredRole] = field(default_factory=list)
     requirements_files: list[str] = field(default_factory=list)
     playbook_roles: list[PlaybookRoleUsage] = field(default_factory=list)
+    playbook_variables: list[PlaybookVariableUsage] = field(default_factory=list)
 
 
 class _AnsibleLoader(yaml.SafeLoader):
     """SafeLoader que acepta tags de Ansible (``!vault``, ``!unsafe``…)."""
 
 
+class _TaggedScalar(str):
+    """Escalar con tag de Ansible: el valor de un ``!vault`` nunca se devuelve."""
+
+
 def _ignore_tag(loader: yaml.SafeLoader, _suffix: str, node: yaml.Node) -> Any:
     if isinstance(node, yaml.ScalarNode):
-        return loader.construct_scalar(node)
+        return _TaggedScalar(loader.construct_scalar(node))
     if isinstance(node, yaml.SequenceNode):
         return loader.construct_sequence(node)
     if isinstance(node, yaml.MappingNode):
@@ -91,6 +118,9 @@ def _ignore_tag(loader: yaml.SafeLoader, _suffix: str, node: yaml.Node) -> Any:
 
 
 _AnsibleLoader.add_multi_constructor("!", _ignore_tag)
+
+
+_ReadYaml = Callable[[str], Any]
 
 
 def _is_candidate(path: str) -> bool:
@@ -221,70 +251,180 @@ def _imported_path(importer: str, target: str) -> str:
     return posixpath.normpath(posixpath.join(posixpath.dirname(importer), target))
 
 
-def _playbook_usage(
-    path: str, read: Callable[[str], list[Any] | None]
-) -> PlaybookRoleUsage:
-    """Roles de ``path`` y de los playbooks que importa, sin repetir ni entrar en ciclos."""
-    usage = PlaybookRoleUsage(path=path)
+def _plays_of(path: str, read: _ReadYaml) -> Iterator[tuple[str, dict[Any, Any]]]:
+    """``(fichero, play)`` de ``path`` y de lo que importa, sin entrar en ciclos."""
     seen: set[str] = set()
 
-    def visit(current: str, depth: int) -> None:
+    def visit(current: str, depth: int) -> Iterator[tuple[str, dict[Any, Any]]]:
         seen.add(current)
-        for play in read(current) or []:
+        plays = read(current)
+        for play in plays if isinstance(plays, list) else []:
             if not isinstance(play, dict):
                 continue
-            for name in _play_role_names(play):
-                if isinstance(name, str) and "{{" not in name:
-                    if name not in usage.roles:
-                        usage.roles.append(name)
-                elif name is not None:
-                    usage.dynamic = True
-            target = next((play[k] for k in _IMPORT_KEYS if k in play), None)
-            if not isinstance(target, str):
-                continue
-            if "{{" in target:
-                usage.dynamic = True
-            elif (
-                depth < _MAX_IMPORT_DEPTH
+            yield current, play
+            target = _import_target(play)
+            if (
+                isinstance(target, str)
+                and "{{" not in target
+                and depth < _MAX_IMPORT_DEPTH
                 and (imported := _imported_path(current, target)) not in seen
             ):
-                visit(imported, depth + 1)
+                yield from visit(imported, depth + 1)
 
-    visit(path, 0)
+    yield from visit(path, 0)
+
+
+def _import_target(play: dict[Any, Any]) -> Any:
+    return next((play[key] for key in _IMPORT_KEYS if key in play), None)
+
+
+def _playbook_usage(path: str, read: _ReadYaml) -> PlaybookRoleUsage:
+    """Roles de ``path`` y de los playbooks que importa, sin repetir."""
+    usage = PlaybookRoleUsage(path=path)
+    for _file, play in _plays_of(path, read):
+        for name in _play_role_names(play):
+            if isinstance(name, str) and "{{" not in name:
+                if name not in usage.roles:
+                    usage.roles.append(name)
+            elif name is not None:
+                usage.dynamic = True
+        target = _import_target(play)
+        if isinstance(target, str) and "{{" in target:
+            usage.dynamic = True
     return usage
 
 
-def _role_usages(
+def _shown_value(name: str, value: Any) -> str | None:
+    """Texto del valor, o ``None`` si es compuesto, cifrado o parece sensible."""
+    if (
+        value is None
+        or isinstance(value, _TaggedScalar | dict | list)
+        or _SENSITIVE_NAME.search(name)
+    ):
+        return None
+    text = (
+        value
+        if isinstance(value, str)
+        else json.dumps(value)
+        if isinstance(value, bool | int | float)
+        else str(value)
+    )
+    return None if len(text) > _MAX_VALUE_CHARS else text
+
+
+def _nearest_role(file: str, name: str, role_paths: Container[str]) -> str | None:
+    """El rol que encontraría una ejecución: el ``roles/`` más cercano al fichero."""
+    directory = posixpath.dirname(file)
+    while True:
+        candidate = posixpath.join(directory, "roles", name)
+        if candidate in role_paths:
+            return candidate
+        if not directory:
+            return None
+        directory = posixpath.dirname(directory)
+
+
+def _role_variable_files(role_path: str, tree: Container[str]) -> Iterator[str]:
+    for folder in ("defaults", "vars"):
+        for extension in ("yml", "yaml"):
+            candidate = f"{role_path}/{folder}/main.{extension}"
+            if candidate in tree:
+                yield candidate
+                break
+
+
+def _playbook_variables(
+    path: str,
+    read: _ReadYaml,
+    role_paths: Container[str],
+    tree: Container[str],
+) -> PlaybookVariableUsage:
+    """Variables de ``path``: primero las del play, y una por nombre y procedencia."""
+    usage = PlaybookVariableUsage(path=path)
+    seen: set[tuple[str, str | None]] = set()
+
+    def add(mapping: Any, role: str | None) -> None:
+        for name, value in mapping.items() if isinstance(mapping, dict) else ():
+            if (
+                isinstance(name, str)
+                and _VARIABLE_NAME.fullmatch(name)
+                # Son de conexión: ni se pueden pasar como extra var.
+                and not name.lower().startswith("ansible_")
+                and (name, role) not in seen
+                and len(usage.variables) < _MAX_VARIABLES
+            ):
+                seen.add((name, role))
+                usage.variables.append(
+                    DiscoveredVariable(name, _shown_value(name, value), role)
+                )
+
+    plays = list(_plays_of(path, read))
+    for file, play in plays:
+        add(play.get("vars"), None)
+        files = play.get("vars_files")
+        for target in files if isinstance(files, list) else []:
+            if isinstance(target, str) and "{{" not in target:
+                add(read(_imported_path(file, target)), None)
+    for file, play in plays:
+        for name in _play_role_names(play):
+            if not isinstance(name, str) or "{{" in name:
+                continue
+            role_path = _nearest_role(file, name, role_paths)
+            if role_path is not None:
+                for variable_file in _role_variable_files(role_path, tree):
+                    add(read(variable_file), name)
+    return usage
+
+
+def inline_playbook_variables(content: str) -> list[DiscoveredVariable]:
+    """Variables de un playbook de un solo fichero: no tiene roles ni ficheros que seguir."""
+    if len(content.encode("utf-8")) > MAX_PLAYBOOK_BYTES:
+        return []
+    try:
+        plays = yaml.load(content, Loader=_AnsibleLoader)  # noqa: S506 - SafeLoader subclass
+    except (ValueError, RecursionError, yaml.YAMLError):
+        return []
+    path = "playbook.yml"
+    read = lambda file: plays if file == path else None  # noqa: E731
+    return _playbook_variables(path, read, (), ()).variables
+
+
+def _playbook_details(
     repository_id: str,
     commit: str,
     subdir: str,
     tree: dict[str, tuple[str, int]],
-) -> list[PlaybookRoleUsage]:
-    """Uso de roles de cada playbook de ``subdir`` que declara alguno."""
-    cache: dict[str, list[Any] | None] = {}
+    role_paths: Container[str],
+) -> tuple[list[PlaybookRoleUsage], list[PlaybookVariableUsage]]:
+    """Roles y variables de cada playbook de ``subdir`` que declara alguno."""
+    cache: dict[str, Any] = {}
 
-    def read(path: str) -> list[Any] | None:
+    def read(path: str) -> Any:
         if path not in cache:
-            cache[path] = _read_plays(repository_id, tree.get(path))
+            cache[path] = _read_yaml(repository_id, tree.get(path))
         return cache[path]
 
-    usages = [
-        _playbook_usage(playbook.path, read)
-        for playbook in discover(repository_id, commit, subdir)
+    playbooks = discover(repository_id, commit, subdir)
+    roles = [_playbook_usage(playbook.path, read) for playbook in playbooks]
+    variables = [
+        _playbook_variables(playbook.path, read, role_paths, tree)
+        for playbook in playbooks
     ]
-    return [usage for usage in usages if usage.roles or usage.dynamic]
+    return (
+        [usage for usage in roles if usage.roles or usage.dynamic],
+        [usage for usage in variables if usage.variables],
+    )
 
 
-def _read_plays(repository_id: str, entry: tuple[str, int] | None) -> list[Any] | None:
-    """Plays de un fichero; cualquier problema significa que no hay nada que seguir."""
+def _read_yaml(repository_id: str, entry: tuple[str, int] | None) -> Any:
+    """Contenido de un fichero; cualquier problema significa que no hay nada que seguir."""
     if entry is None or entry[1] > MAX_PLAYBOOK_BYTES:
         return None
     try:
         content = read_blob(repository_id, entry[0]).decode("utf-8")
-        data = yaml.load(content, Loader=_AnsibleLoader)  # noqa: S506 - SafeLoader subclass
+        return yaml.load(content, Loader=_AnsibleLoader)  # noqa: S506 - SafeLoader subclass
     except (GitError, ValueError, RecursionError, yaml.YAMLError):
         return None
-    return data if isinstance(data, list) else None
 
 
 def discover_roles(repository_id: str, commit: str, subdir: str) -> DiscoveredRoles:
@@ -321,8 +461,12 @@ def discover_roles(repository_id: str, commit: str, subdir: str) -> DiscoveredRo
         )
         for role_path in sorted(names)[:MAX_ROLES]
     ]
+    playbook_roles, playbook_variables = _playbook_details(
+        repository_id, commit, subdir, tree, names
+    )
     return DiscoveredRoles(
         roles=roles,
         requirements_files=sorted(requirements_files),
-        playbook_roles=_role_usages(repository_id, commit, subdir, tree),
+        playbook_roles=playbook_roles,
+        playbook_variables=playbook_variables,
     )
