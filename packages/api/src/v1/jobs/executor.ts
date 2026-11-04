@@ -144,6 +144,7 @@ async function streamRun(
         forks: job.forks,
         extravars: (job.extravarsJson ?? {}) as Record<string, string>,
         secret_variables: bundle.secretVariables,
+        disabled_roles: [],
       },
       { token: env.SERVICE_TOKEN, timeoutMs: RUN_TIMEOUT_MS }
     )

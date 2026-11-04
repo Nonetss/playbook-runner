@@ -54,6 +54,7 @@ export type RunSecretOptions = {
   infisicalEnvironment?: string | null
   secretVariables?: SecretVariable[]
   extravars?: Record<string, string>
+  disabledRoles?: string[]
 }
 
 export type ResolvedRunBundle = {
@@ -109,6 +110,11 @@ export async function resolveRun(
 
   const git =
     playbook.source === "git" ? await resolveGitSource(playbook) : undefined
+  if (!git && options.disabledRoles?.length) {
+    throw new ResolveRunValidationError(
+      "Only a Git playbook has roles to disable"
+    )
+  }
 
   const hosts = await resolveHosts(inventory)
 

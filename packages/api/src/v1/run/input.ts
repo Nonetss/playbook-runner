@@ -5,6 +5,16 @@ import { infisicalEnvironment, secretVariables } from "#v1/run/secret-variables"
 import { inventorySelection } from "#v1/run/selection"
 import { idSchema } from "#v1/schemas"
 
+// One path component: the runner looks the directory up by this name.
+const roleName = z
+  .string()
+  .min(1)
+  .max(255)
+  .refine(
+    (name) => name !== "." && name !== ".." && !/[/\0]/.test(name),
+    "Invalid role name"
+  )
+
 export const runInput = {
   ping: z.object({ deviceId: idSchema }),
 
@@ -16,6 +26,7 @@ export const runInput = {
     infisicalConnectionId: idSchema.optional(),
     infisicalEnvironment: infisicalEnvironment.optional(),
     secretVariables: secretVariables.default([]),
+    disabledRoles: z.array(roleName).max(256).default([]),
   }),
 
   command: z.object({

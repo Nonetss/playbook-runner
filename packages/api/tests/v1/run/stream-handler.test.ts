@@ -82,6 +82,7 @@ const opens = {
         forks: 1,
         extravars: {},
         secretVariables: [],
+        disabledRoles: [],
       },
     }),
   command: () =>
@@ -262,6 +263,7 @@ describe("run.run secret variables", () => {
     forks: 1,
     extravars: {},
     secretVariables: [],
+    disabledRoles: [],
   }
   const WITH_VARIABLE = {
     ...INPUT,
@@ -335,6 +337,58 @@ describe("run.run secret variables", () => {
     expect(grpc.serverStream).not.toHaveBeenCalled()
   })
 
+  test("a Git playbook's disabled roles reach the gRPC request", async () => {
+    const { id, name, content, missing } = playbookRow()
+    fakeDb.queue(
+      "select",
+      [
+        {
+          id,
+          name,
+          content,
+          source: "git",
+          path: "site.yml",
+          missing,
+          repositoryId: IDS.repository,
+        },
+      ],
+      [
+        {
+          id: IDS.repository,
+          url: "https://x/y.git",
+          lastCommitSha: "abc",
+          privateKey: null,
+        },
+      ],
+      [HOST_ROW],
+      []
+    )
+    grpc.serverStream.mockImplementation(() => streamOf([DONE]))
+
+    await drain(
+      streamHandler.run({
+        context,
+        input: { ...INPUT, disabledRoles: ["nginx"] },
+      })
+    )
+
+    expect(grpc.serverStream.mock.calls[0]?.[1]).toMatchObject({
+      disabled_roles: ["nginx"],
+    })
+  })
+
+  test("disabling a role on an inline playbook is BAD_REQUEST", async () => {
+    queueResolved()
+
+    await expectErrorCode(
+      streamHandler
+        .run({ context, input: { ...INPUT, disabledRoles: ["nginx"] } })
+        .next(),
+      "BAD_REQUEST"
+    )
+    expect(grpc.serverStream).not.toHaveBeenCalled()
+  })
+
   test("an extra var collision is BAD_REQUEST and starts no run", async () => {
     queueResolved([])
 
@@ -399,6 +453,23 @@ describe("run.run secret variables", () => {
 })
 
 describe("run input", () => {
+  test.each([
+    "..",
+    ".",
+    "a/b",
+    "",
+  ])("the role name %j is BAD_REQUEST before anything runs", async (role) => {
+    await expectErrorCode(
+      call(
+        runRouter.run,
+        { playbookId: IDS.playbook, inventory: DEVICE, disabledRoles: [role] },
+        { context }
+      ),
+      "BAD_REQUEST"
+    )
+    expect(fakeDb.calls()).toEqual([])
+  })
+
   test("a reserved extra var is BAD_REQUEST before anything runs", async () => {
     await expectErrorCode(
       call(

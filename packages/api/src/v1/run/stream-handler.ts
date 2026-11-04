@@ -138,6 +138,7 @@ export const streamHandler = {
         forks: input.forks,
         extravars: input.extravars,
         secret_variables: bundle.secretVariables,
+        disabled_roles: input.disabledRoles,
       },
       { token, timeoutMs: RUN_TIMEOUT_MS }
     )
