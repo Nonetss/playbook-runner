@@ -80,6 +80,7 @@ const resourceIcons = {
   link: Lucide.Link2,
   radio: Lucide.Radio,
   repository: Lucide.GitBranch,
+  role: Lucide.Blocks,
   server: Lucide.ShelvingUnit,
   device: Lucide.Computer,
   terminal: Lucide.Terminal,

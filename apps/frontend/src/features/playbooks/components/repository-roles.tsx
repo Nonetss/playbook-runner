@@ -29,6 +29,7 @@ export function RepositoryRoles({
 
   const roles = data?.roles ?? []
   const requirementsFiles = data?.requirementsFiles ?? []
+  const usages = data?.playbookRoles ?? []
   if (roles.length === 0 && requirementsFiles.length === 0) return null
 
   return (
@@ -53,21 +54,38 @@ export function RepositoryRoles({
       ) : null}
       {roles.length > 0 ? (
         <ul className="divide-y rounded-xl border">
-          {roles.map((role) => (
-            <li key={role.path} className="px-4 py-3">
-              <div className="flex min-w-0 flex-wrap items-baseline gap-x-3">
-                <Text variant="data">{role.name}</Text>
-                <Text variant="data" tone="muted" className="break-all">
-                  {role.path}
-                </Text>
-              </div>
-              {role.description ? (
+          {roles.map((role) => {
+            const usedBy = usages
+              .filter((usage) => usage.roles.includes(role.name))
+              .map((usage) => usage.path)
+            return (
+              <li key={role.path} className="px-4 py-3">
+                <div className="flex min-w-0 flex-wrap items-baseline gap-x-3">
+                  <Text variant="data">{role.name}</Text>
+                  <Text variant="data" tone="muted" className="break-all">
+                    {role.path}
+                  </Text>
+                </div>
+                {role.description ? (
+                  <Text as="p" variant="meta" tone="muted" className="mt-1">
+                    {role.description}
+                  </Text>
+                ) : null}
                 <Text as="p" variant="meta" tone="muted" className="mt-1">
-                  {role.description}
+                  {usedBy.length > 0 ? (
+                    <>
+                      {t("repository.roles_used_by")}{" "}
+                      <span className="break-all font-mono text-xs">
+                        {usedBy.join(", ")}
+                      </span>
+                    </>
+                  ) : (
+                    t("repository.roles_not_declared")
+                  )}
                 </Text>
-              ) : null}
-            </li>
-          ))}
+              </li>
+            )
+          })}
         </ul>
       ) : null}
     </div>

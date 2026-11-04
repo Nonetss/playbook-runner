@@ -3,6 +3,7 @@ import { getIcon } from "@/lib/icon-registry"
 const FolderInput = getIcon("resources", "folderInput")
 const Pencil = getIcon("actions", "edit")
 const Play = getIcon("actions", "play")
+const Role = getIcon("resources", "role")
 const Trash2 = getIcon("actions", "delete")
 
 import type { TFunction } from "i18next"
@@ -11,7 +12,10 @@ import { StatusTag } from "@/components/shared/data-display/status-dot"
 import type { EntityListDefinition } from "@/components/shared/resource/entity-list"
 import { AppLink } from "@/components/ui/app-link"
 import { Button } from "@/components/ui/button"
-import type { Playbook } from "@/features/playbooks/types"
+import type {
+  Playbook,
+  PlaybookRepositoryRoles,
+} from "@/features/playbooks/types"
 import { formatDate } from "@/lib/format"
 import { navigate } from "@/lib/navigate"
 
@@ -21,6 +25,8 @@ export interface PlaybookRowContext {
   deletingId: string | null
   /** Folder name per id; shown only when rows from several folders mix. */
   folderNames?: Map<string, string>
+  /** Roles declared by each Git playbook, by path; once its repository is open. */
+  rolesByPath?: Map<string, PlaybookRepositoryRoles["playbookRoles"][number]>
   onDelete: (playbook: Playbook) => void
   onMove: (playbook: Playbook) => void
 }
@@ -31,7 +37,24 @@ export const playbookDefinition: EntityListDefinition<
 > = {
   getKey: (playbook) => playbook.id,
   getPrimary: (playbook) => playbook.name,
-  getSecondary: (playbook) => playbook.description,
+  getSecondary: (playbook, { t, rolesByPath }) => {
+    const usage = playbook.path ? rolesByPath?.get(playbook.path) : undefined
+    if (!usage) return playbook.description
+    const names = [
+      ...usage.roles,
+      ...(usage.dynamic ? [t("repository.roles_dynamic")] : []),
+    ].join(", ")
+    return (
+      <>
+        {playbook.description}
+        <span className="mt-1 flex items-start gap-1.5 text-foreground">
+          <Role className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+          <span className="sr-only">{t("repository.roles_heading")}: </span>
+          <Text variant="data">{names}</Text>
+        </span>
+      </>
+    )
+  },
   getOpenHref: (playbook) => `/playbooks/${playbook.id}/edit`,
   isMuted: (playbook, { deletingId }) => deletingId === playbook.id,
   metadata: [

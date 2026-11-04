@@ -5,6 +5,7 @@ const Pencil = getIcon("actions", "edit")
 const RefreshCw = getIcon("actions", "sync")
 const Trash2 = getIcon("actions", "delete")
 
+import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Text } from "@/components/shared/brand/typography"
 import { RowActionsMenu } from "@/components/shared/data-display/row-actions-menu"
@@ -18,6 +19,7 @@ import {
   type PlaybookRowContext,
   playbookDefinition,
 } from "@/features/playbooks/definitions/playbook.definition"
+import { useRepositoryRoles } from "@/features/playbooks/hooks/use-repositories"
 import type {
   Playbook,
   PlaybookRepositoryList,
@@ -57,6 +59,12 @@ export function RepositorySection({
 }) {
   const { t, i18n } = useTranslation("playbooks")
   const { repository, playbooks } = group
+  // Shares its cache with RepositoryRoles: one request per open repository.
+  const { data: roles } = useRepositoryRoles(repository, !collapsed)
+  const rolesByPath = useMemo(
+    () => new Map(roles?.playbookRoles.map((usage) => [usage.path, usage])),
+    [roles]
+  )
 
   return (
     <section
@@ -144,7 +152,7 @@ export function RepositorySection({
           <EntityCardGrid
             items={playbooks}
             definition={playbookDefinition}
-            context={rowContext}
+            context={{ ...rowContext, rolesByPath }}
           />
         ) : (
           <Text
