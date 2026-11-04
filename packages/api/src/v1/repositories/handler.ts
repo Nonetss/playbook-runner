@@ -10,6 +10,7 @@ import type { repositoriesInput } from "#v1/repositories/input"
 import {
   deleteRepositoryMirror,
   listRemoteBranches,
+  listRepositoryRoles,
   syncRepository,
 } from "#v1/repositories/sync"
 
@@ -129,4 +130,11 @@ export const repositoriesHandler = {
       .where(eq(playbooks.repositoryId, input.id))
       .orderBy(asc(playbooks.path))
   },
+
+  roles: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<Input["roles"]>
+  }) => listRepositoryRoles(input.id),
 }

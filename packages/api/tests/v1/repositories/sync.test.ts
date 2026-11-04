@@ -3,6 +3,7 @@ import { IDS, repositoryRow, stepArgs } from "@playbook-runner/db/testing"
 import { grpcStatus } from "@playbook-runner/grpc"
 import {
   ListBranchesResponse,
+  ListRepositoryRolesResponse,
   SyncRepositoryResponse,
 } from "@playbook-runner/grpc/stubs"
 import { fakeDb } from "#tests/fixtures/db"
@@ -10,7 +11,11 @@ import { resetEnv, testEnv } from "#tests/fixtures/env"
 import { expectErrorCode } from "#tests/fixtures/errors"
 import { grpc, grpcError, resetGrpc } from "#tests/fixtures/grpc"
 import { encryptSecret } from "#v1/credentials/crypto"
-import { listRemoteBranches, syncRepository } from "#v1/repositories/sync"
+import {
+  listRemoteBranches,
+  listRepositoryRoles,
+  syncRepository,
+} from "#v1/repositories/sync"
 
 const COMMIT = "0123456789abcdef0123456789abcdef01234567"
 const KEY = "-----BEGIN OPENSSH PRIVATE KEY-----\nkey\n"
@@ -297,4 +302,93 @@ describe("listRemoteBranches", () => {
       "BAD_GATEWAY"
     )
   })
+})
+
+describe("listRepositoryRoles", () => {
+  /** The row `listRepositoryRoles` reads: the repository joined with its key. */
+  function syncedRepository(privateKey: string | null = null) {
+    const { id, url, subdir } = repositoryRow()
+    return { id, url, subdir, lastCommitSha: COMMIT, privateKey }
+  }
+
+  test("an unknown repository is NOT_FOUND and the runner is not called", async () => {
+    fakeDb.queue("select", [])
+
+    await expectErrorCode(listRepositoryRoles(IDS.repository), "NOT_FOUND")
+    expect(grpc.unary).not.toHaveBeenCalled()
+  })
+
+  test("a never-synced repository has no roles and the runner is not called", async () => {
+    testEnv.SERVICE_TOKEN = undefined
+    fakeDb.queue("select", [{ ...syncedRepository(), lastCommitSha: null }])
+
+    expect(await listRepositoryRoles(IDS.repository)).toEqual({
+      commit: null,
+      roles: [],
+      requirementsFiles: [],
+    })
+    expect(grpc.unary).not.toHaveBeenCalled()
+  })
+
+  test("sends the synced commit and the decrypted deploy key", async () => {
+    fakeDb.queue("select", [
+      { ...syncedRepository(encryptSecret(KEY)), subdir: "infra" },
+    ])
+    grpc.unary.mockResolvedValue(ListRepositoryRolesResponse.fromPartial({}))
+
+    await listRepositoryRoles(IDS.repository)
+
+    expect(grpc.unary.mock.calls[0]?.[1]).toEqual({
+      repository_id: IDS.repository,
+      url: "https://git.example.com/infra.git",
+      commit: COMMIT,
+      subdir: "infra",
+      private_key: KEY,
+    })
+    expect(grpc.unary.mock.calls[0]?.[2]).toMatchObject({
+      token: testEnv.SERVICE_TOKEN,
+    })
+  })
+
+  test("maps the response, without a description as null, and writes nothing", async () => {
+    fakeDb.queue("select", [syncedRepository()])
+    grpc.unary.mockResolvedValue(
+      ListRepositoryRolesResponse.fromPartial({
+        roles: [
+          { name: "nginx", path: "roles/nginx", description: "Web server" },
+          { name: "docker", path: "roles/docker" },
+        ],
+        requirements_files: ["roles/requirements.yml"],
+      })
+    )
+
+    expect(await listRepositoryRoles(IDS.repository)).toEqual({
+      commit: COMMIT,
+      roles: [
+        { name: "nginx", path: "roles/nginx", description: "Web server" },
+        { name: "docker", path: "roles/docker", description: null },
+      ],
+      requirementsFiles: ["roles/requirements.yml"],
+    })
+    expect(fakeDb.calls("update")).toEqual([])
+    expect(fakeDb.calls("insert")).toEqual([])
+    expect(fakeDb.calls("delete")).toEqual([])
+  })
+
+  const failures = [
+    [grpcStatus.INVALID_ARGUMENT, "BAD_REQUEST"],
+    [grpcStatus.NOT_FOUND, "BAD_REQUEST"],
+    [grpcStatus.UNAVAILABLE, "BAD_GATEWAY"],
+    [grpcStatus.UNIMPLEMENTED, "BAD_GATEWAY"],
+  ] as const
+
+  for (const [status, code] of failures) {
+    test(`a gRPC ${grpcStatus[status]} is ${code} and nothing is recorded`, async () => {
+      fakeDb.queue("select", [syncedRepository()])
+      grpc.unary.mockRejectedValue(grpcError(status, "remote said no"))
+
+      await expectErrorCode(listRepositoryRoles(IDS.repository), code)
+      expect(fakeDb.calls("update")).toEqual([])
+    })
+  }
 })

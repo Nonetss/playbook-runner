@@ -214,6 +214,67 @@ export async function listRemoteBranches(
   }
 }
 
+/**
+ * List the roles of a repository's last synced commit through the ansible
+ * service. Read-only: unlike a sync, a failure is not stored on the repository.
+ */
+export async function listRepositoryRoles(repositoryId: string) {
+  const repository = await db
+    .select({
+      id: playbookRepositories.id,
+      url: playbookRepositories.url,
+      subdir: playbookRepositories.subdir,
+      lastCommitSha: playbookRepositories.lastCommitSha,
+      privateKey: credentials.privateKey,
+    })
+    .from(playbookRepositories)
+    .leftJoin(
+      credentials,
+      eq(credentials.id, playbookRepositories.credentialId)
+    )
+    .where(eq(playbookRepositories.id, repositoryId))
+    .then((rows) => rows[0] ?? null)
+  if (!repository) throw errors.NOT_FOUND()
+  if (!repository.lastCommitSha) {
+    return { commit: null, roles: [], requirementsFiles: [] }
+  }
+
+  const token = serviceToken()
+  const client = getClient(RunnerServiceClient, env.ANSIBLE_GRPC_TARGET)
+  try {
+    // The commit may have to be fetched again if the mirror was lost.
+    const response = await unary(
+      client.listRepositoryRoles.bind(client),
+      {
+        repository_id: repository.id,
+        url: repository.url,
+        commit: repository.lastCommitSha,
+        subdir: repository.subdir ?? "",
+        private_key: repository.privateKey
+          ? decryptSecret(repository.privateKey)
+          : undefined,
+      },
+      { token, timeoutMs: SYNC_TIMEOUT_MS }
+    )
+    return {
+      commit: repository.lastCommitSha,
+      roles: response.roles.map((role) => ({
+        name: role.name,
+        path: role.path,
+        description: role.description ?? null,
+      })),
+      requirementsFiles: response.requirements_files,
+    }
+  } catch (err) {
+    const message = isGrpcError(err)
+      ? err.details || "Could not list roles"
+      : err instanceof Error
+        ? err.message
+        : "Could not list roles"
+    throw toSyncError(err, message)
+  }
+}
+
 /** Best effort: the mirror is only a cache, a leftover costs disk, not data. */
 export async function deleteRepositoryMirror(repositoryId: string) {
   if (!env.SERVICE_TOKEN) return

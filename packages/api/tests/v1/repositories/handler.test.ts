@@ -248,3 +248,29 @@ describe("repositories.playbooks", () => {
     )
   })
 })
+
+describe("repositories.roles", () => {
+  test("an unknown repository is NOT_FOUND", async () => {
+    fakeDb.queue("select", [])
+
+    await expectErrorCode(
+      repositoriesHandler.roles({ context, input: { id: IDS.repository } }),
+      "NOT_FOUND"
+    )
+  })
+
+  test("a malformed id is BAD_REQUEST", async () => {
+    await expectErrorCode(
+      call(repositoriesRouter.roles, { id: "nope" }, { context }),
+      "BAD_REQUEST"
+    )
+  })
+
+  test("the output keeps a never-synced repository's empty list", async () => {
+    fakeDb.queue("select", [{ ...repositoryRow(), privateKey: null }])
+
+    expect(
+      await call(repositoriesRouter.roles, { id: IDS.repository }, { context })
+    ).toEqual({ commit: null, roles: [], requirementsFiles: [] })
+  })
+})

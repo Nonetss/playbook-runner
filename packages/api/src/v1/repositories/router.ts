@@ -117,4 +117,18 @@ export const repositoriesRouter = {
     .handler(({ context, input }) =>
       repositoriesHandler.playbooks({ context, input })
     ),
+
+  roles: protectedProcedure
+    .route({
+      summary: "List a repository's Ansible roles",
+      description:
+        "Reads the roles and `requirements.yml` files of the repository's last synced commit, without storing anything or changing its sync state. Dependencies in those files are not installed. A null commit and empty lists when the repository was never synced. BAD_REQUEST when the commit cannot be read, BAD_GATEWAY when the Git host or runner is unreachable. NOT_FOUND when the repository is missing.",
+      tags: ["Repositories"],
+      method: "GET",
+    })
+    .input(repositoriesInput.roles)
+    .output(repositoriesOutput.roles)
+    .handler(({ context, input }) =>
+      repositoriesHandler.roles({ context, input })
+    ),
 }

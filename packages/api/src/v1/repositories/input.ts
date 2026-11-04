@@ -48,4 +48,5 @@ export const repositoriesInput = {
   // Branches of a remote before (or without) saving it as a repository.
   branches: z.object({ url, credentialId: idSchema.nullish() }),
   playbooks: byId,
+  roles: byId,
 }

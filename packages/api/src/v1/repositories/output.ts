@@ -38,6 +38,21 @@ const branches = z.object({
   defaultBranch: z.string().nullable(),
 })
 
+const roles = z.object({
+  // Commit the roles were read from; null until the first successful sync.
+  commit: z.string().nullable(),
+  roles: z.array(
+    z.object({
+      name: z.string(),
+      // Relative to the repository root.
+      path: z.string(),
+      description: z.string().nullable(),
+    })
+  ),
+  // `requirements.yml` files found; their dependencies are not installed.
+  requirementsFiles: z.array(z.string()),
+})
+
 export type PlaybookRepository = z.infer<typeof repository>
 export type PlaybookRepositoryWithCount = z.infer<typeof repositoryWithCount>
 export type RepositorySyncResult = z.infer<typeof syncResult>
@@ -51,4 +66,5 @@ export const repositoriesOutput = {
   sync: syncResult,
   branches,
   playbooks: playbooksOutput.list,
+  roles,
 }
