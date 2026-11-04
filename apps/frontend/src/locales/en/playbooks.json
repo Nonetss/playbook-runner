@@ -141,8 +141,11 @@
       "no_match": "No group or device matches the search.",
       "empty_inventory": "No inventory. Create groups or devices first.",
       "options": "OPTIONS",
-      "forks": "Forks"
+      "forks": "Forks",
+      "roles": "ROLES",
+      "roles_loose_tasks": "The playbook's own tasks always run."
     },
+    "roles_disabled": "Roles not run: {{names}}.",
     "result_finished_with_status": "Run finished — status {{status}} (rc={{rc}})",
     "switcher": {
       "label": "Playbook",

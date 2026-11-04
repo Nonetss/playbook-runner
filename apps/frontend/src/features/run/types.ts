@@ -42,4 +42,5 @@ export type RunOptions = {
   infisicalConnectionId?: string
   infisicalEnvironment?: string
   secretVariables?: { name: string; secretName: string; secretPath: string }[]
+  disabledRoles?: string[]
 }

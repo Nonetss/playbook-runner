@@ -17,8 +17,10 @@ import { useDevicesList } from "@/features/inventory/hooks/use-devices"
 import { useGroupsList } from "@/features/inventory/hooks/use-groups"
 import { useSelectableGroups } from "@/features/inventory/hooks/use-selectable-groups"
 import { PlaybookSwitcher } from "@/features/playbooks/components/playbook-switcher"
+import { RunRolesSelection } from "@/features/playbooks/components/run-roles-selection"
 import { usePlaybookSecretVariables } from "@/features/playbooks/hooks/use-playbook-secret-variables"
 import { usePlaybookGet } from "@/features/playbooks/hooks/use-playbooks"
+import { usePlaybookRoles } from "@/features/playbooks/hooks/use-repositories"
 import { InventorySelectionList } from "@/features/run/components/inventory-selection-list"
 import { PlaybookRunConsole } from "@/features/run/components/playbook-run-console"
 import { RunButton } from "@/features/run/components/run-button"
@@ -30,6 +32,7 @@ import {
   RunVariableRows,
 } from "@/features/run/components/run-variables-fields"
 import {
+  TerminalBanner,
   TerminalFrame,
   TerminalPanelCollapsible,
   TerminalPanelSection,
@@ -52,6 +55,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
   const { t: tInfisical } = useTranslation("infisical")
   const { data: playbook, isPending: playbookLoading } = usePlaybookGet(id)
   const { data: declaredVariables } = usePlaybookSecretVariables(id)
+  const roles = usePlaybookRoles(playbook)
   const { data: storedGroups = [], isPending: groupsLoading } = useGroupsList()
   const { data: devices = [], isPending: devicesLoading } = useDevicesList()
   const groups = useSelectableGroups(storedGroups, devices)
@@ -75,6 +79,11 @@ function RunPlaybookPageInner({ id }: { id: string }) {
   const [infisicalConnectionId, setInfisicalConnectionId] = useState("")
   const [infisicalEnvironment, setInfisicalEnvironment] = useState("")
   const [variablesError, setVariablesError] = useState<string | null>(null)
+  const [uncheckedRoles, setUncheckedRoles] = useState<ReadonlySet<string>>(
+    new Set()
+  )
+  // Of the run on screen: the checkboxes can change once it has finished.
+  const [runDisabledRoles, setRunDisabledRoles] = useState<string[]>([])
 
   const selectionCount = selectedGroups.size + selectedDevices.size
   const isRunning = phase === "running"
@@ -92,6 +101,10 @@ function RunPlaybookPageInner({ id }: { id: string }) {
     )
     if (variables.incomplete.length > 0) return
 
+    const disabledRoles = roles
+      .map((role) => role.name)
+      .filter((name) => uncheckedRoles.has(name))
+
     const targetNames = [
       ...groups
         .filter((group) => selectedGroups.has(group.id))
@@ -106,21 +119,28 @@ function RunPlaybookPageInner({ id }: { id: string }) {
         : targetNames.join(", ")
     const confirmed = await confirm({
       title: t("run.confirm_title", { name: playbook.name }),
-      description: t("run.confirm_description", {
-        targets: targetSummary,
-        count: selectionCount,
-        forks,
-        variables:
-          Object.keys(variables.extravars).length +
-          variables.secretVariables.length +
-          (declaredVariables?.variables.length ?? 0),
-      }),
+      description: [
+        t("run.confirm_description", {
+          targets: targetSummary,
+          count: selectionCount,
+          forks,
+          variables:
+            Object.keys(variables.extravars).length +
+            variables.secretVariables.length +
+            (declaredVariables?.variables.length ?? 0),
+        }),
+        ...(disabledRoles.length > 0
+          ? [t("run.roles_disabled", { names: disabledRoles.join(", ") })]
+          : []),
+      ].join(" "),
       confirmLabel: t("run.confirm_run"),
       cancelLabel: t("run.cancel"),
     })
     if (!confirmed) return
 
+    setRunDisabledRoles(disabledRoles)
     start(playbook.id, inventory, {
+      disabledRoles,
       forks,
       extravars: variables.extravars,
       secretVariables: variables.secretVariables,
@@ -190,6 +210,13 @@ function RunPlaybookPageInner({ id }: { id: string }) {
         command={playbook.name}
         banners={
           <>
+            {phase !== "idle" && runDisabledRoles.length > 0 ? (
+              <TerminalBanner>
+                {t("run.roles_disabled", {
+                  names: runDisabledRoles.join(", "),
+                })}
+              </TerminalBanner>
+            ) : null}
             <RunStreamStatus
               phase={phase}
               errorMessage={errorMessage}
@@ -240,6 +267,13 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                 disabled={isRunning}
               />
             </TerminalPanelCollapsible>
+
+            <RunRolesSelection
+              roles={roles}
+              unchecked={uncheckedRoles}
+              onChange={setUncheckedRoles}
+              disabled={isRunning}
+            />
 
             <TerminalPanelSection
               label={t("run.panel.options")}

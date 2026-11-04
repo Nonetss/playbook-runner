@@ -1,5 +1,8 @@
+import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
+import { selectableRoles } from "@/features/playbooks/lib/playbook-roles"
 import type {
+  Playbook,
   PlaybookRepository,
   PlaybookRepositoryList,
 } from "@/features/playbooks/types"
@@ -20,6 +23,24 @@ export function useRepositoriesList() {
 }
 
 /** Roles of the synced commit; `enabled` while the repository is expanded. */
+/** The same query as the repository's section, so they share the cache. */
+export function usePlaybookRoles(
+  playbook: Pick<Playbook, "repositoryId" | "path"> | undefined
+) {
+  const repositoryId = playbook?.repositoryId
+  const { data } = useHydratedQuery(
+    orpc.repositories.roles.queryOptions({
+      input: { id: repositoryId ?? "" },
+      enabled: !!repositoryId,
+      retry: false,
+    })
+  )
+  return useMemo(
+    () => (data ? selectableRoles(data, playbook?.path ?? null) : []),
+    [data, playbook?.path]
+  )
+}
+
 export function useRepositoryRoles(
   repository: Pick<PlaybookRepository, "id" | "lastCommitSha">,
   enabled: boolean

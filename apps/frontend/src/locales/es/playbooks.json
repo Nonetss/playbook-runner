@@ -141,8 +141,11 @@
       "no_match": "Ningún grupo ni dispositivo coincide con la búsqueda.",
       "empty_inventory": "No hay inventario. Crea grupos o dispositivos primero.",
       "options": "OPCIONES",
-      "forks": "Paralelismo"
+      "forks": "Paralelismo",
+      "roles": "ROLES",
+      "roles_loose_tasks": "Las tareas sueltas del playbook se ejecutan siempre."
     },
+    "roles_disabled": "Roles sin ejecutar: {{names}}.",
     "result_finished_with_status": "Ejecución finalizada — estado {{status}} (rc={{rc}})",
     "switcher": {
       "label": "Playbook",

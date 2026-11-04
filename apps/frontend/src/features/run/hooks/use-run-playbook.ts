@@ -20,6 +20,7 @@ const subscribe = (
     infisicalConnectionId?: string
     infisicalEnvironment?: string
     secretVariables?: RunOptions["secretVariables"]
+    disabledRoles?: RunOptions["disabledRoles"]
   },
   callbacks: RunStreamCallbacks
 ) => consumeEventIterator(client.v1.run.run(request), callbacks)
