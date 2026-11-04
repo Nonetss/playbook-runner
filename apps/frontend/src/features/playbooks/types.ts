@@ -23,3 +23,7 @@ export type PlaybookRepository = NonNullable<
 export type PlaybookRepositoryList = Awaited<
   ReturnType<AppRouterClient["repositories"]["list"]>
 >
+
+export type PlaybookRepositoryRoles = Awaited<
+  ReturnType<AppRouterClient["repositories"]["roles"]>
+>

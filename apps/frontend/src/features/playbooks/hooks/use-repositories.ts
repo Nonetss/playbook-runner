@@ -19,8 +19,23 @@ export function useRepositoriesList() {
   return useHydratedQuery(orpc.repositories.list.queryOptions())
 }
 
+/** Roles of the synced commit; `enabled` while the repository is expanded. */
+export function useRepositoryRoles(
+  repository: Pick<PlaybookRepository, "id" | "lastCommitSha">,
+  enabled: boolean
+) {
+  return useHydratedQuery(
+    orpc.repositories.roles.queryOptions({
+      input: { id: repository.id },
+      enabled: enabled && !!repository.lastCommitSha,
+      retry: false,
+    })
+  )
+}
+
 const listKey = orpc.repositories.list.queryKey()
 const playbookListKey = orpc.playbooks.list.queryKey()
+const rolesKey = orpc.repositories.roles.key()
 
 export function useRepositoryCreate() {
   const { t } = useTranslation("playbooks")
@@ -85,7 +100,7 @@ export function useRepositorySync() {
   return useResourceMutation<{ id: string }, unknown, PlaybookRepositoryList>({
     mutationFn: (input) => orpc.repositories.sync.call(input),
     listKey,
-    extraInvalidate: [playbookListKey],
+    extraInvalidate: [playbookListKey, rolesKey],
     messages: {
       success: t("repository.toast_synced"),
       error: t("repository.toast_sync_error"),

@@ -12,6 +12,7 @@ import { InlineAlert } from "@/components/shared/feedback/inline-alert"
 import { EntityCardGrid } from "@/components/shared/resource/entity-list"
 import { Button } from "@/components/ui/button"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { RepositoryRoles } from "@/features/playbooks/components/repository-roles"
 import { SectionToggle } from "@/features/playbooks/components/section-toggle"
 import {
   type PlaybookRowContext,
@@ -31,7 +32,7 @@ export type RepositoryGroup = {
 
 /**
  * A Git repository in the playbook browser: heading (name, remote, synced
- * commit, sync action) over its read-only playbooks.
+ * commit, sync action) over its read-only playbooks and roles.
  */
 export function RepositorySection({
   group,
@@ -134,7 +135,11 @@ export function RepositorySection({
           <span className="font-mono text-xs">{repository.lastSyncError}</span>
         </InlineAlert>
       ) : null}
-      <div id={`section-${repository.id}`} hidden={collapsed}>
+      <div
+        id={`section-${repository.id}`}
+        hidden={collapsed}
+        className="space-y-4"
+      >
         {playbooks.length > 0 ? (
           <EntityCardGrid
             items={playbooks}
@@ -153,6 +158,7 @@ export function RepositorySection({
               : t("repository.sync_hint")}
           </Text>
         )}
+        <RepositoryRoles repository={repository} enabled={!collapsed} />
       </div>
     </section>
   )
