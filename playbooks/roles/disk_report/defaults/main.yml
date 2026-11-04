@@ -1,0 +1,2 @@
+# Valor por defecto: el playbook o las variables de la ejecución pueden cambiarlo.
+disk_report_warn_percent: 90

@@ -1,0 +1,15 @@
+- name: Calcular el uso de cada disco
+  ansible.builtin.set_fact:
+    disk_report_full: "{{ disk_report_full | default([]) + [item.mount ~ ' al ' ~ used ~ '%'] }}"
+  vars:
+    used: "{{ ((item.size_total - item.size_available) / item.size_total * 100) | round(1) }}"
+  loop: "{{ ansible_facts['mounts'] }}"
+  loop_control:
+    label: "{{ item.mount }}"
+  when:
+    - item.size_total > 0
+    - (item.size_total - item.size_available) / item.size_total * 100 >= disk_report_warn_percent | float
+
+- name: Mostrar el resultado
+  ansible.builtin.debug:
+    msg: "{{ disk_report_full | default(['Ningún disco supera el ' ~ disk_report_warn_percent ~ '%']) }}"

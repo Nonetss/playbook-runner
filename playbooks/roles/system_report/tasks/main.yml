@@ -1,0 +1,4 @@
+# Ansible busca la plantilla en la carpeta templates/ de este mismo rol.
+- name: Mostrar el resumen del sistema
+  ansible.builtin.debug:
+    msg: "{{ lookup('ansible.builtin.template', 'summary.txt.j2') | trim }}"

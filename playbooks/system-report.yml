@@ -1,0 +1,11 @@
+# Ejemplo de playbook con roles: el trabajo vive en roles/, y aquí solo se
+# decide qué roles se usan y con qué valores. No cambia nada en los hosts.
+- name: Informe de cada host con roles
+  hosts: all
+  gather_facts: true
+  roles:
+    - system_report
+    - role: disk_report
+      vars:
+        # Sustituye al valor por defecto de roles/disk_report/defaults/main.yml.
+        disk_report_warn_percent: 80
