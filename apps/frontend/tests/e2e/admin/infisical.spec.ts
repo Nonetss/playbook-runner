@@ -206,6 +206,8 @@ test.describe("Conexiones de Infisical", () => {
     )
     await panel.getByRole("button", { name: "Añadir variable" }).click()
     await panel.getByLabel("Secreto de la variable 1", { exact: true }).click()
+    await page.getByPlaceholder("Buscar secreto…").fill("pass db")
+    await expect(page.getByRole("option", { name: "API_KEY" })).toBeHidden()
     await page.getByRole("option", { name: "DB_PASS" }).click()
 
     await expect(panel.getByLabel("Nombre de la variable 1")).toHaveValue(
