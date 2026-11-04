@@ -154,3 +154,30 @@ While a repository section is expanded, each of its playbook cards that declares
 #### Scenario: Roles cannot be loaded
 - **WHEN** the roles request fails
 - **THEN** the playbook cards SHALL be shown without a roles row
+
+### Requirement: Choose the roles of an interactive run
+The form to run a Git playbook by hand SHALL list the roles it declares that exist in the repository, all checked, and a run SHALL NOT execute the tasks or `meta/main.yml` dependencies of those unchecked, however they are referenced. The system SHALL apply this only to that run's own copy of the tree, SHALL NOT change the playbook or the repository, SHALL keep the role's `defaults`, `vars` and `handlers`, and SHALL still run the playbook's own tasks. Scheduled jobs SHALL run every role.
+
+#### Scenario: Run with a role unchecked
+- **WHEN** a user unchecks `disk_report` and runs `system-report.yml`
+- **THEN** `disk_report` SHALL NOT run, `system_report` SHALL run, and the run SHALL state which roles were left out
+
+#### Scenario: Playbook without selectable roles
+- **WHEN** a playbook declares no role that exists in its repository
+- **THEN** the form SHALL NOT show the roles block
+
+#### Scenario: Role no longer in the commit
+- **WHEN** an unchecked role does not exist in the commit being run
+- **THEN** the run SHALL end with an error before Ansible starts
+
+#### Scenario: Invalid role name
+- **WHEN** a request names a disabled role containing a path separator, or `.` or `..`
+- **THEN** the system SHALL reject it without touching any file
+
+#### Scenario: Inline playbook
+- **WHEN** a request disables a role on a playbook written in Playbook Runner
+- **THEN** the system SHALL reject it with `BAD_REQUEST`
+
+#### Scenario: Symbolic links in the repository
+- **WHEN** a disabled role's files are symbolic links to paths outside the role
+- **THEN** the system SHALL replace the links and SHALL NOT write to their targets

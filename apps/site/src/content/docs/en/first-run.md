@@ -78,4 +78,6 @@ Each repository on the Playbooks page lists its roles read-only. To change a rol
 
 While a repository is expanded, each playbook card names the roles it declares and each role names the playbooks declaring it. This comes from `roles`, `include_role` and `import_role` in the playbook's plays, following `import_playbook`. Roles reached through `include_tasks` or another role's dependencies are not counted, so "no playbook declares it directly" doesn't mean a role is unused. A name only known at run time appears as "dynamic role".
 
+When you run a Git playbook by hand, its form lists the roles it declares from the repository, all checked. Uncheck one to leave it out of that run: it is emptied in the run's own copy, so neither the playbook nor the repository changes, and its dependencies don't run either. The playbook's own tasks always run, and handlers, `defaults` and `vars` from the unchecked role are still available. Another role that relied on what it did may fail. Scheduled jobs always run every role.
+
 Dependencies in `requirements.yml` **are not installed**. The page warns you when it finds that file at the repository root, in the configured subdirectory, or directly in `roles/` or `collections/` at those levels. A playbook using one of those external roles fails with a "role not found" error; to use it, copy the role into the repository.
