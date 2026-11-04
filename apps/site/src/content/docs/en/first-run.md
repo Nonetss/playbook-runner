@@ -48,7 +48,7 @@ From **Ansible → Scheduler**, create a job: a playbook, a target and a cron ex
 
 ## Example playbooks
 
-The repository ships a few starters under [`playbooks/`](https://github.com/Nonetss/playbook-runner/tree/main/playbooks): `ping.yml`, `apt-upgrade.yml`, `disk-usage.yml`, `check-uptime.yml`, `gather-facts.yml`, `restart-service.yml`, `clean-docker-img.yml` and `fail2ban-status.yml`.
+The repository ships a few starters under [`playbooks/`](https://github.com/Nonetss/playbook-runner/tree/main/playbooks): `ping.yml`, `apt-upgrade.yml`, `disk-usage.yml`, `check-uptime.yml`, `gather-facts.yml`, `restart-service.yml`, `clean-docker-img.yml`, `fail2ban-status.yml` and `system-report.yml`, which is built from roles.
 
 To try the Git integration with them, choose **Add repository** on the Playbooks page and enter:
 
@@ -71,6 +71,8 @@ roles/                  # searched next
 ```
 
 The repository's own `ansible.cfg` is ignored, so a custom `roles_path` has no effect. When a run finds any of these directories, they replace Ansible's default role paths such as `/usr/share/ansible/roles`, which only matters if you built your own image with roles installed there.
+
+To see one working, sync the example repository above and run `system-report.yml`, which uses the two roles in [`playbooks/roles/`](https://github.com/Nonetss/playbook-runner/tree/main/playbooks/roles).
 
 Each repository on the Playbooks page lists its roles read-only. To change a role, commit to the repository and sync it. Roles are not available to playbooks written in Playbook Runner, because those are a single file.
 

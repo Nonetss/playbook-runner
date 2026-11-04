@@ -339,6 +339,7 @@ have something to point a job at the first time you boot the app:
 | [`playbooks/check-uptime.yml`](./playbooks/check-uptime.yml) | Prints how long each host has been up and when it booted — handy after a power outage. |
 | [`playbooks/gather-facts.yml`](./playbooks/gather-facts.yml) | Dumps a one-line summary per host: OS, kernel, CPU, RAM, IP and FQDN. |
 | [`playbooks/fail2ban-status.yml`](./playbooks/fail2ban-status.yml) | Shows the global `fail2ban-client` status and per-jail banned IPs (override `f2b_jails`). |
+| [`playbooks/system-report.yml`](./playbooks/system-report.yml) | Example of a playbook built from roles in [`playbooks/roles/`](./playbooks/roles): prints a summary of each host and warns about full disks. It changes nothing on the hosts. |
 
 Treat them as copy-paste starters — open one in the *Playbooks* page, hit
 *Run*, pick a group, and you should see the output stream in. To try the Git

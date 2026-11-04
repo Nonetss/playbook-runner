@@ -48,7 +48,7 @@ Desde **Ansible → Scheduler**, crea un job: un playbook, un destino y una expr
 
 ## Playbooks de ejemplo
 
-El repositorio incluye algunos para empezar en [`playbooks/`](https://github.com/Nonetss/playbook-runner/tree/main/playbooks): `ping.yml`, `apt-upgrade.yml`, `disk-usage.yml`, `check-uptime.yml`, `gather-facts.yml`, `restart-service.yml`, `clean-docker-img.yml` y `fail2ban-status.yml`.
+El repositorio incluye algunos para empezar en [`playbooks/`](https://github.com/Nonetss/playbook-runner/tree/main/playbooks): `ping.yml`, `apt-upgrade.yml`, `disk-usage.yml`, `check-uptime.yml`, `gather-facts.yml`, `restart-service.yml`, `clean-docker-img.yml`, `fail2ban-status.yml` y `system-report.yml`, que está construido con roles.
 
 Para probar con ellos la integración con Git, pulsa **Añadir repositorio** en la página de Playbooks e introduce:
 
@@ -71,6 +71,8 @@ roles/                  # se busca después
 ```
 
 El `ansible.cfg` propio del repositorio se ignora, así que un `roles_path` personalizado no tiene efecto. Cuando una ejecución encuentra alguno de estos directorios, sustituyen a las rutas de roles por defecto de Ansible, como `/usr/share/ansible/roles`; esto solo importa si has creado tu propia imagen con roles instalados allí.
+
+Para verlo funcionando, sincroniza el repositorio de ejemplo anterior y ejecuta `system-report.yml`, que usa los dos roles de [`playbooks/roles/`](https://github.com/Nonetss/playbook-runner/tree/main/playbooks/roles).
 
 Cada repositorio de la página de Playbooks muestra sus roles en solo lectura. Para cambiar un rol, haz un commit en el repositorio y sincronízalo. Los roles no están disponibles para los playbooks escritos en Playbook Runner, porque son un único fichero.
 
