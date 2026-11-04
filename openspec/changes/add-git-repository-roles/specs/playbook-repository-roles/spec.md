@@ -1,0 +1,116 @@
+## Purpose
+
+Lets Git-sourced playbooks use the Ansible roles stored in their repository, and shows users read-only which roles a repository provides and which of its dependencies are not installed.
+
+## ADDED Requirements
+
+### Requirement: Resolve repository roles during Git runs
+A run of a Git-sourced playbook SHALL resolve roles from every `roles/` directory between the playbook's directory and the repository root, at the pinned commit, with the directory nearest the playbook taking precedence. The repository's own `ansible.cfg` SHALL remain ignored.
+
+#### Scenario: Role at the repository root and playbook in a subdirectory
+- **WHEN** a user runs `playbooks/site.yml` and its role exists only in `roles/` at the repository root
+- **THEN** the run SHALL find and execute that role
+
+#### Scenario: Role next to the playbook
+- **WHEN** a user runs a playbook whose role exists in a `roles/` directory next to it
+- **THEN** the run SHALL find and execute that role
+
+#### Scenario: Same role name at two levels
+- **WHEN** a role with the same name exists next to the playbook and at the repository root
+- **THEN** the run SHALL use the role next to the playbook
+
+#### Scenario: Repository config tries to change the role path
+- **WHEN** the repository's `ansible.cfg` sets `roles_path` to another directory
+- **THEN** the run SHALL ignore that setting
+
+#### Scenario: Role unknown to the repository
+- **WHEN** a playbook references a role that is in none of the searched directories
+- **THEN** the run SHALL fail and report Ansible's role-not-found error
+
+### Requirement: Run directory label cannot split the role path
+A playbook's name or path SHALL NOT affect how the role search path is parsed. A repository directory containing the path-list separator SHALL be left out of the search path instead of failing the run.
+
+#### Scenario: Playbook name contains a colon
+- **WHEN** a user runs a Git-sourced playbook whose name contains `:` and its role is at the repository root
+- **THEN** the run SHALL find and execute that role
+
+### Requirement: List a repository's roles
+The system SHALL let an authenticated user list the roles of a repository at its last synced commit. Each role SHALL have a name, its path relative to the repository root and an optional description taken from `galaxy_info.description` in its `meta/main.yml`. A role SHALL be a directory directly under a `roles/` directory that contains `tasks/main.yml`, `tasks/main.yaml`, `meta/main.yml` or `meta/main.yaml`. The list SHALL include role directories under the configured subdirectory and in `roles/` directories of its ancestors, and SHALL exclude hidden directories, `collections/` and roles nested inside another role. Listing SHALL NOT store anything or change the repository's sync state.
+
+#### Scenario: Repository with roles
+- **WHEN** a user lists the roles of a repository synced at a commit containing `roles/nginx/tasks/main.yml` and `roles/docker/meta/main.yml`
+- **THEN** the response SHALL contain both roles with their names and paths, and the synced commit
+
+#### Scenario: Role with a description
+- **WHEN** a role's `meta/main.yml` defines `galaxy_info.description`
+- **THEN** that role SHALL be returned with the description
+
+#### Scenario: Invalid role metadata
+- **WHEN** a role's `meta/main.yml` is invalid YAML, is not UTF-8 text or is too large to read
+- **THEN** the role SHALL still be listed, with no description
+
+#### Scenario: Directory that is not a role
+- **WHEN** a directory under `roles/` has no `tasks/main` or `meta/main` file
+- **THEN** it SHALL NOT be listed
+
+#### Scenario: Role inside a bundled collection
+- **WHEN** the repository contains `collections/ansible_collections/acme/web/roles/nginx/tasks/main.yml`
+- **THEN** that role SHALL NOT be listed
+
+#### Scenario: Role outside the configured subdirectory
+- **WHEN** a repository is configured with subdirectory `infra` and contains `roles/base/tasks/main.yml`, `infra/roles/web/tasks/main.yml` and `apps/roles/api/tasks/main.yml`
+- **THEN** `base` and `web` SHALL be listed and `api` SHALL NOT
+
+#### Scenario: Repository never synced
+- **WHEN** a user lists the roles of a repository with no synced commit
+- **THEN** the response SHALL have a null commit and no roles, and the Git service SHALL NOT be contacted
+
+#### Scenario: Unknown repository
+- **WHEN** a user lists the roles of a repository id that does not exist
+- **THEN** the system SHALL return `NOT_FOUND`
+
+#### Scenario: Anonymous caller
+- **WHEN** a caller without an authenticated session lists a repository's roles
+- **THEN** the system SHALL return `UNAUTHORIZED`
+
+#### Scenario: Git service failure
+- **WHEN** the synced commit cannot be read or fetched, or the Git service is unreachable
+- **THEN** the system SHALL return an error and SHALL NOT change the repository's stored sync state
+
+### Requirement: Report uninstalled role dependencies
+The role listing SHALL report the paths of any `requirements.yml` or `requirements.yaml` at the repository root, in the configured subdirectory, or directly in a `roles/` or `collections/` directory at either of those levels. The system SHALL NOT install those dependencies.
+
+#### Scenario: Repository declares external roles
+- **WHEN** a repository contains `roles/requirements.yml`
+- **THEN** the listing SHALL include that path and no run SHALL install its dependencies
+
+#### Scenario: Repository without dependency files
+- **WHEN** a repository has no `requirements.yml` at those locations
+- **THEN** the listing SHALL report no dependency files
+
+### Requirement: Show a repository's roles in the UI
+The repository section of the Playbooks page SHALL show the repository's roles read-only while the section is expanded, with each role's name, path and description, and SHALL NOT offer to create, edit, delete or run a role. It SHALL warn when the listing reports dependency files, naming them and stating that their dependencies are not installed. A failure to load the roles SHALL NOT hide the repository's playbooks. A successful sync SHALL refresh the list.
+
+#### Scenario: Expand a repository with roles
+- **WHEN** a user expands a synced repository that contains roles
+- **THEN** the section SHALL show its roles alongside its playbooks
+
+#### Scenario: Collapsed repository
+- **WHEN** a repository section is collapsed
+- **THEN** its roles SHALL NOT be requested
+
+#### Scenario: Repository without roles
+- **WHEN** a synced repository has no roles and no dependency files
+- **THEN** the section SHALL show its playbooks without a roles block
+
+#### Scenario: Repository with a requirements file
+- **WHEN** the listing reports `requirements.yml`
+- **THEN** the section SHALL show a warning naming that file
+
+#### Scenario: Roles cannot be loaded
+- **WHEN** the roles request fails
+- **THEN** the section SHALL show the error in the roles block and keep showing the playbooks
+
+#### Scenario: Sync brings a new role
+- **WHEN** a user syncs a repository whose new commit adds a role
+- **THEN** the section SHALL show the new role without a page reload
