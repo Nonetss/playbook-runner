@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test"
 import { call } from "@orpc/server"
+import { playbookRepositories } from "@playbook-runner/db/schema/playbook-repositories"
 import {
   IDS,
   playbookRow,
@@ -7,6 +8,7 @@ import {
   stepArgs,
 } from "@playbook-runner/db/testing"
 import { DeleteRepositoryResponse } from "@playbook-runner/grpc/stubs"
+import { QueryBuilder } from "drizzle-orm/pg-core"
 import { userContext } from "#tests/fixtures/context"
 import { fakeDb } from "#tests/fixtures/db"
 import { resetEnv, testEnv } from "#tests/fixtures/env"
@@ -104,6 +106,25 @@ describe("repositories.list", () => {
     fakeDb.queue("select", rows)
 
     expect(await repositoriesHandler.list({ context })).toEqual(rows)
+  })
+
+  test("counts each repository's playbooks with qualified columns", async () => {
+    fakeDb.queue("select", [])
+
+    await repositoriesHandler.list({ context })
+
+    // A single-table select strips the table from top-level columns, and inside
+    // this subquery both would then resolve to `playbooks`.
+    const [select] = fakeDb.calls("select")
+    if (!select) throw new Error("expected a select")
+    const [fields] = stepArgs(select, "select")
+    const { sql } = new QueryBuilder()
+      .select(fields as Parameters<QueryBuilder["select"]>[0])
+      .from(playbookRepositories)
+      .toSQL()
+    expect(sql).toContain(
+      '"playbooks"."repository_id" = "playbook_repositories"."id"'
+    )
   })
 })
 

@@ -2,7 +2,7 @@ import { db } from "@playbook-runner/db"
 import { credentials } from "@playbook-runner/db/schema/credentials"
 import { playbookRepositories } from "@playbook-runner/db/schema/playbook-repositories"
 import { playbooks } from "@playbook-runner/db/schema/playbooks"
-import { asc, eq, getTableColumns, sql } from "drizzle-orm"
+import { and, asc, eq, getTableColumns, sql } from "drizzle-orm"
 import type { z } from "zod"
 import type { Context } from "#context"
 import { errors } from "#errors"
@@ -46,7 +46,9 @@ export const repositoriesHandler = {
     return db
       .select({
         ...getTableColumns(playbookRepositories),
-        playbookCount: sql<number>`(select count(*)::int from ${playbooks} where ${playbooks.repositoryId} = ${playbookRepositories.id} and not ${playbooks.missing})`,
+        // Nested in its own expression so the columns stay qualified: a
+        // single-table select strips the table from top-level ones.
+        playbookCount: sql<number>`(select count(*)::int from ${playbooks} where ${and(eq(playbooks.repositoryId, playbookRepositories.id), eq(playbooks.missing, false))})`,
       })
       .from(playbookRepositories)
       .orderBy(asc(playbookRepositories.name))
