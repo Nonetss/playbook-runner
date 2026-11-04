@@ -10,6 +10,7 @@ con el ``SERVICE_TOKEN`` compartido.
 from __future__ import annotations
 
 import asyncio
+import re
 from collections.abc import AsyncGenerator, AsyncIterator, Awaitable, Callable
 from typing import cast
 
@@ -95,6 +96,10 @@ _PING_PLAYBOOK = """\
 """
 
 
+_ANSI_ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
+_HOST_FAILURES = {"runner_on_failed", "runner_item_on_failed", "runner_on_unreachable"}
+
+
 def _to_run_event(response_type, event: AnsibleEvent):
     """Traduce un evento de ansible-runner a un frame de respuesta `.task`."""
     payload = event_payload(event)
@@ -113,11 +118,28 @@ def _to_run_event(response_type, event: AnsibleEvent):
 
 async def _stream_runner(runner: AnsibleRunner, response_type):
     """Stream de un `AnsibleRunner`: eventos + `done`/`error` terminal."""
+    errors: list[str] = []
+    started = False
+    host_reported_failure = False
     try:
         async for event in runner.stream():
+            name = event.get("event", "")
+            # Before the callback starts, Ansible's display only arrives as text.
+            is_error = name == "error" or (name == "verbose" and not started)
+            stdout = event.get("stdout")
+            if is_error and stdout:
+                errors.append(_ANSI_ESCAPE.sub("", stdout).rstrip())
+            started = started or name == "playbook_on_start"
+            host_reported_failure = host_reported_failure or name in _HOST_FAILURES
             yield _to_run_event(response_type, event)
     except Exception as exc:  # noqa: BLE001 - se reporta al cliente
         yield response_type(error=str(exc))
+        return
+
+    # Ansible stopped on the playbook itself: no task carries the reason, which
+    # only the display event has. A failed task or host reports its own.
+    if runner.status == "failed" and errors and not host_reported_failure:
+        yield response_type(error="\n".join(errors))
         return
 
     # rc is None when ansible-runner never produced one (e.g. canceled).

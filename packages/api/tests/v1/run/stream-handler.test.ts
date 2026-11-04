@@ -161,6 +161,20 @@ for (const kind of KINDS) {
       )
     })
 
+    test("an error frame reaches the caller with its message", async () => {
+      resolves[kind]()
+      grpc.serverStream.mockImplementation(() =>
+        streamOf([{ error: "Decryption failed" }])
+      )
+
+      const error = await expectErrorCode(
+        drain(opens[kind]()),
+        "UNPROCESSABLE_CONTENT"
+      )
+
+      expect(error?.message).toBe("Decryption failed")
+    })
+
     test("a runner at capacity is TOO_MANY_REQUESTS", async () => {
       resolves[kind]()
       grpc.serverStream.mockImplementation(() =>

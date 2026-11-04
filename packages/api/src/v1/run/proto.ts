@@ -77,6 +77,9 @@ export function taskEventToRecord(task: TaskEvent): RunEventRecord {
   return record
 }
 
+/** The runner ended a run with this message, written for the user. */
+export class RunFailedError extends Error {}
+
 /**
  * Adapts a `RunnerService` gRPC stream into a plain async generator: yields
  * one `RunEventRecord` per task event, `return`s the terminal `Done` payload,
@@ -96,7 +99,7 @@ export async function* toEventIterator(
     } else if (evt.done) {
       return evt.done
     } else if (evt.error !== undefined) {
-      throw new Error(evt.error)
+      throw new RunFailedError(evt.error)
     }
   }
   throw new Error("ansible closed the stream without a terminal frame")

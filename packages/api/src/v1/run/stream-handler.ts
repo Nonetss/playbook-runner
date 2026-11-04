@@ -14,6 +14,7 @@ import {
   describeStreamError,
   isStreamLost,
   RUN_TIMEOUT_MS,
+  RunFailedError,
   toEventIterator,
   toProtoHost,
 } from "#v1/run/proto"
@@ -58,7 +59,8 @@ function toResolveError(err: unknown): never {
  * Maps gRPC failures the user can act on to API errors. `RESOURCE_EXHAUSTED`
  * is the ansible service refusing a run because every slot is busy; a lost
  * stream becomes `BAD_GATEWAY` with a message saying the hosts may have
- * kept going.
+ * kept going; a run the runner ended keeps its message, which oRPC would
+ * otherwise hide behind a generic `INTERNAL_SERVER_ERROR`.
  *
  * `yield*` forwards oRPC's `.return()` down to `serverStream`, but it only
  * lands at the next event, so `signal` is what stops the gRPC call during a
@@ -80,6 +82,9 @@ async function* interactive<T, R>(
     }
     if (isStreamLost(err)) {
       throw errors.BAD_GATEWAY({ message: describeStreamError(err) })
+    }
+    if (err instanceof RunFailedError) {
+      throw errors.UNPROCESSABLE_CONTENT({ message: err.message })
     }
     throw err
   }
