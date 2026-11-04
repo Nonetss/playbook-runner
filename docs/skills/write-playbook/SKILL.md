@@ -1,6 +1,6 @@
 ---
 name: write-playbook
-description: How to write an Ansible playbook that runs on Playbook Runner, whose executor changes several Ansible rules (it ignores `hosts` and `become_user`, variables arrive as text, `debug` with `var` shows nothing, there are no groups, Vault or prompts). Use it before writing, reviewing or fixing a playbook for Playbook Runner, or when one shows no output, hangs or fails only there.
+description: How to write an Ansible playbook that runs on Playbook Runner, whose executor changes several Ansible rules (it ignores `hosts` and `become_user`, variables arrive as text, `debug` with `var` shows nothing, there are no groups or prompts). Use it before writing, reviewing or fixing a playbook for Playbook Runner, or when one shows no output, hangs or fails only there.
 ---
 
 # Writing a playbook for Playbook Runner
@@ -25,7 +25,7 @@ For detail: what the runner mounts for each run is `/playbook-runner/ejecucion/m
 - Only `msg`, `stdout` and `stderr` reach the console: use `debug` with `msg`, never `var`, and `join` a list.
 - Nothing interactive: `vars_prompt` and `pause` without `seconds` hang the run.
 - There is no `--check`, `--tags` or `--limit`: for a dry run, add a variable that turns it on.
-- No secret in the YAML, and no `!vault`: use a plain variable, bound to its secret in the app, and `no_log: true` on the tasks handling it.
+- No plain secret in the YAML: use a plain variable, bound to its secret in the app. `!vault` works only in a Git playbook whose repository has the password, and a fully encrypted playbook is refused. Either way, `no_log: true` on the tasks handling it: decrypted values are never masked.
 - A playbook written in the app is one file: roles, `import_playbook`, `vars_files` and relative `src` find nothing. Use `copy` with `content`, or a Git repository.
 - In Git, a file is a playbook only if every element has `hosts` or `import_playbook`. Runs use the last synced commit, and renaming a file creates another playbook and leaves its jobs failing.
 

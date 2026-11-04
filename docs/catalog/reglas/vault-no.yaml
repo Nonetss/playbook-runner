@@ -1,8 +1,8 @@
-name: Ansible Vault no funciona
+name: Ansible Vault necesita la contraseña del repositorio
 area: disponibilidad
-effect: Un !vault falla al usarse con Attempt to use undecryptable variable, porque no hay contraseña
-do: Usar secretos de Infisical
+effect: Un !vault solo se descifra en un playbook de Git cuyo repositorio tiene la contraseña; si no, falla con Attempt to use undecryptable variable
+do: Poner la contraseña en el formulario del repositorio, o usar secretos de Infisical
 checked: probado
 page: ejecucion/variables
-source: apps/ansible/app/services/ansible/runner.py
+source: apps/ansible/app/services/ansible/materialize.py
 updated: 2026-11-04

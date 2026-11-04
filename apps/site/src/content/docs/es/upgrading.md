@@ -1,7 +1,7 @@
 ---
 title: Actualizar
 description: Actualiza una instalación en marcha y aplica los pasos propios de cada versión.
-order: 8
+order: 9
 ---
 
 ## La actualización habitual

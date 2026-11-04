@@ -48,7 +48,9 @@ El playbook usa variables normales y nunca menciona Infisical. El backend envía
 
 `redact` enmascara el valor literal en cada evento si tiene al menos 4 caracteres, además del client secret. Un valor transformado no se puede enmascarar, así que esas tareas necesitan `no_log: true`.
 
-Vault no es una alternativa: el runner no tiene contraseña y [falla al usar el valor](catalog:reglas/vault-no).
+Ansible Vault es la alternativa para los repositorios que ya lo usan. `playbook_repositories.vault_password` guarda la contraseña cifrada, y `GitSource.vault_password` la lleva solo a las ejecuciones de los playbooks de ese repositorio. El runner la escribe en `vault-password` y la entrega con `ANSIBLE_VAULT_PASSWORD_FILE`. Sin ella, o en un playbook inline, [falla al usar el valor](catalog:reglas/vault-no).
+
+A diferencia de Infisical, [lo descifrado no se enmascara](catalog:reglas/vault-sin-enmascarar), porque solo lo ve Ansible: `redact` únicamente cubre la contraseña. Las variables de un fichero cifrado tampoco se detectan, porque el listado no descifra nada.
 
 Cómo declararlos en la app está en [la guía pública de Infisical](https://nonetss.github.io/playbook-runner/es/docs/infisical/).
 

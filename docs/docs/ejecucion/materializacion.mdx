@@ -16,6 +16,7 @@ $RUN_SCRATCH_DIR/<playbook>-<id>/
   <playbook>-<hash>.yml      # inline: el contenido guardado
   project/                   # Git: el árbol del commit fijado
   runner-ansible.cfg         # Git: vacío, para anular el del repositorio
+  vault-password             # Git: 0600, solo si el repositorio tiene contraseña
 ```
 
 ## Inline y Git
@@ -30,7 +31,7 @@ $RUN_SCRATCH_DIR/<playbook>-<id>/
 
 ## Destino
 
-`play_targets.py` reescribe a `all` el `hosts` de cada play, en la copia y a nivel de texto, para conservar comentarios y `!vault`. Sigue `import_playbook` dentro del proyecto, salvo rutas con plantillas. Lo que no puede leer como YAML lo deja tal cual, para que Ansible informe con sus propias palabras.
+`play_targets.py` reescribe a `all` el `hosts` de cada play, en la copia y a nivel de texto, para conservar comentarios y `!vault`. Sigue `import_playbook` dentro del proyecto, salvo rutas con plantillas. Lo que no puede leer como YAML lo deja tal cual, para que Ansible informe con sus propias palabras. [Un fichero cifrado entero se rechaza](catalog:reglas/vault-playbook-cifrado) antes de arrancar Ansible, porque se lee bien como YAML pero no tiene plays que reescribir.
 
 El inventario es plano: `{"all": {"hosts": {...}}}`. La conexión va por host: `ansible_host`, `ansible_user` de la credencial, `ansible_port` y `ansible_ssh_private_key_file`.
 

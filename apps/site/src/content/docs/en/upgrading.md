@@ -1,7 +1,7 @@
 ---
 title: Upgrading
 description: Update a running installation and the steps specific to each release.
-order: 8
+order: 9
 ---
 
 ## The usual upgrade

@@ -87,7 +87,8 @@ Para que aparezca debe [cumplir la detección](../ejecucion/repositorios-git.mdx
 1. Comprueba la sintaxis y, si cambia algo delicado, la salida: [Probar un playbook sin hosts](probar-un-playbook.mdx).
 2. Repasa esta lista:
    - [ ] `hosts: all` en cada play, sin depender de grupos.
-   - [ ] Sin `become_user`, `vars_prompt`, `pause` sin `seconds` ni `!vault`.
+   - [ ] Sin `become_user`, `vars_prompt` ni `pause` sin `seconds`.
+   - [ ] `!vault` solo en un playbook de Git cuyo repositorio tenga la contraseña, con `no_log: true` en las tareas que lo usen.
    - [ ] Cada variable que pueda venir de fuera lleva `bool` o `int` si no es texto.
    - [ ] Toda salida útil sale por `msg` o `stdout`, nunca por `var`.
    - [ ] `no_log: true` donde haya secretos.

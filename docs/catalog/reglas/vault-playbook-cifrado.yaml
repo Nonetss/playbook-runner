@@ -1,0 +1,8 @@
+name: Un playbook cifrado entero se rechaza
+area: disponibilidad
+effect: La sincronización no lo detecta, y si se llega a él por import_playbook la ejecución termina antes de Ansible nombrando el fichero
+do: Cifrar las variables, con !vault o en un vars_files cifrado, nunca el playbook
+checked: probado
+page: ejecucion/materializacion
+source: apps/ansible/app/services/ansible/play_targets.py
+updated: 2026-11-04

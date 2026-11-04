@@ -23,13 +23,16 @@ Un playbook no se ejecuta tal cual: el ejecutor prepara un directorio temporal, 
 | Una tarea corre como root y debía ser otro usuario | [`become_user` se ignora](catalog:reglas/become-user-ignorado) | `runuser -u usuario --` |
 | Una play corre en hosts que no debería | [`hosts` no decide](catalog:reglas/hosts-no-decide) | Un playbook por trabajo, o una condición con `when` |
 | `the role 'x' was not found` | Playbook inline, rol de `requirements.yml` o `roles_path` de `ansible.cfg` | [Crear un rol](../guias/crear-rol.mdx) |
-| `Attempt to use undecryptable variable` | [`!vault`](catalog:reglas/vault-no) en el playbook | Secretos de Infisical |
+| `Attempt to use undecryptable variable` | [`!vault`](catalog:reglas/vault-no) sin la contraseña correcta o en un playbook inline | Poner la contraseña en el repositorio, o secretos de Infisical |
+| `Playbook ... is encrypted with Vault` | [Playbook cifrado entero](catalog:reglas/vault-playbook-cifrado) | Cifrar solo sus variables |
 | Un cambio subido a Git no se aplica | [Se ejecuta el commit sincronizado](catalog:reglas/git-commit-fijado) | Pulsar **Sincronizar** |
 | El fichero no aparece tras sincronizar | [No cumple la detección](catalog:reglas/git-deteccion) | Revisar `hosts`, carpeta y tamaño |
 
 ## Salida en la consola
 
 `apps/ansible/app/services/ansible/payload.py` reduce cada evento a `event`, `host`, `play`, `task`, `task_action`, `changed`, `msg`, `stdout`, `stderr` y `rc`. Eso es lo que recibe el navegador y lo que se guarda en `job_runs`. Lo demás se pierde.
+
+Si Ansible falla por el propio playbook, porque no puede cargarlo o descifrar un fichero, y ningún host ha informado de un fallo, `_stream_runner` (`apps/ansible/app/grpc/services/runner.py`) termina con su mensaje como error de la ejecución, que un job guarda en `job_runs.error`. El mensaje puede citar líneas del playbook.
 
 | Tarea | Se ve |
 | --- | --- |

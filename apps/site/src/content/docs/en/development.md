@@ -1,7 +1,7 @@
 ---
 title: Development
 description: Run the monorepo locally, run the tests and find your way around the code.
-order: 9
+order: 10
 ---
 
 Playbook Runner is a Bun and Turborepo monorepo with one Python service. You need Bun 1.3, Docker, and `uv` if you work on the executor.

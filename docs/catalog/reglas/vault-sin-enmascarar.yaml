@@ -1,0 +1,8 @@
+name: Lo que descifra Vault no se enmascara
+area: variables
+effect: Solo Ansible ve los valores descifrados, así que una tarea que los imprime los deja en la consola y en job_runs
+do: 'Poner no_log: true en las tareas que manejan valores de Vault'
+checked: probado
+page: ejecucion/variables
+source: apps/ansible/app/grpc/services/runner.py
+updated: 2026-11-04
