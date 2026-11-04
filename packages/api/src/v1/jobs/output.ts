@@ -4,7 +4,7 @@ import { taskEventSchema } from "#v1/run/router"
 import { secretVariableOutput } from "#v1/run/secret-variables"
 import { inventorySelectionItem } from "#v1/run/selection"
 
-const runStatus = z.enum(["pending", "running", "ok", "failed"])
+const runStatus = z.enum(["pending", "running", "ok", "failed", "cancelled"])
 
 // A job as stored in the database.
 const job = z.object({
@@ -55,7 +55,7 @@ const startRunResult = z.object({ runId: z.string() })
 const jobRunWatchResult = z
   .object({
     runId: z.string(),
-    status: z.enum(["ok", "failed"]),
+    status: z.enum(["ok", "failed", "cancelled"]),
     ok: z.boolean(),
   })
   .nullable()
@@ -68,7 +68,7 @@ const jobRunChangeEvent = z.discriminatedUnion("type", [
     type: z.literal("changed"),
     runId: z.string(),
     jobId: z.string(),
-    status: z.enum(["running", "ok", "failed"]),
+    status: z.enum(["running", "ok", "failed", "cancelled"]),
     trigger: z.enum(["manual", "schedule"]),
   }),
 ])
@@ -134,6 +134,7 @@ export const jobsOutput = {
 export const jobRunsOutput = {
   watch: eventIterator(taskEventSchema, jobRunWatchResult),
   watchChanges: eventIterator(jobRunChangeEvent),
+  cancel: z.object({ runId: z.string() }),
   list: z.array(jobRun),
   get: jobRun,
   listAll: jobRunFeedPage,

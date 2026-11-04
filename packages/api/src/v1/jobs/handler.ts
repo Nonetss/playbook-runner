@@ -10,7 +10,7 @@ import { errors } from "#errors"
 import { followRunChanges } from "#v1/jobs/changes"
 import { startJobRun } from "#v1/jobs/executor"
 import type { jobRunsInput, jobsInput } from "#v1/jobs/input"
-import { watchLiveRun } from "#v1/jobs/live"
+import { cancelLiveRun, watchLiveRun } from "#v1/jobs/live"
 import { toSecretVariable } from "#v1/run/secret-variables"
 
 type JobInput = z.infer<typeof jobsInput.create>
@@ -234,6 +234,15 @@ function computeDurationMs(
 }
 
 /**
+ * Share of successful runs, leaving cancelled ones out: stopping a run by hand
+ * says nothing about how reliable the job is. 0 when no run counts.
+ */
+function computeSuccessRate(ok: number, total: number, cancelled: number) {
+  const counted = total - cancelled
+  return counted > 0 ? ok / counted : 0
+}
+
+/**
  * Opaque cursor over the `(created_at, id)` ordering used by `listAll`. We
  * encode both components so two runs sharing a `created_at` second don't get
  * skipped or repeated as the user pages forward.
@@ -269,7 +278,7 @@ function shapeRun<
   T extends {
     id: string
     jobId: string | null
-    status: "pending" | "running" | "ok" | "failed"
+    status: "pending" | "running" | "ok" | "failed" | "cancelled"
     trigger: string
     startedAt: Date | string | null
     finishedAt: Date | string | null
@@ -310,6 +319,36 @@ export const jobRunsHandler = {
     context: Context
     signal?: AbortSignal
   }) => followRunChanges(signal),
+
+  /**
+   * Asks a run a person started to stop, and returns without waiting for it:
+   * the outcome arrives through `watch` and `watchChanges`.
+   */
+  cancel: async ({
+    context,
+    input,
+  }: {
+    context: Context
+    input: z.infer<typeof jobRunsInput.cancel>
+  }) => {
+    const [run] = await db
+      .select({ status: jobRuns.status, trigger: jobRuns.trigger })
+      .from(jobRuns)
+      .where(eq(jobRuns.id, input.runId))
+    if (!run) throw errors.NOT_FOUND()
+    if (run.trigger !== "manual") {
+      throw errors.FORBIDDEN({
+        message: "Scheduled runs cannot be cancelled",
+      })
+    }
+    const cancelled =
+      run.status === "running" &&
+      cancelLiveRun(input.runId, context.user?.name ?? "")
+    if (!cancelled) {
+      throw errors.CONFLICT({ message: "The run is not in progress" })
+    }
+    return { runId: input.runId }
+  },
 
   list: async ({
     input,
@@ -411,6 +450,7 @@ export const jobRunsHandler = {
         total: sql<number>`count(*)::int`,
         okCount: sql<number>`count(*) filter (where ${jobRuns.status} = 'ok')::int`,
         failedCount: sql<number>`count(*) filter (where ${jobRuns.status} = 'failed')::int`,
+        cancelledCount: sql<number>`count(*) filter (where ${jobRuns.status} = 'cancelled')::int`,
         avgDurationMs: sql<
           number | null
         >`avg(extract(epoch from (${jobRuns.finishedAt} - ${jobRuns.startedAt})) * 1000) filter (where ${jobRuns.finishedAt} is not null and ${jobRuns.startedAt} is not null)`,
@@ -421,7 +461,11 @@ export const jobRunsHandler = {
     const total = Number(row?.total ?? 0)
     const okCount = Number(row?.okCount ?? 0)
     const failedCount = Number(row?.failedCount ?? 0)
-    const successRate = total > 0 ? okCount / total : 0
+    const successRate = computeSuccessRate(
+      okCount,
+      total,
+      Number(row?.cancelledCount ?? 0)
+    )
 
     return {
       window,
@@ -478,6 +522,10 @@ export const jobRunsHandler = {
           sql<number>`count(*) filter (where ${recent.status} = 'ok')::int`.as(
             "ok_count"
           ),
+        cancelledCount:
+          sql<number>`count(*) filter (where ${recent.status} = 'cancelled')::int`.as(
+            "cancelled_count"
+          ),
         total: sql<number>`count(*)::int`.as("total"),
       })
       .from(recent)
@@ -493,6 +541,7 @@ export const jobRunsHandler = {
         latestStatus: latest.latestStatus,
         latestCreatedAt: latest.latestCreatedAt,
         successOkCount: ratios.okCount,
+        successCancelledCount: ratios.cancelledCount,
         successTotal: ratios.total,
         latestDurationMs: sql<
           number | null
@@ -521,7 +570,11 @@ export const jobRunsHandler = {
           durationMs != null && Number.isFinite(durationMs) && durationMs > 0
             ? durationMs
             : null,
-        recentSuccessRatio: total > 0 ? ok / total : 0,
+        recentSuccessRatio: computeSuccessRate(
+          ok,
+          total,
+          Number(r.successCancelledCount ?? 0)
+        ),
         recentRunCount: total,
       }
     })

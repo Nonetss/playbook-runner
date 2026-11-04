@@ -3,7 +3,7 @@ import type { RunEventRecord } from "#v1/run/proto"
 
 export type LiveRunResult = {
   runId: string
-  status: "ok" | "failed"
+  status: "ok" | "failed" | "cancelled"
   ok: boolean
 }
 
@@ -11,6 +11,10 @@ type LiveRun = {
   /** Every event of the run so far, replayed to whoever attaches later. */
   events: RunEventRecord[]
   done: LiveRunResult | null
+  /** Aborted by `cancelLiveRun`; stops the run's gRPC call. */
+  controller: AbortController
+  /** Name of whoever cancelled the run first. */
+  cancelledBy: string | null
 }
 
 /**
@@ -52,8 +56,33 @@ const state = createState()
 /** Keep a just-finished run watchable for a bit, in case a subscriber races the finish. */
 const FINISHED_RUN_TTL_MS = 30_000
 
-export function beginLiveRun(runId: string): void {
-  state.runs.set(runId, { events: [], done: null })
+/** Registers the run and returns the signal that cancels its execution. */
+export function beginLiveRun(runId: string): AbortSignal {
+  const controller = new AbortController()
+  state.runs.set(runId, {
+    events: [],
+    done: null,
+    controller,
+    cancelledBy: null,
+  })
+  return controller.signal
+}
+
+/**
+ * Asks the run's execution to stop, only signalling it: the executor settles
+ * the run and publishes its result. Returns false when the run isn't live or
+ * has already finished. Repeating it is harmless and keeps the first name.
+ */
+export function cancelLiveRun(runId: string, cancelledBy: string): boolean {
+  const run = state.runs.get(runId)
+  if (!run || run.done) return false
+  run.cancelledBy ??= cancelledBy
+  run.controller.abort()
+  return true
+}
+
+export function liveRunCancelledBy(runId: string): string | null {
+  return state.runs.get(runId)?.cancelledBy ?? null
 }
 
 export function publishRunEvent(runId: string, data: RunEventRecord): void {

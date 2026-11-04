@@ -6,6 +6,7 @@ import { fakeDb } from "#tests/fixtures/db"
 import { expectErrorCode } from "#tests/fixtures/errors"
 import { publishRunChange } from "#v1/jobs/events"
 import { jobRunsHandler } from "#v1/jobs/handler"
+import { beginLiveRun, finishLiveRun, liveRunCancelledBy } from "#v1/jobs/live"
 import { jobsRouter } from "#v1/jobs/router"
 
 const context = userContext()
@@ -29,7 +30,100 @@ function feedRow(index: number, overrides: { jobName?: string | null } = {}) {
   }
 }
 
+let counter = 0
+/** The live registry is process-wide: every run gets an id of its own. */
+function freshRunId() {
+  counter += 1
+  return `00000000-0000-4000-8000-0000000003${String(counter).padStart(2, "0")}`
+}
+
 beforeEach(() => fakeDb.reset())
+
+describe("jobs.runs.cancel", () => {
+  const running = { status: "running", trigger: "manual" }
+
+  test("cancels a manual run in progress, naming the user", async () => {
+    const runId = freshRunId()
+    const signal = beginLiveRun(runId)
+    fakeDb.queue("select", [running])
+
+    expect(await jobRunsHandler.cancel({ context, input: { runId } })).toEqual({
+      runId,
+    })
+    expect(signal.aborted).toBe(true)
+    expect(liveRunCancelledBy(runId)).toBe(context.user?.name ?? null)
+  })
+
+  test("an unknown run is NOT_FOUND", async () => {
+    fakeDb.queue("select", [])
+
+    await expectErrorCode(
+      jobRunsHandler.cancel({ context, input: { runId: freshRunId() } }),
+      "NOT_FOUND"
+    )
+  })
+
+  test("a scheduled run is FORBIDDEN and keeps executing", async () => {
+    const runId = freshRunId()
+    const signal = beginLiveRun(runId)
+    fakeDb.queue("select", [{ status: "running", trigger: "schedule" }])
+
+    await expectErrorCode(
+      jobRunsHandler.cancel({ context, input: { runId } }),
+      "FORBIDDEN"
+    )
+    expect(signal.aborted).toBe(false)
+  })
+
+  test("a finished run is CONFLICT and nothing is written", async () => {
+    fakeDb.queue("select", [{ status: "ok", trigger: "manual" }])
+
+    await expectErrorCode(
+      jobRunsHandler.cancel({ context, input: { runId: freshRunId() } }),
+      "CONFLICT"
+    )
+    expect(fakeDb.calls("update")).toEqual([])
+  })
+
+  test("a running row with no live execution is CONFLICT", async () => {
+    fakeDb.queue("select", [running])
+
+    await expectErrorCode(
+      jobRunsHandler.cancel({ context, input: { runId: freshRunId() } }),
+      "CONFLICT"
+    )
+  })
+
+  test("a run finishing in the registry is CONFLICT", async () => {
+    const runId = freshRunId()
+    beginLiveRun(runId)
+    finishLiveRun(runId, { runId, status: "ok", ok: true })
+    fakeDb.queue("select", [running])
+
+    await expectErrorCode(
+      jobRunsHandler.cancel({ context, input: { runId } }),
+      "CONFLICT"
+    )
+  })
+
+  test("a malformed id is BAD_REQUEST", async () => {
+    await expectErrorCode(
+      call(jobsRouter.runs.cancel, { runId: "nope" }, { context }),
+      "BAD_REQUEST"
+    )
+  })
+
+  test("a pending user is FORBIDDEN", async () => {
+    await expectErrorCode(
+      call(
+        jobsRouter.runs.cancel,
+        { runId: freshRunId() },
+        { context: pendingContext() }
+      ),
+      "FORBIDDEN"
+    )
+  })
+})
 
 describe("jobs.runs.list", () => {
   test("returns the job's runs without a limit when none is asked for", async () => {
@@ -157,6 +251,38 @@ describe("jobs.runs.metrics", () => {
     })
   })
 
+  test("cancelled runs count in the total but not against the success rate", async () => {
+    fakeDb.queue("select", [
+      {
+        total: 5,
+        okCount: 3,
+        failedCount: 1,
+        cancelledCount: 1,
+        avgDurationMs: null,
+      },
+    ])
+
+    expect(
+      await jobRunsHandler.metrics({ context, input: { window: "7d" } })
+    ).toMatchObject({ total: 5, failedCount: 1, successRate: 0.75 })
+  })
+
+  test("a window of only cancelled runs has a success rate of zero", async () => {
+    fakeDb.queue("select", [
+      {
+        total: 2,
+        okCount: 0,
+        failedCount: 0,
+        cancelledCount: 2,
+        avgDurationMs: null,
+      },
+    ])
+
+    expect(
+      await jobRunsHandler.metrics({ context, input: { window: "7d" } })
+    ).toMatchObject({ total: 2, successRate: 0 })
+  })
+
   test("an empty window is all zeros instead of dividing by zero", async () => {
     fakeDb.queue("select", [
       { total: 0, okCount: 0, failedCount: 0, avgDurationMs: null },
@@ -201,6 +327,26 @@ describe("jobs.runs.rollups", () => {
         recentSuccessRatio: 0.7,
         recentRunCount: 10,
       },
+    ])
+  })
+
+  test("a cancelled run does not lower the recent success ratio", async () => {
+    fakeDb.queue("select", [
+      {
+        jobId: IDS.job,
+        jobName: "Nightly patch",
+        latestRunId: IDS.jobRun,
+        latestStatus: "cancelled",
+        latestCreatedAt: STARTED,
+        successOkCount: 3,
+        successCancelledCount: 1,
+        successTotal: 4,
+        latestDurationMs: null,
+      },
+    ])
+
+    expect(await jobRunsHandler.rollups({ context, input: {} })).toMatchObject([
+      { latestStatus: "cancelled", recentSuccessRatio: 1, recentRunCount: 4 },
     ])
   })
 

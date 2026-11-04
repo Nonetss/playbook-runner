@@ -107,13 +107,26 @@ export const jobsRouter = {
       .route({
         summary: "Watch job run changes",
         description:
-          "Streams every job run starting (`running`) or finishing (`ok`/`failed`), whatever started it — the scheduler, `run`, another user — as an event iterator: a `subscribed` event once the stream is listening, then one `changed` event (run id, job id, status, trigger) per change until the caller leaves. A finish is announced once its result is stored. Carries ids only; clients refetch what they show.",
+          "Streams every job run starting (`running`) or finishing (`ok`/`failed`/`cancelled`), whatever started it — the scheduler, `run`, another user — as an event iterator: a `subscribed` event once the stream is listening, then one `changed` event (run id, job id, status, trigger) per change until the caller leaves. A finish is announced once its result is stored. Carries ids only; clients refetch what they show.",
         tags: ["Jobs"],
         method: "POST",
       })
       .output(jobRunsOutput.watchChanges)
       .handler(({ context, signal }) =>
         jobRunsHandler.watchChanges({ context, signal })
+      ),
+    cancel: protectedProcedure
+      .route({
+        summary: "Cancel a manual job run",
+        description:
+          "Asks a run started by a person (`trigger = manual`) to stop and returns without waiting for it: the run settles as `cancelled`, announced through `runs.watch` and `runs.watchChanges`, unless it finished first. Ansible stops, but changes already applied are not rolled back and a command already launched on a host may keep running there. Returns FORBIDDEN for a scheduled run, CONFLICT when the run is not in progress, and succeeds again while it is still stopping.",
+        tags: ["Jobs"],
+        method: "POST",
+      })
+      .input(jobRunsInput.cancel)
+      .output(jobRunsOutput.cancel)
+      .handler(({ context, input }) =>
+        jobRunsHandler.cancel({ context, input })
       ),
     list: protectedProcedure
       .route({

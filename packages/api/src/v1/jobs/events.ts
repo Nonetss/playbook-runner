@@ -9,13 +9,13 @@ import type { RunEventRecord } from "#v1/run/proto"
 export type RunMessage = { event: RunEventRecord } | { end: LiveRunResult }
 
 /**
- * A job run starting (`running`) or finishing (`ok`/`failed`), whatever
+ * A job run starting (`running`) or finishing (`ok`/`failed`/`cancelled`), whatever
  * started it: ids only, for clients to refetch what they show.
  */
 export type RunChange = {
   runId: string
   jobId: string
-  status: "running" | "ok" | "failed"
+  status: "running" | "ok" | "failed" | "cancelled"
   trigger: "manual" | "schedule"
 }
 

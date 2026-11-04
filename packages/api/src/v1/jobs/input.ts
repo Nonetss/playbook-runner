@@ -33,6 +33,7 @@ export const jobsInput = {
 
 export const jobRunsInput = {
   watch: z.object({ runId: idSchema }),
+  cancel: z.object({ runId: idSchema }),
   // `limit`/`offset` page the history; omit both to get every run.
   list: z.object({
     jobId: idSchema,

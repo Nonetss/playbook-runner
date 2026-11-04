@@ -7,7 +7,12 @@ import { RunnerServiceClient } from "@playbook-runner/grpc/stubs"
 import { logger } from "@playbook-runner/logger"
 import { and, eq, sql } from "drizzle-orm"
 import { publishRunChange } from "#v1/jobs/events"
-import { beginLiveRun, finishLiveRun, publishRunEvent } from "#v1/jobs/live"
+import {
+  beginLiveRun,
+  finishLiveRun,
+  liveRunCancelledBy,
+  publishRunEvent,
+} from "#v1/jobs/live"
 import {
   describeStreamError,
   RUN_TIMEOUT_MS,
@@ -25,6 +30,8 @@ type RunOutcome = {
   error: string | null
   /** Commit a Git-sourced playbook ran at. */
   commitSha?: string
+  /** A cancellation stopped the stream before its terminal frame. */
+  cancelled?: boolean
 }
 
 /** The per-host recap Ansible emits once at the end of a play. */
@@ -87,7 +94,8 @@ function countHostOutcomes(events: RunEventRecord[]): {
  */
 async function streamRun(
   job: typeof jobs.$inferSelect,
-  runId: string
+  runId: string,
+  signal: AbortSignal
 ): Promise<RunOutcome> {
   if (!job.playbookId) {
     return { events: [], ok: false, error: "El job no tiene playbook asignado" }
@@ -130,10 +138,29 @@ async function streamRun(
     }
   }
 
+  if (signal.aborted) {
+    return {
+      events: [],
+      ok: false,
+      error: null,
+      commitSha: bundle.commitSha,
+      cancelled: true,
+    }
+  }
+
   const client = getClient(RunnerServiceClient, env.ANSIBLE_GRPC_TARGET)
   const events: RunEventRecord[] = []
   let ok = false
   let error: string | null = null
+  // A cancellation only counts if it beat the run's own terminal frame.
+  let terminal = false
+  const cancelled = (): RunOutcome => ({
+    events,
+    ok: false,
+    error: null,
+    commitSha: bundle.commitSha,
+    cancelled: true,
+  })
 
   try {
     const stream = serverStream(
@@ -146,15 +173,17 @@ async function streamRun(
         secret_variables: bundle.secretVariables,
         disabled_roles: [],
       },
-      { token: env.SERVICE_TOKEN, timeoutMs: RUN_TIMEOUT_MS }
+      { token: env.SERVICE_TOKEN, timeoutMs: RUN_TIMEOUT_MS, signal }
     )
     for await (const frame of stream) {
       // Transport-only keepalive: never stored nor published.
       if (frame.heartbeat) continue
       if (frame.done) {
         ok = frame.done.ok
+        terminal = true
       } else if (frame.error !== undefined) {
         error = frame.error
+        terminal = true
       } else if (frame.task) {
         const record = taskEventToRecord(frame.task)
         events.push(record)
@@ -162,13 +191,18 @@ async function streamRun(
       }
     }
   } catch (err) {
-    return {
-      events,
-      ok: false,
-      error: describeStreamError(err),
-      commitSha: bundle.commitSha,
+    // Cancelling makes the stream fail with `CANCELLED`: not a lost connection.
+    if (!signal.aborted) {
+      return {
+        events,
+        ok: false,
+        error: describeStreamError(err),
+        commitSha: bundle.commitSha,
+      }
     }
   }
+
+  if (signal.aborted && !terminal) return cancelled()
 
   return {
     events,
@@ -191,14 +225,14 @@ async function completeRun(
   runId: string,
   trigger: "manual" | "schedule"
 ): Promise<void> {
-  beginLiveRun(runId)
+  const signal = beginLiveRun(runId)
   // The row is committed by now (`openRun`), so a client refetching on this
   // finds the run, and one attaching `jobs.runs.watch` finds it live.
   publishRunChange({ runId, jobId: job.id, status: "running", trigger })
 
   let outcome: RunOutcome
   try {
-    outcome = await streamRun(job, runId)
+    outcome = await streamRun(job, runId, signal)
   } catch (err) {
     outcome = {
       events: [],
@@ -208,7 +242,14 @@ async function completeRun(
   }
 
   const { hostsOk, hostsFailed } = countHostOutcomes(outcome.events)
-  let status: "ok" | "failed" = outcome.ok ? "ok" : "failed"
+  let status: "ok" | "failed" | "cancelled" = outcome.cancelled
+    ? "cancelled"
+    : outcome.ok
+      ? "ok"
+      : "failed"
+  const error = outcome.cancelled
+    ? `Cancelada por ${liveRunCancelledBy(runId)}`
+    : outcome.error
 
   try {
     await db
@@ -216,7 +257,7 @@ async function completeRun(
       .set({
         status,
         eventsJson: outcome.events,
-        error: outcome.error,
+        error,
         hostsOk,
         hostsFailed,
         commitSha: outcome.commitSha ?? null,
@@ -228,12 +269,12 @@ async function completeRun(
     // retry with the smallest possible update. `recoverOrphanedRuns` at the
     // next boot is the last resort.
     logger.error({ runId, err }, "failed to persist run result")
-    status = "failed"
+    if (status !== "cancelled") status = "failed"
     await db
       .update(jobRuns)
       .set({
         status,
-        error: outcome.error ?? "Could not persist the run result",
+        error: error ?? "Could not persist the run result",
         finishedAt: new Date(),
       })
       .where(eq(jobRuns.id, runId))

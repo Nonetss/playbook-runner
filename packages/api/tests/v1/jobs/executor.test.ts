@@ -15,13 +15,14 @@ import {
   grpc,
   grpcError,
   resetGrpc,
+  serveCancellable,
   settle,
   streamOf,
 } from "#tests/fixtures/grpc"
 import { encryptSecret } from "#v1/credentials/crypto"
 import { type RunChange, subscribeRunChanges } from "#v1/jobs/events"
 import { executeJob, startJobRun } from "#v1/jobs/executor"
-import { watchLiveRun } from "#v1/jobs/live"
+import { cancelLiveRun, watchLiveRun } from "#v1/jobs/live"
 
 const JOB = jobRow({ inventoryJson: [{ type: "device", id: IDS.device }] })
 const COMMIT = "0123456789abcdef0123456789abcdef01234567"
@@ -395,6 +396,138 @@ describe("executeJob secret variables", () => {
 
     expect(grpc.serverStream).not.toHaveBeenCalled()
     expect(persisted()).toMatchObject({ status: "failed" })
+  })
+})
+
+describe("cancelling a run", () => {
+  /** Starts a run served by a stream the test feeds and can cancel. */
+  async function startCancellable() {
+    const runId = freshRunId()
+    queueOpenedRun(runId)
+    fakeDb.queue("update", undefined)
+    const runner = controlledStream<RunBundleResponse>()
+    serveCancellable(runner)
+    expect(await startJobRun(IDS.job)).toEqual({ status: "opened", runId })
+    await settle()
+    return { runId, runner }
+  }
+
+  test("is stored as cancelled with the events so far and who asked", async () => {
+    const { runId, runner } = await startCancellable()
+    runner.push(TASK)
+    await settle()
+
+    expect(cancelLiveRun(runId, "Ana")).toBe(true)
+    await settle()
+
+    expect(persisted()).toMatchObject({
+      status: "cancelled",
+      eventsJson: [{ event: "runner_on_ok", host: "web-1" }],
+      error: "Cancelada por Ana",
+      hostsOk: null,
+      hostsFailed: null,
+      finishedAt: expect.any(Date),
+    })
+  })
+
+  test("stops a silent task at once, and watchers get the cancelled result", async () => {
+    const { runId, runner } = await startCancellable()
+    runner.push(HEARTBEAT, HEARTBEAT)
+    await settle()
+    const watcher = watchLiveRun(runId)
+
+    cancelLiveRun(runId, "Ana")
+    await settle()
+
+    expect(await watcher.next()).toEqual({
+      done: true,
+      value: { runId, status: "cancelled", ok: false },
+    })
+  })
+
+  test("announces the cancelled finish", async () => {
+    const changes = recordRunChanges()
+    const { runId } = await startCancellable()
+
+    cancelLiveRun(runId, "Ana")
+
+    expect((await changes.stop()).at(-1)).toMatchObject({
+      runId,
+      status: "cancelled",
+      trigger: "manual",
+    })
+  })
+
+  test("a terminal frame before the cancellation keeps the real outcome", async () => {
+    const { runId, runner } = await startCancellable()
+    runner.push(DONE_OK)
+    await settle()
+
+    cancelLiveRun(runId, "Ana")
+    await settle()
+
+    expect(persisted()).toMatchObject({ status: "ok", error: null })
+  })
+
+  test("a cancellation before the stream opens never calls the runner", async () => {
+    const runId = freshRunId()
+    queueOpenedRun(runId)
+    fakeDb.queue("update", undefined)
+
+    await startJobRun(IDS.job)
+    cancelLiveRun(runId, "Ana")
+    await settle()
+
+    expect(grpc.serverStream).not.toHaveBeenCalled()
+    expect(persisted()).toMatchObject({
+      status: "cancelled",
+      error: "Cancelada por Ana",
+    })
+  })
+
+  test("stays cancelled when only the minimal update can be stored", async () => {
+    const runId = freshRunId()
+    queueOpenedRun(runId)
+    fakeDb.queueError("update", new Error("db down"))
+    fakeDb.queue("update", undefined)
+    serveCancellable(controlledStream<RunBundleResponse>())
+    await startJobRun(IDS.job)
+    await settle()
+
+    cancelLiveRun(runId, "Ana")
+    await settle()
+
+    expect(fakeDb.calls("update")).toHaveLength(2)
+    expect(persisted()).toMatchObject({
+      status: "cancelled",
+      error: "Cancelada por Ana",
+    })
+  })
+
+  test("a lost stream without a cancellation is still a lost connection", async () => {
+    const { runner } = await startCancellable()
+
+    runner.fail(grpcError(grpcStatus.CANCELLED, "reset"))
+    await settle()
+
+    expect(persisted()).toMatchObject({ status: "failed" })
+    expect(String(persisted().error)).toContain("pudo continuar")
+  })
+
+  test("a settled cancelled run does not block the next one", async () => {
+    const { runId } = await startCancellable()
+    cancelLiveRun(runId, "Ana")
+    await settle()
+
+    const nextRunId = freshRunId()
+    queueOpenedRun(nextRunId)
+    fakeDb.queue("update", undefined)
+    grpc.serverStream.mockImplementation(() => streamOf([DONE_OK]))
+
+    expect(await startJobRun(IDS.job)).toEqual({
+      status: "opened",
+      runId: nextRunId,
+    })
   })
 })
 

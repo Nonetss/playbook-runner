@@ -2,7 +2,9 @@ import { afterEach, describe, expect, jest, test } from "bun:test"
 import { settle } from "#tests/fixtures/grpc"
 import {
   beginLiveRun,
+  cancelLiveRun,
   finishLiveRun,
+  liveRunCancelledBy,
   publishRunEvent,
   watchLiveRun,
 } from "#v1/jobs/live"
@@ -26,6 +28,57 @@ async function collect(runId: string, signal?: AbortSignal) {
 }
 
 afterEach(() => jest.useRealTimers())
+
+describe("cancelLiveRun", () => {
+  test("aborts the run's signal and remembers who asked", () => {
+    const runId = freshRunId()
+    const signal = beginLiveRun(runId)
+
+    expect(cancelLiveRun(runId, "Ana")).toBe(true)
+    expect(signal.aborted).toBe(true)
+    expect(liveRunCancelledBy(runId)).toBe("Ana")
+  })
+
+  test("repeating it succeeds and keeps the first name", () => {
+    const runId = freshRunId()
+    beginLiveRun(runId)
+
+    cancelLiveRun(runId, "Ana")
+
+    expect(cancelLiveRun(runId, "Luis")).toBe(true)
+    expect(liveRunCancelledBy(runId)).toBe("Ana")
+  })
+
+  test("a run that is not live cannot be cancelled", () => {
+    expect(cancelLiveRun(freshRunId(), "Ana")).toBe(false)
+  })
+
+  test("a run that already finished cannot be cancelled", () => {
+    jest.useFakeTimers()
+    const runId = freshRunId()
+    const signal = beginLiveRun(runId)
+    finishLiveRun(runId, { runId, status: "ok", ok: true })
+
+    expect(cancelLiveRun(runId, "Ana")).toBe(false)
+    expect(signal.aborted).toBe(false)
+  })
+
+  test("watchers keep the events and end with the cancelled result", async () => {
+    const runId = freshRunId()
+    beginLiveRun(runId)
+    publishRunEvent(runId, { event: "first" })
+    const watching = collect(runId)
+    await settle()
+
+    cancelLiveRun(runId, "Ana")
+    finishLiveRun(runId, { runId, status: "cancelled", ok: false })
+
+    expect(await watching).toEqual({
+      events: [{ event: "first" }],
+      result: { runId, status: "cancelled", ok: false },
+    })
+  })
+})
 
 describe("watchLiveRun", () => {
   test("a run that is not live returns null at once", async () => {
