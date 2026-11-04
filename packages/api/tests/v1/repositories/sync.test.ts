@@ -327,6 +327,7 @@ describe("listRepositoryRoles", () => {
       roles: [],
       requirementsFiles: [],
       playbookRoles: [],
+      playbookVariables: [],
     })
     expect(grpc.unary).not.toHaveBeenCalled()
   })
@@ -364,6 +365,15 @@ describe("listRepositoryRoles", () => {
           { path: "site.yml", roles: ["nginx"], dynamic: true },
           { path: "web.yml", roles: ["docker"] },
         ],
+        playbook_variables: [
+          {
+            path: "site.yml",
+            variables: [
+              { name: "port", value: "80", role: "nginx" },
+              { name: "db_password" },
+            ],
+          },
+        ],
       })
     )
 
@@ -377,6 +387,15 @@ describe("listRepositoryRoles", () => {
       playbookRoles: [
         { path: "site.yml", roles: ["nginx"], dynamic: true },
         { path: "web.yml", roles: ["docker"], dynamic: false },
+      ],
+      playbookVariables: [
+        {
+          path: "site.yml",
+          variables: [
+            { name: "port", value: "80", role: "nginx" },
+            { name: "db_password", value: null, role: null },
+          ],
+        },
       ],
     })
     expect(fakeDb.calls("update")).toEqual([])

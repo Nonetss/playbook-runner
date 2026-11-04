@@ -10,6 +10,7 @@ import {
 } from "#v1/playbooks/folders"
 import type { playbooksInput } from "#v1/playbooks/input"
 import { playbookSecretVariablesHandler } from "#v1/playbooks/secret-variables"
+import { listPlaybookVariables } from "#v1/playbooks/variables"
 
 type Input = typeof playbooksInput
 
@@ -90,6 +91,13 @@ export const playbooksHandler = {
     if (!row) throw errors.NOT_FOUND()
     return row
   },
+
+  variables: async ({
+    input,
+  }: {
+    context: Context
+    input: z.infer<Input["variables"]>
+  }) => listPlaybookVariables(input.id),
 
   update: async ({
     input,

@@ -22,7 +22,7 @@ import { decryptSecret } from "#v1/credentials/crypto"
 /** A sync is a full fetch of the branch: allow far more than a unary default. */
 const SYNC_TIMEOUT_MS = 5 * 60 * 1000
 
-function serviceToken(): string {
+export function serviceToken(): string {
   if (!env.SERVICE_TOKEN) {
     throw errors.SERVICE_UNAVAILABLE({
       message: "gRPC is not configured (SERVICE_TOKEN is missing)",
@@ -32,7 +32,7 @@ function serviceToken(): string {
 }
 
 /** Maps a failed `SyncRepository` call to the API error the user sees. */
-function toSyncError(err: unknown, message: string) {
+export function toSyncError(err: unknown, message: string) {
   if (!isGrpcError(err)) return errors.INTERNAL_SERVER_ERROR({ message })
   switch (err.code) {
     case grpcStatus.INVALID_ARGUMENT:
@@ -236,7 +236,13 @@ export async function listRepositoryRoles(repositoryId: string) {
     .then((rows) => rows[0] ?? null)
   if (!repository) throw errors.NOT_FOUND()
   if (!repository.lastCommitSha) {
-    return { commit: null, roles: [], requirementsFiles: [], playbookRoles: [] }
+    return {
+      commit: null,
+      roles: [],
+      requirementsFiles: [],
+      playbookRoles: [],
+      playbookVariables: [],
+    }
   }
 
   const token = serviceToken()
@@ -268,6 +274,14 @@ export async function listRepositoryRoles(repositoryId: string) {
         path: usage.path,
         roles: usage.roles,
         dynamic: usage.dynamic,
+      })),
+      playbookVariables: response.playbook_variables.map((usage) => ({
+        path: usage.path,
+        variables: usage.variables.map((variable) => ({
+          name: variable.name,
+          value: variable.value ?? null,
+          role: variable.role ?? null,
+        })),
       })),
     }
   } catch (err) {

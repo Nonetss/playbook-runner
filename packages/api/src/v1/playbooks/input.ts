@@ -58,6 +58,7 @@ export const playbooksInput = {
   create: playbook,
   listByFolder: z.object({ folderId }),
   get: byId,
+  variables: byId,
   update: playbook.extend({ id: idSchema }),
   move: z.object({ id: idSchema, folderId }),
   delete: byId,

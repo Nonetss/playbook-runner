@@ -159,6 +159,20 @@ export const playbooksRouter = {
     .output(playbooksOutput.get)
     .handler(({ context, input }) => playbooksHandler.get({ context, input })),
 
+  variables: protectedProcedure
+    .route({
+      summary: "List the variables a playbook defines",
+      description:
+        "Reads the `vars` of a playbook written here, without storing anything. Encrypted, compound or sensitive-looking values are left out. Empty for a Git playbook, whose variables come with its repository's roles (`repositories.roles`). NOT_FOUND when the playbook is missing, BAD_GATEWAY when the runner is unreachable.",
+      tags: ["Playbooks"],
+      method: "GET",
+    })
+    .input(playbooksInput.variables)
+    .output(playbooksOutput.variables)
+    .handler(({ context, input }) =>
+      playbooksHandler.variables({ context, input })
+    ),
+
   update: protectedProcedure
     .route({
       summary: "Update a playbook",

@@ -297,6 +297,7 @@ describe("repositories.roles", () => {
       roles: [],
       requirementsFiles: [],
       playbookRoles: [],
+      playbookVariables: [],
     })
   })
 })

@@ -36,6 +36,17 @@ export type PlaybookSecretVariables = z.infer<typeof secretVariablesDeclaration>
 export type PlaybookFolder = z.infer<typeof folder>
 
 export const playbooksOutput = {
+  variables: z.object({
+    variables: z.array(
+      z.object({
+        name: z.string(),
+        // Null when it is not a plain value, or looks sensitive.
+        value: z.string().nullable(),
+        // Always null here: a single-file playbook has no roles.
+        role: z.string().nullable(),
+      })
+    ),
+  }),
   secretVariables: {
     get: secretVariablesDeclaration,
     set: secretVariablesDeclaration,

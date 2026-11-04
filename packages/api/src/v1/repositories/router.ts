@@ -122,7 +122,7 @@ export const repositoriesRouter = {
     .route({
       summary: "List a repository's Ansible roles",
       description:
-        "Reads the roles and `requirements.yml` files of the repository's last synced commit, plus the roles each playbook declares (`roles`, `include_role` and `import_role` in its plays, following `import_playbook`), without storing anything or changing its sync state. Dependencies in those files are not installed. A null commit and empty lists when the repository was never synced. BAD_REQUEST when the commit cannot be read, BAD_GATEWAY when the Git host or runner is unreachable. NOT_FOUND when the repository is missing.",
+        "Reads the roles and `requirements.yml` files of the repository's last synced commit, plus the roles each playbook declares (`roles`, `include_role` and `import_role` in its plays, following `import_playbook`) and the variables it defines (`vars` and `vars_files` of its plays, `defaults` and `vars` of those roles; encrypted, compound or sensitive-looking values are left out), without storing anything or changing its sync state. Dependencies in those files are not installed. A null commit and empty lists when the repository was never synced. BAD_REQUEST when the commit cannot be read, BAD_GATEWAY when the Git host or runner is unreachable. NOT_FOUND when the repository is missing.",
       tags: ["Repositories"],
       method: "GET",
     })

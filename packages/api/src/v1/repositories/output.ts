@@ -60,6 +60,21 @@ const roles = z.object({
       dynamic: z.boolean(),
     })
   ),
+  // Variables each playbook defines; only those defining some are listed.
+  playbookVariables: z.array(
+    z.object({
+      path: z.string(),
+      variables: z.array(
+        z.object({
+          name: z.string(),
+          // Null when it is not a plain value, or looks sensitive.
+          value: z.string().nullable(),
+          // Null when the play defines it.
+          role: z.string().nullable(),
+        })
+      ),
+    })
+  ),
 })
 
 export type PlaybookRepository = z.infer<typeof repository>
