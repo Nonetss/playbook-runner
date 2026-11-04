@@ -71,6 +71,8 @@ const roles = z.object({
           value: z.string().nullable(),
           // Null when the play defines it.
           role: z.string().nullable(),
+          // The role reads it and nothing the playbook declares defines it.
+          usedOnly: z.boolean(),
         })
       ),
     })

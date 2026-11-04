@@ -36,6 +36,7 @@ export async function listPlaybookVariables(playbookId: string) {
         name: variable.name,
         value: variable.value ?? null,
         role: variable.role ?? null,
+        usedOnly: variable.used_only,
       })),
     }
   } catch (err) {

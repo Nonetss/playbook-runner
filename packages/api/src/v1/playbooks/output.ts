@@ -44,6 +44,8 @@ export const playbooksOutput = {
         value: z.string().nullable(),
         // Always null here: a single-file playbook has no roles.
         role: z.string().nullable(),
+        // Always false here, for the same reason.
+        usedOnly: z.boolean(),
       })
     ),
   }),

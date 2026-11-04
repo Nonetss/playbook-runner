@@ -30,8 +30,8 @@ describe("playbooks.variables", () => {
 
     expect(await playbooksHandler.variables({ context, input })).toEqual({
       variables: [
-        { name: "port", value: "80", role: null },
-        { name: "db_password", value: null, role: null },
+        { name: "port", value: "80", role: null, usedOnly: false },
+        { name: "db_password", value: null, role: null, usedOnly: false },
       ],
     })
     expect(grpc.unary.mock.calls[0]?.[1]).toEqual({ content })
