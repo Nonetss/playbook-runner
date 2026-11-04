@@ -20,7 +20,7 @@ import {
   getCurrentSearchHref,
   getSearchableSurfaces,
 } from "@/features/app-shell/site-nav"
-import { foldText } from "@/lib/fold-text"
+import { matchesEveryWord } from "@/lib/fold-text"
 import { navigate } from "@/lib/navigate"
 import { readRecentSurfaces, recordRecentSurface } from "@/lib/recent-surfaces"
 
@@ -41,12 +41,7 @@ const RECENT_PREFIX = "recent:"
  * order.
  */
 function matchSurface(_value: string, search: string, keywords?: string[]) {
-  const words = foldText(search).split(/\s+/).filter(Boolean)
-  if (words.length === 0) return 1
-  const folded = (keywords ?? []).map(foldText)
-  return words.every((word) => folded.some((keyword) => keyword.includes(word)))
-    ? 1
-    : 0
+  return matchesEveryWord(search, keywords ?? []) ? 1 : 0
 }
 
 /**
