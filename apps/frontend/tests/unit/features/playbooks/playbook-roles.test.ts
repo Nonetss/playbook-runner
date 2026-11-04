@@ -39,9 +39,19 @@ describe("selectableRoles", () => {
 })
 
 describe("offeredVariables", () => {
-  const fromPlay = { name: "port", value: "80", role: null }
-  const fromRole = { name: "port", value: "8080", role: "nginx" }
-  const roleOnly = { name: "root", value: "/srv", role: "nginx" }
+  const fromPlay = { name: "port", value: "80", role: null, usedOnly: false }
+  const fromRole = {
+    name: "port",
+    value: "8080",
+    role: "nginx",
+    usedOnly: false,
+  }
+  const roleOnly = {
+    name: "root",
+    value: "/srv",
+    role: "nginx",
+    usedOnly: false,
+  }
   const none = new Set<string>()
 
   test("keeps one per name, the first one", () => {
@@ -57,7 +67,7 @@ describe("offeredVariables", () => {
   })
 
   test("another role's variable is offered when the first one is unchecked", () => {
-    const other = { name: "port", value: "9", role: "docker" }
+    const other = { name: "port", value: "9", role: "docker", usedOnly: false }
     expect(
       offeredVariables([fromRole, other], new Set(["nginx"]), none)
     ).toEqual([other])

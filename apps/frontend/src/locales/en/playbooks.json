@@ -148,6 +148,7 @@
       "variable_from_play": "from the playbook",
       "variable_from_role": "role {{role}}",
       "variable_no_value": "value not shown",
+      "variable_undefined": "used, not defined",
       "variable_override_aria": "Override {{name}}"
     },
     "roles_disabled": "Roles not run: {{names}}.",

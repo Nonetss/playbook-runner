@@ -53,7 +53,9 @@ export function RunDetectedVariables({
                   ? t("run.panel.variable_from_role", { role: variable.role })
                   : t("run.panel.variable_from_play")}
                 {" · "}
-                {variable.value ?? t("run.panel.variable_no_value")}
+                {variable.usedOnly
+                  ? t("run.panel.variable_undefined")
+                  : (variable.value ?? t("run.panel.variable_no_value"))}
               </Text>
             </div>
             <Button

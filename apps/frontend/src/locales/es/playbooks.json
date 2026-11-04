@@ -148,6 +148,7 @@
       "variable_from_play": "del playbook",
       "variable_from_role": "rol {{role}}",
       "variable_no_value": "valor no visible",
+      "variable_undefined": "la usa, sin definir",
       "variable_override_aria": "Sobrescribir {{name}}"
     },
     "roles_disabled": "Roles sin ejecutar: {{names}}.",
