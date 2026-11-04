@@ -18,6 +18,7 @@ export const jobRunStatusEnum = pgEnum("job_run_status", [
   "running",
   "ok",
   "failed",
+  "cancelled",
 ])
 
 export const jobs = pgTable("jobs", {
