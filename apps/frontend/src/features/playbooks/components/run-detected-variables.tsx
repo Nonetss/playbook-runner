@@ -1,6 +1,6 @@
 import { getIcon } from "@/lib/icon-registry"
 
-const Plus = getIcon("actions", "add")
+const Pencil = getIcon("actions", "edit")
 
 import { useTranslation } from "react-i18next"
 import { Text } from "@/components/shared/brand/typography"
@@ -70,7 +70,7 @@ export function RunDetectedVariables({
               onClick={() => onOverride(variable)}
               disabled={disabled}
             >
-              <Plus className="size-3.5" />
+              <Pencil className="size-3.5" />
             </Button>
           </li>
         ))}
