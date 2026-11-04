@@ -17,6 +17,7 @@ import { useDevicesList } from "@/features/inventory/hooks/use-devices"
 import { useGroupsList } from "@/features/inventory/hooks/use-groups"
 import { useSelectableGroups } from "@/features/inventory/hooks/use-selectable-groups"
 import { PlaybookSwitcher } from "@/features/playbooks/components/playbook-switcher"
+import { RunDetectedVariables } from "@/features/playbooks/components/run-detected-variables"
 import { RunRolesSelection } from "@/features/playbooks/components/run-roles-selection"
 import { usePlaybookSecretVariables } from "@/features/playbooks/hooks/use-playbook-secret-variables"
 import { usePlaybookGet } from "@/features/playbooks/hooks/use-playbooks"
@@ -42,6 +43,7 @@ import { useRunPlaybook } from "@/features/run/hooks/use-run-playbook"
 import { toggleIn } from "@/features/run/hooks/use-selection-toggle"
 import { toRunSelection } from "@/features/run/lib/run-selection"
 import {
+  newVariableRow,
   type RunVariableRow,
   toRunVariables,
   viewVariables,
@@ -55,7 +57,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
   const { t: tInfisical } = useTranslation("infisical")
   const { data: playbook, isPending: playbookLoading } = usePlaybookGet(id)
   const { data: declaredVariables } = usePlaybookSecretVariables(id)
-  const roles = usePlaybookRoles(playbook)
+  const { roles, variables: detectedVariables } = usePlaybookRoles(playbook)
   const { data: storedGroups = [], isPending: groupsLoading } = useGroupsList()
   const { data: devices = [], isPending: devicesLoading } = useDevicesList()
   const groups = useSelectableGroups(storedGroups, devices)
@@ -154,6 +156,10 @@ function RunPlaybookPageInner({ id }: { id: string }) {
     variableRows
   )
   const variableCount = variableView.declared.length + variableView.own.length
+  const takenVariableNames = new Set([
+    ...variableView.declared.map((variable) => variable.name),
+    ...variableView.own.map((row) => row.name.trim()),
+  ])
 
   const frame = (children: React.ReactNode) => (
     <DetailFrame
@@ -310,6 +316,21 @@ function RunPlaybookPageInner({ id }: { id: string }) {
               aside={<PanelCount count={variableCount} />}
               className="border-t pt-5"
             >
+              <RunDetectedVariables
+                variables={detectedVariables}
+                uncheckedRoles={uncheckedRoles}
+                takenNames={takenVariableNames}
+                onOverride={(variable) =>
+                  setVariableRows([
+                    ...variableRows,
+                    newVariableRow({
+                      name: variable.name,
+                      value: variable.value ?? "",
+                    }),
+                  ])
+                }
+                disabled={isRunning}
+              />
               <RunVariableRows
                 declared={declaredVariables}
                 connectionId={infisicalConnectionId}

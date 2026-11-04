@@ -22,12 +22,12 @@ export function useRepositoriesList() {
   return useHydratedQuery(orpc.repositories.list.queryOptions())
 }
 
-/** Roles of the synced commit; `enabled` while the repository is expanded. */
 /** The same query as the repository's section, so they share the cache. */
 export function usePlaybookRoles(
-  playbook: Pick<Playbook, "repositoryId" | "path"> | undefined
+  playbook: Pick<Playbook, "id" | "repositoryId" | "path"> | undefined
 ) {
   const repositoryId = playbook?.repositoryId
+  const path = playbook?.path ?? null
   const { data } = useHydratedQuery(
     orpc.repositories.roles.queryOptions({
       input: { id: repositoryId ?? "" },
@@ -35,12 +35,32 @@ export function usePlaybookRoles(
       retry: false,
     })
   )
+  // A playbook written here comes without a repository. Always refetched: it
+  // may have just been edited.
+  const { data: inline } = useHydratedQuery(
+    orpc.playbooks.variables.queryOptions({
+      input: { id: playbook?.id ?? "" },
+      enabled: !!playbook && !repositoryId,
+      retry: false,
+      staleTime: 0,
+    })
+  )
   return useMemo(
-    () => (data ? selectableRoles(data, playbook?.path ?? null) : []),
-    [data, playbook?.path]
+    () => ({
+      roles: data ? selectableRoles(data, path) : [],
+      // `?.`: during an upgrade the backend can be older than this page, and
+      // these optional hints must not take the run form down with them.
+      variables:
+        inline?.variables ??
+        data?.playbookVariables?.find((usage) => usage.path === path)
+          ?.variables ??
+        [],
+    }),
+    [data, inline, path]
   )
 }
 
+/** Roles of the synced commit; `enabled` while the repository is expanded. */
 export function useRepositoryRoles(
   repository: Pick<PlaybookRepository, "id" | "lastCommitSha">,
   enabled: boolean

@@ -143,7 +143,12 @@
       "options": "OPTIONS",
       "forks": "Forks",
       "roles": "ROLES",
-      "roles_loose_tasks": "The playbook's own tasks always run."
+      "roles_loose_tasks": "The playbook's own tasks always run.",
+      "variables_detected": "Defined in the playbook",
+      "variable_from_play": "from the playbook",
+      "variable_from_role": "role {{role}}",
+      "variable_no_value": "value not shown",
+      "variable_override_aria": "Override {{name}}"
     },
     "roles_disabled": "Roles not run: {{names}}.",
     "result_finished_with_status": "Run finished — status {{status}} (rc={{rc}})",

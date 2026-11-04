@@ -143,7 +143,12 @@
       "options": "OPCIONES",
       "forks": "Paralelismo",
       "roles": "ROLES",
-      "roles_loose_tasks": "Las tareas sueltas del playbook se ejecutan siempre."
+      "roles_loose_tasks": "Las tareas sueltas del playbook se ejecutan siempre.",
+      "variables_detected": "Definidas en el playbook",
+      "variable_from_play": "del playbook",
+      "variable_from_role": "rol {{role}}",
+      "variable_no_value": "valor no visible",
+      "variable_override_aria": "Sobrescribir {{name}}"
     },
     "roles_disabled": "Roles sin ejecutar: {{names}}.",
     "result_finished_with_status": "Ejecución finalizada — estado {{status}} (rc={{rc}})",

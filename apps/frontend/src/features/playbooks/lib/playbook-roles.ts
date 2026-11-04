@@ -14,3 +14,25 @@ export function selectableRoles(
     return role ? [role] : []
   })
 }
+
+export type DetectedVariable =
+  PlaybookRepositoryRoles["playbookVariables"][number]["variables"][number]
+
+/**
+ * The variables a run of this playbook could override, one per name: without
+ * those of unchecked roles, or those that already have a row. The play comes
+ * first, as the runner lists it.
+ */
+export function offeredVariables(
+  variables: DetectedVariable[],
+  uncheckedRoles: ReadonlySet<string>,
+  takenNames: ReadonlySet<string>
+): DetectedVariable[] {
+  const seen = new Set(takenNames)
+  return variables.filter((variable) => {
+    if (seen.has(variable.name)) return false
+    if (variable.role && uncheckedRoles.has(variable.role)) return false
+    seen.add(variable.name)
+    return true
+  })
+}
