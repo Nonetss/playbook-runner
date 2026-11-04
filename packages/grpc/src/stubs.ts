@@ -10,6 +10,7 @@ export {
   ListRepositoryRolesResponse,
   Playbook,
   PlaybookFile,
+  PlaybookRoles,
   RunBundleRequest,
   RunBundleResponse,
   RunCommandRequest,

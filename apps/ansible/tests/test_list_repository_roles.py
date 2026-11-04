@@ -5,9 +5,11 @@ import asyncio
 import grpc
 import pytest
 
+from app.grpc.services import runner as runner_module
 from app.grpc.services.runner import RunnerServicer
-from app.grpc.stubs import ListRepositoryRolesRequest, RepositoryRole
+from app.grpc.stubs import ListRepositoryRolesRequest, PlaybookRoles, RepositoryRole
 from app.services.git import mirror
+from app.services.git.discover import DiscoveredRoles, PlaybookRoleUsage
 
 
 class Aborted(Exception):
@@ -38,6 +40,25 @@ def test_lists_the_commits_roles(git_mirror) -> None:
     assert list(response.roles) == [RepositoryRole(name="x", path="roles/x")]
     assert not response.roles[0].HasField("description")
     assert list(response.requirements_files) == []
+    assert list(response.playbook_roles) == []
+
+
+def test_maps_each_playbooks_roles(git_mirror, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        runner_module,
+        "discover_roles",
+        lambda *_args: DiscoveredRoles(
+            playbook_roles=[
+                PlaybookRoleUsage(path="site.yml", roles=["x"], dynamic=True)
+            ]
+        ),
+    )
+
+    response = call(git_mirror, git_mirror.commit)
+
+    assert list(response.playbook_roles) == [
+        PlaybookRoles(path="site.yml", roles=["x"], dynamic=True)
+    ]
 
 
 def test_invalid_commit_is_a_grpc_error(git_mirror) -> None:

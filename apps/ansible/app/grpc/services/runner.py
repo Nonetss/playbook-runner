@@ -27,6 +27,7 @@ from app.grpc.stubs import (
     ListInfisicalSecretNamesResponse,
     ListRepositoryRolesResponse,
     PlaybookFile,
+    PlaybookRoles,
     RepositoryRole,
     RunBundleResponse,
     RunCommandResponse,
@@ -464,6 +465,10 @@ class RunnerServicer(RunnerServiceServicer):
                 for r in found.roles
             ],
             requirements_files=found.requirements_files,
+            playbook_roles=[
+                PlaybookRoles(path=u.path, roles=u.roles, dynamic=u.dynamic)
+                for u in found.playbook_roles
+            ],
         )
 
     async def ListBranches(self, request, context):

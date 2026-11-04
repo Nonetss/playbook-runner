@@ -142,10 +142,20 @@ message RepositoryRole {
   optional string description = 3;
 }
 
+// Roles a playbook declares, following its import_playbook files. Only playbooks
+// declaring some are listed.
+message PlaybookRoles {
+  string path = 1; // relative to the repository root
+  repeated string roles = 2;
+  // It also uses a role or import whose name is only known when it runs.
+  bool dynamic = 3;
+}
+
 message ListRepositoryRolesResponse {
   repeated RepositoryRole roles = 1;
   // `requirements.yml` files found; their dependencies are not installed.
   repeated string requirements_files = 2;
+  repeated PlaybookRoles playbook_roles = 3;
 }
 
 message ListBranchesRequest {

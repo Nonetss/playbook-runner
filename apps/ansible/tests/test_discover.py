@@ -82,8 +82,10 @@ class TestDiscoverRoles:
         monkeypatch.setattr(
             discover_module,
             "list_tree",
-            lambda _repo, _commit, _subdir: [
-                (path, path, len(content)) for path, content in sorted(files.items())
+            lambda _repo, _commit, subdir: [
+                (path, path, len(content))
+                for path, content in sorted(files.items())
+                if path.startswith(subdir)
             ],
         )
         monkeypatch.setattr(
@@ -250,3 +252,133 @@ class TestDiscoverRoles:
     ) -> None:
         found = self.discover(monkeypatch, {path: b"[]\n"}, subdir="infra")
         assert found.requirements_files == []
+
+    def usages(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        files: dict[str, str],
+        subdir: str = "",
+    ) -> dict[str, tuple[list[str], bool]]:
+        found = self.discover(
+            monkeypatch, {p: c.encode() for p, c in files.items()}, subdir
+        )
+        return {u.path: (u.roles, u.dynamic) for u in found.playbook_roles}
+
+    def test_roles_in_every_form(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        playbook = """
+- hosts: all
+  roles:
+    - plain
+    - role: with_role_key
+    - name: with_name_key
+  pre_tasks:
+    - ansible.builtin.import_role:
+        name: imported
+  tasks:
+    - include_role:
+        name: included
+    - block:
+        - ansible.builtin.include_role:
+            name: in_block
+      rescue:
+        - import_role: name=in_rescue
+  post_tasks:
+    - include_role:
+        name: plain
+"""
+        assert self.usages(monkeypatch, {"site.yml": playbook}) == {
+            "site.yml": (
+                [
+                    "plain",
+                    "with_role_key",
+                    "with_name_key",
+                    "imported",
+                    "included",
+                    "in_block",
+                    "in_rescue",
+                ],
+                False,
+            )
+        }
+
+    def test_playbook_without_roles_is_left_out(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        assert (
+            self.usages(monkeypatch, {"site.yml": "- hosts: all\n  tasks: []\n"}) == {}
+        )
+
+    def test_dynamic_role_name(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        playbook = """
+- hosts: all
+  roles:
+    - known
+  tasks:
+    - include_role:
+        name: "{{ which }}"
+"""
+        assert self.usages(monkeypatch, {"site.yml": playbook}) == {
+            "site.yml": (["known"], True)
+        }
+
+    def test_follows_import_playbook_relative_to_the_importer(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = {
+            "plays/site.yml": "- import_playbook: ../shared/web.yml\n",
+            "shared/web.yml": "- hosts: all\n  roles: [nginx]\n",
+        }
+        assert self.usages(monkeypatch, files) == {
+            "plays/site.yml": (["nginx"], False),
+            "shared/web.yml": (["nginx"], False),
+        }
+
+    def test_follows_an_import_outside_the_subdir(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = {
+            "infra/site.yml": "- import_playbook: ../shared/web.yml\n",
+            "shared/web.yml": "- hosts: all\n  roles: [nginx]\n",
+        }
+        assert self.usages(monkeypatch, files, subdir="infra") == {
+            "infra/site.yml": (["nginx"], False)
+        }
+
+    def test_import_cycle_ends(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        files = {
+            "a.yml": "- import_playbook: b.yml\n- hosts: all\n  roles: [one]\n",
+            "b.yml": "- import_playbook: a.yml\n- hosts: all\n  roles: [two]\n",
+        }
+        assert self.usages(monkeypatch, files) == {
+            "a.yml": (["two", "one"], False),
+            "b.yml": (["one", "two"], False),
+        }
+
+    def test_cyclic_yaml_anchor_ends(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        playbook = """
+- hosts: all
+  tasks: &tasks
+    - include_role:
+        name: kept
+    - block: *tasks
+"""
+        assert self.usages(monkeypatch, {"site.yml": playbook}) == {
+            "site.yml": (["kept"], False)
+        }
+
+    def test_templated_import_is_dynamic(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        files = {"site.yml": '- import_playbook: "{{ which }}.yml"\n'}
+        assert self.usages(monkeypatch, files) == {"site.yml": ([], True)}
+
+    def test_missing_or_broken_import_is_ignored(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = {
+            "site.yml": (
+                "- import_playbook: missing.yml\n"
+                "- import_playbook: broken.yml\n"
+                "- hosts: all\n  roles: [kept]\n"
+            ),
+            "broken.yml": "- hosts: [unclosed\n",
+        }
+        assert self.usages(monkeypatch, files) == {"site.yml": (["kept"], False)}

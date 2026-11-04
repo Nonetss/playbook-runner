@@ -29,6 +29,7 @@ ListBranchesResponse = run_pb2.ListBranchesResponse
 ListRepositoryRolesRequest = run_pb2.ListRepositoryRolesRequest
 ListRepositoryRolesResponse = run_pb2.ListRepositoryRolesResponse
 RepositoryRole = run_pb2.RepositoryRole
+PlaybookRoles = run_pb2.PlaybookRoles
 ListInfisicalEnvironmentsRequest = run_pb2.ListInfisicalEnvironmentsRequest
 ListInfisicalEnvironmentsResponse = run_pb2.ListInfisicalEnvironmentsResponse
 ListInfisicalSecretNamesRequest = run_pb2.ListInfisicalSecretNamesRequest
