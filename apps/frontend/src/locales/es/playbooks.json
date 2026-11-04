@@ -117,7 +117,6 @@
     "playbook_not_found": "Playbook no encontrado.",
     "loading": "Cargando…",
     "back_aria": "Volver",
-    "edit": "Editar",
     "edit_aria": "Editar playbook",
     "new_run": "Nueva ejecución",
     "idle_prompt": "Configura el inventario y pulsa Ejecutar para ver la salida aquí.",

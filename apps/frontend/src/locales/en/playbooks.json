@@ -117,7 +117,6 @@
     "playbook_not_found": "Playbook not found.",
     "loading": "Loading...",
     "back_aria": "Back",
-    "edit": "Edit",
     "edit_aria": "Edit playbook",
     "new_run": "New run",
     "idle_prompt": "Configure the inventory and press Run to see the output here.",

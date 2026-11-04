@@ -159,16 +159,19 @@ function RunPlaybookPageInner({ id }: { id: string }) {
         surface="playbooks"
         title={playbook.name}
         description={t("run.header_subtitle")}
-        meta={<PlaybookSwitcher currentId={id} disabled={isRunning} />}
         action={
-          <div className="flex gap-2">
-            <Button asChild variant="outline">
+          <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
+            {/* Fixed width, so the header doesn't move with the name's length. */}
+            <div className="min-w-0 flex-1 sm:w-80 sm:flex-none">
+              <PlaybookSwitcher currentId={id} disabled={isRunning} />
+            </div>
+            <Button asChild variant="outline" size="icon-sm">
               <AppLink
                 href={`/playbooks/${id}/edit`}
                 aria-label={t("run.edit_aria")}
+                title={t("run.edit_aria")}
               >
                 <Pencil className="size-4" />
-                {t("run.edit")}
               </AppLink>
             </Button>
             {phase !== "idle" ? (
