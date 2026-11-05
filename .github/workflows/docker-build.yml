@@ -117,15 +117,24 @@ jobs:
         run: |
           IMAGE_ID=$(echo "${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/playbook-runner${{ matrix.suffix }}" | tr '[:upper:]' '[:lower:]')
           SHA_SHORT=$(echo "${{ github.sha }}" | cut -c1-8)
+          # A branch name can hold a slash, which an image tag cannot.
+          TAG=$(echo "${{ env.IMAGE_TAG }}" | tr '/' '-')
+
+          # A manual run of another branch is a test image: latest stays put.
+          LATEST=()
+          if [ "${{ github.ref_name }}" = "main" ] || [ "${{ github.ref_type }}" = "tag" ]; then
+            LATEST=(-t "$IMAGE_ID:latest")
+          fi
 
           docker buildx imagetools create \
-            -t "$IMAGE_ID:latest" \
-            -t "$IMAGE_ID:${{ env.IMAGE_TAG }}" \
-            -t "$IMAGE_ID:${{ env.IMAGE_TAG }}-$SHA_SHORT" \
+            "${LATEST[@]}" \
+            -t "$IMAGE_ID:$TAG" \
+            -t "$IMAGE_ID:$TAG-$SHA_SHORT" \
             "$IMAGE_ID:sha-${{ github.sha }}-amd64" \
             "$IMAGE_ID:sha-${{ github.sha }}-arm64"
 
       - name: Inspect image
         run: |
           IMAGE_ID=$(echo "${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/playbook-runner${{ matrix.suffix }}" | tr '[:upper:]' '[:lower:]')
-          docker buildx imagetools inspect "$IMAGE_ID:${{ env.IMAGE_TAG }}"
+          TAG=$(echo "${{ env.IMAGE_TAG }}" | tr '/' '-')
+          docker buildx imagetools inspect "$IMAGE_ID:$TAG"
