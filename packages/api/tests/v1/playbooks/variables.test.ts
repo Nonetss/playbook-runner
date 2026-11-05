@@ -24,14 +24,29 @@ describe("playbooks.variables", () => {
     fakeDb.queue("select", [{ source: "inline", content }])
     grpc.unary.mockResolvedValue(
       ListPlaybookVariablesResponse.fromPartial({
-        variables: [{ name: "port", value: "80" }, { name: "db_password" }],
+        variables: [
+          { name: "port", value: "80", value_type: "number" },
+          { name: "db_password" },
+        ],
       })
     )
 
     expect(await playbooksHandler.variables({ context, input })).toEqual({
       variables: [
-        { name: "port", value: "80", role: null, usedOnly: false },
-        { name: "db_password", value: null, role: null, usedOnly: false },
+        {
+          name: "port",
+          value: "80",
+          valueType: "number",
+          role: null,
+          usedOnly: false,
+        },
+        {
+          name: "db_password",
+          value: null,
+          valueType: "text",
+          role: null,
+          usedOnly: false,
+        },
       ],
     })
     expect(grpc.unary.mock.calls[0]?.[1]).toEqual({ content })

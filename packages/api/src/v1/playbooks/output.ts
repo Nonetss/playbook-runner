@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { secretVariableOutput } from "#v1/run/secret-variables"
+import { variableValueType } from "#v1/run/variable-value-type"
 import { idSchema } from "#v1/schemas"
 
 const playbook = z.object({
@@ -40,8 +41,9 @@ export const playbooksOutput = {
     variables: z.array(
       z.object({
         name: z.string(),
-        // Null when it is not a plain value, or looks sensitive.
+        // Null when it cannot be shown, or looks sensitive. Compound ones as JSON.
         value: z.string().nullable(),
+        valueType: variableValueType,
         // Always null here: a single-file playbook has no roles.
         role: z.string().nullable(),
         // Always false here, for the same reason.

@@ -161,11 +161,13 @@ message PlaybookRoles {
 // A variable a playbook defines. `role` is unset when it comes from the play.
 message PlaybookVariable {
   string name = 1;
-  // Unset when it is not a plain value, or looks sensitive.
+  // Unset when it cannot be shown or looks sensitive. Lists and objects as JSON.
   optional string value = 2;
   optional string role = 3;
   // A role reads it and nothing the playbook declares defines it.
   bool used_only = 4;
+  // How an override must be sent: `text`, `boolean`, `number` or `json`.
+  string value_type = 5;
 }
 
 // Only playbooks defining some are listed.

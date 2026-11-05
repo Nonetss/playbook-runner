@@ -397,7 +397,12 @@ describe("listRepositoryRoles", () => {
           {
             path: "site.yml",
             variables: [
-              { name: "port", value: "80", role: "nginx" },
+              {
+                name: "port",
+                value: "80",
+                role: "nginx",
+                value_type: "number",
+              },
               { name: "db_password", used_only: true },
             ],
           },
@@ -420,8 +425,20 @@ describe("listRepositoryRoles", () => {
         {
           path: "site.yml",
           variables: [
-            { name: "port", value: "80", role: "nginx", usedOnly: false },
-            { name: "db_password", value: null, role: null, usedOnly: true },
+            {
+              name: "port",
+              value: "80",
+              valueType: "number",
+              role: "nginx",
+              usedOnly: false,
+            },
+            {
+              name: "db_password",
+              value: null,
+              valueType: "text",
+              role: null,
+              usedOnly: true,
+            },
           ],
         },
       ],

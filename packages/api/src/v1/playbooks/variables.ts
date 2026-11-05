@@ -6,6 +6,7 @@ import { RunnerServiceClient } from "@playbook-runner/grpc/stubs"
 import { eq } from "drizzle-orm"
 import { errors } from "#errors"
 import { serviceToken, toSyncError } from "#v1/repositories/sync"
+import { toVariableValueType } from "#v1/run/variable-value-type"
 
 const VARIABLES_TIMEOUT_MS = 15_000
 
@@ -35,6 +36,7 @@ export async function listPlaybookVariables(playbookId: string) {
       variables: response.variables.map((variable) => ({
         name: variable.name,
         value: variable.value ?? null,
+        valueType: toVariableValueType(variable.value_type),
         role: variable.role ?? null,
         usedOnly: variable.used_only,
       })),

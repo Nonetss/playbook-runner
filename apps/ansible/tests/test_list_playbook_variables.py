@@ -29,7 +29,8 @@ def test_same_rules_for_values_as_a_git_playbook() -> None:
     )
     assert names(content) == [
         ("db_password", None, None),
-        ("items_list", None, None),
+        ("items_list", "[1]", None),
+        ("ansible_user", "root", None),
         ("vaulted", None, None),
     ]
 
@@ -59,7 +60,7 @@ def test_rpc_maps_the_variables() -> None:
     )
 
     assert list(response.variables) == [
-        PlaybookVariable(name="port", value="80"),
-        PlaybookVariable(name="api_token"),
+        PlaybookVariable(name="port", value="80", value_type="number"),
+        PlaybookVariable(name="api_token", value_type="text"),
     ]
     assert not response.variables[1].HasField("value")

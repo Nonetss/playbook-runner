@@ -19,6 +19,7 @@ import { and, eq, notInArray, sql } from "drizzle-orm"
 import { errors } from "#errors"
 import { decryptSecret } from "#v1/credentials/crypto"
 import { hideVaultPassword } from "#v1/repositories/vault-password"
+import { toVariableValueType } from "#v1/run/variable-value-type"
 
 /** A sync is a full fetch of the branch: allow far more than a unary default. */
 const SYNC_TIMEOUT_MS = 5 * 60 * 1000
@@ -281,6 +282,7 @@ export async function listRepositoryRoles(repositoryId: string) {
         variables: usage.variables.map((variable) => ({
           name: variable.name,
           value: variable.value ?? null,
+          valueType: toVariableValueType(variable.value_type),
           role: variable.role ?? null,
           usedOnly: variable.used_only,
         })),

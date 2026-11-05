@@ -491,7 +491,11 @@ class RunnerServicer(RunnerServiceServicer):
         return ListPlaybookVariablesResponse(
             variables=[
                 PlaybookVariable(
-                    name=v.name, value=v.value, role=v.role, used_only=v.used_only
+                    name=v.name,
+                    value=v.value,
+                    role=v.role,
+                    used_only=v.used_only,
+                    value_type=v.value_type,
                 )
                 for v in variables
             ]
@@ -534,6 +538,7 @@ class RunnerServicer(RunnerServiceServicer):
                             value=v.value,
                             role=v.role,
                             used_only=v.used_only,
+                            value_type=v.value_type,
                         )
                         for v in u.variables
                     ],

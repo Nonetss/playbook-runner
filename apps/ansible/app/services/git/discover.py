@@ -15,9 +15,10 @@ Los roles que usa cada playbook salen de leer su YAML: ``roles:``, y
 
 Las variables que define salen de ``vars`` y ``vars_files`` de cada play y de
 ``vars`` de cada entrada de ``roles:`` y de ``defaults`` y ``vars`` de esos roles.
-Solo se devuelve el valor si es simple y no parece sensible: un ``!vault`` o un
-``db_password`` se listan sin valor. Detrás van las que esos roles usan sin que nada
-las defina (``used_only``), según ``role_usage``.
+El valor no se devuelve si está cifrado, es largo o parece sensible: un ``!vault``
+o un ``db_password`` se listan sin valor. Las listas y los diccionarios van en JSON.
+Detrás van las que esos roles usan, también dentro de sus ``defaults`` y ``vars``,
+sin que nada las defina (``used_only``), según ``role_usage``.
 """
 
 from __future__ import annotations
@@ -47,11 +48,15 @@ MAX_ROLE_DESCRIPTION_CHARS = 500
 _YAML_MAIN = {"main.yml", "main.yaml"}
 _YAML_SUFFIXES = (".yml", ".yaml")
 _ROLE_TASK_DIRS = {"tasks", "handlers"}
+_ROLE_VARIABLE_DIRS = {"defaults", "vars"}
 _REQUIREMENTS = ("requirements.yml", "requirements.yaml")
 _MAX_IMPORT_DEPTH = 32
 _MAX_VARIABLES = 200
 _MAX_ROLE_FILES = 200
 _MAX_VALUE_CHARS = 200
+_MAX_COMPOUND_CHARS = 4096
+_MAX_COMPOUND_NODES = 2000
+_MAX_COMPOUND_DEPTH = 32
 _VARIABLE_NAME = re.compile(r"[A-Za-z_]\w*")
 _SENSITIVE_NAME = re.compile(r"pass|pwd|secret|token|key|credential", re.IGNORECASE)
 _TASK_LISTS = ("pre_tasks", "tasks", "post_tasks", "handlers")
@@ -91,6 +96,8 @@ class DiscoveredVariable:
     role: str | None = None
     # Un rol la usa y nada la define: no hay valor que enseñar.
     used_only: bool = False
+    # Cómo enviarla al sobrescribirla: ``text``, ``boolean``, ``number`` o ``json``.
+    value_type: str = "text"
 
 
 @dataclass
@@ -313,14 +320,67 @@ def _playbook_usage(path: str, read: _ReadYaml) -> PlaybookRoleUsage:
     return usage
 
 
+class _HiddenValue(Exception):
+    """El valor compuesto contiene algo que no se enseña, o no acaba nunca."""
+
+
+def _plain_compound(value: Any) -> Any:
+    """Copia de una lista o un diccionario, o ``_HiddenValue``.
+
+    Sin memoria a propósito: las anclas YAML pueden hacerlo cíclico o exponencial,
+    y lo cortan el límite de profundidad y el de nodos.
+    """
+    nodes = 0
+
+    def visit(node: Any, depth: int) -> Any:
+        nonlocal nodes
+        nodes += 1
+        if (
+            nodes > _MAX_COMPOUND_NODES
+            or depth > _MAX_COMPOUND_DEPTH
+            or isinstance(node, _TaggedScalar)
+        ):
+            raise _HiddenValue
+        if isinstance(node, dict):
+            if any(_SENSITIVE_NAME.search(str(key)) for key in node):
+                raise _HiddenValue
+            return {str(key): visit(item, depth + 1) for key, item in node.items()}
+        if isinstance(node, list):
+            return [visit(item, depth + 1) for item in node]
+        return node
+
+    return visit(value, 0)
+
+
+def _value_type(value: Any) -> str:
+    """Tipo con el que una ejecución tiene que enviar el valor para no cambiarlo."""
+    if isinstance(value, bool):
+        return "boolean"
+    if isinstance(value, int | float):
+        return "number"
+    return "json" if isinstance(value, dict | list) else "text"
+
+
 def _shown_value(name: str, value: Any) -> str | None:
-    """Texto del valor, o ``None`` si es compuesto, cifrado o parece sensible."""
+    """Texto del valor, o ``None`` si está cifrado, es largo o parece sensible."""
     if (
         value is None
-        or isinstance(value, _TaggedScalar | dict | list)
+        or isinstance(value, _TaggedScalar)
         or _SENSITIVE_NAME.search(name)
     ):
         return None
+    if isinstance(value, dict | list):
+        try:
+            text = json.dumps(
+                _plain_compound(value),
+                default=str,
+                ensure_ascii=False,
+                allow_nan=False,
+                separators=(",", ":"),
+            )
+        except (_HiddenValue, ValueError):
+            return None
+        return None if len(text) > _MAX_COMPOUND_CHARS else text
     text = (
         value
         if isinstance(value, str)
@@ -364,7 +424,7 @@ def _role_variable_files(role_path: str, tree: Container[str]) -> Iterator[str]:
 def _files_by_role(
     tree: Iterable[str], role_paths: Container[str]
 ) -> dict[str, list[str]]:
-    """Tareas, handlers y plantillas de cada rol, en el orden del árbol."""
+    """Tareas, handlers, variables y plantillas de cada rol, en el orden del árbol."""
     files: dict[str, list[str]] = {}
     for path in tree:
         parts = path.split("/")
@@ -372,7 +432,8 @@ def _files_by_role(
             role_path = "/".join(parts[: index + 2])
             if (
                 part == "roles"
-                and parts[index + 2] in {*_ROLE_TASK_DIRS, "templates"}
+                and parts[index + 2]
+                in {*_ROLE_TASK_DIRS, *_ROLE_VARIABLE_DIRS, "templates"}
                 and role_path in role_paths
             ):
                 files.setdefault(role_path, []).append(path)
@@ -393,12 +454,15 @@ def _role_code(
         if folder == "templates":
             text = read_text(file)
             names = used_in_template(text) if text is not None else set()
-        elif file.endswith(_YAML_SUFFIXES):
+        elif not file.endswith(_YAML_SUFFIXES):
+            continue
+        elif folder in _ROLE_VARIABLE_DIRS:
+            # Un default puede pedir lo que nada define; lo suyo ya está en la lista.
+            names = used_in_tasks(read(file))
+        else:
             tasks = read(file)
             names = used_in_tasks(tasks)
             code.assigned |= assigned_names(tasks)
-        else:
-            continue
         used.update(dict.fromkeys(sorted(names)))
     code.used = list(used)
     return code
@@ -420,14 +484,17 @@ def _playbook_variables(
             if (
                 isinstance(name, str)
                 and _VARIABLE_NAME.fullmatch(name)
-                # Son de conexión: ni se pueden pasar como extra var.
-                and not name.lower().startswith("ansible_")
                 and (name, role) not in seen
                 and len(usage.variables) < _MAX_VARIABLES
             ):
                 seen.add((name, role))
                 usage.variables.append(
-                    DiscoveredVariable(name, _shown_value(name, value), role)
+                    DiscoveredVariable(
+                        name,
+                        _shown_value(name, value),
+                        role,
+                        value_type=_value_type(value),
+                    )
                 )
 
     plays = list(_plays_of(path, read))

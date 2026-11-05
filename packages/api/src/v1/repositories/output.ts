@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { playbooksOutput } from "#v1/playbooks/output"
+import { variableValueType } from "#v1/run/variable-value-type"
 import { idSchema } from "#v1/schemas"
 
 const repository = z.object({
@@ -69,8 +70,9 @@ const roles = z.object({
       variables: z.array(
         z.object({
           name: z.string(),
-          // Null when it is not a plain value, or looks sensitive.
+          // Null when it cannot be shown, or looks sensitive. Compound ones as JSON.
           value: z.string().nullable(),
+          valueType: variableValueType,
           // Null when the play defines it.
           role: z.string().nullable(),
           // The role reads it and nothing the playbook declares defines it.

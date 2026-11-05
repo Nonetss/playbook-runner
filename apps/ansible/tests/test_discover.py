@@ -326,6 +326,92 @@ class TestDiscoverRoles:
             ("api_token", None, "web", True),
         ]
 
+    def test_what_a_default_reads_and_nothing_defines_is_asked_for(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = {
+            "site.yml": "- hosts: all\n  vars: {base: /opt}\n  roles: [vpn]\n",
+            "roles/vpn/defaults/main.yml": (
+                "vpn_dir: '{{ base }}/vpn'\n"
+                "vpn_join: \"{{ vpn_join_servers | default('') }}\"\n"
+            ),
+            "roles/vpn/vars/main.yml": "vpn_user: '{{ vpn_owner }}'\n",
+            "roles/vpn/tasks/main.yml": "- debug: {msg: '{{ vpn_join }}'}\n",
+        }
+        found = self.discover(monkeypatch, {p: c.encode() for p, c in files.items()})
+        usage = next(u for u in found.playbook_variables if u.path == "site.yml")
+        asked = [(v.name, v.role) for v in usage.variables if v.used_only]
+        assert asked == [("vpn_join_servers", "vpn"), ("vpn_owner", "vpn")]
+
+    def test_defaults_report_how_to_override_them(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = {
+            "site.yml": "- hosts: all\n  roles: [web]\n",
+            "roles/web/defaults/main.yml": (
+                "web_enabled: false\n"
+                "web_port: 80\n"
+                "web_ratio: 1.5\n"
+                "web_ports:\n  - {port: '22', proto: tcp}\n"
+                "web_opts: {a: 1}\n"
+                "web_name: 'true'\n"
+                "web_empty:\n"
+            ),
+            "roles/web/tasks/main.yml": "[]\n",
+        }
+        found = self.discover(monkeypatch, {p: c.encode() for p, c in files.items()})
+        usage = next(u for u in found.playbook_variables if u.path == "site.yml")
+        assert [(v.name, v.value, v.value_type) for v in usage.variables] == [
+            ("web_enabled", "false", "boolean"),
+            ("web_port", "80", "number"),
+            ("web_ratio", "1.5", "number"),
+            ("web_ports", '[{"port":"22","proto":"tcp"}]', "json"),
+            ("web_opts", '{"a":1}', "json"),
+            ("web_name", "true", "text"),
+            ("web_empty", None, "text"),
+        ]
+
+    @pytest.mark.parametrize(
+        "definition",
+        [
+            "hidden: [!vault secret]\n",
+            "hidden: {db_password: secret}\n",
+            "hidden: [{nested: {api_token: secret}}]\n",
+            "hidden_token: [a]\n",
+            f"hidden: {[str(n) for n in range(2000)]}\n",
+            # Anclas: cíclico y exponencial.
+            "hidden: &a [*a]\n",
+            "a: &a [x, x]\nb: &b [*a, *a]\nc: &c [*b, *b]\nd: &d [*c, *c]\n"
+            "e: &e [*d, *d]\nf: &f [*e, *e]\ng: &g [*f, *f]\nh: &h [*g, *g]\n"
+            "i: &i [*h, *h]\nj: &j [*i, *i]\nhidden: [*j, *j]\n",
+        ],
+    )
+    def test_a_compound_value_is_not_shown_when_it_should_not_be(
+        self, monkeypatch: pytest.MonkeyPatch, definition: str
+    ) -> None:
+        files = {
+            "site.yml": "- hosts: all\n  roles: [web]\n",
+            "roles/web/defaults/main.yml": definition,
+            "roles/web/tasks/main.yml": "[]\n",
+        }
+        found = self.discover(monkeypatch, {p: c.encode() for p, c in files.items()})
+        usage = next(u for u in found.playbook_variables if u.path == "site.yml")
+        hidden = next(v for v in usage.variables if v.name.startswith("hidden"))
+        assert hidden.value is None
+        assert hidden.value_type == "json"
+
+    def test_a_role_default_named_ansible_is_listed(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = {
+            "site.yml": "- hosts: all\n  roles: [user]\n",
+            "roles/user/defaults/main.yml": "ansible_user_name: ansible\n",
+            "roles/user/tasks/main.yml": "- debug: {msg: '{{ ansible_facts.os }}'}\n",
+        }
+        assert self.variables(monkeypatch, files) == [
+            ("ansible_user_name", "ansible", "user"),
+        ]
+
     def test_a_variable_another_role_or_the_play_assigns_is_not_asked_for(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
@@ -409,15 +495,15 @@ class TestDiscoverRoles:
             ("db_password", None, None),
             ("API_TOKEN", None, None),
             ("ssh_key_path", None, None),
-            ("compound", None, None),
-            ("items_list", None, None),
+            ("compound", '{"a":1}', None),
+            ("items_list", "[1,2]", None),
             ("empty", None, None),
             ("long_text", None, None),
             ("plain", "ok", None),
             ("enabled", "true", None),
         ]
 
-    def test_connection_variables_and_odd_names_are_left_out(
+    def test_reserved_names_are_listed_and_odd_names_left_out(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         playbook = (
@@ -425,7 +511,9 @@ class TestDiscoverRoles:
             '    ANSIBLE_port: 22\n    "not valid": 1\n    kept: 1\n'
         )
         assert self.variables(monkeypatch, {"site.yml": playbook}) == [
-            ("kept", "1", None)
+            ("ansible_user", "root", None),
+            ("ANSIBLE_port", "22", None),
+            ("kept", "1", None),
         ]
 
     def test_nearest_role_wins_and_import_is_followed(

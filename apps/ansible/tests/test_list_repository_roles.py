@@ -95,8 +95,8 @@ def test_maps_each_playbooks_variables(
     assert response.playbook_variables[0].path == "site.yml"
     variables = response.playbook_variables[0].variables
     assert list(variables) == [
-        PlaybookVariable(name="port", value="80", role="nginx"),
-        PlaybookVariable(name="db_password"),
+        PlaybookVariable(name="port", value="80", role="nginx", value_type="text"),
+        PlaybookVariable(name="db_password", value_type="text"),
     ]
     assert not variables[1].HasField("value")
 
