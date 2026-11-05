@@ -13,6 +13,7 @@ import type {
   JobDetail,
   JobRunEvent,
 } from "@/features/jobs/types"
+import type { ExtraVars } from "@/features/run/lib/run-variables"
 import { useHydratedQuery } from "@/hooks/use-hydrated-query"
 import { useOrpcMutation } from "@/hooks/use-orpc-mutation"
 import { useResourceMutation } from "@/hooks/use-resource-mutation"
@@ -130,7 +131,7 @@ type CreateInput = {
   description?: string | null
   playbookId?: string | null
   inventoryJson?: InventoryItem[]
-  extravarsJson?: Record<string, string>
+  extravarsJson?: ExtraVars
   forks?: number
   cronExpression?: string | null
   enabled?: boolean

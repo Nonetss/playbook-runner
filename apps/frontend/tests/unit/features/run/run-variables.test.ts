@@ -32,6 +32,7 @@ describe("toRunVariables", () => {
         { name: "token", secretName: "API_TOKEN", secretPath: "/app" },
       ],
       incomplete: [],
+      invalid: [],
     })
   })
 
@@ -50,11 +51,49 @@ describe("toRunVariables", () => {
     expect(secretVariables.map((variable) => variable.name)).toEqual(["a"])
   })
 
+  test("each value travels as its row's type", () => {
+    const { extravars, invalid } = toRunVariables([
+      newVariableRow({ name: "flag", value: "false", valueType: "boolean" }),
+      newVariableRow({ name: "count", value: " 7007 ", valueType: "number" }),
+      newVariableRow({
+        name: "ports",
+        value: '[{"port":"22"}]',
+        valueType: "json",
+      }),
+      newVariableRow({ name: "quoted", value: "true" }),
+    ])
+
+    expect(extravars).toEqual({
+      flag: false,
+      count: 7007,
+      ports: [{ port: "22" }],
+      quoted: "true",
+    })
+    expect(invalid).toEqual([])
+  })
+
+  test.each([
+    ["boolean", ""],
+    ["boolean", "yes"],
+    ["number", ""],
+    ["number", "abc"],
+    ["json", ""],
+    ["json", "[1,"],
+  ] as const)("a %s row with %p is reported and not sent", (valueType, value) => {
+    const { extravars, invalid } = toRunVariables([
+      newVariableRow({ name: "bad", value, valueType }),
+    ])
+
+    expect(extravars).toEqual({})
+    expect(invalid).toEqual(["bad"])
+  })
+
   test("rows without a name are ignored", () => {
     expect(toRunVariables([newVariableRow({ value: "x" })])).toEqual({
       extravars: {},
       secretVariables: [],
       incomplete: [],
+      invalid: [],
     })
   })
 
@@ -156,5 +195,27 @@ describe("suggestVariableName", () => {
     ["ANSIBLE_PASS", "secret_ansible_pass"],
   ])("%s becomes %s", (secret, name) => {
     expect(suggestVariableName(secret)).toBe(name)
+  })
+})
+
+describe("rowsFromSaved", () => {
+  test("a stored value comes back with its type and survives a round trip", () => {
+    const saved = {
+      flag: false,
+      count: 3,
+      ports: [{ port: "22" }],
+      nothing: null,
+      name: "true",
+    }
+    const rows = rowsFromSaved(saved)
+
+    expect(rows.map((row) => row.valueType)).toEqual([
+      "boolean",
+      "number",
+      "json",
+      "json",
+      "text",
+    ])
+    expect(toRunVariables(rows).extravars).toEqual(saved)
   })
 })

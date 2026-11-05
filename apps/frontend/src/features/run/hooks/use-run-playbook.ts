@@ -3,6 +3,7 @@ import {
   type RunStreamCallbacks,
   useRunStream,
 } from "@/features/run/hooks/use-run-stream"
+import type { ExtraVars } from "@/features/run/lib/run-variables"
 import type { RunOptions, RunSelection } from "@/features/run/types"
 import { client } from "@/lib/orpc"
 
@@ -16,7 +17,7 @@ const subscribe = (
     playbookId: string
     inventory: RunSelection[]
     forks?: number
-    extravars?: Record<string, string>
+    extravars?: ExtraVars
     infisicalConnectionId?: string
     infisicalEnvironment?: string
     secretVariables?: RunOptions["secretVariables"]

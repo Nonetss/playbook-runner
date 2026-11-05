@@ -6,10 +6,24 @@ export type SecretVariable = {
   secretPath: string
 }
 
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue }
+
+export type ExtraVars = Record<string, JsonValue>
+
+/** How a row's text travels: Ansible tells `true` from `"true"`. */
+export type VariableValueType = "text" | "boolean" | "number" | "json"
+
 export type RunVariableRow = {
   id: string
   name: string
   kind: "text" | "secret"
+  valueType: VariableValueType
   value: string
   secretName: string
   secretPath: string
@@ -25,6 +39,7 @@ export function newVariableRow(
     id: `variable-${lastRowId}`,
     name: "",
     kind: "text",
+    valueType: "text",
     value: "",
     secretName: "",
     secretPath: "/",
@@ -32,9 +47,46 @@ export function newVariableRow(
   }
 }
 
+/** A stored value as what its row edits. */
+function savedValue(value: JsonValue): {
+  value: string
+  valueType: VariableValueType
+} {
+  if (typeof value === "string") return { value, valueType: "text" }
+  if (typeof value === "boolean") {
+    return { value: String(value), valueType: "boolean" }
+  }
+  if (typeof value === "number") {
+    return { value: String(value), valueType: "number" }
+  }
+  return { value: JSON.stringify(value), valueType: "json" }
+}
+
+/** Parses a row's text; `undefined` when it does not fit the row's type. */
+export function parseRowValue({
+  value,
+  valueType,
+}: Pick<RunVariableRow, "value" | "valueType">): JsonValue | undefined {
+  if (valueType === "text") return value
+  const text = value.trim()
+  if (valueType === "boolean") {
+    return text === "true" ? true : text === "false" ? false : undefined
+  }
+  if (text === "") return undefined
+  if (valueType === "number") {
+    const number = Number(text)
+    return Number.isFinite(number) ? number : undefined
+  }
+  try {
+    return JSON.parse(text) as JsonValue
+  } catch {
+    return undefined
+  }
+}
+
 /** Rows for what a job stored: its extra vars and its own secret variables. */
 export function rowsFromSaved(
-  extravars: Record<string, string> | null | undefined,
+  extravars: ExtraVars | null | undefined,
   secretVariables: SecretVariable[] = []
 ): RunVariableRow[] {
   return [
@@ -47,7 +99,7 @@ export function rowsFromSaved(
       })
     ),
     ...Object.entries(extravars ?? {}).map(([name, value]) =>
-      newVariableRow({ name, value })
+      newVariableRow({ name, ...savedValue(value) })
     ),
   ]
 }
@@ -114,22 +166,27 @@ export function setDeclaredSecret(
 
 /**
  * What a run or job sends. Rows without a name are ignored, as before; a named
- * secret row with no secret is reported, since dropping it would run without it.
+ * secret row with no secret is reported, since dropping it would run without it,
+ * and so is a value that does not fit its row's type.
  */
 export function toRunVariables(rows: RunVariableRow[]): {
-  extravars: Record<string, string>
+  extravars: ExtraVars
   secretVariables: SecretVariable[]
   incomplete: string[]
+  invalid: string[]
 } {
   const named = rows
     .map((row) => ({ ...row, name: row.name.trim() }))
     .filter((row) => row.name)
   const secrets = named.filter((row) => row.kind === "secret")
+  const values = named
+    .filter((row) => row.kind === "text")
+    .map((row) => ({ name: row.name, value: parseRowValue(row) }))
   return {
     extravars: Object.fromEntries(
-      named
-        .filter((row) => row.kind === "text")
-        .map((row) => [row.name, row.value])
+      values.flatMap(({ name, value }) =>
+        value === undefined ? [] : [[name, value]]
+      )
     ),
     secretVariables: secrets
       .filter((row) => row.secretName)
@@ -139,6 +196,9 @@ export function toRunVariables(rows: RunVariableRow[]): {
         secretPath: row.secretPath.trim() || "/",
       })),
     incomplete: secrets.filter((row) => !row.secretName).map((row) => row.name),
+    invalid: values
+      .filter(({ value }) => value === undefined)
+      .map(({ name }) => name),
   }
 }
 

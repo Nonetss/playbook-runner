@@ -210,6 +210,14 @@ function JobForm({
       )
       return
     }
+    if (variables.invalid.length > 0) {
+      setError(
+        tInfisical("variables.invalid", {
+          names: variables.invalid.join(", "),
+        })
+      )
+      return
+    }
 
     const payload = {
       name: values.name.trim(),

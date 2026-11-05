@@ -1,3 +1,5 @@
+import type { ExtraVars } from "@/features/run/lib/run-variables"
+
 /**
  * A single inventory selection forwarded to a run endpoint or stored on a
  * job. `all` is the built-in All group (every device), so it has no id.
@@ -38,7 +40,7 @@ export type RunPhase = "idle" | "running" | "done" | "error" | "cancelled"
 
 export type RunOptions = {
   forks?: number
-  extravars?: Record<string, string>
+  extravars?: ExtraVars
   infisicalConnectionId?: string
   infisicalEnvironment?: string
   secretVariables?: { name: string; secretName: string; secretPath: string }[]

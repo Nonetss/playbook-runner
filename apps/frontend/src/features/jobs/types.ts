@@ -1,3 +1,4 @@
+import type { ExtraVars } from "@/features/run/lib/run-variables"
 import type { RunSelection } from "@/features/run/types"
 
 export type InventoryItem = RunSelection
@@ -8,7 +9,7 @@ export type Job = {
   description: string | null
   playbookId: string | null
   inventoryJson: InventoryItem[] | null
-  extravarsJson: Record<string, string> | null
+  extravarsJson: ExtraVars | null
   forks: number
   cronExpression: string | null
   enabled: boolean

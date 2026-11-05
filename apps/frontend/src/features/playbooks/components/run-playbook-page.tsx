@@ -103,9 +103,13 @@ function RunPlaybookPageInner({ id }: { id: string }) {
         ? tInfisical("variables.incomplete", {
             names: variables.incomplete.join(", "),
           })
-        : null
+        : variables.invalid.length > 0
+          ? tInfisical("variables.invalid", {
+              names: variables.invalid.join(", "),
+            })
+          : null
     )
-    if (variables.incomplete.length > 0) return
+    if (variables.incomplete.length > 0 || variables.invalid.length > 0) return
 
     const disabledRoles = roles
       .map((role) => role.name)
@@ -368,6 +372,7 @@ function RunPlaybookPageInner({ id }: { id: string }) {
                     newVariableRow({
                       name: variable.name,
                       value: variable.value ?? "",
+                      valueType: variable.valueType,
                     }),
                   ])
                 }

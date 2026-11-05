@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import {
   InfisicalConnectionSelect,
   InfisicalEnvironmentField,
@@ -22,10 +23,12 @@ import {
 } from "@/features/infisical"
 import {
   newVariableRow,
+  parseRowValue,
   type RunVariableRow,
   type SecretVariable,
   setDeclaredSecret,
   suggestVariableName,
+  type VariableValueType,
   viewVariables,
 } from "@/features/run/lib/run-variables"
 import { cn } from "@/lib/utils"
@@ -254,13 +257,11 @@ export function RunVariableRows({
                 }
               />
             ) : (
-              <Input
-                placeholder={t("variables.value_placeholder")}
-                aria-label={t("variables.value_aria", { n: index })}
-                value={row.value}
-                onChange={(e) => updateRow(row.id, { value: e.target.value })}
+              <TypedValueField
+                row={row}
+                index={index}
                 disabled={disabled}
-                className={cn(dataFieldClass, "h-9 w-full")}
+                onChange={(fields) => updateRow(row.id, fields)}
               />
             )}
           </div>
@@ -277,6 +278,93 @@ export function RunVariableRows({
         <Plus className="size-3.5" />
         {t("variables.add")}
       </Button>
+    </div>
+  )
+}
+
+const VALUE_TYPES: VariableValueType[] = ["text", "boolean", "number", "json"]
+
+/** The value of a row, edited as what it will be for Ansible. */
+function TypedValueField({
+  row,
+  index,
+  disabled,
+  onChange,
+}: {
+  row: RunVariableRow
+  index: number
+  disabled?: boolean
+  onChange: (fields: Partial<RunVariableRow>) => void
+}) {
+  const { t } = useTranslation("infisical")
+  const valueLabel = t("variables.value_aria", { n: index })
+  const invalid = row.value !== "" && parseRowValue(row) === undefined
+
+  return (
+    <div className="flex min-w-0 items-start gap-1.5">
+      <Select
+        value={row.valueType}
+        onValueChange={(next) => {
+          const valueType = VALUE_TYPES.find((type) => type === next)
+          if (valueType) onChange({ valueType })
+        }}
+        disabled={disabled}
+      >
+        <SelectTrigger
+          aria-label={t("variables.value_type_aria", { n: index })}
+          className="h-9 w-28 shrink-0"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {VALUE_TYPES.map((type) => (
+            <SelectItem key={type} value={type}>
+              {t(`variables.value_type_${type}`)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {row.valueType === "boolean" ? (
+        <Select
+          value={row.value === "true" || row.value === "false" ? row.value : ""}
+          onValueChange={(value) => onChange({ value })}
+          disabled={disabled}
+        >
+          <SelectTrigger
+            aria-label={valueLabel}
+            className={cn(dataFieldClass, "h-9 min-w-0 flex-1")}
+          >
+            <SelectValue placeholder={t("variables.value_placeholder")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="true">true</SelectItem>
+            <SelectItem value="false">false</SelectItem>
+          </SelectContent>
+        </Select>
+      ) : row.valueType === "json" ? (
+        <Textarea
+          placeholder='["a", "b"]'
+          aria-label={valueLabel}
+          aria-invalid={invalid}
+          value={row.value}
+          onChange={(e) => onChange({ value: e.target.value })}
+          disabled={disabled}
+          rows={3}
+          className={cn(dataFieldClass, "min-w-0 flex-1")}
+        />
+      ) : (
+        <Input
+          type={row.valueType === "number" ? "number" : "text"}
+          step={row.valueType === "number" ? "any" : undefined}
+          placeholder={t("variables.value_placeholder")}
+          aria-label={valueLabel}
+          aria-invalid={invalid}
+          value={row.value}
+          onChange={(e) => onChange({ value: e.target.value })}
+          disabled={disabled}
+          className={cn(dataFieldClass, "h-9 min-w-0 flex-1")}
+        />
+      )}
     </div>
   )
 }
