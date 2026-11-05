@@ -29,6 +29,7 @@ import yaml
 
 from app.core.config import settings
 from app.services.ansible.disabled_roles import disable_roles
+from app.services.ansible.inventory_vars import copy_inventory_vars
 from app.services.ansible.models import GitPlaybookSource, ResolvedRunBundle
 from app.services.ansible.play_targets import retarget_playbook
 from app.services.ansible.runner import HostVars, Inventory
@@ -316,7 +317,8 @@ def _materialize_git(
     El ``ansible.cfg`` del repositorio se ignora: ``ANSIBLE_CONFIG`` apunta a
     un fichero vacío controlado por el runner (tiene prioridad sobre el
     ``ansible.cfg`` del directorio de trabajo). Por eso los ``roles/`` del
-    repositorio se pasan con ``ANSIBLE_ROLES_PATH``.
+    repositorio se pasan con ``ANSIBLE_ROLES_PATH`` y las variables del inventario
+    que declara se copian junto al inventario del run.
     """
     project_dir = run_dir / "project"
     export_tree(source.repository_id, source.commit, project_dir)
@@ -341,6 +343,7 @@ def _materialize_git(
     roles_path = role_search_path(playbook_path, project_dir)
     if roles_path is not None:
         envvars["ANSIBLE_ROLES_PATH"] = roles_path
+    copy_inventory_vars(playbook_path, project_dir, run_dir)
     return project_dir.resolve(), playbook_path, envvars
 
 
