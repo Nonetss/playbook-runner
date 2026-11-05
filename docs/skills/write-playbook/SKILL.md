@@ -18,7 +18,7 @@ For detail: what the runner mounts for each run is `/playbook-runner/ejecucion/m
 
 ## Rules that fail silently
 
-- Write `hosts: all`. Every play runs on the hosts chosen at launch, whatever `hosts` says, and groups do not exist: of `group_vars`, only `all` applies.
+- Write `hosts: all`. Every play runs on the hosts chosen at launch, whatever `hosts` says, and groups do not exist: of `group_vars`, only `all` applies, next to the playbook or next to the inventory that `inventory` in the nearest `ansible.cfg` names (its hosts are never used, and an encrypted file there needs the repository's Vault password).
 - `delegate_to: localhost` runs inside the runner's container, unprivileged and without `sudo`: add `become: false` to that task.
 - `become: true` is always root. `become_user` is ignored.
 - Anything passed at launch is a string: filter it with `| bool` or `| int` where it is used.

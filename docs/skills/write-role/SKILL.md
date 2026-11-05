@@ -17,7 +17,7 @@ Read the site live every time: this file only says where to look and the rules t
 ## Rules that fail silently
 
 - Roles exist only in Git repositories: a playbook written in the app is a single file and finds none.
-- `requirements.yml` is never installed and the repository's `ansible.cfg` is ignored: vendor external roles into a `roles/` folder of the tree.
+- `requirements.yml` is never installed and the repository's `ansible.cfg` is ignored except to find its inventory's variables, so `roles_path` has no effect: vendor external roles into a `roles/` folder of the tree.
 - Runs use the last synced commit: after a push, someone must press **Sincronizar**.
 - A role is a directory directly under `roles/` with `tasks/main` or `meta/main`. Only the `roles/` folders from the playbook up to the repository root are searched.
 - Only a role named literally in `roles:`, `include_role` or `import_role` can be unchecked. What arrives through `include_tasks` or `dependencies` still runs.

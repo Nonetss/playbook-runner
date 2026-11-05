@@ -19,6 +19,7 @@ The password is encrypted before it is stored and the API never returns it. To c
 | --- | --- |
 | Variables with `!vault` | Decrypted |
 | Encrypted variable files, in `vars_files` or in a role | Decrypted, but the app cannot show their names when you run |
+| Files in `group_vars/all` or `host_vars`, next to the playbook or next to the inventory that `ansible.cfg` names | Decrypted. Without the password, the run fails before the first task |
 | A fully encrypted playbook | Not supported |
 | A playbook written in the app | Does not receive the password, so a `!vault` value fails |
 

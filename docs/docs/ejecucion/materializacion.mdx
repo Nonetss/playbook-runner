@@ -3,7 +3,7 @@ title: Materialización
 description: Qué monta el ejecutor para cada run, en qué se diferencian un playbook inline y uno de Git, y cómo se reescribe hosts
 services: [ansible]
 order: 1
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 `apps/ansible/app/services/ansible/materialize.py` monta esto para cada ejecución y lo borra siempre al terminar, también tras un error o una cancelación:
@@ -12,6 +12,8 @@ updated: 2026-11-04
 $RUN_SCRATCH_DIR/<playbook>-<id>/
   keys/<host>-*.key          # 0600, una por host
   inventory/hosts.json       # lo escribe ansible-runner
+  inventory/group_vars/      # Git: copiado del inventario que declara ansible.cfg
+  inventory/host_vars/       # Git: igual
   secret-vars.yml            # 0600, solo si hay secretos
   <playbook>-<hash>.yml      # inline: el contenido guardado
   project/                   # Git: el árbol del commit fijado
@@ -27,7 +29,27 @@ $RUN_SCRATCH_DIR/<playbook>-<id>/
 | Roles, `files/`, `templates/`, `import_playbook` | No | Sí |
 | Edición en la app | Sí | Solo lectura, salvo sus variables secretas |
 | Commit | No aplica | `last_commit_sha`, registrado en `job_runs.commit_sha` |
-| `ansible.cfg` | No hay | Se ignora con `ANSIBLE_CONFIG` |
+| `ansible.cfg` | No hay | Se ignora con `ANSIBLE_CONFIG`, salvo para encontrar las variables del inventario |
+
+## Variables del inventario del repositorio
+
+Un repositorio pensado para lanzarse con `ansible-playbook` suele tener los secretos junto a su inventario, y `ansible.cfg` dice dónde está:
+
+```text
+server-setup/
+  ansible.cfg                        # inventory = inventory
+  inventory/group_vars/all/vault.yml
+  playbooks/setup-proxmox.yml
+```
+
+[Esas variables se cargan igual que en local](catalog:reglas/inventario-del-repositorio). `apps/ansible/app/services/ansible/inventory_vars.py` busca el `ansible.cfg` más cercano subiendo desde el playbook hasta la raíz del repositorio, lee solo su `inventory` y copia `group_vars/` y `host_vars/` de allí junto al `hosts.json` del run. Ansible aplica su precedencia normal, así que lo que haya junto al playbook gana a esto, y un secreto de Infisical o una extra var ganan a todo.
+
+- Una entrada de `inventory` puede ser un directorio o un fichero, y entonces cuenta su carpeta. Se omite lo que no exista o salga del repositorio.
+- Sin `ansible.cfg` o sin esa clave no se carga nada, porque no se puede saber qué `-i` se usa a mano.
+- Los hosts de ese inventario nunca se usan: mandan los elegidos al lanzar.
+- Los enlaces simbólicos no se copian.
+- Un fichero cifrado necesita [la contraseña del repositorio](variables.mdx#secretos). Sin ella, la ejecución acaba antes de la primera tarea con `Attempting to decrypt but no vault secrets found`, aunque ninguna tarea lea sus variables.
+- [La detección de variables](variables.mdx#variables-detectadas) no mira estas carpetas, así que una variable definida ahí puede seguir saliendo como «Sin definir» al ejecutar.
 
 ## Destino
 
@@ -39,7 +61,7 @@ Consecuencias, todas probadas:
 
 - Todas las plays corren en todos los hosts elegidos, `hosts: localhost` incluido.
 - `group_names` vale `['ungrouped']`, y `groups['x']` no existe aunque se haya elegido un grupo en la app.
-- De `group_vars/` junto al playbook solo se aplica `all`. `host_vars/` con el nombre del dispositivo sí funciona.
+- De `group_vars/`, junto al playbook o junto al inventario del repositorio, solo se aplica `all`. `host_vars/` con el nombre del dispositivo sí funciona.
 
 ## Entorno
 

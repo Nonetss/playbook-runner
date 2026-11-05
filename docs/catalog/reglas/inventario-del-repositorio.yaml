@@ -1,0 +1,8 @@
+name: Se cargan las variables del inventario que declara ansible.cfg
+area: variables
+effect: En Git, group_vars y host_vars de junto al inventory del ansible.cfg más cercano se aplican como en local, sin symlinks; sus hosts se ignoran
+do: Declarar inventory en ansible.cfg, poner lo común en group_vars/all y guardar la contraseña en el repositorio si hay ficheros cifrados
+checked: probado
+page: ejecucion/materializacion
+source: apps/ansible/app/services/ansible/inventory_vars.py
+updated: 2026-11-05
