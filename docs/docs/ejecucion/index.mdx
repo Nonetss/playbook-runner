@@ -10,7 +10,7 @@ Un playbook no se ejecuta tal cual: el ejecutor prepara un directorio temporal, 
 
 <Entities type="reglas" group="area" columns="name,effect,do,checked" />
 
-`probado` significa ejecutado con `ansible-runner` y `ansible-core` 2.21 contra `localhost`, pasando por `retarget_playbook` y `event_payload` reales, el 2026-11-04. `leido` significa leído del código. Nada se ha probado contra un host real por SSH.
+`probado` significa ejecutado con `ansible-runner` y `ansible-core` 2.21 contra `localhost`, pasando por `retarget_playbook` y `event_payload` reales, el 2026-11-04 (las variables del inventario del repositorio, el 2026-11-05). `leido` significa leído del código. Nada se ha probado contra un host real por SSH.
 
 ## Síntomas
 
@@ -24,6 +24,8 @@ Un playbook no se ejecuta tal cual: el ejecutor prepara un directorio temporal, 
 | Una play corre en hosts que no debería | [`hosts` no decide](catalog:reglas/hosts-no-decide) | Un playbook por trabajo, o una condición con `when` |
 | `the role 'x' was not found` | Playbook inline, rol de `requirements.yml` o `roles_path` de `ansible.cfg` | [Crear un rol](../guias/crear-rol.mdx) |
 | `Attempt to use undecryptable variable` | [`!vault`](catalog:reglas/vault-no) sin la contraseña correcta o en un playbook inline | Poner la contraseña en el repositorio, o secretos de Infisical |
+| `Attempting to decrypt but no vault secrets found` | [Fichero de variables cifrado](catalog:reglas/inventario-del-repositorio) en un repositorio sin contraseña | Poner la contraseña en el repositorio |
+| Una variable de `group_vars` llega vacía | Su grupo no es `all`, o [`ansible.cfg` no declara el inventario](catalog:reglas/inventario-del-repositorio) | Moverla a `group_vars/all` y declarar `inventory` |
 | `Playbook ... is encrypted with Vault` | [Playbook cifrado entero](catalog:reglas/vault-playbook-cifrado) | Cifrar solo sus variables |
 | Un cambio subido a Git no se aplica | [Se ejecuta el commit sincronizado](catalog:reglas/git-commit-fijado) | Pulsar **Sincronizar** |
 | El fichero no aparece tras sincronizar | [No cumple la detección](catalog:reglas/git-deteccion) | Revisar `hosts`, carpeta y tamaño |

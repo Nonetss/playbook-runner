@@ -38,7 +38,7 @@ Scheduled jobs follow the same path, started by the backend's in-process cron lo
 - **Host keys are verified** according to `SSH_HOST_KEY_POLICY` (trust on first use by default).
 - **User input is constrained.** Extra variables may not start with `ansible_` (the executor checks this again), and device and group names are restricted to letters, digits, `.`, `_` and `-`.
 - **Runs are bounded.** At most `MAX_CONCURRENT_RUNS` Ansible processes run at once, extra requests are refused with *too many requests*, a job never overlaps with itself, and `forks` is capped at 50.
-- **Git is constrained.** Repositories sync only over `https` and `ssh`, with no global Git configuration, a per-command timeout and a size limit. A repository's own `ansible.cfg` is ignored.
+- **Git is constrained.** Repositories sync only over `https` and `ssh`, with no global Git configuration, a per-command timeout and a size limit. Of a repository's own `ansible.cfg`, only `inventory` is read, to load that inventory's variables.
 
 ## The API
 

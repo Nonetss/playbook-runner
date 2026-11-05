@@ -19,6 +19,7 @@ La contraseña se cifra antes de guardarse y la API nunca la devuelve. Para camb
 | --- | --- |
 | Variables con `!vault` | Se descifran |
 | Ficheros de variables cifrados, en `vars_files` o en un rol | Se descifran, pero la app no puede mostrar sus nombres al ejecutar |
+| Ficheros de `group_vars/all` o `host_vars`, junto al playbook o junto al inventario que declara `ansible.cfg` | Se descifran. Sin contraseña, la ejecución falla antes de la primera tarea |
 | Un playbook cifrado entero | No se admite |
 | Un playbook escrito en la app | No recibe la contraseña, así que un `!vault` falla |
 

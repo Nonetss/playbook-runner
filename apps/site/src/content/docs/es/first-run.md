@@ -70,7 +70,7 @@ playbooks/roles/        # se busca primero
 roles/                  # se busca después
 ```
 
-El `ansible.cfg` propio del repositorio se ignora, así que un `roles_path` personalizado no tiene efecto. Cuando una ejecución encuentra alguno de estos directorios, sustituyen a las rutas de roles por defecto de Ansible, como `/usr/share/ansible/roles`; esto solo importa si has creado tu propia imagen con roles instalados allí.
+Un `roles_path` personalizado en el `ansible.cfg` del repositorio no tiene efecto, porque de ese fichero solo se lee `inventory`: los `group_vars/all` y `host_vars` de junto a ese inventario se cargan como en local, pero sus hosts no se usan. Cuando una ejecución encuentra alguno de estos directorios, sustituyen a las rutas de roles por defecto de Ansible, como `/usr/share/ansible/roles`; esto solo importa si has creado tu propia imagen con roles instalados allí.
 
 Para verlo funcionando, sincroniza el repositorio de ejemplo anterior y ejecuta `system-report.yml`, que usa los dos roles de [`playbooks/roles/`](https://github.com/Nonetss/playbook-runner/tree/main/playbooks/roles).
 

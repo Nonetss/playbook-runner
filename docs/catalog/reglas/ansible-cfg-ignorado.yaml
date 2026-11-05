@@ -1,8 +1,8 @@
 name: ansible.cfg se ignora
 area: disponibilidad
-effect: En Git, ANSIBLE_CONFIG apunta a un fichero vacío; no valen roles_path ni collections_path
+effect: En Git, ANSIBLE_CONFIG apunta a un fichero vacío; no valen roles_path, collections_path ni remote_user, y de inventory solo se usan sus variables
 do: Poner los roles en un roles/ del árbol
 checked: leido
 page: ejecucion/repositorios-git
 source: apps/ansible/app/services/ansible/materialize.py
-updated: 2026-11-04
+updated: 2026-11-05

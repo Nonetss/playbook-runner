@@ -38,7 +38,7 @@ Los jobs programados siguen el mismo camino, lanzados por el bucle cron del back
 - **Las claves de host se verifican** según `SSH_HOST_KEY_POLICY` (confianza en el primer uso, por defecto).
 - **La entrada del usuario está acotada.** Las variables extra no pueden empezar por `ansible_` (el ejecutor lo vuelve a comprobar), y los nombres de dispositivos y grupos solo admiten letras, dígitos, `.`, `_` y `-`.
 - **Las ejecuciones tienen límite.** Como mucho corren `MAX_CONCURRENT_RUNS` procesos de Ansible a la vez, las peticiones de más se rechazan con *too many requests*, un job nunca se solapa consigo mismo y `forks` tiene un máximo de 50.
-- **Git está acotado.** Los repositorios solo se sincronizan por `https` y `ssh`, sin configuración global de Git, con un tiempo máximo por comando y un límite de tamaño. El `ansible.cfg` propio del repositorio se ignora.
+- **Git está acotado.** Los repositorios solo se sincronizan por `https` y `ssh`, sin configuración global de Git, con un tiempo máximo por comando y un límite de tamaño. Del `ansible.cfg` propio del repositorio solo se lee `inventory`, para cargar las variables de ese inventario.
 
 ## La API
 
