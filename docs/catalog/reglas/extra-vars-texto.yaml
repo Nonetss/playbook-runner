@@ -1,8 +1,8 @@
-name: Las extra vars son texto
+name: Una extra var de tipo Texto es texto
 area: variables
-effect: 'Una variable pasada al lanzar llega como cadena y gana a todo; when: flag y n > 5 hacen fallar la tarea'
-do: Convertir donde se usa, con los filtros bool e int
+effect: 'Cada fila de variable se envía con su tipo (Texto, Booleano, Número o JSON). De tipo Texto, when: flag y n > 5 hacen fallar la tarea'
+do: Elegir el tipo de la fila o, si el playbook debe aceptar ambos, convertir donde se usa con los filtros bool e int
 checked: probado
 page: ejecucion/variables
-source: proto/run.proto
-updated: 2026-11-04
+source: packages/api/src/v1/run/extravars.ts
+updated: 2026-11-05

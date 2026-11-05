@@ -21,6 +21,10 @@ User-supplied extra vars for playbook runs (`v1.run.run`) and jobs (`v1.jobs.cre
 - **WHEN** a client submits extravars `{ "app_version": "1.2.3" }`
 - **THEN** the variable SHALL be forwarded to the playbook unchanged
 
+#### Scenario: Values keep their JSON type
+- **WHEN** a client submits extravars `{ "enabled": false, "ports": [22] }`
+- **THEN** the playbook SHALL receive a boolean and a list, not their text
+
 ### Requirement: Inventory names are restricted
 Device and group names SHALL match `^[A-Za-z0-9._-]{1,64}$` and SHALL NOT be `.` or `..`. Create and update procedures SHALL reject other names with a validation error. The group name `all`, compared case-insensitively, is reserved for the built-in All group: creating a group with that name, or renaming a group to it, SHALL be rejected with a `BAD_REQUEST` error. A group that already has that name SHALL still be updatable as long as its name does not change.
 

@@ -23,7 +23,7 @@ Read the site live every time: this file only says where to look and the rules t
 - Only a role named literally in `roles:`, `include_role` or `import_role` can be unchecked. What arrives through `include_tasks` or `dependencies` still runs.
 - Unchecking a role empties its tasks but keeps its defaults: never read another role's `register` or `set_fact` without a `default(...)`. It only applies to interactive runs: jobs run every role.
 - Give each role a unique name: unchecking acts on every directory with that name.
-- Prefix its variables with the role's name, so they do not collide. A value passed at launch wins over `defaults/` and `vars/`, as text, in templates too.
+- Prefix its variables with the role's name, so they do not collide. A value passed at launch wins over `defaults/` and `vars/`, in templates too, with the type of its row.
 - A secret has no value in `defaults/`: the role just reads the variable, and the app suggests that name in the playbook's secrets panel.
 
 Commit and push only when the user asks for it.

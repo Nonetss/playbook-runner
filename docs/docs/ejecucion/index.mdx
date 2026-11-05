@@ -3,7 +3,7 @@ title: Lo que cambia el runner
 description: Cada regla por la que un playbook se comporta aquí de otra forma que con ansible-playbook, y qué hacer con ella
 services: [ansible]
 workspaces: [apps-ansible]
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 Un playbook no se ejecuta tal cual: el ejecutor prepara un directorio temporal, modifica la copia y lanza `ansible-runner` con parámetros fijos. Estas son las reglas que resultan.
@@ -17,8 +17,8 @@ Un playbook no se ejecuta tal cual: el ejecutor prepara un directorio temporal, 
 | Síntoma | Causa | Qué hacer |
 | --- | --- | --- |
 | La tarea sale OK y no se ve nada | [`debug` con `var`](catalog:reglas/debug-var-no-se-ve), o un módulo sin `msg` ni `stdout` | Imprimirlo con `debug` y `msg` |
-| `Conditional result ... derived from value of type 'str'` | [Variable de texto](catalog:reglas/extra-vars-texto) usada sin `bool` | `when: flag \| bool` |
-| `'>' not supported between instances of ...` | Variable de texto usada sin `int` | `(n \| int) > 5` |
+| `Conditional result ... derived from value of type 'str'` | [Variable de tipo Texto](catalog:reglas/extra-vars-texto) usada sin `bool` | Cambiar la fila a Booleano o usar `when: flag \| bool` |
+| `'>' not supported between instances of ...` | Variable de tipo Texto usada sin `int` | Cambiar la fila a Número o usar `(n \| int) > 5` |
 | La ejecución no avanza ni termina | [`vars_prompt` o `pause` sin `seconds`](catalog:reglas/prompts-se-cuelgan) | Cerrar la pestaña, o esperar a la hora si es un job |
 | Una tarea corre como root y debía ser otro usuario | [`become_user` se ignora](catalog:reglas/become-user-ignorado) | `runuser -u usuario --` |
 | Una play corre en hosts que no debería | [`hosts` no decide](catalog:reglas/hosts-no-decide) | Un playbook por trabajo, o una condición con `when` |

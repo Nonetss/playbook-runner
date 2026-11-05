@@ -183,7 +183,7 @@ The form to run a Git playbook by hand SHALL list the roles it declares that exi
 - **THEN** the system SHALL replace the links and SHALL NOT write to their targets
 
 ### Requirement: Report the variables each playbook defines
-The role listing SHALL report, for each playbook in the configured subdirectory of the synced commit that defines variables, their names and origin: `vars` and non-templated `vars_files` of its plays, following `import_playbook`, and, for the roles it declares, the `vars` of their `roles:` entry and `defaults/main` and `vars/main`, resolved to the nearest `roles/` directory. It SHALL NOT report `ansible_*` variables, and SHALL NOT read `group_vars`, `include_vars` or role dependencies. A value SHALL only be returned when it is a short plain scalar, and never when it is tagged (such as `!vault`) or its name looks sensitive. Nothing SHALL be stored.
+The role listing SHALL report, for each playbook in the configured subdirectory of the synced commit that defines variables, their names and origin: `vars` and non-templated `vars_files` of its plays, following `import_playbook`, and, for the roles it declares, the `vars` of their `roles:` entry and `defaults/main` and `vars/main`, resolved to the nearest `roles/` directory. It SHALL report `ansible_*` variables the playbook defines, which the forms SHALL show read-only, and SHALL NOT read `group_vars`, `include_vars` or role dependencies. Each variable SHALL carry the type an override must use (`text`, `boolean`, `number` or `json`). A value SHALL be returned when it is a short scalar, or a list or mapping as JSON, and never when it is tagged (such as `!vault`), contains a tagged value or a key that looks sensitive, or its name looks sensitive. Nothing SHALL be stored.
 
 #### Scenario: Variables of a play and its role
 - **WHEN** a playbook sets `port` in `vars` and declares a role whose `defaults/main.yml` sets `web_root`
@@ -202,11 +202,15 @@ The role listing SHALL report, for each playbook in the configured subdirectory 
 - **THEN** the listing SHALL still succeed with the variables it could read
 
 ### Requirement: Offer detected variables when running by hand
-The form to run a Git playbook by hand SHALL list the detected variables, one per name, each with its origin and value when known, and SHALL let the user override one for that run as an extra var. It SHALL NOT list those of an unchecked role or those that already have a row. Nothing SHALL be sent for a variable the user does not override.
+The form to run a Git playbook by hand SHALL list the detected variables, one per name, each with its origin and value when known, and SHALL let the user override one for that run as an extra var of the same type as its value. It SHALL NOT list those of an unchecked role or those that already have a row. Nothing SHALL be sent for a variable the user does not override.
 
 #### Scenario: Override a detected variable
 - **WHEN** a user overrides a detected `port` whose value is `80`
 - **THEN** an editable variable row SHALL appear with that name and value, and `port` SHALL leave the list
+
+#### Scenario: Override a default that is not text
+- **WHEN** a user overrides a detected `enabled: false` or a list
+- **THEN** the row SHALL be of type boolean or JSON and the run SHALL send a boolean or a list, never its text
 
 #### Scenario: Role unchecked
 - **WHEN** a user unchecks a role
@@ -243,7 +247,7 @@ Once a connection and an environment are chosen, a playbook's secrets panel SHAL
 - **THEN** the panel SHALL keep working without suggestions
 
 ### Requirement: Detect variables a role reads without defining them
-The roles listing SHALL also report, after the defined ones and marked `usedOnly`, the variables that the `tasks`, `handlers` and `templates` of a playbook's declared roles read and that nothing the playbook declares defines or assigns. The system SHALL only parse those templates, never render them, and SHALL leave out what Ansible provides.
+The roles listing SHALL also report, after the defined ones and marked `usedOnly`, the variables that the `tasks`, `handlers`, `templates`, `defaults` and `vars` of a playbook's declared roles read and that nothing the playbook declares defines or assigns. The system SHALL only parse those templates, never render them, and SHALL leave out what Ansible provides.
 
 #### Scenario: A role reads a variable nothing defines
 - **WHEN** a role's template reads `{{ api_token }}` and nothing defines it

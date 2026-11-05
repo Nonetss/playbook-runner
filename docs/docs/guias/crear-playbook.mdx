@@ -2,7 +2,7 @@
 title: Crear un playbook
 description: Cómo escribir un playbook para Playbook Runner, con una plantilla probada y la lista de lo que hay que comprobar antes de entregarlo
 order: 1
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 Parte de esta plantilla. Hace lo que casi todo playbook necesita: valores por defecto, conversión de lo que llega de fuera y salida visible en la consola.
@@ -14,7 +14,7 @@ Parte de esta plantilla. Hace lo que casi todo playbook necesita: valores por de
   gather_facts: true
   become: true
   vars:
-    # Valores por defecto. Una variable de la ejecución llega siempre como texto,
+    # Valores por defecto. Una variable de la ejecución puede llegar como texto,
     # así que se convierten donde se usan (| bool, | int).
     servicio_nombre: nginx
     servicio_reiniciar: false

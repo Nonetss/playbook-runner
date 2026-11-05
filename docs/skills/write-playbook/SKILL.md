@@ -1,6 +1,6 @@
 ---
 name: write-playbook
-description: How to write an Ansible playbook that runs on Playbook Runner, whose executor changes several Ansible rules (it ignores `hosts` and `become_user`, variables arrive as text, `debug` with `var` shows nothing, there are no groups or prompts). Use it before writing, reviewing or fixing a playbook for Playbook Runner, or when one shows no output, hangs or fails only there.
+description: How to write an Ansible playbook that runs on Playbook Runner, whose executor changes several Ansible rules (it ignores `hosts` and `become_user`, `debug` with `var` shows nothing, there are no groups or prompts). Use it before writing, reviewing or fixing a playbook for Playbook Runner, or when one shows no output, hangs or fails only there.
 ---
 
 # Writing a playbook for Playbook Runner
@@ -21,7 +21,7 @@ For detail: what the runner mounts for each run is `/playbook-runner/ejecucion/m
 - Write `hosts: all`. Every play runs on the hosts chosen at launch, whatever `hosts` says, and groups do not exist: of `group_vars`, only `all` applies.
 - `delegate_to: localhost` runs inside the runner's container, unprivileged and without `sudo`: add `become: false` to that task.
 - `become: true` is always root. `become_user` is ignored.
-- Anything passed at launch is a string: filter it with `| bool` or `| int` where it is used.
+- A value passed at launch keeps the type of its row, and a Text row or an older job is a string: filter with `| bool` or `| int` where it is used if the playbook must accept both.
 - Only `msg`, `stdout` and `stderr` reach the console: use `debug` with `msg`, never `var`, and `join` a list.
 - Nothing interactive: `vars_prompt` and `pause` without `seconds` hang the run.
 - There is no `--check`, `--tags` or `--limit`: for a dry run, add a variable that turns it on.

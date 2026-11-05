@@ -3,7 +3,7 @@ title: Probar un playbook sin hosts
 description: Comprobar la sintaxis de un playbook y ver lo que enseñaría la consola, con el código real del runner y sin tocar ningún host
 workspaces: [apps-ansible]
 order: 4
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 Comprobar la sintaxis, con el Ansible del venv del ejecutor:
@@ -66,7 +66,7 @@ La sintaxis no detecta nada de lo que [cambia el runner](../ejecucion/index.mdx)
 
 Las tareas corren de verdad en tu máquina: usa `become: false` y un playbook que no cambie nada, o ejecútalo en un contenedor.
 
-Para añadir variables, ponlas en `extravars` como texto, igual que las pasa la app.
+Para añadir variables, ponlas en `extravars` con su tipo, igual que las pasa la app.
 
 ## Qué no comprueba
 

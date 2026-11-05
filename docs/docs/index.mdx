@@ -1,7 +1,7 @@
 ---
 title: Playbook Runner por dentro
 description: Cómo funciona Playbook Runner, qué le hace a un playbook y cómo escribir lo que ejecuta
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 Playbook Runner es una consola web autoalojada para Ansible: inventario, credenciales SSH, playbooks, scripts y jobs con cron, con la salida de cada ejecución en directo en el navegador.
@@ -9,7 +9,7 @@ Playbook Runner es una consola web autoalojada para Ansible: inventario, credenc
 <Diagram id="arquitectura" />
 
 > [!WARNING]
-> Un playbook válido para `ansible-playbook` puede comportarse de otra forma aquí: `hosts` y `become_user` no deciden nada, las variables llegan como texto y `debug` con `var` no se ve. Antes de escribir uno, lee [las reglas del runner](ejecucion/index.mdx).
+> Un playbook válido para `ansible-playbook` puede comportarse de otra forma aquí: `hosts` y `become_user` no deciden nada y `debug` con `var` no se ve. Antes de escribir uno, lee [las reglas del runner](ejecucion/index.mdx).
 
 ## ¿Dónde encuentro…?
 

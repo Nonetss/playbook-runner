@@ -1,14 +1,16 @@
 ---
 title: Variables y secretos
-description: Por qué una variable llega como texto, qué pasa con become_user, qué variables detecta la app y cómo llegan los secretos
+description: Con qué tipo llega una variable, qué pasa con become_user, qué variables detecta la app y cómo llegan los secretos
 services: [ansible]
 order: 2
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
-Lo que se pasa al lanzar una ejecución o desde un job llega **como texto** y con la precedencia más alta de Ansible, porque `RunBundleRequest.extravars` es `map<string, string>`. Con la versión actual, usarlo sin convertir da un error, no un resultado raro:
+Lo que se pasa al lanzar una ejecución o desde un job llega **con el tipo de su fila** (Texto, Booleano, Número o JSON) y con la precedencia más alta de Ansible, porque `RunBundleRequest.extravars_json` es un objeto JSON. Al sobrescribir una variable detectada, la fila ya sale con el tipo de su valor, así que `ufw_enabled: false` se sobrescribe con un booleano y `ufw_allow_ports` con una lista, igual que con `ansible-playbook -e '{"ufw_enabled": true}'`.
 
-| Expresión, con `flag="false"` y `n="41"` | Resultado |
+Una fila de tipo Texto sigue siendo texto, como `-e flag=false`, y también lo son los valores de los jobs guardados antes de que hubiera tipos. Usarlo sin convertir da un error, no un resultado raro:
+
+| Expresión, con los textos `flag="false"` y `n="41"` | Resultado |
 | --- | --- |
 | `when: flag` | Falla: `derived from value of type 'str'` |
 | `when: n > 5` | Falla: `'>' not supported` |
@@ -35,12 +37,12 @@ El host necesita `sudo` sin contraseña, que es lo que configura el script de ap
 
 La página de ejecución lista lo que define el playbook, para sobrescribirlo sin saberse el nombre, y el panel de secretos sugiere los mismos nombres una vez elegidos conexión y entorno. En un playbook de Git salen de `vars` y `vars_files` de sus plays, de los `vars` de cada entrada de `roles:` y de `defaults` y `vars` de los roles que declara; en uno inline, de los `vars` de sus plays.
 
-Detrás van las variables que esos roles leen en `tasks/`, `handlers/` y `templates/` sin que nada las defina ni las asigne (`used_only`), así que un rol puede pedir un secreto sin que el playbook lo mencione. `apps/ansible/app/services/git/role_usage.py` analiza las plantillas con Jinja sin renderizarlas. Es una sugerencia: una variable creada por `include_vars` o por un módulo sale de más, y las tareas del propio playbook no se miran.
+Detrás van las variables que esos roles leen en `tasks/`, `handlers/`, `templates/`, `defaults/` y `vars/` sin que nada las defina ni las asigne (`used_only`), así que un rol puede pedir un secreto sin que el playbook lo mencione. `apps/ansible/app/services/git/role_usage.py` analiza las plantillas con Jinja sin renderizarlas. Es una sugerencia: una variable creada por `include_vars` o por un módulo sale de más, y las tareas del propio playbook no se miran.
 
-- El valor solo se muestra si es simple. Los `!vault`, las listas, los diccionarios y los nombres que parecen sensibles (`password`, `token`, `key`…) salen sin valor.
+- Las listas y los diccionarios se muestran en JSON. Los `!vault`, lo que los contenga o tenga una clave que parezca sensible, los valores largos y los nombres que parecen sensibles (`password`, `token`, `key`…) salen sin valor.
 - No se detectan `group_vars`, `include_vars` ni las dependencias de un rol.
-- Las `ansible_*` se omiten, porque una ejecución no puede sobrescribirlas.
-- Sobrescribir una es pasarla como extra var, así que llega como texto.
+- Las `ansible_*` que define el playbook se listan como solo lectura, porque una ejecución no puede sobrescribirlas ni apuntarlas a un secreto.
+- Sobrescribir una es pasarla como extra var, con el tipo de su valor. Un `{{ … }}` es texto para el formulario: si evalúa a otra cosa, cambia el tipo de la fila.
 
 ## Secretos
 
@@ -59,3 +61,4 @@ Cómo declararlos en la app está en [la guía pública de Infisical](https://no
 | La ejecución se detiene antes de Ansible, indicando una variable | Infisical inaccesible, secreto ausente o sin permiso de lectura | Revisar la conexión, el entorno y la ruta del secreto |
 | `Extra vars with the name of a secret variable` | Una extra var se llama como un secreto | Cambiar uno de los dos nombres |
 | `Reserved extra vars are not allowed` | Un nombre empieza por `ansible_` | Cambiar el nombre |
+| `Valor no válido para: …` en el formulario | El valor no encaja con el tipo de su fila, o es JSON mal formado | Corregir el valor o cambiar el tipo |

@@ -2,7 +2,7 @@
 title: Crear un rol
 description: Cómo estructurar un repositorio de playbooks y escribir un rol que se detecte, se pueda desmarcar y no rompa a los demás
 order: 2
-updated: 2026-11-04
+updated: 2026-11-05
 ---
 
 Los roles solo existen en repositorios Git: un playbook escrito en la app es un único fichero y no los encuentra. Las reglas de [Crear un playbook](crear-playbook.mdx) también valen dentro de un rol.
@@ -117,7 +117,7 @@ port={{ ejemplo_rol_puerto | int }}
 **Variables**
 
 - Pon el nombre del rol como prefijo (`mi_rol_puerto`) para que no choquen.
-- Pon en `defaults/` lo configurable y en `vars/` lo que no debe cambiarse. Una extra var gana a ambos y llega como texto, también en plantillas.
+- Pon en `defaults/` lo configurable y en `vars/` lo que no debe cambiarse. Una extra var gana a ambos, también en plantillas, y llega con el tipo de su fila.
 - Un dato sensible no lleva valor en `defaults/`: el rol lo lee sin definirlo y se asigna como variable secreta del playbook. La app [sugiere ese nombre](../ejecucion/variables.mdx#variables-detectadas) en el panel de secretos, sin tocar el YAML.
 
 **Dependencias**
