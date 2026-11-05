@@ -89,11 +89,13 @@ message RunBundleRequest {
   Playbook playbook = 1;
   repeated Host hosts = 2;
   int32 forks = 3;
-  map<string, string> extravars = 4;
-  reserved 5;
+  reserved 4, 5;
+  reserved "extravars";
   optional SecretVariables secret_variables = 6;
   // Roles left without tasks in this run's copy of a Git playbook's tree.
   repeated string disabled_roles = 7;
+  // JSON object: name -> value, keeping booleans, numbers, lists and objects.
+  string extravars_json = 8;
 }
 
 message RunPingRequest {

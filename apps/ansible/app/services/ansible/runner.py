@@ -122,7 +122,7 @@ class AnsibleRunnerConfig(BaseModel):
     forks: int = Field(default=1)
     # ``ansible_user`` comes from each host's inventory entry, never from
     # extravars (they would override the per-credential user).
-    extravars: dict[str, str] = Field(
+    extravars: dict[str, Any] = Field(
         default_factory=lambda: {
             "ansible_become_user": settings.ansible_become_user,
         }

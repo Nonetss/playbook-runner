@@ -149,7 +149,7 @@ export const streamHandler = {
         playbook: bundle.playbook,
         hosts: bundle.hosts.map(toProtoHost),
         forks: input.forks,
-        extravars: input.extravars,
+        extravars_json: JSON.stringify(input.extravars),
         secret_variables: bundle.secretVariables,
         disabled_roles: input.disabledRoles,
       },

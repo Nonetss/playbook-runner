@@ -26,8 +26,19 @@ describe("safeExtravars", () => {
     expect(parses({ [key]: "x" })).toBe(false)
   })
 
-  test("rejects non-string values", () => {
-    expect(parses({ count: 1 })).toBe(false)
-    expect(parses({ nested: { a: "b" } })).toBe(false)
+  test("keeps each value's type", () => {
+    const value = {
+      flag: false,
+      count: 1,
+      ports: [{ port: "22", proto: "tcp" }],
+      nothing: null,
+      nested: { a: "b" },
+    }
+    expect(safeExtravars.parse(value)).toEqual(value)
+  })
+
+  test("rejects what JSON cannot carry", () => {
+    expect(parses({ when: new Date() })).toBe(false)
+    expect(parses({ fn: () => 1 })).toBe(false)
   })
 })

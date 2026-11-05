@@ -391,6 +391,24 @@ describe("executeJob secret variables", () => {
     })
   })
 
+  test("a job's extra vars travel as JSON", async () => {
+    queueJob(
+      jobRow({
+        inventoryJson: JOB.inventoryJson,
+        extravarsJson: { env: "prod" },
+      })
+    )
+    fakeDb.queue("select", [], [playbookSelection()], [HOST_ROW], [])
+    fakeDb.queue("update", undefined)
+    grpc.serverStream.mockImplementation(() => streamOf([DONE_OK]))
+
+    await executeJob(IDS.job, "schedule")
+
+    expect(grpc.serverStream.mock.calls[0]?.[1]).toMatchObject({
+      extravars_json: '{"env":"prod"}',
+    })
+  })
+
   test("a colliding extra var becomes the run's error with no gRPC call", async () => {
     queueJob(
       jobRow({

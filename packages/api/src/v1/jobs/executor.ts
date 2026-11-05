@@ -120,7 +120,7 @@ async function streamRun(
       infisicalConnectionId: job.infisicalConnectionId,
       infisicalEnvironment: job.infisicalEnvironment,
       secretVariables: secretVariables.map(toSecretVariable),
-      extravars: (job.extravarsJson ?? {}) as Record<string, string>,
+      extravars: job.extravarsJson ?? {},
     })
   } catch (err) {
     return {
@@ -169,7 +169,7 @@ async function streamRun(
         playbook: bundle.playbook,
         hosts: bundle.hosts.map(toProtoHost),
         forks: job.forks,
-        extravars: (job.extravarsJson ?? {}) as Record<string, string>,
+        extravars_json: JSON.stringify(job.extravarsJson ?? {}),
         secret_variables: bundle.secretVariables,
         disabled_roles: [],
       },

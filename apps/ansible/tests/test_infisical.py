@@ -1,6 +1,7 @@
 """Secret variables: fetched once, delivered literally, masked, and always removed."""
 
 import asyncio
+import json
 import os
 import stat
 import time
@@ -401,7 +402,7 @@ def run_bundle_request(
     return RunBundleRequest(
         playbook=Playbook(name="p", content="- hosts: all\n"),
         hosts=[HOST],
-        extravars=extravars or {},
+        extravars_json=json.dumps(extravars or {}),
         secret_variables=secret_variables,
     )
 

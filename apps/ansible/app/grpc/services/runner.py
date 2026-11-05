@@ -63,6 +63,7 @@ from app.services.ansible.materialize import (
 from app.services.ansible.models import (
     ResolvedRunBundle,
     host_from_proto,
+    parse_extravars,
     playbook_from_proto,
 )
 from app.services.ansible.payload import event_payload
@@ -242,12 +243,16 @@ class RunnerServicer(RunnerServiceServicer):
         """Ejecuta un playbook contra hosts ya resueltos (used by the job scheduler too)."""
         logger.bind(peer=context.peer()).info("RunBundle recibido")
 
+        try:
+            extravars = parse_extravars(request.extravars_json)
+        except ValueError as exc:
+            yield RunBundleResponse(error=str(exc))
+            return
+
         # Extra vars override everything in Ansible: ``ansible_*`` keys could
         # change how and where we connect, so they are reserved (the backend
         # validates this too; jobs stored before that check land here).
-        reserved = sorted(
-            k for k in request.extravars if k.lower().startswith("ansible_")
-        )
+        reserved = sorted(k for k in extravars if k.lower().startswith("ansible_"))
         if reserved:
             yield RunBundleResponse(
                 error=f"Reserved extra vars are not allowed: {', '.join(reserved)}"
@@ -287,7 +292,7 @@ class RunnerServicer(RunnerServiceServicer):
                     error=f"Invalid secret variable names: {', '.join(invalid)}"
                 )
                 return
-            collisions = sorted(set(names) & set(request.extravars))
+            collisions = sorted(set(names) & set(extravars))
             if collisions:
                 yield RunBundleResponse(
                     error="Extra vars with the name of a secret variable: "
@@ -316,7 +321,7 @@ class RunnerServicer(RunnerServiceServicer):
                 forks=request.forks or 1,
                 extravars={
                     "ansible_become_user": settings.ansible_become_user,
-                    **dict(request.extravars),
+                    **extravars,
                 },
                 envvars=materialized.envvars,
                 cmdline=(

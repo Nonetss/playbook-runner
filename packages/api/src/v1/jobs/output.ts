@@ -13,7 +13,7 @@ const job = z.object({
   description: z.string().nullable(),
   playbookId: z.string().nullable(),
   inventoryJson: z.array(inventorySelectionItem(z.string())).nullable(),
-  extravarsJson: z.record(z.string(), z.string()).nullable(),
+  extravarsJson: z.record(z.string(), z.json()).nullable(),
   forks: z.number().int(),
   cronExpression: z.string().nullable(),
   enabled: z.boolean(),

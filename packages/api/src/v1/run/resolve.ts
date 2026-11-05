@@ -12,6 +12,7 @@ import { playbookSecretVariables } from "@playbook-runner/db/schema/secret-varia
 import { eq, inArray } from "drizzle-orm"
 import { decryptSecret } from "#v1/credentials/crypto"
 import { hostAddress } from "#v1/inventory/address"
+import type { ExtraVars } from "#v1/run/extravars"
 import {
   mergeSecretVariables,
   type SecretVariable,
@@ -55,7 +56,7 @@ export type RunSecretOptions = {
   infisicalConnectionId?: string | null
   infisicalEnvironment?: string | null
   secretVariables?: SecretVariable[]
-  extravars?: Record<string, string>
+  extravars?: ExtraVars
   disabledRoles?: string[]
 }
 

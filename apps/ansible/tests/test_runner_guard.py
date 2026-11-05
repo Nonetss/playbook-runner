@@ -1,12 +1,16 @@
 """The runner refuses reserved extra vars on its own, before running Ansible."""
 
 import asyncio
+import json
+from typing import Any
 
 import pytest
 
+from app.core.config import settings
 from app.grpc.services import runner as runner_module
 from app.grpc.services.runner import RunnerServicer
 from app.grpc.stubs import Host, Playbook, RunBundleRequest
+from app.services.ansible.runner import AnsibleRunnerConfig
 from app.services.git.mirror import GitError
 
 
@@ -22,7 +26,7 @@ class Reached(Exception):
     pass
 
 
-def request(extravars: dict[str, str]) -> RunBundleRequest:
+def request(extravars: dict[str, Any]) -> RunBundleRequest:
     return RunBundleRequest(
         playbook=Playbook(name="p", content="- hosts: all\n"),
         hosts=[
@@ -34,7 +38,7 @@ def request(extravars: dict[str, str]) -> RunBundleRequest:
                 connection="ssh",
             )
         ],
-        extravars=extravars,
+        extravars_json=json.dumps(extravars),
     )
 
 
@@ -59,6 +63,45 @@ def test_reserved_extra_vars_are_refused(key: str) -> None:
     assert len(frames) == 1
     assert frames[0].HasField("error")
     assert key in frames[0].error
+
+
+@pytest.mark.usefixtures("materialize_spy")
+@pytest.mark.parametrize(
+    ("raw", "message"), [("{broken", "valid JSON"), ("[1]", "JSON object")]
+)
+def test_extra_vars_that_are_not_an_object_are_refused(raw: str, message: str) -> None:
+    req = request({})
+    req.extravars_json = raw
+
+    frames = asyncio.run(collect(req))
+
+    assert len(frames) == 1
+    assert message in frames[0].error
+
+
+def test_extra_vars_keep_their_type_on_the_way_to_ansible(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    configs: list[AnsibleRunnerConfig] = []
+
+    class Stop(Exception):
+        pass
+
+    class FakeRunner:
+        def __init__(self, config: AnsibleRunnerConfig) -> None:
+            configs.append(config)
+            raise Stop
+
+    monkeypatch.setattr(runner_module, "AnsibleRunner", FakeRunner)
+    value = {"flag": False, "count": 2, "ports": [{"port": "22"}], "name": "a"}
+
+    with pytest.raises(Stop):
+        asyncio.run(collect(request(value)))
+
+    assert configs[0].extravars == {
+        "ansible_become_user": settings.ansible_become_user,
+        **value,
+    }
 
 
 def test_a_role_that_cannot_be_disabled_ends_the_run(

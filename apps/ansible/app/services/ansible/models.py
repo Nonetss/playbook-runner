@@ -8,7 +8,23 @@ network calls live here.
 
 from __future__ import annotations
 
+import json
+from typing import Any
+
 from pydantic import BaseModel
+
+
+def parse_extravars(raw: str) -> dict[str, Any]:
+    """Extra vars of a run: a JSON object, so each value keeps its type."""
+    if not raw:
+        return {}
+    try:
+        extravars = json.loads(raw)
+    except ValueError as exc:
+        raise ValueError("Extra vars are not valid JSON") from exc
+    if not isinstance(extravars, dict):
+        raise ValueError("Extra vars must be a JSON object")
+    return extravars
 
 
 class ResolvedHost(BaseModel):

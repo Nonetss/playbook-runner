@@ -321,6 +321,17 @@ describe("run.run secret variables", () => {
     )
   }
 
+  test("extra vars reach the runner with their types", async () => {
+    queueResolved([])
+    grpc.serverStream.mockImplementation(() => streamOf([DONE]))
+    const extravars = { flag: false, count: 2, ports: ["22"], name: "true" }
+
+    await drain(streamHandler.run({ context, input: { ...INPUT, extravars } }))
+
+    const request = grpc.serverStream.mock.calls[0]?.[1]
+    expect(request).toMatchObject({ extravars_json: JSON.stringify(extravars) })
+  })
+
   test("the gRPC request carries references and credentials, no values", async () => {
     queueResolved(
       [],

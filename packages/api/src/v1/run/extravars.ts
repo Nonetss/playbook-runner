@@ -12,4 +12,7 @@ export const extravarName = z
     "Variable names must be identifiers and must not start with `ansible_`"
   )
 
-export const safeExtravars = z.record(extravarName, z.string())
+/** Any JSON value: `when: flag` needs a boolean and `loop:` a list, not text. */
+export const safeExtravars = z.record(extravarName, z.json())
+
+export type ExtraVars = z.infer<typeof safeExtravars>
