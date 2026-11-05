@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { DetectedVariableGroups } from "@/features/playbooks/components/detected-variable-groups"
 import {
   type DetectedVariable,
+  isReservedVariable,
   offeredVariables,
 } from "@/features/playbooks/lib/playbook-roles"
 
@@ -37,6 +38,19 @@ export function RunDetectedVariables({
       <DetectedVariableGroups
         variables={offered}
         action={(variable) => {
+          if (isReservedVariable(variable.name)) {
+            return (
+              <Text
+                as="span"
+                variant="meta"
+                tone="muted"
+                className="shrink-0 py-1"
+                title={t("run.panel.variable_reserved_hint")}
+              >
+                {t("run.panel.variable_reserved")}
+              </Text>
+            )
+          }
           const label = t("run.panel.variable_override_aria", {
             name: variable.name,
           })

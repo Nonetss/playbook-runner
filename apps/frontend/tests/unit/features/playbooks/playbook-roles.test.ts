@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import {
   groupedVariables,
+  isReservedVariable,
   offeredVariables,
   selectableRoles,
 } from "@/features/playbooks/lib/playbook-roles"
@@ -40,16 +41,24 @@ describe("selectableRoles", () => {
 })
 
 describe("offeredVariables", () => {
-  const fromPlay = { name: "port", value: "80", role: null, usedOnly: false }
+  const fromPlay = {
+    name: "port",
+    value: "80",
+    valueType: "text" as const,
+    role: null,
+    usedOnly: false,
+  }
   const fromRole = {
     name: "port",
     value: "8080",
+    valueType: "text" as const,
     role: "nginx",
     usedOnly: false,
   }
   const roleOnly = {
     name: "root",
     value: "/srv",
+    valueType: "text" as const,
     role: "nginx",
     usedOnly: false,
   }
@@ -68,7 +77,13 @@ describe("offeredVariables", () => {
   })
 
   test("another role's variable is offered when the first one is unchecked", () => {
-    const other = { name: "port", value: "9", role: "docker", usedOnly: false }
+    const other = {
+      name: "port",
+      value: "9",
+      valueType: "text" as const,
+      role: "docker",
+      usedOnly: false,
+    }
     expect(
       offeredVariables([fromRole, other], new Set(["nginx"]), none)
     ).toEqual([other])
@@ -85,6 +100,7 @@ describe("groupedVariables", () => {
   const variable = (name: string, role: string | null, usedOnly = false) => ({
     name,
     value: null,
+    valueType: "text" as const,
     role,
     usedOnly,
   })
@@ -120,5 +136,15 @@ describe("groupedVariables", () => {
 
   test("nothing to show means no groups", () => {
     expect(groupedVariables([])).toEqual([])
+  })
+})
+
+describe("isReservedVariable", () => {
+  test.each(["ansible_user_name", "ANSIBLE_x"])("%p is reserved", (name) => {
+    expect(isReservedVariable(name)).toBe(true)
+  })
+
+  test("any other name is not", () => {
+    expect(isReservedVariable("my_ansible_user")).toBe(false)
   })
 })

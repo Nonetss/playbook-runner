@@ -19,6 +19,14 @@ export type DetectedVariable =
   PlaybookRepositoryRoles["playbookVariables"][number]["variables"][number]
 
 /**
+ * `ansible_*` names are reserved for the runner: a run can neither override
+ * them nor point them at a secret, even when a role defines one of its own.
+ */
+export function isReservedVariable(name: string): boolean {
+  return name.toLowerCase().startsWith("ansible_")
+}
+
+/**
  * The variables a run of this playbook could override, one per name: without
  * those of unchecked roles, or those that already have a row. The play comes
  * first, as the runner lists it.

@@ -146,6 +146,8 @@
       "roles_loose_tasks": "Las tareas sueltas del playbook se ejecutan siempre.",
       "variables_detected": "Definidas en el playbook",
       "variable_from_role": "rol {{role}}",
+      "variable_reserved": "solo lectura",
+      "variable_reserved_hint": "Los nombres ansible_* están reservados: una ejecución no puede sobrescribirlos",
       "variable_no_value": "valor no visible",
       "variables_search": "Buscar variable…",
       "variables_no_match": "Ninguna variable coincide.",

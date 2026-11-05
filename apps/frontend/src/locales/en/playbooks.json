@@ -146,6 +146,8 @@
       "roles_loose_tasks": "The playbook's own tasks always run.",
       "variables_detected": "Defined in the playbook",
       "variable_from_role": "role {{role}}",
+      "variable_reserved": "read-only",
+      "variable_reserved_hint": "ansible_* names are reserved: a run cannot override them",
       "variable_no_value": "value not shown",
       "variables_search": "Search variables…",
       "variables_no_match": "No variable matches.",

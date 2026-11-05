@@ -25,6 +25,7 @@ import { usePlaybookGet } from "@/features/playbooks/hooks/use-playbooks"
 import { usePlaybookRoles } from "@/features/playbooks/hooks/use-repositories"
 import {
   type DetectedVariable,
+  isReservedVariable,
   offeredVariables,
 } from "@/features/playbooks/lib/playbook-roles"
 import {
@@ -138,7 +139,7 @@ function SecretVariablesForm({
 
   const canPickSecrets = !!connectionId && !!environment
   const suggestions = offeredVariables(
-    detected,
+    detected.filter((variable) => !isReservedVariable(variable.name)),
     new Set(),
     new Set(rows.map((row) => row.name.trim()))
   )
