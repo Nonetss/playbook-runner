@@ -72,6 +72,10 @@ class TestUsedInTasks:
         )
         assert found == {"nested", "condition", "first", "second", "dest", "templated"}
 
+    def test_reads_the_bare_expressions_of_an_assert(self) -> None:
+        content = "- assert:\n    that:\n      - api_key | default('') | length > 8\n"
+        assert used_in_tasks(tasks(content)) == {"api_key"}
+
     def test_a_tagged_scalar_is_not_a_template(self) -> None:
         assert used_in_tasks(tasks('- debug: {msg: !unsafe "{{ a }}"}')) == set()
 
@@ -98,3 +102,11 @@ class TestAssignedNames:
             )
         )
         assert found == {"result", "fact", "long_fact", "local", "entry"}
+
+
+def test_getent_leaves_its_result_behind() -> None:
+    content = (
+        "- ansible.builtin.getent: {database: passwd, key: root}\n"
+        "- getent: {database: group}\n"
+    )
+    assert assigned_names(tasks(content)) == {"getent_passwd", "getent_group"}

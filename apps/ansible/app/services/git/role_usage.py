@@ -54,8 +54,9 @@ _PROVIDED = {
     *_ENVIRONMENT.globals,
 }
 # Se evalúan como expresión aunque no lleven ``{{ }}``.
-_BARE_KEYS = {"when", "failed_when", "changed_when", "until"}
+_BARE_KEYS = {"when", "failed_when", "changed_when", "until", "that"}
 _SET_FACT_KEYS = {"set_fact", "ansible.builtin.set_fact"}
+_GETENT_KEYS = {"getent", "ansible.builtin.getent"}
 
 
 def used_in_template(text: str) -> set[str]:
@@ -103,7 +104,7 @@ def used_in_tasks(tasks: Any) -> set[str]:
 
 
 def assigned_names(tasks: Any) -> set[str]:
-    """Variables que dejan unas tareas: ``register``, ``set_fact``, ``vars``, ``loop_var``."""
+    """Lo que dejan unas tareas: ``register``, ``set_fact``, ``vars``, ``loop_var``, ``getent``."""
     names: set[str] = set()
     for node in _nodes(tasks):
         if not isinstance(node, dict):
@@ -113,4 +114,9 @@ def assigned_names(tasks: Any) -> set[str]:
                 names.add(value)
             elif (key == "vars" or key in _SET_FACT_KEYS) and isinstance(value, dict):
                 names |= {name for name in value if isinstance(name, str)}
+            elif key in _GETENT_KEYS and isinstance(value, dict):
+                # El módulo deja el resultado en ``getent_<database>``.
+                database = value.get("database")
+                if isinstance(database, str):
+                    names.add(f"getent_{database}")
     return names
