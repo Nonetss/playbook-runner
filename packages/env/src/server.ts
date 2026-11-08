@@ -14,6 +14,9 @@ export const env = createEnv({
     // Set to "0" to disable the in-process job scheduler (e.g. when running
     // multiple backend replicas and only one should schedule).
     JOB_SCHEDULER_ENABLED: z.enum(["0", "1"]).default("1"),
+    // When the same scheduler syncs every Git repository (cron expression,
+    // hourly by default; "off" disables it). Checked at startup.
+    REPOSITORY_SYNC_CRON: z.string().default("0 * * * *"),
 
     GENERIC_OAUTH_CLIENT_ID: z.string().optional(),
     GENERIC_OAUTH_CLIENT_SECRET: z.string().optional(),

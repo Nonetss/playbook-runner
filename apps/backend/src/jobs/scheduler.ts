@@ -1,6 +1,10 @@
 import { isValidCron } from "@playbook-runner/api/v1/jobs/cron"
 import { executeJob } from "@playbook-runner/api/v1/jobs/executor"
 import { listScheduledJobs } from "@playbook-runner/api/v1/jobs/schedule"
+import {
+  repositorySyncPattern,
+  syncAllRepositories,
+} from "@playbook-runner/api/v1/repositories/auto-sync"
 import { db } from "@playbook-runner/db"
 import { jobRuns } from "@playbook-runner/db/schema/jobs"
 import { env } from "@playbook-runner/env/server"
@@ -14,6 +18,7 @@ type ScheduledEntry = { job: Bun.CronJob; pattern: string }
 
 const scheduled = new Map<string, ScheduledEntry>()
 let reconcileTimer: ReturnType<typeof setInterval> | null = null
+let repositorySync: Bun.CronJob | null = null
 
 function schedule(jobId: string, pattern: string) {
   // Bun.cron computes the next fire only after the handler settles, so a slow
@@ -90,6 +95,28 @@ export async function recoverOrphanedRuns() {
   }
 }
 
+/**
+ * Sync every Git repository on `REPOSITORY_SYNC_CRON`. Like the jobs, the
+ * next round is computed only after this one settles, so slow syncs never
+ * overlap.
+ */
+function startRepositorySync() {
+  const pattern = repositorySyncPattern(env.REPOSITORY_SYNC_CRON)
+  if (!pattern) {
+    logger.info("periodic repository sync disabled via REPOSITORY_SYNC_CRON")
+    return
+  }
+  repositorySync = Bun.cron(pattern, async () => {
+    try {
+      const result = await syncAllRepositories()
+      logger.info(result, "periodic repository sync finished")
+    } catch (err) {
+      logger.error({ err }, "periodic repository sync failed")
+    }
+  })
+  logger.info({ pattern }, "periodic repository sync scheduled")
+}
+
 /** Start the background job scheduler. Idempotent. */
 export function startJobScheduler() {
   if (env.JOB_SCHEDULER_ENABLED !== "1") {
@@ -97,6 +124,8 @@ export function startJobScheduler() {
     return
   }
   if (reconcileTimer) return
+
+  startRepositorySync()
 
   void reconcile().catch((err) =>
     logger.error({ err }, "initial reconcile failed")
@@ -115,4 +144,6 @@ export function stopJobScheduler() {
     reconcileTimer = null
   }
   for (const jobId of scheduled.keys()) unschedule(jobId)
+  repositorySync?.stop()
+  repositorySync = null
 }
