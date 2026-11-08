@@ -4,7 +4,7 @@ description: Dónde vive la lógica de negocio, cómo se sirve la API, cómo cor
 services: [backend]
 workspaces: [apps-backend, packages-api, packages-auth]
 order: 1
-updated: 2026-11-04
+updated: 2026-11-08
 ---
 
 `apps/backend` es solo el arranque: aplica las migraciones y la semilla del administrador (`src/index.ts`), monta los routers HTTP (`src/routers/`) y lanza el scheduler (`src/jobs/scheduler.ts`). La lógica de negocio vive en `packages/api`, versionada bajo `src/v1/`.
@@ -25,7 +25,7 @@ Solo `health.check` y `authConfig.get` admiten llamadas anónimas, y `packages/a
 
 ## Jobs y scheduler
 
-`apps/backend/src/jobs/scheduler.ts` mantiene un `Bun.cron` por cada job activo y lo reconcilia periódicamente con la base de datos. Se apaga con `JOB_SCHEDULER_ENABLED=0`, por ejemplo con varias réplicas.
+`apps/backend/src/jobs/scheduler.ts` mantiene un `Bun.cron` por cada job activo y lo reconcilia periódicamente con la base de datos. Además sincroniza todos los repositorios Git en cada vuelta de `REPOSITORY_SYNC_CRON` (cada hora por defecto, `off` la apaga), de uno en uno; [lo explica Repositorios Git](../ejecucion/repositorios-git.mdx). Se apaga entero con `JOB_SCHEDULER_ENABLED=0`, que es lo que hay que poner en todas las réplicas del backend menos una: si no, cada una lanzaría los mismos jobs y las mismas sincronizaciones.
 
 `jobs/executor.ts` abre la fila en `job_runs`, lanza el RPC y guarda los eventos. Sigue corriendo aunque nadie lo esté viendo, y `jobs.runs.watch` permite suscribirse mientras tanto. Una ejecución lanzada a mano se cancela con `jobs.runs.cancel` y queda como `cancelled`, con quién la canceló en `error`; [una programada no se puede cancelar](catalog:problemas/job-sin-cancelacion).
 

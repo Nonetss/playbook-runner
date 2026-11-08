@@ -60,6 +60,8 @@ Para probar con ellos la integración con Git, pulsa **Añadir repositorio** en 
 
 Cada fichero aparece como un playbook de solo lectura que puedes ejecutar y programar. **Hacer copia en Playbook Runner** lo convierte en un playbook normal y editable.
 
+Las ejecuciones usan el commit de la última sincronización, no la punta de la rama. El backend sincroniza todos los repositorios cada hora (se cambia con [`REPOSITORY_SYNC_CRON`](../configuration/)), y **Sincronizar** recoge un push al momento. Un job programado ejecuta el commit nuevo en cuanto se sincroniza, y su historial guarda qué commit se ejecutó.
+
 ## Roles en un repositorio Git
 
 Un playbook de Git puede usar los [roles de Ansible](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html) guardados en su repositorio, en el mismo commit sincronizado. Una ejecución busca en cada directorio `roles/` desde la carpeta del playbook hasta la raíz del repositorio, y gana el más cercano:

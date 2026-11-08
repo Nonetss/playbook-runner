@@ -2,7 +2,7 @@
 title: Crear un rol
 description: Cómo estructurar un repositorio de playbooks y escribir un rol que se detecte, se pueda desmarcar y no rompa a los demás
 order: 2
-updated: 2026-11-05
+updated: 2026-11-08
 ---
 
 Los roles solo existen en repositorios Git: un playbook escrito en la app es un único fichero y no los encuentra. Las reglas de [Crear un playbook](crear-playbook.mdx) también valen dentro de un rol.
@@ -129,7 +129,7 @@ port={{ ejemplo_rol_puerto | int }}
 
 1. Comprueba la sintaxis, con `ANSIBLE_ROLES_PATH`: [Probar un playbook sin hosts](probar-un-playbook.mdx).
 2. Haz commit y push.
-3. Pulsa **Sincronizar** en el repositorio dentro de la app. Hasta entonces, ejecuciones y jobs siguen usando el commit anterior.
+3. Espera a la sincronización periódica (cada hora por defecto) o pulsa **Sincronizar** en el repositorio dentro de la app. Hasta entonces, ejecuciones y jobs siguen usando el commit anterior; después, los jobs programados usan el nuevo sin más aviso.
 
 ## Cuando falla
 

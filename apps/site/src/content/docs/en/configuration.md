@@ -33,6 +33,7 @@ Read by `compose.yml` itself.
 | `SERVICE_TOKEN` | for runs | At least 32 characters, same value on the executor. Authenticates gRPC calls; without it the app starts but nothing can run. |
 | `ANSIBLE_GRPC_TARGET` | no | Where the backend dials the executor. Set to `gateway:50050` by `compose.yml`. |
 | `JOB_SCHEDULER_ENABLED` | no | `1` (default) runs scheduled jobs in-process; `0` turns the scheduler off, for example when you run several backend replicas. |
+| `REPOSITORY_SYNC_CRON` | no | When the scheduler syncs every Git repository, as a cron expression. Default `0 * * * *` (hourly); `off` leaves syncing to the **Sync** button. An invalid expression stops the backend at startup. |
 | `SEED_ADMIN_EMAIL` | no | First admin, created at startup if missing. Default `admin@playbook-runner.local`. |
 | `SEED_ADMIN_PASSWORD` | no | Default `admin1234`, which is refused in production. |
 | `SEED_ADMIN_NAME` | no | Default `Admin`. |

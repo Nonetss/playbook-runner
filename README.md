@@ -163,7 +163,8 @@ codes, and ready-to-run `curl`/client snippets. The raw spec lives at
 - **Git repositories** — prefer to keep playbooks in Git? Add a repository
   (public HTTPS, or SSH with a stored credential as deploy key), pick the
   branch from the list of the remote's branches and, optionally, a
-  subdirectory. It syncs on save and again whenever you press *Sync*: every
+  subdirectory. It syncs on save, every hour (`REPOSITORY_SYNC_CRON`) and
+  whenever you press *Sync*: every
   playbook file on the branch shows up as a read-only playbook you can run
   and schedule. Runs execute from a checkout of the synced commit, so roles,
   templates, `group_vars` and `files/` next to the playbook just work, and job
@@ -418,6 +419,7 @@ Copy from `.env.example` and `apps/backend/.env.example` and fill in
 | `SERVICE_TOKEN` | recommended | ≥ 32 chars, same value on backend and ansible. Authenticates the gRPC link. |
 | `ANSIBLE_GRPC_TARGET` | no | Default `localhost:50051` (set by compose). |
 | `JOB_SCHEDULER_ENABLED` | no | `1` (default) runs the in-process cron; `0` disables it. |
+| `REPOSITORY_SYNC_CRON` | no | When that cron syncs every Git repository. Default `0 * * * *` (hourly); `off` disables it. |
 | `SEED_ADMIN_EMAIL` / `_PASSWORD` / `_NAME` | no | Admin created at startup if missing. |
 | `GENERIC_OAUTH_CLIENT_ID` / `_SECRET` / `_ISSUER` | no | All three enable SSO. |
 | `SSH_HOST_KEY_POLICY` | no | Ansible service: `accept-new` (default), `strict`, `off`. |

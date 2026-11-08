@@ -2,7 +2,7 @@
 title: Crear un playbook
 description: Cómo escribir un playbook para Playbook Runner, con una plantilla probada y la lista de lo que hay que comprobar antes de entregarlo
 order: 1
-updated: 2026-11-05
+updated: 2026-11-08
 ---
 
 Parte de esta plantilla. Hace lo que casi todo playbook necesita: valores por defecto, conversión de lo que llega de fuera y salida visible en la consola.
@@ -80,7 +80,7 @@ Escribe `{{ db_password }}` y nunca un secreto en el YAML. La variable se asocia
 
 ## Si va en un repositorio Git
 
-Para que aparezca debe [cumplir la detección](../ejecucion/repositorios-git.mdx#qué-se-detecta-como-playbook). Tras hacer push hay que pulsar **Sincronizar**. Renombrarlo deja atrás a sus jobs, y **Hacer copia en Playbook Runner** copia solo ese fichero.
+Para que aparezca debe [cumplir la detección](../ejecucion/repositorios-git.mdx#qué-se-detecta-como-playbook). Tras hacer push aparece en la siguiente sincronización periódica (cada hora por defecto), o al momento si pulsas **Sincronizar**. Renombrarlo deja atrás a sus jobs, y **Hacer copia en Playbook Runner** copia solo ese fichero.
 
 ## Antes de entregarlo
 

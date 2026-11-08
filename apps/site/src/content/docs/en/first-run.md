@@ -60,6 +60,8 @@ To try the Git integration with them, choose **Add repository** on the Playbooks
 
 Each file appears as a read-only playbook you can run and schedule. **Copy to Playbook Runner** turns one into a regular, editable playbook.
 
+Runs use the commit of the last sync, not the tip of the branch. The backend syncs every repository once an hour (change it with [`REPOSITORY_SYNC_CRON`](../configuration/)), and **Sync** picks up a push right away. A scheduled job runs the new commit as soon as it is synced, and its history records which commit ran.
+
 ## Roles in a Git repository
 
 A Git playbook can use the [Ansible roles](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html) stored in its repository, at the same synced commit. A run searches every `roles/` directory from the playbook's folder up to the repository root, and the nearest one wins:

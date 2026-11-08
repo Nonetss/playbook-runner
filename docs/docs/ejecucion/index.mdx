@@ -3,7 +3,7 @@ title: Lo que cambia el runner
 description: Cada regla por la que un playbook se comporta aquí de otra forma que con ansible-playbook, y qué hacer con ella
 services: [ansible]
 workspaces: [apps-ansible]
-updated: 2026-11-05
+updated: 2026-11-08
 ---
 
 Un playbook no se ejecuta tal cual: el ejecutor prepara un directorio temporal, modifica la copia y lanza `ansible-runner` con parámetros fijos. Estas son las reglas que resultan.
@@ -27,7 +27,7 @@ Un playbook no se ejecuta tal cual: el ejecutor prepara un directorio temporal, 
 | `Attempting to decrypt but no vault secrets found` | [Fichero de variables cifrado](catalog:reglas/inventario-del-repositorio) en un repositorio sin contraseña | Poner la contraseña en el repositorio |
 | Una variable de `group_vars` llega vacía | Su grupo no es `all`, o [`ansible.cfg` no declara el inventario](catalog:reglas/inventario-del-repositorio) | Moverla a `group_vars/all` y declarar `inventory` |
 | `Playbook ... is encrypted with Vault` | [Playbook cifrado entero](catalog:reglas/vault-playbook-cifrado) | Cifrar solo sus variables |
-| Un cambio subido a Git no se aplica | [Se ejecuta el commit sincronizado](catalog:reglas/git-commit-fijado) | Pulsar **Sincronizar** |
+| Un cambio subido a Git no se aplica | [Se ejecuta el commit sincronizado](catalog:reglas/git-commit-fijado) | Esperar a la sincronización periódica o pulsar **Sincronizar** |
 | El fichero no aparece tras sincronizar | [No cumple la detección](catalog:reglas/git-deteccion) | Revisar `hosts`, carpeta y tamaño |
 
 ## Salida en la consola

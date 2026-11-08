@@ -27,6 +27,6 @@ For detail: what the runner mounts for each run is `/playbook-runner/ejecucion/m
 - There is no `--check`, `--tags` or `--limit`: for a dry run, add a variable that turns it on.
 - No plain secret in the YAML: use a plain variable, bound to its secret in the app. `!vault` works only in a Git playbook whose repository has the password, and a fully encrypted playbook is refused. Either way, `no_log: true` on the tasks handling it: decrypted values are never masked.
 - A playbook written in the app is one file: roles, `import_playbook`, `vars_files` and relative `src` find nothing. Use `copy` with `content`, or a Git repository.
-- In Git, a file is a playbook only if every element has `hosts` or `import_playbook`. Runs use the last synced commit, and renaming a file creates another playbook and leaves its jobs failing.
+- In Git, a file is a playbook only if every element has `hosts` or `import_playbook`. Runs use the last synced commit (synced hourly by default, or with **Sincronizar**), and renaming a file creates another playbook and leaves its jobs failing.
 
 Never run a playbook against real hosts unless the user asks for it, and suggest one device first.

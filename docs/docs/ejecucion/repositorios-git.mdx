@@ -3,12 +3,14 @@ title: Repositorios Git
 description: Cómo se sincroniza un repositorio, qué se detecta como playbook y como rol, y qué ocurre al desmarcar un rol
 services: [ansible]
 order: 3
-updated: 2026-11-04
+updated: 2026-11-08
 ---
 
-Un repositorio se sincroniza al guardarlo y cada vez que se pulsa **Sincronizar**, nunca solo. `repositories.sync` llama a `SyncRepository`: el ejecutor actualiza su mirror y devuelve el commit y los playbooks encontrados, y el backend hace upsert por `(repository_id, path)`.
+Un repositorio se sincroniza al guardarlo, cada vez que se pulsa **Sincronizar** y, sin que nadie lo pida, en cada vuelta de `REPOSITORY_SYNC_CRON` (cada hora por defecto; `off` la apaga). `repositories.sync` llama a `SyncRepository`: el ejecutor actualiza su mirror y devuelve el commit y los playbooks encontrados, y el backend hace upsert por `(repository_id, path)`.
 
-Por eso las ejecuciones y los jobs usan `last_commit_sha`, no la punta de la rama, y renombrar un fichero crea otro playbook: el antiguo queda como `missing` y al ejecutarlo falla con «no longer exists in its repository».
+La vuelta periódica la lanza el scheduler del backend (`apps/backend/src/jobs/scheduler.ts`, solo con `JOB_SCHEDULER_ENABLED=1`). `syncAllRepositories` (`packages/api/src/v1/repositories/auto-sync.ts`) recorre los repositorios de uno en uno, así que nunca ocupa más de una plaza de `MAX_CONCURRENT_SYNCS`, y un repositorio que falla guarda su mensaje en `last_sync_error` sin detener a los demás. Una expresión inválida impide arrancar el backend.
+
+Las ejecuciones y los jobs usan `last_commit_sha`, no la punta de la rama. Tras un push, un job programado ejecuta el commit nuevo en cuanto pasa la sincronización periódica, sin que nadie lo revise; `job_runs.commit_sha` deja constancia de cuál fue. Renombrar un fichero crea otro playbook: el antiguo queda como `missing` y al ejecutarlo falla con «no longer exists in its repository».
 
 ## Qué se detecta como playbook
 

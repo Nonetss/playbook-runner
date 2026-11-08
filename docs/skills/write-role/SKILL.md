@@ -18,7 +18,7 @@ Read the site live every time: this file only says where to look and the rules t
 
 - Roles exist only in Git repositories: a playbook written in the app is a single file and finds none.
 - `requirements.yml` is never installed and the repository's `ansible.cfg` is ignored except to find its inventory's variables, so `roles_path` has no effect: vendor external roles into a `roles/` folder of the tree.
-- Runs use the last synced commit: after a push, someone must press **Sincronizar**.
+- Runs use the last synced commit: a push reaches them at the next periodic sync (hourly by default) or when someone presses **Sincronizar**, and from then on scheduled jobs run it unreviewed.
 - A role is a directory directly under `roles/` with `tasks/main` or `meta/main`. Only the `roles/` folders from the playbook up to the repository root are searched.
 - Only a role named literally in `roles:`, `include_role` or `import_role` can be unchecked. What arrives through `include_tasks` or `dependencies` still runs.
 - Unchecking a role empties its tasks but keeps its defaults: never read another role's `register` or `set_fact` without a `default(...)`. It only applies to interactive runs: jobs run every role.
