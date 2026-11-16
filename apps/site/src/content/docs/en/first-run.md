@@ -19,7 +19,7 @@ The private key is encrypted before it is stored and the API never returns it. I
 
 ## 2. Add a device
 
-Open **Inventory → Devices** and add the host: a name, its IP address and SSH port, and the credential from the previous step. Device and group names may contain letters, digits, `.`, `_` and `-`, up to 64 characters.
+Open **Inventory → Devices** and add the host: a name, its IP address or DNS name and SSH port, and the credential from the previous step. Device and group names may contain letters, digits, `.`, `_` and `-`, up to 64 characters.
 
 Put devices in **groups** to target several of them at once. Because each device carries its own credential, a group can mix hosts that use different users and keys. The built-in **All** group always contains every device, including ones you add later, so a scheduled job that targets it covers the whole inventory; for that reason `all` (in any letter case) cannot be used as a group name.
 

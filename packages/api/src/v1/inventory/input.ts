@@ -1,15 +1,23 @@
 import { z } from "zod"
-import { hostAddress } from "#v1/inventory/address"
+import { hostAddress, isHostname } from "#v1/inventory/address"
 import { groupName, inventoryName } from "#v1/inventory/name"
 import { idSchema } from "#v1/schemas"
 
 /**
- * IPv4/IPv6 address. A /prefix is still accepted, so callers from when the
- * column was `cidr` keep working, but only the address is stored.
+ * What the runner connects to: an IPv4/IPv6 address or a DNS name. A /prefix is
+ * still accepted on an IP, so callers from when the column was `cidr` keep
+ * working, but only the address is stored.
  */
 const ipAddress = z
-  .union([z.cidrv4(), z.cidrv6(), z.ipv4(), z.ipv6()])
+  .union([
+    z.cidrv4(),
+    z.cidrv6(),
+    z.ipv4(),
+    z.ipv6(),
+    z.string().refine(isHostname),
+  ])
   .transform(hostAddress)
+  .refine((value) => value.length > 0, "Enter an IP address or a DNS name")
 
 const group = z.object({
   name: inventoryName,

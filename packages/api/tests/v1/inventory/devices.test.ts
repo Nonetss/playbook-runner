@@ -71,11 +71,34 @@ describe("inventory.devices.create", () => {
     ])
   })
 
-  test("an address that is not an IP or CIDR is BAD_REQUEST", async () => {
+  test("a DNS name is accepted and stored as given", async () => {
+    fakeDb.queue("insert", [deviceRow()])
+
+    await call(
+      inventoryRouter.devices.create,
+      { ...DEVICE, ipAddress: "web.example.com" },
+      { context }
+    )
+
+    const [insert] = fakeDb.calls("insert")
+    if (!insert) throw new Error("no insert recorded")
+    expect(stepArgs(insert, "values")).toEqual([
+      { ...DEVICE, ipAddress: "web.example.com" },
+    ])
+  })
+
+  test.each([
+    "10.0.0.256",
+    "web example.com",
+    "web.example.com/24",
+    "http://web.example.com",
+    "web_1.example.com",
+    "",
+  ])("%j is neither an IP nor a DNS name: BAD_REQUEST", async (ipAddress) => {
     await expectErrorCode(
       call(
         inventoryRouter.devices.create,
-        { ...DEVICE, ipAddress: "web.example.com" },
+        { ...DEVICE, ipAddress },
         { context }
       ),
       "BAD_REQUEST"
