@@ -1,0 +1,1 @@
+ALTER TABLE "inventory_devices" ALTER COLUMN "ip_address" SET DATA TYPE text USING "ip_address"::text;
