@@ -169,3 +169,79 @@ for (const [name, View] of [
     })
   })
 }
+
+describe("EntityCardGrid compact density", () => {
+  const compact = (overrides: Partial<EntityListDefinition<Device, Context>>) =>
+    render(
+      <EntityCardGrid
+        items={DEVICES}
+        context={CONTEXT}
+        density="compact"
+        definition={definition(overrides)}
+      />
+    )
+
+  test("a fact stays inline with its label for screen readers only", () => {
+    compact({})
+
+    const first = within(screen.getAllByRole("listitem")[0] ?? document.body)
+    expect(first.getByText("10.0.0.1")).toBeDefined()
+    expect(first.getByText("Dirección:").className).toContain("sr-only")
+    expect(first.getByText("En línea")).toBeDefined()
+  })
+
+  test("a fact marked compactHidden is left out", () => {
+    compact({
+      metadata: [
+        {
+          key: "address",
+          label: "Dirección",
+          value: (device) => device.address,
+          compactHidden: (device) => device.online,
+        },
+      ],
+    })
+
+    expect(screen.queryByText("10.0.0.1")).toBeNull()
+    expect(screen.getByText("10.0.0.2")).toBeDefined()
+  })
+
+  test("the quick action is asked for its compact form", () => {
+    const renderTrailing = mock(
+      (device: Device, _: Context, density?: string) => (
+        <button type="button">{`${device.name} ${density}`}</button>
+      )
+    )
+    compact({ renderTrailing })
+
+    expect(screen.getByRole("button", { name: "web-1 compact" })).toBeDefined()
+  })
+
+  test("the comfortable cards still ask for the default form", () => {
+    const renderTrailing = mock(
+      (device: Device, _: Context, density?: string) => (
+        <button type="button">{`${device.name} ${density}`}</button>
+      )
+    )
+    render(
+      <EntityCardGrid
+        items={DEVICES}
+        context={CONTEXT}
+        definition={definition({ renderTrailing })}
+      />
+    )
+
+    expect(
+      screen.getByRole("button", { name: "web-1 comfortable" })
+    ).toBeDefined()
+  })
+
+  test("opening a compact card passes it and the context to onOpen", () => {
+    const onOpen = mock((_: Device, __: Context) => {})
+    compact({ onOpen })
+
+    fireEvent.click(screen.getByRole("button", { name: "db-1" }))
+
+    expect(onOpen).toHaveBeenCalledWith(DEVICES[1], CONTEXT)
+  })
+})

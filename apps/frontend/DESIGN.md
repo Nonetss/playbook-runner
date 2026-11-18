@@ -205,6 +205,15 @@ shadcn primitives (Radix, `new-york`) restyled to the tokens.
   shadow, no icon wells. One definition file per resource under
   `features/<name>/definitions/`. `EntityList` renders the same definition
   as `divide-y` rows and is used for activity feeds (dashboard).
+  `density="compact"` draws the same definition as a two-line card
+  (`px-4 py-3`): status dot, name, quick action as a ghost icon button
+  (`renderTrailing` receives `"compact"`) and the action menu on one row;
+  the description, then the facts inline without labels (kept for screen
+  readers) and the status word underneath. A fact the section already states
+  once is dropped with `compactHidden` (the Git origin of a repository's
+  playbooks). The grid fills with as many 17rem columns as fit
+  (`compactCardGridClass`), so few cards keep their own width. The playbook
+  browser uses it; the other collections keep the comfortable cards.
 - **`StateCard` / `QueryState`**: dashed placeholder blocks for loading,
   empty, error and filtered-empty states.
 - **`StatusDot` / `StatusTag`**: the only way state is drawn outside the run

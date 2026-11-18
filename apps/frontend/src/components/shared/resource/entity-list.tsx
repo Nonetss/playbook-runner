@@ -10,7 +10,10 @@ import {
   type StatusDotTone,
   StatusTag,
 } from "@/components/shared/data-display/status-dot"
-import { cardGridClass } from "@/components/shared/layout/card-grid"
+import {
+  cardGridClass,
+  compactCardGridClass,
+} from "@/components/shared/layout/card-grid"
 import { AppLink } from "@/components/ui/app-link"
 import {
   DropdownMenuItem,
@@ -18,6 +21,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 import type { LucideIcon } from "@/lib/icon-registry"
 import { cn } from "@/lib/utils"
+
+/**
+ * How a card collection is drawn: `comfortable` (name, fact rows under a
+ * hairline, footer) or `compact` (name and actions on one row, facts inline).
+ */
+export type EntityDensity = "comfortable" | "compact"
 
 export interface EntityListStatus {
   tone: StatusDotTone
@@ -32,6 +41,11 @@ export interface EntityListMetadataDescriptor<TItem, TContext> {
   label: string | ((context: TContext) => string)
   value: (item: TItem, context: TContext) => ReactNode
   hidden?: (item: TItem, context: TContext) => boolean
+  /**
+   * Leaves the field out of compact cards, for a fact the section already
+   * states once (e.g. the origin of every playbook of a repository).
+   */
+  compactHidden?: (item: TItem, context: TContext) => boolean
 }
 
 export interface EntityListActionDescriptor<TItem, TContext> {
@@ -59,8 +73,15 @@ export interface EntityListDefinition<TItem, TContext = void> {
   onOpen?: (item: TItem, context: TContext) => void
   getOpenHref?: (item: TItem, context: TContext) => string
   metadata?: EntityListMetadataDescriptor<TItem, TContext>[]
-  /** A narrow leaf rendered before the status tag (e.g. a quick action). */
-  renderTrailing?: (item: TItem, context: TContext) => ReactNode
+  /**
+   * A narrow leaf rendered before the status tag (e.g. a quick action). A
+   * compact card receives `"compact"` and should answer with an icon button.
+   */
+  renderTrailing?: (
+    item: TItem,
+    context: TContext,
+    density?: EntityDensity
+  ) => ReactNode
   actions?: EntityListActionDescriptor<TItem, TContext>[]
 }
 
@@ -127,7 +148,8 @@ function EntityActions<TItem, TContext>({
 function resolveRow<TItem, TContext>(
   item: TItem,
   context: TContext,
-  definition: EntityListDefinition<TItem, TContext>
+  definition: EntityListDefinition<TItem, TContext>,
+  density?: EntityDensity
 ) {
   const primary = definition.getPrimary(item, context)
   return {
@@ -141,7 +163,7 @@ function resolveRow<TItem, TContext>(
     actions: (definition.actions ?? []).filter(
       (action) => !action.hidden?.(item, context)
     ),
-    trailing: definition.renderTrailing?.(item, context),
+    trailing: definition.renderTrailing?.(item, context, density),
     accessibleLabel:
       definition.getAccessibleLabel?.(item, context) ??
       (typeof primary === "string" ? primary : undefined),
@@ -307,11 +329,13 @@ function EntityCard<TItem, TContext>({
   index,
   context,
   definition,
+  density,
 }: {
   item: TItem
   index: number
   context: TContext
   definition: EntityListDefinition<TItem, TContext>
+  density: EntityDensity
 }) {
   const {
     muted,
@@ -322,8 +346,97 @@ function EntityCard<TItem, TContext>({
     actions,
     trailing,
     accessibleLabel,
-  } = resolveRow(item, context, definition)
+  } = resolveRow(item, context, definition, density)
   const openHref = definition.getOpenHref?.(item, context)
+
+  if (density === "compact") {
+    const inline = metadata.filter(
+      (field) => !field.compactHidden?.(item, context)
+    )
+    return (
+      <li
+        className={cn(
+          "@container group dash-enter relative flex min-w-0 flex-col gap-1 rounded-xl border bg-card/40 px-4 py-3",
+          "transition-colors duration-200 hover:border-foreground/15 hover:bg-muted/40 has-focus-visible:border-foreground/15",
+          muted && "opacity-60"
+        )}
+        style={
+          {
+            "--dash-delay": `${Math.min(index, MAX_STAGGER_INDEX) * 40}ms`,
+          } as CSSProperties
+        }
+      >
+        {openHref ? (
+          <AppLink
+            href={openHref}
+            aria-label={accessibleLabel}
+            className="absolute inset-0 z-0 rounded-xl focus-ring"
+          />
+        ) : definition.onOpen ? (
+          <button
+            type="button"
+            onClick={() => definition.onOpen?.(item, context)}
+            aria-label={accessibleLabel}
+            className="absolute inset-0 z-0 rounded-xl focus-ring"
+          />
+        ) : null}
+
+        <div className="pointer-events-none relative z-10 flex items-center gap-1">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5">
+            {status ? (
+              <StatusDot
+                tone={status.tone}
+                pulse={status.pulse}
+                className="shrink-0"
+              />
+            ) : null}
+            <Text as="p" variant="headline" className="truncate">
+              {primary}
+            </Text>
+          </div>
+          <div className="pointer-events-auto -my-1.5 -mr-2 flex shrink-0 items-center gap-0.5">
+            {trailing}
+            <EntityActions
+              item={item}
+              context={context}
+              actions={actions}
+              accessibleLabel={accessibleLabel}
+            />
+          </div>
+        </div>
+
+        {secondary ? (
+          <Text
+            as="div"
+            variant="meta"
+            tone="muted"
+            className="pointer-events-none relative z-10 line-clamp-2 wrap-anywhere"
+          >
+            {secondary}
+          </Text>
+        ) : null}
+
+        {inline.length > 0 || status ? (
+          <div className="pointer-events-none relative z-10 flex flex-wrap items-center gap-x-3 gap-y-0.5 [&_a]:pointer-events-auto [&_button]:pointer-events-auto">
+            {status ? (
+              <StatusTag title={status.title}>{status.label}</StatusTag>
+            ) : null}
+            {inline.map((field) => (
+              <span
+                key={field.key}
+                className="inline-flex min-w-0 items-center"
+              >
+                <span className="sr-only">
+                  {metadataLabel(field, context)}:{" "}
+                </span>
+                {field.value(item, context)}
+              </span>
+            ))}
+          </div>
+        ) : null}
+      </li>
+    )
+  }
 
   return (
     <li
@@ -422,15 +535,22 @@ export function EntityCardGrid<TItem, TContext = void>({
   items,
   context,
   definition,
+  density = "comfortable",
   className,
 }: {
   items: readonly TItem[]
   context: TContext
   definition: EntityListDefinition<TItem, TContext>
+  density?: EntityDensity
   className?: string
 }) {
   return (
-    <ul className={cn(cardGridClass, className)}>
+    <ul
+      className={cn(
+        density === "compact" ? compactCardGridClass : cardGridClass,
+        className
+      )}
+    >
       {items.map((item, index) => (
         <EntityCard
           key={definition.getKey(item)}
@@ -438,6 +558,7 @@ export function EntityCardGrid<TItem, TContext = void>({
           index={index}
           context={context}
           definition={definition}
+          density={density}
         />
       ))}
     </ul>
