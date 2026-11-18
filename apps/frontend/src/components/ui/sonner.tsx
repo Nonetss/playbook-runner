@@ -1,6 +1,13 @@
 import type { CSSProperties } from "react"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { useTheme } from "@/features/app-shell/hooks/use-theme"
+import { getIcon } from "@/lib/icon-registry"
+
+const SuccessIcon = getIcon("status", "success")
+const InfoIcon = getIcon("status", "info")
+const WarningIcon = getIcon("status", "alert")
+const ErrorIcon = getIcon("status", "error")
+const LoadingIcon = getIcon("status", "loading")
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme } = useTheme()
@@ -10,6 +17,13 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme === "dark" ? "dark" : "light"}
       className="toaster group"
       position="bottom-right"
+      icons={{
+        success: <SuccessIcon className="size-4" />,
+        info: <InfoIcon className="size-4" />,
+        warning: <WarningIcon className="size-4" />,
+        error: <ErrorIcon className="size-4" />,
+        loading: <LoadingIcon className="size-4 animate-spin" />,
+      }}
       style={
         {
           "--normal-bg": "var(--popover)",

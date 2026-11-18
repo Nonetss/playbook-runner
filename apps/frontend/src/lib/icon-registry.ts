@@ -92,6 +92,7 @@ const resourceIcons = {
 const statusIcons = {
   alert: Lucide.AlertTriangle,
   error: Lucide.XCircle,
+  info: Lucide.Info,
   loading: Lucide.Loader2,
   minus: Lucide.MinusCircle,
   success: Lucide.CheckCircle2,
