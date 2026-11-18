@@ -221,7 +221,7 @@ export function CredentialFormModal({
         </Tabs>
       ) : null}
 
-      {!isEditing && !isToken ? (
+      {!isEditing && !isToken && scope === "host" ? (
         <Tabs
           value={mode}
           onValueChange={(next) => switchMode(next as KeyMode)}
