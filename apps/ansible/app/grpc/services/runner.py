@@ -74,6 +74,7 @@ from app.services.ansible.runner import (
     AnsibleRunnerConfig,
 )
 from app.services.git import mirror
+from app.services.git.auth import GitAuth, git_auth
 from app.services.git.discover import (
     discover,
     discover_roles,
@@ -232,6 +233,16 @@ async def _serve[M: (MaterializedHosts, MaterializedRun)](
         RUN_SLOTS.release()
 
 
+def _request_auth(request) -> GitAuth | None:
+    """La clave SSH o el token que trae una petición de sync, roles o ramas."""
+    has_token = request.HasField("token")
+    return git_auth(
+        request.private_key if request.HasField("private_key") else None,
+        request.token.username if has_token else None,
+        request.token.token if has_token else None,
+    )
+
+
 class RunnerServicer(RunnerServiceServicer):
     async def RunBundle(self, request, context):
         async for frame in _heartbeats(
@@ -270,7 +281,7 @@ class RunnerServicer(RunnerServiceServicer):
         if git is not None:
             try:
                 await mirror.ensure_commit(
-                    git.repository_id, git.url, git.commit, git.private_key
+                    git.repository_id, git.url, git.commit, git.auth()
                 )
             except GitError as exc:
                 yield RunBundleResponse(error=str(exc))
@@ -472,7 +483,7 @@ class RunnerServicer(RunnerServiceServicer):
                     request.repository_id,
                     request.url,
                     request.branch or "main",
-                    request.private_key if request.HasField("private_key") else None,
+                    _request_auth(request),
                 )
                 found = await asyncio.to_thread(
                     discover, request.repository_id, commit, request.subdir
@@ -512,7 +523,7 @@ class RunnerServicer(RunnerServiceServicer):
                 request.repository_id,
                 request.url,
                 request.commit,
-                request.private_key if request.HasField("private_key") else None,
+                _request_auth(request),
             )
             found = await asyncio.to_thread(
                 discover_roles, request.repository_id, request.commit, request.subdir
@@ -554,7 +565,7 @@ class RunnerServicer(RunnerServiceServicer):
             branches, default = await asyncio.to_thread(
                 mirror.list_branches,
                 request.url,
-                request.private_key if request.HasField("private_key") else None,
+                _request_auth(request),
             )
         except GitError as exc:
             await context.abort(_GIT_STATUS[exc.kind], str(exc))

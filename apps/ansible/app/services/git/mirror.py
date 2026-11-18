@@ -15,6 +15,7 @@ nunca ``file``/``ext``, y se ignora cualquier config global o de sistema.
 from __future__ import annotations
 
 import asyncio
+import base64
 import os
 import re
 import shlex
@@ -26,12 +27,15 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path, PurePosixPath
 from typing import Literal
+from urllib.parse import urlsplit
 from uuid import UUID
 
 from app.core.config import settings
 from app.services.ansible.ssh_policy import known_hosts_path
+from app.services.git.auth import GitAuth
 
 GitErrorKind = Literal["invalid", "not_found", "unavailable"]
+
 
 # Remote URL shapes accepted: https://…, ssh://…, and scp-like user@host:path.
 _URL_RE = re.compile(
@@ -106,12 +110,41 @@ def _ssh_command(key_path: Path | None) -> str:
     return shlex.join(parts)
 
 
+def _is_git_config_var(name: str) -> bool:
+    """Config inyectada por entorno (``GIT_CONFIG_COUNT``…): nunca se hereda."""
+    return name == "GIT_CONFIG_PARAMETERS" or name.startswith(
+        ("GIT_CONFIG_COUNT", "GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_")
+    )
+
+
+def _token_config(url: str, auth: GitAuth) -> dict[str, str]:
+    """``GIT_CONFIG_*`` que envía el token como Basic auth solo a ese host.
+
+    Va por entorno, no por la línea de comandos ni por la URL, así que ni
+    ``ps`` ni ``remote.origin.url`` (que se guarda en el mirror) lo contienen.
+    La cabecera se limita al origen de la URL: ``http.<origen>/.extraHeader``.
+    """
+    assert auth.token is not None
+    parts = urlsplit(url)
+    if parts.scheme != "https" or not parts.netloc:
+        raise GitError("invalid", "A token credential needs an https:// repository URL")
+    user = auth.username or "x-access-token"
+    basic = base64.b64encode(f"{user}:{auth.token}".encode()).decode()
+    return {
+        "GIT_CONFIG_COUNT": "1",
+        "GIT_CONFIG_KEY_0": f"http.https://{parts.hostname}"
+        f"{':' + str(parts.port) if parts.port else ''}/.extraHeader",
+        "GIT_CONFIG_VALUE_0": f"Authorization: Basic {basic}",
+    }
+
+
 @contextmanager
-def _git_env(private_key: str | None) -> Iterator[dict[str, str]]:
+def _git_env(url: str, auth: GitAuth | None) -> Iterator[dict[str, str]]:
     """Entorno para git: sin prompts, sin config ajena y con la clave en ``0600``."""
     key_dir: Path | None = None
     key_path: Path | None = None
     try:
+        private_key = auth.private_key if auth else None
         if private_key:
             scratch = Path(settings.run_scratch_dir)
             scratch.mkdir(parents=True, exist_ok=True)
@@ -122,13 +155,15 @@ def _git_env(private_key: str | None) -> Iterator[dict[str, str]]:
             with os.fdopen(fd, "w", encoding="utf-8") as fh:
                 fh.write(content)
         env = {
-            **os.environ,
+            **{k: v for k, v in os.environ.items() if not _is_git_config_var(k)},
             "GIT_TERMINAL_PROMPT": "0",
             "GIT_ALLOW_PROTOCOL": "https:ssh",
             "GIT_CONFIG_NOSYSTEM": "1",
             "GIT_CONFIG_GLOBAL": os.devnull,
             "GIT_SSH_COMMAND": _ssh_command(key_path),
         }
+        if auth is not None and auth.token:
+            env.update(_token_config(url, auth))
         yield env
     finally:
         if key_dir is not None:
@@ -167,13 +202,13 @@ _LIST_BRANCHES_TIMEOUT_S = 20
 _MAX_BRANCHES = 1000
 
 
-def list_branches(url: str, private_key: str | None) -> tuple[list[str], str]:
+def list_branches(url: str, auth: GitAuth | None) -> tuple[list[str], str]:
     """Ramas remotas y rama por defecto (``HEAD``) de ``url`` (bloqueante).
 
     Usa ``git ls-remote``: no crea mirror ni descarga objetos.
     """
     validate_url(url)
-    with _git_env(private_key) as env:
+    with _git_env(url, auth) as env:
         out = _git(
             ["ls-remote", "--symref", url, "HEAD", "refs/heads/*"],
             env=env,
@@ -201,6 +236,8 @@ def _classify(stderr: str) -> GitErrorKind:
         or "host key verification failed" in lowered
         or "repository not found" in lowered
         or "could not read username" in lowered
+        or "returned error: 401" in lowered
+        or "returned error: 403" in lowered
     ):
         return "invalid"
     return "unavailable"
@@ -217,11 +254,11 @@ def _dir_size_mb(path: Path) -> float:
     return total / (1024 * 1024)
 
 
-def _fetch(repository_id: str, url: str, branch: str, private_key: str | None) -> None:
+def _fetch(repository_id: str, url: str, branch: str, auth: GitAuth | None) -> None:
     """Crea el mirror si falta y trae ``branch`` (bloqueante; en un thread)."""
     validate_url(url)
     mirror = mirror_path(repository_id)
-    with _git_env(private_key) as env:
+    with _git_env(url, auth) as env:
         _git(["check-ref-format", "--branch", branch], env=env)
         if not mirror.exists():
             mirror.parent.mkdir(parents=True, exist_ok=True)
@@ -267,12 +304,10 @@ def _has_commit(mirror: Path, commit: str) -> bool:
         return False
 
 
-async def sync(
-    repository_id: str, url: str, branch: str, private_key: str | None
-) -> str:
+async def sync(repository_id: str, url: str, branch: str, auth: GitAuth | None) -> str:
     """Fetch de ``branch`` y devuelve el commit de su cabeza."""
     async with repo_lock(repository_id):
-        await asyncio.to_thread(_fetch, repository_id, url, branch, private_key)
+        await asyncio.to_thread(_fetch, repository_id, url, branch, auth)
     mirror = mirror_path(repository_id)
     out = await asyncio.to_thread(
         _git, ["rev-parse", f"refs/heads/{branch}^{{commit}}"], git_dir=mirror
@@ -281,7 +316,7 @@ async def sync(
 
 
 async def ensure_commit(
-    repository_id: str, url: str, commit: str, private_key: str | None
+    repository_id: str, url: str, commit: str, auth: GitAuth | None
 ) -> None:
     """Garantiza que ``commit`` está en el mirror, haciendo fetch si falta."""
     validate_commit(commit)
@@ -292,15 +327,15 @@ async def ensure_commit(
         if await asyncio.to_thread(_has_commit, mirror, commit):
             return
         # Fetch every branch: the pinned commit may live on any of them.
-        await asyncio.to_thread(_fetch_all, repository_id, url, private_key)
+        await asyncio.to_thread(_fetch_all, repository_id, url, auth)
     if not await asyncio.to_thread(_has_commit, mirror, commit):
         raise GitError("not_found", f"Commit {commit} not found in repository")
 
 
-def _fetch_all(repository_id: str, url: str, private_key: str | None) -> None:
+def _fetch_all(repository_id: str, url: str, auth: GitAuth | None) -> None:
     validate_url(url)
     mirror = mirror_path(repository_id)
-    with _git_env(private_key) as env:
+    with _git_env(url, auth) as env:
         if not mirror.exists():
             mirror.parent.mkdir(parents=True, exist_ok=True)
             _git(["init", "--bare", "--quiet", str(mirror)], env=env)

@@ -38,6 +38,13 @@ message Host {
   string connection = 6; // "ssh"
 }
 
+// HTTPS credentials for a Git remote (GitHub, GitLab, Gitea…): the runner sends
+// them as HTTP Basic auth to the repository's own host only, never to disk.
+message GitToken {
+  string username = 1;
+  string token = 2;
+}
+
 message Playbook {
   string name = 1;
   string content = 2;
@@ -54,6 +61,8 @@ message GitSource {
   optional string private_key = 5;
   // Lets Ansible decrypt Vault content in this run; never stored by the runner.
   optional string vault_password = 6;
+  // Set instead of `private_key` when the repository's credential is a token.
+  optional GitToken token = 7;
 }
 
 message Script {
@@ -123,6 +132,7 @@ message SyncRepositoryRequest {
   string branch = 3;
   string subdir = 4; // "" = repository root
   optional string private_key = 5;
+  optional GitToken token = 6;
 }
 
 message PlaybookFile {
@@ -141,6 +151,7 @@ message ListRepositoryRolesRequest {
   string commit = 3;
   string subdir = 4; // "" = repository root
   optional string private_key = 5;
+  optional GitToken token = 6;
 }
 
 message RepositoryRole {
@@ -196,6 +207,7 @@ message ListRepositoryRolesResponse {
 message ListBranchesRequest {
   string url = 1;
   optional string private_key = 2;
+  optional GitToken token = 3;
 }
 
 message ListBranchesResponse {

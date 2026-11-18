@@ -13,6 +13,8 @@ from typing import Any
 
 from pydantic import BaseModel
 
+from app.services.git.auth import GitAuth, git_auth
+
 
 def parse_extravars(raw: str) -> dict[str, Any]:
     """Extra vars of a run: a JSON object, so each value keeps its type."""
@@ -42,7 +44,12 @@ class GitPlaybookSource(BaseModel):
     commit: str
     path: str
     private_key: str | None = None
+    token_username: str | None = None
+    token: str | None = None
     vault_password: str | None = None
+
+    def auth(self) -> GitAuth | None:
+        return git_auth(self.private_key, self.token_username, self.token)
 
 
 class ResolvedPlaybook(BaseModel):
@@ -68,6 +75,8 @@ def playbook_from_proto(playbook) -> ResolvedPlaybook:
             commit=source.commit,
             path=source.path,
             private_key=source.private_key if source.HasField("private_key") else None,
+            token_username=source.token.username if source.HasField("token") else None,
+            token=source.token.token if source.HasField("token") else None,
             vault_password=(
                 source.vault_password if source.HasField("vault_password") else None
             ),
