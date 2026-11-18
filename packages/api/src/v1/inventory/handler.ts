@@ -1,4 +1,5 @@
 import { db } from "@playbook-runner/db"
+import { credentials } from "@playbook-runner/db/schema/credentials"
 import {
   inventoryDeviceGroups,
   inventoryDevices,
@@ -21,6 +22,24 @@ type DeviceGroupsInput = typeof inventoryInput.deviceGroups
 function found<T>(row: T | undefined): T {
   if (!row) throw errors.NOT_FOUND()
   return row
+}
+
+/**
+ * A device is reached over SSH with a host credential: a Git credential (a
+ * deploy key or a token) identifies the runner to a repository, not to a
+ * server. An id that does not exist is left to the foreign key, as before.
+ */
+async function assertSshCredential(credentialId: string | null | undefined) {
+  if (!credentialId) return
+  const [credential] = await db
+    .select({ scope: credentials.scope })
+    .from(credentials)
+    .where(eq(credentials.id, credentialId))
+  if (credential && credential.scope !== "host") {
+    throw errors.BAD_REQUEST({
+      message: "A device needs a host credential, not a Git one",
+    })
+  }
 }
 
 function inserted<T>(row: T | undefined): T {
@@ -100,6 +119,7 @@ export const inventoryDeviceHandler = {
     context: Context
     input: z.infer<DevicesInput["create"]>
   }) => {
+    await assertSshCredential(input.credentialId)
     const [row] = await db.insert(inventoryDevices).values(input).returning()
     return inserted(row)
   },
@@ -127,6 +147,7 @@ export const inventoryDeviceHandler = {
     input: z.infer<DevicesInput["update"]>
   }) => {
     const { id, ...data } = input
+    await assertSshCredential(data.credentialId)
     const [row] = await db
       .update(inventoryDevices)
       .set({ ...data, updatedAt: new Date() })

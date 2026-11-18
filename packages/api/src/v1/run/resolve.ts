@@ -11,6 +11,7 @@ import { scripts } from "@playbook-runner/db/schema/scripts"
 import { playbookSecretVariables } from "@playbook-runner/db/schema/secret-variables"
 import { eq, inArray } from "drizzle-orm"
 import { decryptSecret } from "#v1/credentials/crypto"
+import { gitAuth, gitAuthColumns } from "#v1/credentials/git-auth"
 import { hostAddress } from "#v1/inventory/address"
 import type { ExtraVars } from "#v1/run/extravars"
 import {
@@ -35,6 +36,7 @@ export type ResolvedGitSource = {
   commit: string
   path: string
   private_key?: string
+  token?: { username: string; token: string }
   vault_password?: string
 }
 
@@ -244,7 +246,7 @@ async function resolveGitSource(playbook: {
           url: playbookRepositories.url,
           lastCommitSha: playbookRepositories.lastCommitSha,
           vaultPassword: playbookRepositories.vaultPassword,
-          privateKey: credentials.privateKey,
+          ...gitAuthColumns,
         })
         .from(playbookRepositories)
         .leftJoin(
@@ -271,9 +273,7 @@ async function resolveGitSource(playbook: {
     url: repository.url,
     commit: repository.lastCommitSha,
     path: playbook.path,
-    private_key: repository.privateKey
-      ? decryptSecret(repository.privateKey)
-      : undefined,
+    ...gitAuth(repository),
     vault_password: repository.vaultPassword
       ? decryptSecret(repository.vaultPassword)
       : undefined,

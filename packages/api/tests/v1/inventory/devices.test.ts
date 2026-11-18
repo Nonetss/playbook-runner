@@ -19,6 +19,7 @@ beforeEach(() => fakeDb.reset())
 
 describe("inventory.devices.create", () => {
   test("inserts the device and returns it", async () => {
+    fakeDb.queue("select", [{ scope: "host" }])
     const row = deviceRow()
     fakeDb.queue("insert", [row])
 
@@ -31,6 +32,7 @@ describe("inventory.devices.create", () => {
   })
 
   test("an insert that returns nothing is INTERNAL_SERVER_ERROR", async () => {
+    fakeDb.queue("select", [{ scope: "host" }])
     fakeDb.queue("insert", [])
 
     await expectErrorCode(
@@ -56,6 +58,7 @@ describe("inventory.devices.create", () => {
     ["10.0.0.0/24", "10.0.0.0"],
     ["2001:db8::1/128", "2001:db8::1"],
   ])("%s is accepted and stored as %s", async (ipAddress, stored) => {
+    fakeDb.queue("select", [{ scope: "host" }])
     fakeDb.queue("insert", [deviceRow()])
 
     await call(
@@ -72,6 +75,7 @@ describe("inventory.devices.create", () => {
   })
 
   test("a DNS name is accepted and stored as given", async () => {
+    fakeDb.queue("select", [{ scope: "host" }])
     fakeDb.queue("insert", [deviceRow()])
 
     await call(
@@ -104,6 +108,42 @@ describe("inventory.devices.create", () => {
       "BAD_REQUEST"
     )
     expect(fakeDb.calls()).toEqual([])
+  })
+})
+
+describe("inventory.devices credential type", () => {
+  test("create rejects a Git credential and writes nothing", async () => {
+    fakeDb.queue("select", [{ scope: "git" }])
+
+    await expectErrorCode(
+      inventoryDeviceHandler.create({ context, input: DEVICE }),
+      "BAD_REQUEST"
+    )
+    expect(fakeDb.calls("insert")).toEqual([])
+  })
+
+  test("update rejects a Git credential and writes nothing", async () => {
+    fakeDb.queue("select", [{ scope: "git" }])
+
+    await expectErrorCode(
+      inventoryDeviceHandler.update({
+        context,
+        input: { ...DEVICE, id: IDS.device },
+      }),
+      "BAD_REQUEST"
+    )
+    expect(fakeDb.calls("update")).toEqual([])
+  })
+
+  test("a device without a credential needs no lookup", async () => {
+    fakeDb.queue("insert", [deviceRow()])
+
+    await inventoryDeviceHandler.create({
+      context,
+      input: { ...DEVICE, credentialId: null },
+    })
+
+    expect(fakeDb.calls("select")).toEqual([])
   })
 })
 
@@ -145,6 +185,7 @@ describe("inventory.devices.get", () => {
 
 describe("inventory.devices.update", () => {
   test("writes the new values and updatedAt, never the id", async () => {
+    fakeDb.queue("select", [{ scope: "host" }])
     fakeDb.queue("update", [deviceRow({ portSSH: 2222 })])
 
     await inventoryDeviceHandler.update({
@@ -161,6 +202,7 @@ describe("inventory.devices.update", () => {
   })
 
   test("an unknown id is NOT_FOUND", async () => {
+    fakeDb.queue("select", [{ scope: "host" }])
     fakeDb.queue("update", [])
 
     await expectErrorCode(

@@ -24,7 +24,7 @@ export const credentialsRouter = {
     .route({
       summary: "Create a credential",
       description:
-        "Persists a credential (SSH key + username). The private key is encrypted at rest and never returned. Admin only.",
+        'Persists a credential: an SSH key pair (`type: "ssh_key"`, the default) or an HTTPS access token for Git (`type: "token"`, always `scope: "git"`). `scope` says what it is for: `host` (the key Ansible logs in to a device with, the default) or `git` (identifies the runner to a remote repository). The private key and the token are encrypted at rest and never returned. Admin only.',
       tags: ["Credentials"],
       method: "POST",
     })
@@ -37,7 +37,8 @@ export const credentialsRouter = {
   list: protectedProcedure
     .route({
       summary: "List credentials",
-      description: "Returns every stored credential without its private key.",
+      description:
+        "Returns every stored credential without its private key or token.",
       tags: ["Credentials"],
       method: "GET",
     })
@@ -64,7 +65,7 @@ export const credentialsRouter = {
     .route({
       summary: "Update a credential",
       description:
-        "Updates a credential by id. Omitted keys keep the stored ones. Fails with NOT_FOUND when no credential matches. Admin only.",
+        "Updates a credential by id. Omitted keys and tokens keep the stored ones; the type cannot change. Fails with NOT_FOUND when no credential matches. Admin only.",
       tags: ["Credentials"],
       method: "PUT",
     })

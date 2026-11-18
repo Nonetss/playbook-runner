@@ -8,10 +8,12 @@ import { encryptSecret } from "#v1/credentials/crypto"
 import type { credentialsInput } from "#v1/credentials/input"
 import { generateEd25519KeyPair } from "#v1/credentials/ssh-key"
 
-// Explicit columns so the (encrypted) private key never reaches the router.
+// Explicit columns so the (encrypted) secrets never reach the router.
 const publicColumns = {
   id: credentials.id,
   name: credentials.name,
+  scope: credentials.scope,
+  type: credentials.type,
   username: credentials.username,
   publicKey: credentials.publicKey,
   createdAt: credentials.createdAt,
@@ -34,12 +36,24 @@ export const credentialsHandler = {
   }) => {
     const [row] = await db
       .insert(credentials)
-      .values({
-        name: input.name,
-        username: input.username,
-        publicKey: input.publicKey,
-        privateKey: encryptSecret(input.privateKey),
-      })
+      .values(
+        input.type === "token"
+          ? {
+              type: "token",
+              scope: "git",
+              name: input.name,
+              username: input.username,
+              token: encryptSecret(input.token),
+            }
+          : {
+              type: "ssh_key",
+              scope: input.scope,
+              name: input.name,
+              username: input.username,
+              publicKey: input.publicKey,
+              privateKey: encryptSecret(input.privateKey),
+            }
+      )
       .returning(publicColumns)
     if (!row) throw errors.INTERNAL_SERVER_ERROR()
     return row
@@ -72,6 +86,22 @@ export const credentialsHandler = {
     context: Context
     input: z.infer<typeof credentialsInput.update>
   }) => {
+    const [current] = await db
+      .select({ type: credentials.type })
+      .from(credentials)
+      .where(eq(credentials.id, input.id))
+    if (!current) throw errors.NOT_FOUND()
+    const isToken = current.type === "token"
+    if (isToken && (input.privateKey || input.publicKey)) {
+      throw errors.BAD_REQUEST({
+        message: "A token credential has no SSH key",
+      })
+    }
+    if (!isToken && input.token) {
+      throw errors.BAD_REQUEST({
+        message: "An SSH credential has no token",
+      })
+    }
     const [row] = await db
       .update(credentials)
       .set({
@@ -81,6 +111,7 @@ export const credentialsHandler = {
           ? { privateKey: encryptSecret(input.privateKey) }
           : {}),
         ...(input.publicKey ? { publicKey: input.publicKey } : {}),
+        ...(input.token ? { token: encryptSecret(input.token) } : {}),
         updatedAt: new Date(),
       })
       .where(eq(credentials.id, input.id))

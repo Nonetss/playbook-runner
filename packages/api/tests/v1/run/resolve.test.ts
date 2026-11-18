@@ -475,6 +475,41 @@ describe("resolveRun", () => {
     expect(bundle.commitSha).toBe(COMMIT)
   })
 
+  test("a Git playbook of a token credential carries its username and token, no key", async () => {
+    fakeDb.queue(
+      "select",
+      [
+        playbookSelection({
+          source: "git",
+          repositoryId: IDS.repository,
+          path: "site.yml",
+        }),
+      ],
+      [
+        {
+          id: IDS.repository,
+          url: "https://github.com/acme/infra.git",
+          lastCommitSha: COMMIT,
+          credentialUsername: "octocat",
+          privateKey: null,
+          token: encryptSecret("ghp_secret"),
+        },
+      ],
+      [hostRow()],
+      []
+    )
+
+    const bundle = await resolveRun(IDS.playbook, DEVICE)
+
+    expect(bundle.playbook.git).toEqual({
+      repository_id: IDS.repository,
+      url: "https://github.com/acme/infra.git",
+      commit: COMMIT,
+      path: "site.yml",
+      token: { username: "octocat", token: "ghp_secret" },
+    })
+  })
+
   test("a Git playbook carries its repository's decrypted Vault password", async () => {
     fakeDb.queue(
       "select",

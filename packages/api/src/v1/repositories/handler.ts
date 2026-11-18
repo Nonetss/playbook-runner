@@ -20,15 +20,27 @@ import {
 
 type Input = typeof repositoriesInput
 
-/** Throws BAD_REQUEST when a referenced credential id does not exist. */
-async function assertCredentialExists(credentialId: string | null | undefined) {
+/**
+ * Throws BAD_REQUEST when a referenced credential id does not exist, or when
+ * it is a token (sent over HTTPS only) and the URL is not an `https://` one.
+ */
+async function assertCredentialFits(
+  credentialId: string | null | undefined,
+  url: string
+) {
   if (!credentialId) return
   const rows = await db
-    .select({ id: credentials.id })
+    .select({ id: credentials.id, type: credentials.type })
     .from(credentials)
     .where(eq(credentials.id, credentialId))
-  if (!rows[0]) {
+  const credential = rows[0]
+  if (!credential) {
     throw errors.BAD_REQUEST({ message: "Credential not found" })
+  }
+  if (credential.type === "token" && !url.startsWith("https://")) {
+    throw errors.BAD_REQUEST({
+      message: "A token credential needs an https:// repository URL",
+    })
   }
 }
 
@@ -40,7 +52,7 @@ export const repositoriesHandler = {
     input: z.infer<Input["create"]>
   }) => {
     const { vaultPassword, ...repository } = input
-    await assertCredentialExists(repository.credentialId)
+    await assertCredentialFits(repository.credentialId, repository.url)
     const rows = await db
       .insert(playbookRepositories)
       .values({ ...repository, ...vaultPasswordColumn(vaultPassword) })
@@ -85,7 +97,7 @@ export const repositoriesHandler = {
     input: z.infer<Input["update"]>
   }) => {
     const { id, vaultPassword, ...repository } = input
-    await assertCredentialExists(repository.credentialId)
+    await assertCredentialFits(repository.credentialId, repository.url)
     const rows = await db
       .update(playbookRepositories)
       .set({
@@ -129,7 +141,10 @@ export const repositoriesHandler = {
   }: {
     context: Context
     input: z.infer<Input["branches"]>
-  }) => listRemoteBranches(input.url, input.credentialId),
+  }) => {
+    await assertCredentialFits(input.credentialId, input.url)
+    return listRemoteBranches(input.url, input.credentialId)
+  },
 
   playbooks: async ({
     context,

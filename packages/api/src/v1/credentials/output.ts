@@ -1,11 +1,14 @@
 import z from "zod"
 
-// Public credential shape: the private key never leaves the backend.
+// Public credential shape: the private key and the token never leave the backend.
 const credential = z.object({
   id: z.string(),
   name: z.string(),
+  scope: z.enum(["host", "git"]),
+  type: z.enum(["ssh_key", "token"]),
   username: z.string(),
-  publicKey: z.string(),
+  // Only SSH credentials have a key pair; a token is never returned.
+  publicKey: z.string().nullable(),
   createdAt: z.coerce.date().nullable(),
   updatedAt: z.coerce.date().nullable(),
 })

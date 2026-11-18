@@ -95,6 +95,28 @@ describe("syncRepository", () => {
     })
   })
 
+  test("sends a token credential as username and decrypted token, with no key", async () => {
+    fakeDb.queue("select", [
+      {
+        ...repositoryWithKey(),
+        credentialUsername: "octocat",
+        token: encryptSecret("ghp_secret"),
+      },
+    ])
+    fakeDb.queue("update", [])
+    grpc.unary.mockRejectedValue(grpcError(grpcStatus.UNAVAILABLE))
+
+    await syncRepository(IDS.repository).catch(() => undefined)
+
+    expect(grpc.unary.mock.calls[0]?.[1]).toEqual({
+      repository_id: IDS.repository,
+      url: "https://git.example.com/infra.git",
+      branch: "main",
+      subdir: "",
+      token: { username: "octocat", token: "ghp_secret" },
+    })
+  })
+
   const failures = [
     [grpcStatus.INVALID_ARGUMENT, "BAD_REQUEST"],
     [grpcStatus.NOT_FOUND, "BAD_REQUEST"],
@@ -298,6 +320,23 @@ describe("listRemoteBranches", () => {
     expect(grpc.unary.mock.calls[0]?.[1]).toEqual({
       url: "git@git.example.com:infra.git",
       private_key: KEY,
+    })
+  })
+
+  test("sends a token credential's decrypted token", async () => {
+    fakeDb.queue("select", [
+      { credentialUsername: "octocat", token: encryptSecret("ghp_secret") },
+    ])
+    grpc.unary.mockResolvedValue(ListBranchesResponse.fromPartial({}))
+
+    await listRemoteBranches(
+      "https://github.com/acme/infra.git",
+      IDS.credential
+    )
+
+    expect(grpc.unary.mock.calls[0]?.[1]).toEqual({
+      url: "https://github.com/acme/infra.git",
+      token: { username: "octocat", token: "ghp_secret" },
     })
   })
 

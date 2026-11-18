@@ -17,7 +17,7 @@ import {
 import { logger } from "@playbook-runner/logger"
 import { and, eq, notInArray, sql } from "drizzle-orm"
 import { errors } from "#errors"
-import { decryptSecret } from "#v1/credentials/crypto"
+import { gitAuth, gitAuthColumns } from "#v1/credentials/git-auth"
 import { hideVaultPassword } from "#v1/repositories/vault-password"
 import { toVariableValueType } from "#v1/run/variable-value-type"
 
@@ -61,7 +61,7 @@ export async function syncRepository(repositoryId: string) {
       url: playbookRepositories.url,
       branch: playbookRepositories.branch,
       subdir: playbookRepositories.subdir,
-      privateKey: credentials.privateKey,
+      ...gitAuthColumns,
     })
     .from(playbookRepositories)
     .leftJoin(
@@ -82,9 +82,7 @@ export async function syncRepository(repositoryId: string) {
         url: repository.url,
         branch: repository.branch,
         subdir: repository.subdir ?? "",
-        private_key: repository.privateKey
-          ? decryptSecret(repository.privateKey)
-          : undefined,
+        ...gitAuth(repository),
       },
       { token, timeoutMs: SYNC_TIMEOUT_MS }
     )
@@ -173,16 +171,16 @@ export async function syncRepository(repositoryId: string) {
   })
 }
 
-/** Decrypted private key of a credential; BAD_REQUEST when it does not exist. */
-async function credentialKey(credentialId: string | null | undefined) {
-  if (!credentialId) return undefined
+/** What the runner authenticates with for a credential; BAD_REQUEST when it does not exist. */
+async function credentialAuth(credentialId: string | null | undefined) {
+  if (!credentialId) return {}
   const row = await db
-    .select({ privateKey: credentials.privateKey })
+    .select(gitAuthColumns)
     .from(credentials)
     .where(eq(credentials.id, credentialId))
     .then((rows) => rows[0] ?? null)
   if (!row) throw errors.BAD_REQUEST({ message: "Credential not found" })
-  return decryptSecret(row.privateKey)
+  return gitAuth(row)
 }
 
 /**
@@ -194,12 +192,12 @@ export async function listRemoteBranches(
   credentialId: string | null | undefined
 ) {
   const token = serviceToken()
-  const privateKey = await credentialKey(credentialId)
+  const auth = await credentialAuth(credentialId)
   const client = getClient(RunnerServiceClient, env.ANSIBLE_GRPC_TARGET)
   try {
     const response = await unary(
       client.listBranches.bind(client),
-      { url, private_key: privateKey },
+      { url, ...auth },
       { token, timeoutMs: 30_000 }
     )
     return {
@@ -227,7 +225,7 @@ export async function listRepositoryRoles(repositoryId: string) {
       url: playbookRepositories.url,
       subdir: playbookRepositories.subdir,
       lastCommitSha: playbookRepositories.lastCommitSha,
-      privateKey: credentials.privateKey,
+      ...gitAuthColumns,
     })
     .from(playbookRepositories)
     .leftJoin(
@@ -258,9 +256,7 @@ export async function listRepositoryRoles(repositoryId: string) {
         url: repository.url,
         commit: repository.lastCommitSha,
         subdir: repository.subdir ?? "",
-        private_key: repository.privateKey
-          ? decryptSecret(repository.privateKey)
-          : undefined,
+        ...gitAuth(repository),
       },
       { token, timeoutMs: SYNC_TIMEOUT_MS }
     )

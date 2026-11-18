@@ -64,6 +64,39 @@ describe("repositories.create", () => {
     expect(fakeDb.calls("insert")).toEqual([])
   })
 
+  test("a token credential needs an https URL", async () => {
+    for (const url of [
+      "git@github.com:acme/infra.git",
+      "ssh://git@host/x.git",
+    ]) {
+      fakeDb.queue("select", [{ id: IDS.credential, type: "token" }])
+      await expectErrorCode(
+        repositoriesHandler.create({
+          context,
+          input: { ...REPOSITORY, url, credentialId: IDS.credential },
+        }),
+        "BAD_REQUEST"
+      )
+    }
+    expect(fakeDb.calls("insert")).toEqual([])
+  })
+
+  test("a token credential is accepted with an https URL", async () => {
+    fakeDb.queue("select", [{ id: IDS.credential, type: "token" }])
+    fakeDb.queue("insert", [repositoryRow({ credentialId: IDS.credential })])
+
+    await repositoriesHandler.create({
+      context,
+      input: {
+        ...REPOSITORY,
+        url: "https://github.com/acme/infra.git",
+        credentialId: IDS.credential,
+      },
+    })
+
+    expect(fakeDb.calls("insert")).toHaveLength(1)
+  })
+
   test("an existing credential is accepted", async () => {
     fakeDb.queue("select", [{ id: IDS.credential }])
     fakeDb.queue("insert", [repositoryRow({ credentialId: IDS.credential })])
