@@ -6,6 +6,7 @@ const Copy = getIcon("actions", "copy")
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { dataFieldClass } from "@/components/shared/brand/typography"
+import { Hint } from "@/components/shared/feedback/hint"
 import { InlineAlert } from "@/components/shared/feedback/inline-alert"
 import { FormField } from "@/components/shared/form/field-label"
 import { FormDialog } from "@/components/shared/form/form-dialog"
@@ -27,6 +28,9 @@ export function ApiKeyCreatedDialog({
 }: ApiKeyCreatedDialogProps) {
   const { t } = useTranslation("config")
   const [copied, setCopied] = useState(false)
+  const copyLabel = copied
+    ? t("api_keys.created_dialog.copied")
+    : t("api_keys.created_dialog.copy")
 
   async function handleCopy() {
     if (!fullKey) return
@@ -71,20 +75,18 @@ export function ApiKeyCreatedDialog({
                 "h-auto min-w-0 flex-1 py-2.5 leading-relaxed break-all select-all"
               )}
             />
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="shrink-0"
-              onClick={handleCopy}
-              aria-label={
-                copied
-                  ? t("api_keys.created_dialog.copied")
-                  : t("api_keys.created_dialog.copy")
-              }
-            >
-              {copied ? <Check /> : <Copy />}
-            </Button>
+            <Hint label={copyLabel}>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0"
+                onClick={handleCopy}
+                aria-label={copyLabel}
+              >
+                {copied ? <Check /> : <Copy />}
+              </Button>
+            </Hint>
           </div>
         </FormField>
       ) : null}

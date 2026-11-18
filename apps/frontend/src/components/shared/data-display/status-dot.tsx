@@ -1,5 +1,6 @@
 import type { ReactNode } from "react"
 import { textVariants } from "@/components/shared/brand/typography"
+import { Hint } from "@/components/shared/feedback/hint"
 import { cn } from "@/lib/utils"
 
 export type StatusDotTone =
@@ -52,17 +53,17 @@ export function StatusTag({
   title?: string
   className?: string
 }) {
-  return (
+  const tag = (
     <span
       className={cn(
         textVariants({ role: "status", tone: "muted" }),
         "flex items-center gap-1.5 whitespace-nowrap",
         className
       )}
-      title={title}
     >
       {dotTone ? <StatusDot tone={dotTone} pulse={pulse} /> : null}
       {children}
     </span>
   )
+  return title ? <Hint label={title}>{tag}</Hint> : tag
 }

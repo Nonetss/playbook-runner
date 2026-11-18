@@ -4,6 +4,7 @@ const MoreHorizontal = getIcon("controls", "more")
 
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
+import { Hint } from "@/components/shared/feedback/hint"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -22,19 +23,22 @@ export function RowActionsMenu({
   children: ReactNode
 }) {
   const { t } = useTranslation("common")
+  const triggerLabel = label ?? t("labels.row_actions")
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={label ?? t("labels.row_actions")}
-          disabled={disabled}
-          className="size-9 transition-opacity pointer-fine:opacity-60 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100 focus-visible:opacity-100"
-        >
-          <MoreHorizontal className="size-4" />
-        </Button>
-      </DropdownMenuTrigger>
+      <Hint label={triggerLabel}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={triggerLabel}
+            disabled={disabled}
+            className="size-9 transition-opacity pointer-fine:opacity-60 pointer-fine:group-hover:opacity-100 pointer-fine:group-focus-within:opacity-100 focus-visible:opacity-100"
+          >
+            <MoreHorizontal className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+      </Hint>
       <DropdownMenuContent
         align="end"
         onClick={(event) => event.stopPropagation()}

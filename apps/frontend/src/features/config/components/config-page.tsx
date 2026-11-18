@@ -8,6 +8,7 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Text } from "@/components/shared/brand/typography"
+import { Hint } from "@/components/shared/feedback/hint"
 import { HeroCount } from "@/components/shared/layout/page-hero"
 import { EntityCardGrid } from "@/components/shared/resource/entity-list"
 import { ResourceOverview } from "@/components/shared/resource/resource-overview"
@@ -44,15 +45,17 @@ function ApiDocsNote() {
         </a>{" "}
         {t("api_keys.docs_suffix")}
       </Text>
-      <a
-        href="/scalar"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={t("api_keys.docs_open_aria")}
-        className="-m-2 shrink-0 p-2 text-muted-foreground transition-colors hover:text-foreground pointer-coarse:-m-3 pointer-coarse:p-3"
-      >
-        <ExternalLink className="size-3.5" />
-      </a>
+      <Hint label={t("api_keys.docs_open_aria")}>
+        <a
+          href="/scalar"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={t("api_keys.docs_open_aria")}
+          className="-m-2 shrink-0 p-2 text-muted-foreground transition-colors hover:text-foreground pointer-coarse:-m-3 pointer-coarse:p-3"
+        >
+          <ExternalLink className="size-3.5" />
+        </a>
+      </Hint>
     </div>
   )
 }

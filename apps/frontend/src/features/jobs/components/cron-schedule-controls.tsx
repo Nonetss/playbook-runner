@@ -4,6 +4,7 @@ const ChevronLeft = getIcon("controls", "left")
 const ChevronRight = getIcon("controls", "right")
 
 import { type KeyboardEvent, useState } from "react"
+import { Hint } from "@/components/shared/feedback/hint"
 import { cn } from "@/lib/utils"
 
 function clamp(value: number, min: number, max: number) {
@@ -87,15 +88,17 @@ export function NumberStepper({
       }}
       className="flex h-9 items-center rounded-md border border-input bg-transparent"
     >
-      <button
-        type="button"
-        tabIndex={-1}
-        aria-label={`${label}: ${decreaseLabel}`}
-        onClick={() => commit(value - 1)}
-        className="flex h-full w-8 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ChevronLeft className="size-3.5" />
-      </button>
+      <Hint label={`${label}: ${decreaseLabel}`}>
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label={`${label}: ${decreaseLabel}`}
+          onClick={() => commit(value - 1)}
+          className="flex h-full w-8 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ChevronLeft className="size-3.5" />
+        </button>
+      </Hint>
       <input
         type="text"
         inputMode="numeric"
@@ -114,15 +117,17 @@ export function NumberStepper({
         onKeyDown={handleKeyDown}
         className="w-full min-w-0 flex-1 rounded-sm border-0 bg-transparent text-center font-mono text-sm tabular-nums focus-ring"
       />
-      <button
-        type="button"
-        tabIndex={-1}
-        aria-label={`${label}: ${increaseLabel}`}
-        onClick={() => commit(value + 1)}
-        className="flex h-full w-8 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ChevronRight className="size-3.5" />
-      </button>
+      <Hint label={`${label}: ${increaseLabel}`}>
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label={`${label}: ${increaseLabel}`}
+          onClick={() => commit(value + 1)}
+          className="flex h-full w-8 shrink-0 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ChevronRight className="size-3.5" />
+        </button>
+      </Hint>
     </div>
   )
 }

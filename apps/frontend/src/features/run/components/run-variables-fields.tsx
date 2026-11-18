@@ -5,6 +5,7 @@ const Trash2 = getIcon("actions", "delete")
 
 import { useTranslation } from "react-i18next"
 import { dataFieldClass, Text } from "@/components/shared/brand/typography"
+import { Hint } from "@/components/shared/feedback/hint"
 import { FormField } from "@/components/shared/form/field-label"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -226,19 +227,21 @@ export function RunVariableRows({
                   </SelectContent>
                 </Select>
               ) : null}
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="shrink-0 text-muted-foreground"
-                aria-label={t("variables.remove_aria")}
-                onClick={() =>
-                  onRowsChange(rows.filter((item) => item.id !== row.id))
-                }
-                disabled={disabled}
-              >
-                <Trash2 className="size-3.5" />
-              </Button>
+              <Hint label={t("variables.remove_aria")}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0 text-muted-foreground"
+                  aria-label={t("variables.remove_aria")}
+                  onClick={() =>
+                    onRowsChange(rows.filter((item) => item.id !== row.id))
+                  }
+                  disabled={disabled}
+                >
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </Hint>
             </div>
             {row.kind === "secret" && effectiveConnection ? (
               <InfisicalSecretPicker

@@ -5,6 +5,7 @@ const ScrollToTopIcon = getIcon("navigation", "scrollToTop")
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
+import { Hint } from "@/components/shared/feedback/hint"
 import { Button } from "@/components/ui/button"
 import { useScrolled } from "@/hooks/use-scrolled"
 import { animateScrollToTop } from "@/lib/scroll-root"
@@ -53,18 +54,19 @@ function ScrollToTopButtonInner({ threshold }: { threshold: number }) {
   if (!mounted) return null
 
   return (
-    <Button
-      type="button"
-      size="icon"
-      data-slot="scroll-to-top"
-      data-state={visible ? "open" : "closed"}
-      className="size-11 rounded-full shadow-lg duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-75 data-[state=closed]:slide-out-to-bottom-4 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-75 data-[state=open]:slide-in-from-bottom-4 md:size-9"
-      aria-label={t("labels.scroll_to_top")}
-      title={t("labels.scroll_to_top")}
-      onClick={scrollToTop}
-    >
-      <ScrollToTopIcon className="size-4" />
-    </Button>
+    <Hint label={t("labels.scroll_to_top")} side="left">
+      <Button
+        type="button"
+        size="icon"
+        data-slot="scroll-to-top"
+        data-state={visible ? "open" : "closed"}
+        className="size-11 rounded-full shadow-lg duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-75 data-[state=closed]:slide-out-to-bottom-4 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-75 data-[state=open]:slide-in-from-bottom-4 md:size-9"
+        aria-label={t("labels.scroll_to_top")}
+        onClick={scrollToTop}
+      >
+        <ScrollToTopIcon className="size-4" />
+      </Button>
+    </Hint>
   )
 }
 

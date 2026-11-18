@@ -6,6 +6,7 @@ const Trash2 = getIcon("actions", "delete")
 import * as React from "react"
 import { useTranslation } from "react-i18next"
 import { dataFieldClass, Text } from "@/components/shared/brand/typography"
+import { Hint } from "@/components/shared/feedback/hint"
 import { InlineAlert } from "@/components/shared/feedback/inline-alert"
 import { FormField } from "@/components/shared/form/field-label"
 import { PanelResizeHandle } from "@/components/shared/layout/panel-resize-handle"
@@ -217,21 +218,23 @@ function SecretVariablesForm({
                     disabled={save.isPending}
                     className={cn(dataFieldClass, "h-9 min-w-0 flex-1")}
                   />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="shrink-0 text-muted-foreground"
-                    aria-label={t("variables.remove_aria")}
-                    onClick={() =>
-                      setRows((current) =>
-                        current.filter((item) => item.id !== row.id)
-                      )
-                    }
-                    disabled={save.isPending}
-                  >
-                    <Trash2 className="size-3.5" />
-                  </Button>
+                  <Hint label={t("variables.remove_aria")}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="shrink-0 text-muted-foreground"
+                      aria-label={t("variables.remove_aria")}
+                      onClick={() =>
+                        setRows((current) =>
+                          current.filter((item) => item.id !== row.id)
+                        )
+                      }
+                      disabled={save.isPending}
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </Hint>
                 </div>
                 <InfisicalSecretPicker
                   connectionId={connectionId}
@@ -277,26 +280,27 @@ function SecretVariablesForm({
                       name: variable.name,
                     })
                     return (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        className="shrink-0 text-muted-foreground"
-                        aria-label={label}
-                        title={label}
-                        onClick={() =>
-                          setRows((current) => [
-                            ...current,
-                            newVariableRow({
-                              name: variable.name,
-                              kind: "secret",
-                            }),
-                          ])
-                        }
-                        disabled={save.isPending}
-                      >
-                        <Plus className="size-3.5" />
-                      </Button>
+                      <Hint label={label}>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className="shrink-0 text-muted-foreground"
+                          aria-label={label}
+                          onClick={() =>
+                            setRows((current) => [
+                              ...current,
+                              newVariableRow({
+                                name: variable.name,
+                                kind: "secret",
+                              }),
+                            ])
+                          }
+                          disabled={save.isPending}
+                        >
+                          <Plus className="size-3.5" />
+                        </Button>
+                      </Hint>
                     )
                   }}
                 />

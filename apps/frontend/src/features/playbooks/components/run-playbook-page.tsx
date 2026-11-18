@@ -7,6 +7,7 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Text } from "@/components/shared/brand/typography"
+import { Hint } from "@/components/shared/feedback/hint"
 import { InlineAlert } from "@/components/shared/feedback/inline-alert"
 import { StateCard } from "@/components/shared/feedback/state-card"
 import { DetailFrame } from "@/components/shared/layout/detail-frame"
@@ -244,15 +245,16 @@ function RunPlaybookPageInner({ id }: { id: string }) {
             <div className="min-w-0 flex-1 sm:w-80 sm:flex-none">
               <PlaybookSwitcher currentId={id} disabled={isRunning} />
             </div>
-            <Button asChild variant="outline" size="icon-sm">
-              <AppLink
-                href={`/playbooks/${id}/edit`}
-                aria-label={t("run.edit_aria")}
-                title={t("run.edit_aria")}
-              >
-                <Pencil className="size-4" />
-              </AppLink>
-            </Button>
+            <Hint label={t("run.edit_aria")}>
+              <Button asChild variant="outline" size="icon-sm">
+                <AppLink
+                  href={`/playbooks/${id}/edit`}
+                  aria-label={t("run.edit_aria")}
+                >
+                  <Pencil className="size-4" />
+                </AppLink>
+              </Button>
+            </Hint>
             {phase !== "idle" ? (
               <Button variant="outline" onClick={reset} disabled={isRunning}>
                 {t("run.new_run")}

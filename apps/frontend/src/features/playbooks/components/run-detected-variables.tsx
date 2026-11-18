@@ -4,6 +4,7 @@ const Pencil = getIcon("actions", "edit")
 
 import { useTranslation } from "react-i18next"
 import { Text } from "@/components/shared/brand/typography"
+import { Hint } from "@/components/shared/feedback/hint"
 import { Button } from "@/components/ui/button"
 import { DetectedVariableGroups } from "@/features/playbooks/components/detected-variable-groups"
 import {
@@ -55,18 +56,19 @@ export function RunDetectedVariables({
             name: variable.name,
           })
           return (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              className="shrink-0 text-muted-foreground"
-              aria-label={label}
-              title={label}
-              onClick={() => onOverride(variable)}
-              disabled={disabled}
-            >
-              <Pencil className="size-3.5" />
-            </Button>
+            <Hint label={label}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="shrink-0 text-muted-foreground"
+                aria-label={label}
+                onClick={() => onOverride(variable)}
+                disabled={disabled}
+              >
+                <Pencil className="size-3.5" />
+              </Button>
+            </Hint>
           )
         }}
       />

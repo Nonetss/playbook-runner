@@ -3,6 +3,7 @@ import { getIcon } from "@/lib/icon-registry"
 const ChevronDown = getIcon("controls", "expand")
 
 import { useTranslation } from "react-i18next"
+import { Hint } from "@/components/shared/feedback/hint"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -20,27 +21,28 @@ export function SectionToggle({
   onToggle: () => void
 }) {
   const { t } = useTranslation("playbooks")
+  const label = collapsed
+    ? t("section.expand", { name })
+    : t("section.collapse", { name })
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon-sm"
-      aria-expanded={!collapsed}
-      aria-controls={controls}
-      aria-label={
-        collapsed
-          ? t("section.expand", { name })
-          : t("section.collapse", { name })
-      }
-      onClick={onToggle}
-      className="-ml-2 shrink-0 text-muted-foreground"
-    >
-      <ChevronDown
-        className={cn(
-          "size-4 transition-transform motion-reduce:transition-none",
-          collapsed && "-rotate-90"
-        )}
-      />
-    </Button>
+    <Hint label={label}>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        aria-expanded={!collapsed}
+        aria-controls={controls}
+        aria-label={label}
+        onClick={onToggle}
+        className="-ml-2 shrink-0 text-muted-foreground"
+      >
+        <ChevronDown
+          className={cn(
+            "size-4 transition-transform motion-reduce:transition-none",
+            collapsed && "-rotate-90"
+          )}
+        />
+      </Button>
+    </Hint>
   )
 }
