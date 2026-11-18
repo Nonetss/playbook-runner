@@ -92,7 +92,9 @@ export function FormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn(sheetClass, widthClass[width], className)}>
         <DialogHeader className="shrink-0 gap-1.5 border-b px-6 py-5 pr-12 text-left max-sm:px-4 max-sm:pr-12">
-          <DialogTitle className="tracking-tight">{title}</DialogTitle>
+          <DialogTitle className={textVariants({ role: "display" })}>
+            {title}
+          </DialogTitle>
           {description ? (
             <DialogDescription className={textVariants({ role: "meta" })}>
               {description}

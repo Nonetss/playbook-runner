@@ -25,37 +25,37 @@
    state colours (ok/changed/failed) exist. */
 :root {
   --brand-orange: oklch(0.6724 0.1308 38.7559);
-  --background: oklch(0.9818 0.0054 95.0986);
+  --background: oklch(0.95 0.009 95.0986);
   --foreground: oklch(0.3438 0.0269 95.7226);
   --card: oklch(0.9665 0.0067 97.3521);
   --card-foreground: oklch(0.1908 0.002 106.5859);
-  --popover: oklch(1 0 0);
+  --popover: oklch(0.985 0.004 97.3521);
   --popover-foreground: oklch(0.2671 0.0196 98.939);
   --primary: var(--brand-orange);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.9245 0.0138 92.9892);
+  --secondary: oklch(0.91 0.0138 92.9892);
   --secondary-foreground: oklch(0.4334 0.0177 98.6048);
-  --muted: oklch(0.9341 0.0153 90.239);
-  --muted-foreground: oklch(0.5341 0.0078 97.4503);
-  --accent: oklch(0.9245 0.0138 92.9892);
+  --muted: oklch(0.92 0.0153 90.239);
+  --muted-foreground: oklch(0.5 0.0078 97.4503);
+  --accent: oklch(0.91 0.0138 92.9892);
   --accent-foreground: oklch(0.2671 0.0196 98.939);
   --destructive: oklch(0.1908 0.002 106.5859);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.94 0.003 97.3627);
-  --input: oklch(0.92 0.004 98.3528);
+  --border: oklch(0.89 0.006 97.3627);
+  --input: oklch(0.87 0.007 98.3528);
   --ring: var(--brand-orange);
   --chart-1: var(--brand-orange);
   --chart-2: oklch(0.6898 0.1581 290.4107);
   --chart-3: oklch(0.8816 0.0276 93.128);
   --chart-4: oklch(0.8822 0.0403 298.1792);
   --chart-5: oklch(0.62 0.16 55);
-  --sidebar: oklch(0.9663 0.008 98.8792);
+  --sidebar: oklch(0.935 0.01 98.8792);
   --sidebar-foreground: oklch(0.359 0.0051 106.6524);
   --sidebar-primary: var(--brand-orange);
   --sidebar-primary-foreground: oklch(0.9881 0 0);
-  --sidebar-accent: oklch(0.9245 0.0138 92.9892);
+  --sidebar-accent: oklch(0.9 0.0138 92.9892);
   --sidebar-accent-foreground: oklch(0.325 0 0);
-  --sidebar-border: oklch(0.955 0.003 98);
+  --sidebar-border: oklch(0.9 0.006 98);
   --sidebar-ring: oklch(0.7731 0 0);
 
   /* Run console: always dark, identical in both themes. */
@@ -81,7 +81,7 @@
     "DejaVu Sans Mono", "Courier New", monospace;
 
   /* Typography roles (see Text in components/shared/brand/typography.tsx). */
-  --font-size-display: 1.75rem;
+  --font-size-display: 1.125rem;
   --font-size-headline: 1rem;
   --font-size-body: 0.875rem;
   --font-size-meta: 0.8125rem;
