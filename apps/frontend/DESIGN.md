@@ -29,6 +29,16 @@ themes.
   (secondary text), `card` (used as `bg-card/40` for list containers and
   state blocks), `border` (every hairline), `input`, `muted`/`accent` (hover
   washes: `bg-muted/40` on rows and tiles, `bg-accent` on buttons and menus).
+- **Paper and hairlines (light theme)**: the page is paper, not white.
+  `background` is `oklch(0.95 0.009 95)`, `card` and `popover` sit lighter
+  on it (`0.9665` and `0.985`, never pure white), and every hairline is
+  visible without a shadow: `border` `oklch(0.89 0.006 97)`, `input`
+  `oklch(0.87 0.007 98)`; `muted`, `secondary` and `accent` are `0.92`/`0.91`
+  washes; the section sidebar is `0.935` with its own `0.9` hairline.
+  `muted-foreground` is `oklch(0.5 0.008 97)`, measured at 4.5:1 or better
+  over `background`, `card`, `muted` and `popover`; a pair that falls under
+  4.5:1 changes its foreground, not its fill. The dark theme has its own
+  values and is not derived from these.
 - **Destructive** (`--destructive`): editorial ink on light, true red on dark.
   Errors, deletions, irreversible actions only.
 - **Charts** (`--chart-*`): only inside chart canvases.
@@ -58,7 +68,7 @@ tracking by hand.
 
 | Role | Spec | Use |
 | --- | --- | --- |
-| `display` | 1.75rem semibold, tight | Page title in `PageHero` |
+| `display` | 1.125rem semibold, tight | Page title in `PageHero`, `FormDialog` title |
 | `stat` | 1.5rem | Lone dashboard number |
 | `headline` | 1rem medium, tight | Row names, dialog and tile titles |
 | `body` | 0.875rem | Prose, form values |
@@ -67,7 +77,9 @@ tracking by hand.
 | `status` | 12px caps, 0.08em | `StatusTag`, back link |
 | `data` | Space Mono 12px tabular | IPs, ids, cron, durations, timestamps |
 
-11px is the legibility floor. Headings carry no implicit size.
+11px is the legibility floor. Headings carry no implicit size. Titles lead
+through weight and tracking, not size: `display` is the same 18px in a hero
+and in a dialog, and `stat` (1.5rem) is the only larger text.
 
 Inputs and textareas holding technical values (keys, cron, extra vars,
 commands) take `dataFieldClass` from the same module: the `data` size on
@@ -77,9 +89,9 @@ like hero descriptions; overview tile titles use `headline` unmodified.
 ## Layout
 
 - **Shell**: sticky full-width navbar (`--navbar-height: 3.6rem`) whose
-  section menus open on hover (Radix `NavigationMenu`, panel centred under
-  its trigger). Every
-  navigation section (Inventory, Ansible, Bash) renders inside
+  section menus open on hover or focus (Radix `NavigationMenu`) into one
+  shared panel that resizes and slides under the trigger that opened it. Every
+  navigation section (Inventory, Ansible, Access, Bash) renders inside
   `WithSidebar.astro`: a persisted section sidebar island plus a plain `<main>`
   scroller that owns the only page padding (`px-4 py-6 sm:px-6`).
   Top-level pages without a section (dashboard, config, admin, profile) use
@@ -121,10 +133,13 @@ like hero descriptions; overview tile titles use `headline` unmodified.
 ## Surfaces
 
 - Flat by default. Shadows only respond to state (focus, overlays, menus,
-  navbar scroll cue).
+  navbar scroll cue). Floating layers (menus, popovers, the navigation panel)
+  pair a light `shadow` with a `ring-1 ring-foreground/10` hairline; nothing
+  anchored in the page flow, navbar actions included, rests on a shadow.
 - Cards are flat: `bg-card/40`, 1px border, no shadow, no icon box.
-- Containers `rounded-xl` (10px); controls `rounded-md` (4px); badges
-  `rounded-lg`; `rounded-full` only for dots and bars.
+- Containers `rounded-xl` (10px); controls `rounded-md` (4px); badges,
+  navbar actions and floating menus `rounded-lg`; `rounded-full` only for
+  dots and bars.
 - `border-dashed` only for empty/error/loading blocks.
 - Keyboard focus on custom interactive elements (tiles, stretched links,
   bare buttons, text links) is the `focus-ring` utility (`global.css`): the
@@ -139,6 +154,40 @@ shadcn primitives (Radix, `new-york`) restyled to the tokens.
 - **App surfaces** (`lib/app-surfaces.ts`): single registry of page identity
   (href, title/description keys, icon, section). The navbar, sidebar,
   `<title>`, `PageHero` and section overview cards read from it.
+- **Navbar** (`features/app-shell/components/navbar-authenticated.tsx`):
+  translucent (`bg-background/80 backdrop-blur`), bottom hairline faint at
+  rest (`border-border/40`) and firm with a `shadow-sm` once scrolled. From
+  `lg`: brand, a short vertical separator, the section pills, then the
+  actions at the right edge.
+- **Nav pill** (`NavbarPillLink` / `NavbarPillTrigger`): `rounded-md px-3
+  py-1.5`, 12px medium. Active is `bg-primary/10 text-primary` with a primary
+  `StatusDot`; resting is `text-muted-foreground`, hover `bg-muted/40`.
+- **Navigation dropdown**: one `w-72` panel (`rounded-lg bg-popover`, light
+  `shadow` + `ring-1 ring-foreground/10`) shared by every section, aligned
+  under its pill. The first row is the section hub, written in the accent
+  (`text-primary`, `min-h-11`), then a `bg-foreground/10` hairline, then one
+  row per sub-page (`min-h-10`, neutral `size-3.5` icon). Hover, focus and
+  the active row share the `bg-primary/10` tint; only the active row's icon
+  and text turn primary. Rows are `MenuItemText`: a compact medium label over
+  a muted description clamped to two lines. With reduced motion the panel
+  snaps instead of animating.
+- **`NavbarAction`**: every navbar button (language, theme, search icon,
+  account, slide-out menu): `rounded-lg border bg-background/60`, no resting
+  shadow, `border-primary/30` on hover, focus or while its menu is open (read
+  from `aria-expanded`, since a `Hint` and a menu trigger can share one
+  element). `size-11` below `lg`, `size-9` from it.
+- **`Hint`**: the bubble that names an icon-only control on hover and focus
+  (300ms delay), replacing the native `title`. The control keeps its own
+  `aria-label`; touch devices never see the bubble, so the icon must still be
+  readable alone. Every icon-only button or link in `src/features` and
+  `src/components` is wrapped in one; side `bottom` in the navbar, `top`
+  elsewhere.
+- **`Kbd` / `KbdGroup`**: the one keycap (mono, `text-label`, `bg-muted`
+  hairline) for `⌘K`, `esc`, `↵` and arrows. The surface search shows a
+  legend of its keys (↑↓, ↵, esc) in a `CommandFooter` under the results from
+  `sm`, hidden from assistive technology.
+- **Toasts** (`Toaster`): popover surface, a Lucide state icon from the icon
+  registry (the loading one spins), and the active theme even while visible.
 - **`PageShell` / `PageHero` / `HeroCount`**: every page starts with the hero:
   flat `size-5` terracotta icon (no box), display title, meta description,
   right-aligned `meta`/`status`/`action` slots.
