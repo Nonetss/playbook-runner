@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next"
 import { textVariants } from "@/components/shared/brand/typography"
-import { navTriggerClass } from "@/features/app-shell/nav-trigger"
+import { Hint } from "@/components/shared/feedback/hint"
+import { NavbarAction } from "@/components/shared/navigation/navbar-action"
+import { Kbd } from "@/components/ui/kbd"
 import { getIcon } from "@/lib/icon-registry"
 import { cn } from "@/lib/utils"
 
@@ -32,15 +34,15 @@ export function NavbarSearchTrigger({
 
   if (variant === "icon") {
     return (
-      <button
-        type="button"
-        aria-label={label}
-        aria-keyshortcuts="Meta+K Control+K"
-        onClick={onOpen}
-        className={navTriggerClass}
-      >
-        <SearchIcon className="size-4 shrink-0" aria-hidden />
-      </button>
+      <Hint label={label} side="bottom">
+        <NavbarAction
+          aria-label={label}
+          aria-keyshortcuts="Meta+K Control+K"
+          onClick={onOpen}
+        >
+          <SearchIcon className="size-4 shrink-0" aria-hidden />
+        </NavbarAction>
+      </Hint>
     )
   }
 
@@ -50,7 +52,7 @@ export function NavbarSearchTrigger({
       aria-label={label}
       aria-keyshortcuts="Meta+K Control+K"
       onClick={onOpen}
-      className="inline-flex h-9 w-52 shrink-0 items-center gap-2 rounded-md border border-border bg-background px-2.5 text-muted-foreground shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground focus-ring"
+      className="inline-flex h-9 w-52 shrink-0 items-center gap-2 rounded-lg border border-border bg-background/60 px-2.5 text-muted-foreground transition-colors hover:border-primary/30 hover:bg-accent hover:text-accent-foreground focus-ring"
     >
       <SearchIcon className="size-4 shrink-0" aria-hidden />
       <span
@@ -58,14 +60,7 @@ export function NavbarSearchTrigger({
       >
         {t("search.trigger_field")}
       </span>
-      <kbd
-        className={cn(
-          textVariants({ role: "data", tone: "muted" }),
-          "rounded border border-border bg-muted px-1.5 py-0.5"
-        )}
-      >
-        {shortcutLabel()}
-      </kbd>
+      <Kbd>{shortcutLabel()}</Kbd>
     </button>
   )
 }

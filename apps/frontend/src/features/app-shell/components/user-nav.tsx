@@ -8,6 +8,11 @@ const UserIcon = getIcon("identity", "user")
 const Users = getIcon("resources", "users")
 
 import { useTranslation } from "react-i18next"
+import { Hint } from "@/components/shared/feedback/hint"
+import {
+  NavbarAction,
+  NavbarActionLink,
+} from "@/components/shared/navigation/navbar-action"
 import { AppLink } from "@/components/ui/app-link"
 import {
   DropdownMenu,
@@ -18,7 +23,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { navTriggerClass } from "@/features/app-shell/nav-trigger"
 import { authClient } from "@/lib/auth-client"
 import { navigate } from "@/lib/navigate"
 import { getQueryClient } from "@/lib/query-client"
@@ -33,13 +37,11 @@ export function UserNav({ user }: UserNavProps) {
 
   if (!user) {
     return (
-      <a
-        href="/login"
-        aria-label={t("labels.sign_in")}
-        className={navTriggerClass}
-      >
-        <LogIn className="size-4 shrink-0" aria-hidden />
-      </a>
+      <Hint label={t("labels.sign_in")} side="bottom">
+        <NavbarActionLink href="/login" aria-label={t("labels.sign_in")}>
+          <LogIn className="size-4 shrink-0" aria-hidden />
+        </NavbarActionLink>
+      </Hint>
     )
   }
 
@@ -51,13 +53,13 @@ export function UserNav({ user }: UserNavProps) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        type="button"
-        aria-label={t("labels.user_menu")}
-        className={navTriggerClass}
-      >
-        <UserIcon className="size-4 shrink-0" aria-hidden />
-      </DropdownMenuTrigger>
+      <Hint label={t("labels.user_menu")} side="bottom">
+        <DropdownMenuTrigger asChild>
+          <NavbarAction aria-label={t("labels.user_menu")}>
+            <UserIcon className="size-4 shrink-0" aria-hidden />
+          </NavbarAction>
+        </DropdownMenuTrigger>
+      </Hint>
       <DropdownMenuContent align="end" sideOffset={8} className="min-w-56 w-56">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="font-normal">

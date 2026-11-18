@@ -1,9 +1,14 @@
 import { noop, useQueryClient } from "@tanstack/react-query"
 import type { Session, User } from "better-auth"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { StatusDot } from "@/components/shared/data-display/status-dot"
+import { MenuItemText } from "@/components/shared/navigation/menu-item-text"
+import {
+  NavbarPillLink,
+  NavbarPillTrigger,
+} from "@/components/shared/navigation/navbar-pill"
 import { AppLink } from "@/components/ui/app-link"
 import {
   NavigationMenu,
@@ -11,7 +16,6 @@ import {
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu"
 import { Separator } from "@/components/ui/separator"
 import { AppLogo } from "@/features/app-shell/components/app-logo"
@@ -41,23 +45,6 @@ export interface NavbarAuthenticatedProps {
   currentPath: string
   locale: string
 }
-
-const pillBase =
-  "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-200 focus-ring"
-const pillInactive =
-  "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-const pillActive = "bg-primary/10 text-primary"
-// Radix returns focus to the trigger when a menu link closes the menu, and the
-// navbar persists across navigations, so the active pill must survive the
-// trigger's hover, focus and open states instead of the shadcn defaults.
-const triggerInactive = cn(
-  pillInactive,
-  "bg-transparent focus:bg-transparent data-[state=open]:bg-muted/40 data-[state=open]:hover:bg-muted/40 data-[state=open]:focus:bg-muted/40"
-)
-const triggerActive = cn(
-  pillActive,
-  "hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary data-[state=open]:bg-primary/10 data-[state=open]:text-primary data-[state=open]:hover:bg-primary/10 data-[state=open]:focus:bg-primary/10"
-)
 
 /**
  * Warms the cache for the page a nav link points to. `query` only fetches
@@ -99,36 +86,59 @@ function prefetchForHref(
   }
 }
 
+/** Width of the navigation panel in px: keep equal to its `w-72`. */
+const PANEL_WIDTH = 288
+/** Closest the panel gets to the window's edge, in px. */
+const PANEL_EDGE = 8
+
+/** A sub-page row inside a section's dropdown. */
 const menuRow =
-  "flex min-h-10 flex-row items-center gap-2.5 rounded-md px-2.5 py-2 text-foreground/80 outline-none transition-colors hover:bg-muted/60 hover:text-foreground focus:bg-muted/60 focus:text-foreground data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+  "group/item flex min-h-10 flex-row items-center gap-2.5 rounded-lg px-2.5 py-2 text-foreground/80 outline-none transition-colors hover:bg-primary/10 hover:text-foreground focus:bg-primary/10 focus:text-foreground data-active:bg-primary/10 data-active:text-primary"
+
+/**
+ * The section hub row: the same shape, but its label and icon stay in the
+ * accent so it reads as the way into the whole section.
+ */
+const menuHubRow =
+  "group/item flex min-h-11 flex-row items-center gap-2.5 rounded-lg px-2.5 py-2 text-primary outline-none transition-colors hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary data-active:bg-primary/10"
 
 function MenuRow({
   item,
   active,
+  hub = false,
   onIntent,
 }: {
   item: SiteNavSubItem
   active: boolean
+  hub?: boolean
   onIntent: (href: string) => () => void
 }) {
   const { t } = useTranslation("nav")
   return (
-    <NavigationMenuLink asChild active={active} className={menuRow}>
+    <NavigationMenuLink
+      asChild
+      active={active}
+      className={hub ? menuHubRow : menuRow}
+    >
       <AppLink
         href={item.href}
         aria-current={active ? "page" : undefined}
         onMouseEnter={onIntent(item.href)}
         onFocus={onIntent(item.href)}
       >
-        <item.icon aria-hidden className="size-3.5 shrink-0 text-primary" />
-        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-xs font-medium leading-tight">
-            {t(item.labelKey)}
-          </span>
-          <span className="text-xs leading-snug text-muted-foreground lg:whitespace-nowrap">
-            {t(item.descriptionKey)}
-          </span>
-        </span>
+        <item.icon
+          aria-hidden
+          className={cn(
+            "size-3.5 shrink-0",
+            hub
+              ? "text-primary"
+              : "text-muted-foreground group-data-active/item:text-primary"
+          )}
+        />
+        <MenuItemText
+          label={t(item.labelKey)}
+          description={t(item.descriptionKey)}
+        />
       </AppLink>
     </NavigationMenuLink>
   )
@@ -142,61 +152,53 @@ function NavSection({
   item,
   currentPath,
   onIntent,
+  registerItem,
 }: {
   item: SiteNavItem
   currentPath: string
   onIntent: (href: string) => () => void
+  registerItem: (href: string, element: HTMLElement | null) => void
 }) {
   const { t } = useTranslation("nav")
   const active = isNavItemActive(item, currentPath)
 
   if (!item.subItems?.length) {
     return (
-      <NavigationMenuItem>
-        <NavigationMenuLink asChild active={active}>
-          <AppLink
-            href={item.href}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              pillBase,
-              // NavigationMenuLink's own `flex-col` reaches the child through
-              // asChild; keep the active dot beside the label.
-              "flex-row",
-              active ? pillActive : pillInactive
-            )}
-            onMouseEnter={onIntent(item.href)}
-            onFocus={onIntent(item.href)}
-          >
-            {t(item.labelKey)}
-            {active ? <StatusDot tone="primary" /> : null}
-          </AppLink>
-        </NavigationMenuLink>
+      <NavigationMenuItem value={item.href}>
+        <NavbarPillLink
+          href={item.href}
+          active={active}
+          onMouseEnter={onIntent(item.href)}
+          onFocus={onIntent(item.href)}
+        >
+          {t(item.labelKey)}
+          {active ? <StatusDot tone="primary" /> : null}
+        </NavbarPillLink>
       </NavigationMenuItem>
     )
   }
 
   return (
-    <NavigationMenuItem>
-      <NavigationMenuTrigger
-        aria-current={active ? "page" : undefined}
-        className={cn(
-          pillBase,
-          "h-auto",
-          active ? triggerActive : triggerInactive
-        )}
+    <NavigationMenuItem
+      value={item.href}
+      ref={(element) => registerItem(item.href, element)}
+    >
+      <NavbarPillTrigger
+        active={active}
         onMouseEnter={onIntent(item.href)}
         onFocus={onIntent(item.href)}
       >
         {t(item.labelKey)}
         {active ? <StatusDot tone="primary" /> : null}
-      </NavigationMenuTrigger>
-      <NavigationMenuContent className="left-1/2 w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 p-1.5 md:w-max">
+      </NavbarPillTrigger>
+      <NavigationMenuContent className="w-72 md:w-72">
         <MenuRow
           item={item}
+          hub
           active={currentPath === item.href}
           onIntent={onIntent}
         />
-        <div className="my-1 border-t" />
+        <Separator className="my-1.5 bg-foreground/10" />
         {item.subItems.map((subItem) => (
           <MenuRow
             key={subItem.href}
@@ -226,6 +228,29 @@ function NavbarAuthenticatedInner({
   const onIntent = (href: string) => () => prefetchForHref(queryClient, href)
   const [searchOpen, setSearchOpen] = useState(false)
   const openSearch = () => setSearchOpen(true)
+  // The sections share one floating panel; it follows the trigger that opened
+  // it. The offset is kept while the menu closes so the panel fades out in
+  // place instead of sliding back.
+  const [menuValue, setMenuValue] = useState("")
+  const [panelOffset, setPanelOffset] = useState(0)
+  const sectionItems = useRef(new Map<string, HTMLElement>())
+  const registerItem = (href: string, element: HTMLElement | null) => {
+    if (element) sectionItems.current.set(href, element)
+    else sectionItems.current.delete(href)
+  }
+  const handleMenuValue = (value: string) => {
+    setMenuValue(value)
+    const element = value ? sectionItems.current.get(value) : undefined
+    const menu = element?.offsetParent
+    if (!element || !menu) return
+    // Centre the panel under its pill, then keep it inside the window.
+    const menuLeft = menu.getBoundingClientRect().left
+    const centred =
+      element.offsetLeft + element.offsetWidth / 2 - PANEL_WIDTH / 2
+    const min = PANEL_EDGE - menuLeft
+    const max = window.innerWidth - PANEL_EDGE - PANEL_WIDTH - menuLeft
+    setPanelOffset(Math.max(min, Math.min(centred, max)))
+  }
 
   return (
     <header
@@ -234,7 +259,7 @@ function NavbarAuthenticatedInner({
         scrolled ? "border-border shadow-sm" : "border-border/40"
       )}
     >
-      <nav className="flex h-navbar items-center justify-between gap-3 px-4 sm:px-6 md:gap-4 lg:grid lg:grid-cols-[auto_1fr_auto] lg:gap-x-6">
+      <nav className="flex h-navbar w-full items-center justify-between gap-3 px-4 sm:px-6 md:gap-4 lg:grid lg:grid-cols-[auto_1fr_auto] lg:gap-x-8 xl:gap-x-10">
         <AppLink
           href="/"
           className="group flex shrink-0 items-center gap-2 text-sm font-semibold tracking-tight text-foreground pointer-coarse:min-h-10 pointer-coarse:min-w-10 lg:justify-self-start"
@@ -251,7 +276,12 @@ function NavbarAuthenticatedInner({
             orientation="vertical"
             className="self-center data-[orientation=vertical]:h-5"
           />
-          <NavigationMenu viewport={false}>
+          <NavigationMenu
+            className="max-w-none"
+            value={menuValue}
+            onValueChange={handleMenuValue}
+            viewportOffset={panelOffset}
+          >
             <NavigationMenuList className="gap-1">
               {siteNavItems.map((item) => (
                 <NavSection
@@ -259,6 +289,7 @@ function NavbarAuthenticatedInner({
                   item={item}
                   currentPath={currentPath}
                   onIntent={onIntent}
+                  registerItem={registerItem}
                 />
               ))}
             </NavigationMenuList>

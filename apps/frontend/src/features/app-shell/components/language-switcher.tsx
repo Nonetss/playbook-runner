@@ -6,6 +6,8 @@ const Check = getIcon("controls", "check")
 const Languages = getIcon("communication", "language")
 
 import { useTranslation } from "react-i18next"
+import { Hint } from "@/components/shared/feedback/hint"
+import { NavbarAction } from "@/components/shared/navigation/navbar-action"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +17,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { navTriggerClass } from "@/features/app-shell/nav-trigger"
 import { setLocaleCookie } from "@/lib/i18n/client-cookie"
 import {
   isSupportedLocale,
@@ -49,14 +50,16 @@ export function LanguageSwitcher() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        type="button"
-        aria-label={t("labels.change_language")}
-        data-testid="language-switcher-trigger"
-        className={navTriggerClass}
-      >
-        <Languages className="size-4 shrink-0" aria-hidden />
-      </DropdownMenuTrigger>
+      <Hint label={t("labels.change_language")} side="bottom">
+        <DropdownMenuTrigger asChild>
+          <NavbarAction
+            aria-label={t("labels.change_language")}
+            data-testid="language-switcher-trigger"
+          >
+            <Languages className="size-4 shrink-0" aria-hidden />
+          </NavbarAction>
+        </DropdownMenuTrigger>
+      </Hint>
       <DropdownMenuContent align="end" sideOffset={8} className="min-w-44 w-44">
         <DropdownMenuLabel>{t("labels.language")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
