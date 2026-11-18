@@ -60,6 +60,11 @@
     "title": "Search pages",
     "description": "Type to find a page or a resource and press Enter to go to it.",
     "empty": "No matching results.",
+    "keys": {
+      "navigate": "navigate",
+      "open": "open",
+      "close": "close"
+    },
     "current_page": "(current page)",
     "groups": {
       "general": "General",

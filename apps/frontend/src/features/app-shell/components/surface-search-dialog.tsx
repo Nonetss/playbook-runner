@@ -10,6 +10,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
+import { SurfaceSearchFooter } from "@/features/app-shell/components/surface-search-footer"
 import { SurfaceSearchLabel } from "@/features/app-shell/components/surface-search-label"
 import { useSurfaceSearchRecords } from "@/features/app-shell/hooks/use-surface-search-records"
 import type {
@@ -214,6 +215,7 @@ export function SurfaceSearchDialog({
             ))
           : null}
       </CommandList>
+      <SurfaceSearchFooter />
     </CommandDialog>
   )
 }

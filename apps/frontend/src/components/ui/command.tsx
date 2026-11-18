@@ -169,6 +169,20 @@ function CommandItem({
   )
 }
 
+/** A strip under the list, e.g. a legend of the keys the palette answers to. */
+function CommandFooter({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="command-footer"
+      className={cn(
+        "flex items-center gap-4 border-t bg-muted/40 px-3 py-2",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
 function CommandShortcut({
   className,
   ...props
@@ -189,6 +203,7 @@ export {
   Command,
   CommandDialog,
   CommandEmpty,
+  CommandFooter,
   CommandGroup,
   CommandInput,
   CommandItem,

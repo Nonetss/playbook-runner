@@ -60,6 +60,11 @@
     "title": "Buscar páginas",
     "description": "Escribe para encontrar una página o un recurso y pulsa Intro para ir a él.",
     "empty": "No hay resultados que coincidan.",
+    "keys": {
+      "navigate": "navegar",
+      "open": "abrir",
+      "close": "cerrar"
+    },
     "current_page": "(página actual)",
     "groups": {
       "general": "General",
