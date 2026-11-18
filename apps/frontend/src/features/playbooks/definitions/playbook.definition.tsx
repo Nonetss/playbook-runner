@@ -2,13 +2,13 @@ import { getIcon } from "@/lib/icon-registry"
 
 const FolderInput = getIcon("resources", "folderInput")
 const Pencil = getIcon("actions", "edit")
-const Play = getIcon("actions", "play")
 const Role = getIcon("resources", "role")
 const Trash2 = getIcon("actions", "delete")
 
 import type { TFunction } from "i18next"
 import { Text } from "@/components/shared/brand/typography"
 import { StatusTag } from "@/components/shared/data-display/status-dot"
+import { Hint } from "@/components/shared/feedback/hint"
 import type { EntityListDefinition } from "@/components/shared/resource/entity-list"
 import { AppLink } from "@/components/ui/app-link"
 import { Button } from "@/components/ui/button"
@@ -55,13 +55,19 @@ export const playbookDefinition: EntityListDefinition<
       </>
     )
   },
-  getOpenHref: (playbook) => `/playbooks/${playbook.id}/edit`,
+  // A card runs the playbook; the pencil is the way to its editor. A file that
+  // vanished from its repository cannot run, so its card opens the editor.
+  getOpenHref: (playbook) =>
+    `/playbooks/${playbook.id}/${playbook.missing ? "edit" : "run"}`,
   isMuted: (playbook, { deletingId }) => deletingId === playbook.id,
   metadata: [
     {
       key: "source",
       label: ({ t }) => t("repository.source_label"),
       hidden: (playbook) => playbook.source !== "git",
+      // A repository says once that its playbooks are read-only Git files;
+      // a compact card only repeats it when the file went missing.
+      compactHidden: (playbook) => !playbook.missing,
       value: (playbook, { t }) =>
         playbook.missing ? (
           <StatusTag dotTone="destructive">{t("repository.missing")}</StatusTag>
@@ -91,15 +97,34 @@ export const playbookDefinition: EntityListDefinition<
       ),
     },
   ],
-  renderTrailing: (playbook, { t }) =>
-    playbook.missing ? null : (
+  renderTrailing: (playbook, { t }, density) => {
+    if (playbook.missing) return null
+    const href = `/playbooks/${playbook.id}/edit`
+    if (density === "compact") {
+      return (
+        <Hint label={t("card.edit")}>
+          <Button
+            asChild
+            variant="ghost"
+            size="icon-sm"
+            className="text-muted-foreground"
+          >
+            <AppLink href={href} aria-label={t("card.edit")}>
+              <Pencil className="size-3.5" />
+            </AppLink>
+          </Button>
+        </Hint>
+      )
+    }
+    return (
       <Button asChild variant="outline" size="sm">
-        <AppLink href={`/playbooks/${playbook.id}/run`}>
-          <Play className="size-3.5" />
-          {t("card.run")}
+        <AppLink href={href}>
+          <Pencil className="size-3.5" />
+          {t("card.edit")}
         </AppLink>
       </Button>
-    ),
+    )
+  },
   // Git-sourced playbooks belong to their repository sync: read-only.
   actions: [
     {

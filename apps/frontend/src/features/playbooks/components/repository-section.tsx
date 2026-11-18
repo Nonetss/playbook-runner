@@ -152,6 +152,7 @@ export function RepositorySection({
           <EntityCardGrid
             items={playbooks}
             definition={playbookDefinition}
+            density="compact"
             context={{ ...rowContext, rolesByPath }}
           />
         ) : (

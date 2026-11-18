@@ -114,7 +114,11 @@ test.describe("Playbooks: listado", () => {
 
     const link = playbookLink(page, playbook.name)
     await expect(link).toBeVisible()
-    await expect(link).toHaveAttribute("href", `/playbooks/${playbook.id}/edit`)
+    // The card runs the playbook; the pencil opens its editor.
+    await expect(link).toHaveAttribute("href", `/playbooks/${playbook.id}/run`)
+    await expect(
+      page.getByRole("link", { name: "Editar", exact: true })
+    ).toHaveAttribute("href", `/playbooks/${playbook.id}/edit`)
     await expect(
       page.getByRole("button", {
         name: `Acciones para ${playbook.name}`,

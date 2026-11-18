@@ -174,6 +174,7 @@ function FolderSection({
           <EntityCardGrid
             items={playbooks}
             definition={playbookDefinition}
+            density="compact"
             context={rowContext}
           />
         ) : (
@@ -574,6 +575,7 @@ function PlaybooksPageInner() {
                 <EntityCardGrid
                   items={data.loose}
                   definition={playbookDefinition}
+                  density="compact"
                   context={rowContext}
                 />
               </section>
