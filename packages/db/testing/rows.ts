@@ -56,9 +56,12 @@ export function credentialRow(
   return {
     id: IDS.credential,
     name: "deploy",
+    scope: "host",
+    type: "ssh_key",
     username: "ansible",
     privateKey: "v1:encrypted-private-key",
     publicKey: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExample deploy",
+    token: null,
     createdAt: NOW,
     updatedAt: NOW,
     ...overrides,
