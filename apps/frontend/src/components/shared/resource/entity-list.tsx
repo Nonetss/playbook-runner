@@ -410,7 +410,7 @@ function EntityCard<TItem, TContext>({
             as="div"
             variant="meta"
             tone="muted"
-            className="pointer-events-none relative z-10 line-clamp-2 wrap-anywhere"
+            className="pointer-events-none relative z-10 line-clamp-2 wrap-anywhere [&_button]:pointer-events-auto"
           >
             {secondary}
           </Text>
@@ -484,7 +484,7 @@ function EntityCard<TItem, TContext>({
                 as="div"
                 variant="meta"
                 tone="muted"
-                className="mt-0.5 line-clamp-2 wrap-anywhere"
+                className="mt-0.5 line-clamp-2 wrap-anywhere [&_button]:pointer-events-auto"
               >
                 {secondary}
               </Text>

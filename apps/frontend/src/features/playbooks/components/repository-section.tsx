@@ -13,7 +13,7 @@ import { InlineAlert } from "@/components/shared/feedback/inline-alert"
 import { EntityCardGrid } from "@/components/shared/resource/entity-list"
 import { Button } from "@/components/ui/button"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
-import { RepositoryRoles } from "@/features/playbooks/components/repository-roles"
+import { RepositoryRolesNotice } from "@/features/playbooks/components/repository-roles"
 import { SectionToggle } from "@/features/playbooks/components/section-toggle"
 import {
   type PlaybookRowContext,
@@ -65,6 +65,21 @@ export function RepositorySection({
     () => new Map(roles?.playbookRoles.map((usage) => [usage.path, usage])),
     [roles]
   )
+
+  const rolesByName = useMemo(
+    () => new Map(roles?.roles.map((role) => [role.name, role])),
+    [roles]
+  )
+  // The playbooks that declare roles go in a group of their own; the rest
+  // keep the plain grid. Roles load with the repository, so until they do
+  // every playbook shows in the plain grid.
+  const usesRoles = (playbook: Playbook) => {
+    const usage = playbook.path ? rolesByPath.get(playbook.path) : undefined
+    return !!usage && (usage.roles.length > 0 || usage.dynamic)
+  }
+  const withRoles = playbooks.filter(usesRoles)
+  const plain = playbooks.filter((playbook) => !usesRoles(playbook))
+  const cardContext = { ...rowContext, rolesByPath, rolesByName }
 
   return (
     <section
@@ -149,12 +164,30 @@ export function RepositorySection({
         className="space-y-8"
       >
         {playbooks.length > 0 ? (
-          <EntityCardGrid
-            items={playbooks}
-            definition={playbookDefinition}
-            density="compact"
-            context={{ ...rowContext, rolesByPath }}
-          />
+          <>
+            {plain.length > 0 ? (
+              <EntityCardGrid
+                items={plain}
+                definition={playbookDefinition}
+                density="compact"
+                context={cardContext}
+              />
+            ) : null}
+            {withRoles.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                <Text as="h3" variant="label" tone="muted">
+                  {t("repository.with_roles")}{" "}
+                  <span className="tabular-nums">{withRoles.length}</span>
+                </Text>
+                <EntityCardGrid
+                  items={withRoles}
+                  definition={playbookDefinition}
+                  density="compact"
+                  context={cardContext}
+                />
+              </div>
+            ) : null}
+          </>
         ) : (
           <Text
             as="p"
@@ -167,7 +200,7 @@ export function RepositorySection({
               : t("repository.sync_hint")}
           </Text>
         )}
-        <RepositoryRoles repository={repository} enabled={!collapsed} />
+        <RepositoryRolesNotice repository={repository} enabled={!collapsed} />
       </div>
     </section>
   )

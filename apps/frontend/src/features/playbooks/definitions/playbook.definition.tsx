@@ -2,7 +2,6 @@ import { getIcon } from "@/lib/icon-registry"
 
 const FolderInput = getIcon("resources", "folderInput")
 const Pencil = getIcon("actions", "edit")
-const Role = getIcon("resources", "role")
 const Trash2 = getIcon("actions", "delete")
 
 import type { TFunction } from "i18next"
@@ -12,6 +11,7 @@ import { Hint } from "@/components/shared/feedback/hint"
 import type { EntityListDefinition } from "@/components/shared/resource/entity-list"
 import { AppLink } from "@/components/ui/app-link"
 import { Button } from "@/components/ui/button"
+import { PlaybookRolesButton } from "@/features/playbooks/components/playbook-roles-button"
 import type {
   Playbook,
   PlaybookRepositoryRoles,
@@ -27,6 +27,8 @@ export interface PlaybookRowContext {
   folderNames?: Map<string, string>
   /** Roles declared by each Git playbook, by path; once its repository is open. */
   rolesByPath?: Map<string, PlaybookRepositoryRoles["playbookRoles"][number]>
+  /** The repository's roles by name, for the dialog a card opens. */
+  rolesByName?: Map<string, PlaybookRepositoryRoles["roles"][number]>
   onDelete: (playbook: Playbook) => void
   onMove: (playbook: Playbook) => void
 }
@@ -37,20 +39,19 @@ export const playbookDefinition: EntityListDefinition<
 > = {
   getKey: (playbook) => playbook.id,
   getPrimary: (playbook) => playbook.name,
-  getSecondary: (playbook, { t, rolesByPath }) => {
+  getSecondary: (playbook, { rolesByPath, rolesByName }) => {
     const usage = playbook.path ? rolesByPath?.get(playbook.path) : undefined
     if (!usage) return playbook.description
-    const names = [
-      ...usage.roles,
-      ...(usage.dynamic ? [t("repository.roles_dynamic")] : []),
-    ].join(", ")
     return (
       <>
         {playbook.description}
-        <span className="mt-1 flex items-start gap-1.5 text-foreground">
-          <Role className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-          <span className="sr-only">{t("repository.roles_heading")}: </span>
-          <Text variant="data">{names}</Text>
+        <span className="mt-1.5 flex">
+          <PlaybookRolesButton
+            playbookName={playbook.name}
+            names={usage.roles}
+            dynamic={usage.dynamic}
+            details={rolesByName}
+          />
         </span>
       </>
     )
