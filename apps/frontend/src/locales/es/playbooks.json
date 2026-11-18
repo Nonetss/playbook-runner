@@ -144,6 +144,8 @@
       "forks": "Paralelismo",
       "roles": "ROLES",
       "roles_loose_tasks": "Las tareas sueltas del playbook se ejecutan siempre.",
+      "roles_deselect_all": "Deseleccionar todos",
+      "roles_select_all": "Seleccionar todos",
       "variables_detected": "Definidas en el playbook",
       "variable_from_role": "rol {{role}}",
       "variable_reserved": "solo lectura",

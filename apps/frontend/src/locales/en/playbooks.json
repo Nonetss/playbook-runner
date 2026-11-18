@@ -144,6 +144,8 @@
       "forks": "Forks",
       "roles": "ROLES",
       "roles_loose_tasks": "The playbook's own tasks always run.",
+      "roles_deselect_all": "Deselect all",
+      "roles_select_all": "Select all",
       "variables_detected": "Defined in the playbook",
       "variable_from_role": "role {{role}}",
       "variable_reserved": "read-only",

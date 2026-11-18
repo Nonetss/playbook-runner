@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Text } from "@/components/shared/brand/typography"
+import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import type { PlaybookRepositoryRoles } from "@/features/playbooks/types"
 import { TerminalPanelCollapsible } from "@/features/run/components/terminal-frame"
@@ -25,6 +26,11 @@ export function RunRolesSelection({
     onChange(next)
   }
   const checkedCount = roles.filter((role) => !unchecked.has(role.name)).length
+  // One click turns every role off; with none left on, the same button
+  // turns them all back on.
+  const noneChecked = checkedCount === 0
+  const toggleAll = () =>
+    onChange(noneChecked ? new Set() : new Set(roles.map((role) => role.name)))
 
   return (
     <TerminalPanelCollapsible
@@ -37,6 +43,18 @@ export function RunRolesSelection({
       }
       className="border-t pt-5"
     >
+      <Button
+        type="button"
+        variant="ghost"
+        size="xs"
+        className="-ml-2 self-start text-muted-foreground"
+        disabled={disabled}
+        onClick={toggleAll}
+      >
+        {noneChecked
+          ? t("run.panel.roles_select_all")
+          : t("run.panel.roles_deselect_all")}
+      </Button>
       <ul className="space-y-2.5">
         {roles.map((role) => (
           <li key={role.path}>
