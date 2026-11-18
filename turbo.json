@@ -75,6 +75,9 @@
     "db:generate": {
       "cache": false
     },
+    "db:custom": {
+      "cache": false
+    },
     "db:migrate": {
       "cache": false,
       "persistent": true
