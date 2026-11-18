@@ -83,7 +83,7 @@ function DashboardPageInner() {
   const { data: devices = [], isPending: devicesPending } = useDevicesList()
   const { data: groups = [], isPending: groupsPending } = useGroupsList()
   const { data: credentials = [], isPending: credentialsPending } =
-    useCredentialsList()
+    useCredentialsList("host")
 
   const [runWindow, setRunWindow] = useState<JobRunMetricsWindow>("24h")
   // The app's run-change subscription refreshes these as runs start and end.
@@ -151,7 +151,7 @@ function DashboardPageInner() {
         <StatTile
           title={t("stats.credentials")}
           value={isPending ? "—" : credentials.length}
-          href="/inventory/credentials"
+          href="/access/credentials"
         />
       </div>
 

@@ -21,8 +21,8 @@ export interface CredentialRowContext {
 }
 
 /** Key algorithm from an OpenSSH public key line (e.g. `ssh-ed25519`). */
-function keyType(publicKey: string) {
-  return publicKey.trim().split(/\s+/)[0] || "—"
+function keyType(publicKey: string | null) {
+  return publicKey?.trim().split(/\s+/)[0] || "—"
 }
 
 export const credentialDefinition: EntityListDefinition<
@@ -40,11 +40,14 @@ export const credentialDefinition: EntityListDefinition<
     {
       key: "key",
       label: ({ t }) => t("card.key_type"),
-      value: (credential) => (
-        <Text variant="data" title={credential.publicKey}>
-          {keyType(credential.publicKey)}
-        </Text>
-      ),
+      value: (credential, { t }) =>
+        credential.type === "token" ? (
+          <Text variant="data">{t("card.token")}</Text>
+        ) : (
+          <Text variant="data" title={credential.publicKey ?? undefined}>
+            {keyType(credential.publicKey)}
+          </Text>
+        ),
     },
     {
       key: "created",
@@ -67,6 +70,9 @@ export const credentialDefinition: EntityListDefinition<
       key: "provision",
       label: (_, { tCommon }) => tCommon("actions.provision_script"),
       icon: Terminal,
+      // Only a key for a host is authorized there; Git keys are added to the
+      // remote (GitHub, GitLab…) instead.
+      hidden: (credential) => credential.scope !== "host",
       onSelect: (credential, { onProvision }) => onProvision(credential),
     },
     {

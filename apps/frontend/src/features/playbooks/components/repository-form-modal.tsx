@@ -126,7 +126,13 @@ export function RepositoryFormModal({
 }: RepositoryFormModalProps) {
   const { t } = useTranslation("playbooks")
   const { t: tCommon } = useTranslation("common")
-  const { data: credentials = [] } = useCredentialsList()
+  const { data: allCredentials = [] } = useCredentialsList()
+  // Git credentials, plus the one this repository already uses even if it was
+  // created before credentials had a purpose.
+  const credentials = allCredentials.filter(
+    (credential) =>
+      credential.scope === "git" || credential.id === repository?.credentialId
+  )
   const createRepository = useRepositoryCreate()
   const updateRepository = useRepositoryUpdate()
   const isEditing = !!repository
@@ -294,6 +300,8 @@ export function RepositoryFormModal({
             {credentials.map((credential) => (
               <SelectItem key={credential.id} value={credential.id}>
                 {credential.name}
+                {" · "}
+                {t(`repository.credential_type_${credential.type}`)}
               </SelectItem>
             ))}
           </SelectContent>

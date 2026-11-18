@@ -42,7 +42,7 @@ export function DeviceFormModal({
   const updateDevice = useDeviceUpdate()
   const mutation = isEditing ? updateDevice : createDevice
 
-  const { data: credentials = [] } = useCredentialsList()
+  const { data: credentials = [] } = useCredentialsList("host")
   const credentialOptions = useMemo(
     () =>
       credentials.map((credential) => ({

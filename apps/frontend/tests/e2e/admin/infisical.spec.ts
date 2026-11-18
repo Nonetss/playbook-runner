@@ -3,7 +3,7 @@ import { expect, test } from "@test/e2e/fixtures"
 import { waitForHydration } from "@test/e2e/helpers/hydration"
 import { rpc } from "@test/e2e/helpers/rpc"
 
-const PAGE = "/ansible/infisical"
+const PAGE = "/access/infisical"
 
 /** The run panel starts with these blocks folded. */
 async function openRunBlock(page: Page, name: "Infisical" | "Variables") {
@@ -375,7 +375,7 @@ test.describe("Conexiones de Infisical", () => {
     await expect(page.getByLabel("Entorno de Infisical")).toBeDisabled()
     await expect(
       page.getByRole("link", { name: "Editar la conexión" })
-    ).toHaveAttribute("href", `/ansible/infisical?edit=${connection.id}`)
+    ).toHaveAttribute("href", `/access/infisical?edit=${connection.id}`)
   })
 
   test("si Infisical no lista entornos, el entorno se escribe a mano", async ({

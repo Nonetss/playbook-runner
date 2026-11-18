@@ -1,7 +1,8 @@
 {
   "links": {
     "home": "Home",
-    "credentials": "Credentials",
+    "credentials": "SSH",
+    "access": "Access",
     "inventory": "Inventory",
     "devices": "Devices",
     "groups": "Groups",
@@ -15,10 +16,12 @@
     "me": "My profile",
     "admin_users": "Users",
     "ansible": "Ansible",
-    "bash": "Bash"
+    "bash": "Bash",
+    "gitCredentials": "Git"
   },
   "descriptions": {
-    "credentials": "Manage the keys and users used for access.",
+    "access": "Credentials and connections the runner uses to reach servers, repositories and secrets.",
+    "credentials": "The SSH keys Ansible uses to log in to your devices.",
     "inventory": "Organize devices, groups, and their scope.",
     "devices": "Manage the hosts in your inventory.",
     "groups": "Organize devices by role or environment.",
@@ -33,7 +36,8 @@
     "admin_users": "Manage accounts and their roles.",
     "me": "Your account and session.",
     "ansible": "Playbooks, scheduled jobs and their run history.",
-    "bash": "Reusable scripts and one-off remote commands."
+    "bash": "Reusable scripts and one-off remote commands.",
+    "gitCredentials": "The keys and tokens the runner uses to identify itself to remote Git repositories."
   },
   "actions": {
     "sign_out": "Sign out",

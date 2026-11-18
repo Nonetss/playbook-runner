@@ -75,7 +75,8 @@ function prefetchForHref(
     case "/inventory/groups":
       queryClient.query(orpc.inventory.groups.list.queryOptions()).catch(noop)
       return
-    case "/inventory/credentials":
+    case "/access/credentials":
+    case "/access/git":
       queryClient.query(orpc.credentials.list.queryOptions()).catch(noop)
       return
     case "/playbooks":

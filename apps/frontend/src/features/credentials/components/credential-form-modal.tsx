@@ -13,30 +13,44 @@ import {
   useCredentialGenerate,
   useCredentialUpdate,
 } from "@/features/credentials/hooks/use-credentials"
-import type { Credential } from "@/features/credentials/types"
+import type {
+  Credential,
+  CredentialScope,
+  CredentialType,
+} from "@/features/credentials/types"
 import { cn } from "@/lib/utils"
 
+/** What Git hosts accept as the username of an access token. */
+const DEFAULT_TOKEN_USERNAME = "x-access-token"
+
 export type CredentialFormValues = {
+  type: CredentialType
   name: string
   username: string
   privateKey: string
   publicKey: string
+  token: string
 }
 
 const emptyValues: CredentialFormValues = {
+  type: "ssh_key",
   name: "",
   username: "",
   privateKey: "",
   publicKey: "",
+  token: "",
 }
 
 function valuesFromEntity(credential: Credential): CredentialFormValues {
   return {
+    type: credential.type,
     name: credential.name,
     username: credential.username,
-    // The API never returns the private key; empty means "keep current".
+    // The API never returns the private key or the token; empty means "keep
+    // current".
     privateKey: "",
-    publicKey: credential.publicKey,
+    publicKey: credential.publicKey ?? "",
+    token: "",
   }
 }
 
@@ -46,12 +60,15 @@ export type CredentialFormModalProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   credential?: Credential | null
+  /** What the new credential is for; an edited one keeps its own. */
+  scope: CredentialScope
 }
 
 export function CredentialFormModal({
   open,
   onOpenChange,
   credential = null,
+  scope,
 }: CredentialFormModalProps) {
   const { t } = useTranslation("credentials")
   const isEditing = !!credential
@@ -82,6 +99,12 @@ export function CredentialFormModal({
     setValues((current) => ({ ...current, [key]: value }))
   }
 
+  function switchType(next: CredentialType) {
+    if (next === values.type) return
+    setMode("import")
+    setValues({ ...emptyValues, type: next, name: values.name })
+  }
+
   function switchMode(next: KeyMode) {
     if (next === mode) return
     setMode(next)
@@ -109,14 +132,39 @@ export function CredentialFormModal({
     setError(null)
     try {
       if (isEditing && credential) {
-        const { privateKey, ...rest } = values
+        const { name, username } = values
         await updateCredential.mutateAsync({
           id: credential.id,
-          ...rest,
-          ...(privateKey.trim() ? { privateKey } : {}),
+          name,
+          username,
+          ...(credential.type === "token"
+            ? values.token.trim()
+              ? { token: values.token }
+              : {}
+            : {
+                publicKey: values.publicKey,
+                ...(values.privateKey.trim()
+                  ? { privateKey: values.privateKey }
+                  : {}),
+              }),
+        })
+      } else if (values.type === "token") {
+        await createCredential.mutateAsync({
+          type: "token",
+          scope: "git",
+          name: values.name,
+          username: values.username.trim() || DEFAULT_TOKEN_USERNAME,
+          token: values.token,
         })
       } else {
-        await createCredential.mutateAsync(values)
+        await createCredential.mutateAsync({
+          type: "ssh_key",
+          scope,
+          name: values.name,
+          username: values.username,
+          privateKey: values.privateKey,
+          publicKey: values.publicKey,
+        })
       }
       onOpenChange(false)
     } catch (err) {
@@ -129,6 +177,7 @@ export function CredentialFormModal({
     onOpenChange(next)
   }
 
+  const isToken = values.type === "token"
   const showGeneratedKeys = mode === "generate" && !!values.privateKey
 
   return (
@@ -137,12 +186,16 @@ export function CredentialFormModal({
       onOpenChange={handleOpenChange}
       title={isEditing ? t("form.edit_title") : t("form.create_title")}
       description={
-        isEditing ? t("form.edit_description") : t("form.create_description")
+        isEditing
+          ? t("form.edit_description")
+          : t(`form.create_description_${scope}`)
       }
       formId="credential-form"
       onSubmit={handleSubmit}
       isPending={isSubmitting}
-      submitDisabled={mode === "generate" && !values.privateKey && !isEditing}
+      submitDisabled={
+        !isToken && mode === "generate" && !values.privateKey && !isEditing
+      }
       submitLabel={
         isSubmitting
           ? t("form.saving")
@@ -152,7 +205,23 @@ export function CredentialFormModal({
       }
       cancelLabel={t("form.cancel")}
     >
-      {!isEditing ? (
+      {!isEditing && scope === "git" ? (
+        <Tabs
+          value={values.type}
+          onValueChange={(next) => switchType(next as CredentialType)}
+        >
+          <TabsList className="w-full">
+            <TabsTrigger value="ssh_key" disabled={isSubmitting}>
+              {t("form.type_ssh_key")}
+            </TabsTrigger>
+            <TabsTrigger value="token" disabled={isSubmitting}>
+              {t("form.type_token")}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      ) : null}
+
+      {!isEditing && !isToken ? (
         <Tabs
           value={mode}
           onValueChange={(next) => switchMode(next as KeyMode)}
@@ -182,20 +251,47 @@ export function CredentialFormModal({
       <FormField
         label={t("form.username_label")}
         htmlFor="username-field"
-        required
+        required={!isToken}
+        hint={isToken ? t("form.token_username_hint") : undefined}
       >
         <Input
           id="username-field"
-          required
+          required={!isToken}
           disabled={isSubmitting}
-          placeholder="deploy"
+          placeholder={isToken ? DEFAULT_TOKEN_USERNAME : "deploy"}
           value={values.username}
           onChange={(e) => updateField("username", e.target.value)}
           className="font-mono"
         />
       </FormField>
 
-      {mode === "import" || isEditing ? (
+      {isToken ? (
+        <FormField
+          label={t("form.token_label")}
+          htmlFor="token-field"
+          required={!isEditing}
+          hint={
+            isEditing ? (
+              <span id="token-keep-hint">{t("form.token_keep_hint")}</span>
+            ) : (
+              t("form.token_hint")
+            )
+          }
+        >
+          <Input
+            id="token-field"
+            type="password"
+            autoComplete="off"
+            required={!isEditing}
+            aria-describedby={isEditing ? "token-keep-hint" : undefined}
+            disabled={isSubmitting}
+            placeholder="ghp_…"
+            value={values.token}
+            onChange={(e) => updateField("token", e.target.value)}
+            className="font-mono"
+          />
+        </FormField>
+      ) : mode === "import" || isEditing ? (
         <>
           <FormField
             label={t("form.private_key_label")}

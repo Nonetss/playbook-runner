@@ -9,7 +9,7 @@ type Named = { id: string; name: string }
 /** The section sidebar every inventory route renders, with `active` lit. */
 async function expectSectionSidebar(page: Page, active?: string) {
   const sidebar = page.locator("[data-sidebar=sidebar]")
-  const links = ["Dispositivos", "Grupos", "Credenciales"].map((name) =>
+  const links = ["Dispositivos", "Grupos"].map((name) =>
     sidebar.getByRole("link", { name, exact: true })
   )
   await waitForHydration(links[0] ?? sidebar)
@@ -94,7 +94,6 @@ test.describe("Inventario: resumen de sección", () => {
     for (const [title, href] of [
       ["Dispositivos", "/inventory/devices"],
       ["Grupos", "/inventory/groups"],
-      ["Credenciales", "/inventory/credentials"],
     ] as const) {
       await expect(
         main.getByRole("link", { name: new RegExp(`^${title}`) })
@@ -414,16 +413,25 @@ test.describe("Inventario: grupos", () => {
   })
 })
 
-test.describe("Inventario: credenciales", () => {
+test.describe("Accesos: credenciales", () => {
   test("muestra el título, la barra lateral y una credencial sembrada", async ({
     page,
     seed,
   }) => {
     const credential = await seed.credential()
 
-    await page.goto("/inventory/credentials")
-    await expect(heading(page, "Credenciales")).toBeVisible()
-    await expectSectionSidebar(page, "Credenciales")
+    await page.goto("/access/credentials")
+    await expect(heading(page, "SSH")).toBeVisible()
+    const sidebar = page.locator("[data-sidebar=sidebar]")
+    await expect(
+      sidebar.getByRole("link", { name: "SSH", exact: true })
+    ).toHaveAttribute("data-active", "true")
+    await expect(
+      sidebar.getByRole("link", { name: "Git", exact: true })
+    ).toBeVisible()
+    await expect(
+      sidebar.getByRole("link", { name: "Infisical", exact: true })
+    ).toBeVisible()
 
     const card = buttonCard(page, credential.name)
     await expect(card).toBeVisible()
@@ -436,7 +444,7 @@ test.describe("Inventario: credenciales", () => {
     seed,
   }) => {
     const name = seed.name("ui-cred")
-    await page.goto("/inventory/credentials")
+    await page.goto("/access/credentials")
     const create = page
       .getByRole("button", { name: "Nueva credencial", exact: true })
       .first()
@@ -500,7 +508,7 @@ test.describe("Inventario: credenciales", () => {
   test("eliminar una credencial pide confirmación", async ({ page, seed }) => {
     const credential = await seed.credential()
 
-    await page.goto("/inventory/credentials")
+    await page.goto("/access/credentials")
     await pickRowAction(page, credential.name, "Eliminar")
     await confirmDelete(page, credential.name)
 

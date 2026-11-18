@@ -1,0 +1,13 @@
+---
+import { CredentialsPage } from "@/features/credentials"
+import WithSidebar from "@/layouts/WithSidebar.astro"
+import { appSurfaces } from "@/lib/app-surfaces"
+import { getServerT } from "@/lib/i18n/server"
+
+const { locale } = Astro.locals
+const t = await getServerT(locale, "nav")
+---
+
+<WithSidebar title={t(appSurfaces.gitCredentials.titleKey)} scrollToTop>
+  <CredentialsPage client:only="react" kind="git" />
+</WithSidebar>

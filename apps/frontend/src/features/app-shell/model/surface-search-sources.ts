@@ -119,7 +119,7 @@ export const surfaceSearchSources: SurfaceSearchSource[] = [
     surface: "infisical",
     headingKey: "search.groups.infisical",
     // Connections have no page of their own: the list opens their edit form.
-    href: (id) => `/ansible/infisical?edit=${segment(id)}`,
+    href: (id) => `/access/infisical?edit=${segment(id)}`,
     queryOptions: ({ enabled }) =>
       orpc.infisicalConnections.list.queryOptions({
         enabled,

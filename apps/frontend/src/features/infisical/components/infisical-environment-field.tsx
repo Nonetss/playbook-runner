@@ -54,7 +54,7 @@ export function InfisicalEnvironmentField({
         <Text as="p" variant="meta" className="text-destructive">
           {t("variables.environment_no_project")}{" "}
           <a
-            href={`/ansible/infisical?edit=${connectionId}`}
+            href={`/access/infisical?edit=${connectionId}`}
             className="underline underline-offset-2"
           >
             {t("variables.environment_edit_connection")}

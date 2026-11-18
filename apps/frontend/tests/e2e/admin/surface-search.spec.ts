@@ -123,12 +123,12 @@ test.describe("Buscador de la navbar (escritorio)", () => {
   test("Intro navega al resultado y cierra el diálogo", async ({ page }) => {
     await gotoHydrated(page, "/")
     const dialog = await openWithShortcut(page)
-    await dialog.getByRole("combobox").fill("credenciales")
+    await dialog.getByRole("combobox").fill("ssh")
     await expect(
-      dialog.getByRole("option", { name: /Credenciales/ }).first()
+      dialog.getByRole("option", { name: /SSH/ }).first()
     ).toBeVisible()
     await page.keyboard.press("Enter")
-    await expect(page).toHaveURL(/\/inventory\/credentials$/)
+    await expect(page).toHaveURL(/\/access\/credentials$/)
     await expect(dialog).toBeHidden()
   })
 

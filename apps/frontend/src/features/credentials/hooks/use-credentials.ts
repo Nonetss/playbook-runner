@@ -1,12 +1,26 @@
 import { useMutation } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
-import type { Credential } from "@/features/credentials/types"
+import type {
+  Credential,
+  CredentialCreateInput,
+  CredentialScope,
+} from "@/features/credentials/types"
 import { useHydratedQuery } from "@/hooks/use-hydrated-query"
 import { useResourceMutation } from "@/hooks/use-resource-mutation"
 import { orpc } from "@/lib/orpc"
 
-export const useCredentialsList = () => {
-  return useHydratedQuery(orpc.credentials.list.queryOptions())
+/**
+ * Every credential, or only those for one purpose. The cache holds the whole
+ * list (mutations update it), so each page filters what it shows.
+ */
+export const useCredentialsList = (scope?: CredentialScope) => {
+  return useHydratedQuery(
+    orpc.credentials.list.queryOptions({
+      select: scope
+        ? (rows) => rows.filter((row) => row.scope === scope)
+        : undefined,
+    })
+  )
 }
 
 export const useCredentialGet = (
@@ -28,19 +42,16 @@ const detailKey = (input: { id: string }) =>
 
 function applyCreateOptimistic(
   current: Credential[] | undefined,
-  input: {
-    name: string
-    username: string
-    privateKey: string
-    publicKey: string
-  }
+  input: CredentialCreateInput
 ) {
   if (!current) return current
   const optimistic = {
     id: `optimistic-${Date.now()}`,
+    type: input.type,
+    scope: input.scope,
     name: input.name,
     username: input.username,
-    publicKey: input.publicKey,
+    publicKey: input.type === "ssh_key" ? input.publicKey : null,
   } as unknown as Credential
   return [...current, optimistic]
 }
@@ -52,7 +63,8 @@ function applyUpdateOptimistic(
     name: string
     username: string
     privateKey?: string
-    publicKey: string
+    publicKey?: string
+    token?: string
   }
 ) {
   if (!current) return current
@@ -62,7 +74,7 @@ function applyUpdateOptimistic(
           ...credential,
           name: input.name,
           username: input.username,
-          publicKey: input.publicKey,
+          publicKey: input.publicKey ?? credential.publicKey,
         }
       : credential
   )
@@ -80,11 +92,7 @@ function applyDeleteOptimistic(
 
 export const useCredentialCreate = () => {
   const { t } = useTranslation("credentials")
-  return useResourceMutation<
-    { name: string; username: string; privateKey: string; publicKey: string },
-    Credential,
-    Credential[]
-  >({
+  return useResourceMutation<CredentialCreateInput, Credential, Credential[]>({
     mutationFn: (input) =>
       orpc.credentials.create.call(input) as Promise<Credential>,
     listKey,
@@ -100,9 +108,10 @@ export const useCredentialUpdate = () => {
       id: string
       name: string
       username: string
-      // Omitted: keep the stored private key.
+      // Omitted: keep the stored private key or token.
       privateKey?: string
-      publicKey: string
+      publicKey?: string
+      token?: string
     },
     Credential,
     Credential[]

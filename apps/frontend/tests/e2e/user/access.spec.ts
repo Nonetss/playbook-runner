@@ -6,7 +6,8 @@ import { waitForHydration } from "@test/e2e/helpers/hydration"
 const REGULAR_SURFACES = [
   { path: "/inventory/devices", title: "Dispositivos" },
   { path: "/inventory/groups", title: "Grupos" },
-  { path: "/inventory/credentials", title: "Credenciales" },
+  { path: "/access/credentials", title: "SSH" },
+  { path: "/access/git", title: "Git" },
   { path: "/playbooks", title: "Playbooks" },
   { path: "/jobs/scheduler", title: "Scheduler" },
   { path: "/jobs/history", title: "Historial" },

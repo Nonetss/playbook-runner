@@ -39,11 +39,23 @@ export const appSurfaces = {
     descriptionKey: "descriptions.groups",
     icon: getIcon("resources", "folder"),
   },
+  access: {
+    href: "/access",
+    titleKey: "links.access",
+    descriptionKey: "descriptions.access",
+    icon: getIcon("resources", "vault"),
+  },
   credentials: {
-    href: "/inventory/credentials",
+    href: "/access/credentials",
     titleKey: "links.credentials",
     descriptionKey: "descriptions.credentials",
     icon: getIcon("resources", "apiKey"),
+  },
+  gitCredentials: {
+    href: "/access/git",
+    titleKey: "links.gitCredentials",
+    descriptionKey: "descriptions.gitCredentials",
+    icon: getIcon("resources", "repository"),
   },
   ansible: {
     href: "/ansible",
@@ -64,7 +76,7 @@ export const appSurfaces = {
     icon: getIcon("resources", "book"),
   },
   infisical: {
-    href: "/ansible/infisical",
+    href: "/access/infisical",
     titleKey: "links.infisical",
     descriptionKey: "descriptions.infisical",
     icon: getIcon("resources", "vault"),
@@ -117,8 +129,9 @@ export type SurfaceId = keyof typeof appSurfaces
 
 /** Navigation sections: each renders the persistent section sidebar. */
 export const appSections = {
-  inventory: ["devices", "groups", "credentials"],
-  ansible: ["playbooks", "scheduler", "history", "infisical"],
+  inventory: ["devices", "groups"],
+  ansible: ["playbooks", "scheduler", "history"],
+  access: ["credentials", "gitCredentials", "infisical"],
   bash: ["scripts", "commands"],
 } as const satisfies Record<string, readonly SurfaceId[]>
 

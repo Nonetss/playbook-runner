@@ -91,7 +91,7 @@ test.describe("Navbar autenticada (escritorio)", () => {
     await page.goto("/inventory/devices")
     const sidebarLink = page
       .locator("[data-sidebar=sidebar]")
-      .getByRole("link", { name: "Credenciales", exact: true })
+      .getByRole("link", { name: "Grupos", exact: true })
     await waitForHydration(sidebarLink)
     await expect(sidebarLink).toBeVisible()
     await expect(

@@ -17,13 +17,13 @@ import {
   useCredentialDelete,
   useCredentialsList,
 } from "@/features/credentials/hooks/use-credentials"
-import type { Credential } from "@/features/credentials/types"
+import type { Credential, CredentialScope } from "@/features/credentials/types"
 import { useConfirm } from "@/hooks/use-confirm"
 
-function CredentialsPageInner() {
+function CredentialsPageInner({ scope }: { scope: CredentialScope }) {
   const { t, i18n } = useTranslation("credentials")
   const { t: tCommon } = useTranslation("common")
-  const query = useCredentialsList()
+  const query = useCredentialsList(scope)
   const deleteCredential = useCredentialDelete()
   const confirm = useConfirm()
 
@@ -75,7 +75,7 @@ function CredentialsPageInner() {
   return (
     <>
       <ResourceOverview
-        surface="credentials"
+        surface={scope === "git" ? "gitCredentials" : "credentials"}
         heroMeta={
           <HeroCount
             segments={[
@@ -92,7 +92,7 @@ function CredentialsPageInner() {
         empty={{
           icon: <KeyRound />,
           title: t("empty.title"),
-          description: t("empty.description"),
+          description: t(`empty.description_${scope}`),
           action: createButton,
         }}
       >
@@ -119,6 +119,7 @@ function CredentialsPageInner() {
         open={modalOpen}
         onOpenChange={handleModalOpenChange}
         credential={editingCredential}
+        scope={scope}
       />
       <ProvisionScriptDialog
         open={!!provisionTarget}
@@ -131,10 +132,10 @@ function CredentialsPageInner() {
   )
 }
 
-export function CredentialsPage() {
+export function CredentialsPage({ kind }: { kind: CredentialScope }) {
   return (
     <AppProviders>
-      <CredentialsPageInner />
+      <CredentialsPageInner scope={kind} />
     </AppProviders>
   )
 }

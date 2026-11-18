@@ -24,8 +24,8 @@ const STAT_DESTINATIONS = [
   },
   {
     title: "Credenciales",
-    href: "/inventory/credentials",
-    heading: "Credenciales",
+    href: "/access/credentials",
+    heading: "SSH",
   },
 ]
 
@@ -98,7 +98,7 @@ test.describe("Dashboard", () => {
     for (const [label, href] of [
       ["Playbooks", "/playbooks"],
       ["Dispositivos", "/inventory/devices"],
-      ["Credenciales", "/inventory/credentials"],
+      ["SSH", "/access/credentials"],
     ] as const) {
       await expect(
         main

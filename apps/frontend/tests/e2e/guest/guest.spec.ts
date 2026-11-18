@@ -19,7 +19,7 @@ test.describe("Visitantes sin sesión", () => {
     "/inventory",
     "/inventory/devices",
     "/inventory/groups",
-    "/inventory/credentials",
+    "/access/credentials",
     "/ansible",
     "/playbooks",
     "/playbooks/new",
