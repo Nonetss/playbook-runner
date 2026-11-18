@@ -146,7 +146,7 @@ export function RepositorySection({
       <div
         id={`section-${repository.id}`}
         hidden={collapsed}
-        className="space-y-4"
+        className="space-y-8"
       >
         {playbooks.length > 0 ? (
           <EntityCardGrid

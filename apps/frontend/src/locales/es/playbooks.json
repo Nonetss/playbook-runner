@@ -259,7 +259,7 @@
     "roles_heading": "Roles",
     "roles_dynamic": "rol dinámico",
     "roles_used_by": "Usado por",
-    "roles_not_declared": "Ningún playbook lo declara directamente",
+    "roles_unused": "Sin usar",
     "roles_load_error": "No se han podido cargar los roles",
     "roles_requirements_title": "Dependencias sin instalar",
     "roles_requirements_body": "Este repositorio declara dependencias que no se instalan al ejecutar. Un playbook que use un rol de estos ficheros fallará:",
