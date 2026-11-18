@@ -29,6 +29,9 @@ async function main() {
       .from(credentials)
     let count = 0
     for (const row of rows) {
+      // A token credential has no private key: its token is encrypted when it
+      // is saved, so there is nothing here to convert.
+      if (row.privateKey === null) continue
       if (decrypt === !isEncrypted(row.privateKey)) continue
       const privateKey = decrypt
         ? decryptSecret(row.privateKey)
