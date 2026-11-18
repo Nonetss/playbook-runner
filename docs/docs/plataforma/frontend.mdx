@@ -4,7 +4,7 @@ description: Las rutas de la interfaz, cómo se organizan las features y por qu�
 services: [frontend]
 workspaces: [apps-frontend]
 order: 3
-updated: 2026-11-04
+updated: 2026-11-18
 ---
 
 Astro 7 SSR con islas de React, siempre con `client:only="react"`. La norma visual es `apps/frontend/DESIGN.md`, y la estructura está en `AGENTS.md`, secciones «Frontend feature structure» y «Frontend design system».
@@ -16,11 +16,12 @@ Las páginas están en `src/pages/`. La identidad y la navegación de cada una s
 | Sección | Rutas principales |
 | --- | --- |
 | Inicio | `/`. `/dashboard` solo redirige aquí |
-| Inventario | `/inventory`, `/inventory/devices`, `/inventory/groups`, `/inventory/credentials` |
-| Ansible | `/ansible`, `/playbooks`, `/playbooks/new`, `/jobs`, `/jobs/scheduler`, `/jobs/history`, `/history`, `/ansible/infisical` |
+| Inventario | `/inventory`, `/inventory/devices`, `/inventory/groups` |
+| Ansible | `/ansible`, `/playbooks`, `/playbooks/new`, `/jobs`, `/jobs/scheduler`, `/jobs/history`, `/history` |
+| Accesos | `/access`, `/access/credentials` (SSH), `/access/git` e `/access/infisical`. Las rutas antiguas `/inventory/credentials`, `/credentials` y `/ansible/infisical` redirigen aquí |
 | Bash | `/bash`, `/scripts`, `/scripts/new`, `/commands` |
 | Cuenta | `/me`, `/config`, `/admin/users` |
-| Acceso | `/login`. `/signup` solo redirige a `/login` |
+| Sesión | `/login`. `/signup` solo redirige a `/login` |
 
 `src/middleware.ts` protege todo salvo los recursos públicos: manda a los `pending` a `/me` y a quien no es administrador fuera de `/admin/*`.
 

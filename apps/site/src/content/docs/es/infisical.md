@@ -21,7 +21,7 @@ Un playbook usa variables normales y nunca menciona Infisical. Tú eliges qué s
 ## Crear una conexión
 
 1. En Infisical, crea una identidad de máquina con **Universal Auth** y dale acceso solo al proyecto y las rutas que necesite.
-2. Abre **Ansible → Infisical**, crea una conexión e introduce la URL de Infisical, el Project ID (en **Project Settings**), el Client ID y el Client Secret.
+2. Abre **Accesos → Infisical**, crea una conexión e introduce la URL de Infisical, el Project ID (en **Project Settings**), el Client ID y el Client Secret.
 
 El Client Secret se cifra antes de guardarse y la API nunca lo devuelve. Para rotarlo, edita la conexión e introduce el nuevo; deja el campo vacío para conservar el actual.
 

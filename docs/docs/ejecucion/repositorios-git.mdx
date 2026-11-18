@@ -3,7 +3,7 @@ title: Repositorios Git
 description: Cómo se sincroniza un repositorio, qué se detecta como playbook y como rol, y qué ocurre al desmarcar un rol
 services: [ansible]
 order: 3
-updated: 2026-11-08
+updated: 2026-11-18
 ---
 
 Un repositorio se sincroniza al guardarlo, cada vez que se pulsa **Sincronizar** y, sin que nadie lo pida, en cada vuelta de `REPOSITORY_SYNC_CRON` (cada hora por defecto; `off` la apaga). `repositories.sync` llama a `SyncRepository`: el ejecutor actualiza su mirror y devuelve el commit y los playbooks encontrados, y el backend hace upsert por `(repository_id, path)`.
@@ -11,6 +11,15 @@ Un repositorio se sincroniza al guardarlo, cada vez que se pulsa **Sincronizar**
 La vuelta periódica la lanza el scheduler del backend (`apps/backend/src/jobs/scheduler.ts`, solo con `JOB_SCHEDULER_ENABLED=1`). `syncAllRepositories` (`packages/api/src/v1/repositories/auto-sync.ts`) recorre los repositorios de uno en uno, así que nunca ocupa más de una plaza de `MAX_CONCURRENT_SYNCS`, y un repositorio que falla guarda su mensaje en `last_sync_error` sin detener a los demás. Una expresión inválida impide arrancar el backend.
 
 Las ejecuciones y los jobs usan `last_commit_sha`, no la punta de la rama. Tras un push, un job programado ejecuta el commit nuevo en cuanto pasa la sincronización periódica, sin que nadie lo revise; `job_runs.commit_sha` deja constancia de cuál fue. Renombrar un fichero crea otro playbook: el antiguo queda como `missing` y al ejecutarlo falla con «no longer exists in its repository».
+
+## Autenticación
+
+Un repositorio privado usa una credencial de **Accesos → Git** (las de **Accesos → SSH** son para entrar en los dispositivos y no valen aquí), de uno de dos tipos:
+
+- **Clave SSH:** para URLs `ssh://` o `usuario@host:ruta`. El runner escribe la clave en un fichero `0600` que borra al terminar y usa `SSH_HOST_KEY_POLICY`.
+- **Token:** para URLs `https://` (GitHub, GitLab, Gitea…). El backend envía usuario y token por gRPC en `GitToken`, y `_token_config` (`apps/ansible/app/services/git/mirror.py`) los pasa a git como cabecera `Authorization: Basic` por `GIT_CONFIG_*`, limitada al host de la URL con `http.<origen>/.extraHeader`. Ni va en la URL ni en la línea de comandos, así que no queda en `remote.origin.url` ni en `ps`. Sin usuario se usa `x-access-token`.
+
+El token se cifra como las claves, no lo devuelve ninguna llamada y solo se descifra al sincronizar, listar ramas o roles, o ejecutar. Un token con una URL SSH se rechaza al guardar el repositorio, y un dispositivo no acepta una credencial de tipo token. Un 401 o 403 del host se informa como credencial inválida.
 
 ## Qué se detecta como playbook
 
@@ -42,4 +51,5 @@ Las tareas propias del playbook se ejecutan siempre. Solo se puede hacer en una 
 | Falla un rol que dependía del desmarcado | Usaba un `register` o `set_fact` que ya no existe | Darle un `default(...)` en el rol que lo usa |
 | `Roles not found` | El commit sincronizado ya no tiene ese rol | Sincronizar y volver a abrir el formulario |
 | La sincronización falla por tamaño | El mirror supera `GIT_MAX_REPO_MB` | Subir el límite o reducir el repositorio |
+| `Authentication failed` o `returned error: 401/403` | El token caducó, no tiene permiso de lectura sobre el repositorio o el usuario no es el que pide el host (Bitbucket) | Crear un token nuevo en **Accesos** y editar la credencial |
 | Solo se aceptan `https` y `ssh` | Una URL local o de otro transporte | Usar `https://`, `ssh://` o `usuario@host:ruta` |

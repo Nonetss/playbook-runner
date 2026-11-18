@@ -118,8 +118,8 @@ quick-access shortcuts to the most common actions.
 
 ![Dashboard](img/home.png)
 
-**Inventory** — manage devices, groups, and SSH credentials. Assign a
-credential to a device so every run picks the right key automatically.
+**Inventory** — manage devices and groups. Assign an SSH credential (from
+**Access**) to a device so every run picks the right key automatically.
 
 ![Inventory](img/inventario.png)
 
@@ -152,16 +152,18 @@ codes, and ready-to-run `curl`/client snippets. The raw spec lives at
 - **Inventory** — store devices (host, port, IP) and groups. A device
   belongs to a credential (SSH key + user), so a run can pick a group and
   the right key follows along to every host.
-- **Credentials** — store SSH credentials (user + private/public key). You
-  can **import** an existing key or **generate** a fresh ed25519 pair right
-  in the browser, and copy a ready-made **provisioning script** that creates
-  the user, authorizes the public key, and grants passwordless sudo on a
-  target host. Private keys are encrypted at rest (AES-256-GCM) and are
-  never returned by the API.
+- **Access** — store the credentials the runner uses, on separate pages: **SSH**
+  keys for your devices (user + private/public key) and **Git** keys or access
+  tokens for private repositories over HTTPS (GitHub, GitLab…).
+  You can **import** an existing key or **generate** a fresh ed25519 pair
+  right in the browser, and copy a ready-made **provisioning script** that
+  creates the user, authorizes the public key, and grants passwordless sudo on
+  a target host. Private keys and tokens are encrypted at rest (AES-256-GCM)
+  and are never returned by the API. Infisical connections live here too.
 - **Playbooks** — write Ansible YAML in the browser, save it, version it in
   the database. No more `scp`ing `.yml` files around.
 - **Git repositories** — prefer to keep playbooks in Git? Add a repository
-  (public HTTPS, or SSH with a stored credential as deploy key), pick the
+  (public HTTPS, private HTTPS with a stored token, or SSH with a stored key as deploy key), pick the
   branch from the list of the remote's branches and, optionally, a
   subdirectory. It syncs on save, every hour (`REPOSITORY_SYNC_CRON`) and
   whenever you press *Sync*: every

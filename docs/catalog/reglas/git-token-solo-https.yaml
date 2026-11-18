@@ -1,0 +1,8 @@
+name: Un token solo autentica por https
+area: git
+effect: Una credencial de tipo token no sirve con una URL SSH y se rechaza al guardar el repositorio
+do: Usar una clave SSH con las URLs ssh:// y un token con las https://
+checked: leido
+page: ejecucion/repositorios-git
+source: apps/ansible/app/services/git/mirror.py
+updated: 2026-11-18

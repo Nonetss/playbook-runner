@@ -8,7 +8,7 @@ This walkthrough takes a fresh installation to its first successful run. You nee
 
 ## 1. Add an SSH credential
 
-Open **Inventory → Credentials** and create a credential. A credential is an SSH user plus a key pair. You can:
+Open **Access → SSH** and create a credential. For a host, a credential is an SSH user plus a key pair (a token credential is for Git; see below). You can:
 
 - **Import existing key**, pasting a private key you already use, or
 - **Generate key pair**, a new ed25519 pair created in the browser.
@@ -57,6 +57,8 @@ To try the Git integration with them, choose **Add repository** on the Playbooks
 | Clone URL | `https://github.com/Nonetss/playbook-runner.git` |
 | Branch | `main` |
 | Subdirectory | `playbooks` |
+
+For a private repository, pick a credential created in **Access → Git**: an SSH key for `ssh://` or `user@host:path` URLs, or an **access token** for `https://` ones (a personal access token from GitHub or GitLab with read access to the repository). The token is stored encrypted, is never shown again and is sent only to the repository's own host.
 
 Each file appears as a read-only playbook you can run and schedule. **Copy to Playbook Runner** turns one into a regular, editable playbook.
 

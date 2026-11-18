@@ -8,7 +8,7 @@ Esta guía lleva una instalación recién hecha hasta su primera ejecución corr
 
 ## 1. Añade una credencial SSH
 
-Abre **Inventario → Credenciales** y crea una credencial. Una credencial es un usuario SSH más un par de claves. Puedes:
+Abre **Accesos → SSH** y crea una credencial. Para un host, una credencial es un usuario SSH más un par de claves (una credencial de tipo token es para Git; mira más abajo). Puedes:
 
 - **Importar clave existente**, pegando una clave privada que ya uses, o
 - **Generar par de claves**, un par ed25519 nuevo creado en el navegador.
@@ -57,6 +57,8 @@ Para probar con ellos la integración con Git, pulsa **Añadir repositorio** en 
 | URL de clonado | `https://github.com/Nonetss/playbook-runner.git` |
 | Rama | `main` |
 | Subdirectorio | `playbooks` |
+
+Para un repositorio privado, elige una credencial creada en **Accesos → Git**: una clave SSH para URLs `ssh://` o `usuario@host:ruta`, o un **token de acceso** para las `https://` (un token personal de GitHub o GitLab con permiso de lectura sobre el repositorio). El token se guarda cifrado, no se vuelve a mostrar y solo se envía al host del propio repositorio.
 
 Cada fichero aparece como un playbook de solo lectura que puedes ejecutar y programar. **Hacer copia en Playbook Runner** lo convierte en un playbook normal y editable.
 
