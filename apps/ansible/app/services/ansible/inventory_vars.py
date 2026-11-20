@@ -17,7 +17,7 @@ from pathlib import Path
 _VARS_DIRS = ("group_vars", "host_vars")
 
 
-def _nearest_config(playbook_path: Path, root: Path) -> Path | None:
+def nearest_config(playbook_path: Path, root: Path) -> Path | None:
     """El ``ansible.cfg`` más cercano, desde el playbook hasta la raíz del árbol."""
     directory = playbook_path.parent
     while directory.is_relative_to(root):
@@ -49,7 +49,7 @@ def repository_inventories(playbook_path: Path, project_dir: Path) -> list[Path]
     (``localhost,``), y lo que salga del árbol.
     """
     root = project_dir.resolve()
-    config = _nearest_config(playbook_path, root)
+    config = nearest_config(playbook_path, root)
     if config is None:
         return []
     inventories: list[Path] = []

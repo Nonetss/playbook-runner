@@ -26,8 +26,14 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from loguru import logger
 
 from app.core.config import settings
+from app.services.ansible.config_options import (
+    ConfigOptions,
+    load_config_options,
+    render_config,
+)
 from app.services.ansible.disabled_roles import disable_roles
 from app.services.ansible.inventory_vars import copy_inventory_vars
 from app.services.ansible.models import GitPlaybookSource, ResolvedRunBundle
@@ -309,16 +315,35 @@ def role_search_path(playbook_path: Path, project_dir: Path) -> str | None:
     return os.pathsep.join(paths) or None
 
 
+def _log_config_options(source: GitPlaybookSource, options: ConfigOptions) -> None:
+    """Deja en el log qué opciones del ``ansible.cfg`` se aplicaron y cuáles no."""
+    logger.bind(repository_id=source.repository_id, path=source.path).info(
+        "ansible.cfg of the repository: applied {applied}, discarded {discarded}",
+        applied={
+            f"{section}.{key}": value
+            for section, values in options.applied.items()
+            for key, value in values.items()
+        },
+        discarded=[
+            f"{item.section}.{item.key} ({item.reason}"
+            + (f": {item.value}" if item.value is not None else "")
+            + ")"
+            for item in options.discarded
+        ],
+    )
+
+
 def _materialize_git(
     run_dir: Path, source: GitPlaybookSource
 ) -> tuple[Path, Path, dict[str, str]]:
     """Exporta el commit a ``run_dir/project`` y localiza el playbook.
 
-    El ``ansible.cfg`` del repositorio se ignora: ``ANSIBLE_CONFIG`` apunta a
-    un fichero vacío controlado por el runner (tiene prioridad sobre el
-    ``ansible.cfg`` del directorio de trabajo). Por eso los ``roles/`` del
-    repositorio se pasan con ``ANSIBLE_ROLES_PATH`` y las variables del inventario
-    que declara se copian junto al inventario del run.
+    El ``ansible.cfg`` del repositorio no se usa tal cual: ``ANSIBLE_CONFIG``
+    apunta a un fichero controlado por el runner (tiene prioridad sobre el
+    ``ansible.cfg`` del directorio de trabajo) que solo contiene las opciones de
+    la lista blanca de ``config_options`` (tiempos y reintentos). Por eso los
+    ``roles/`` del repositorio se pasan con ``ANSIBLE_ROLES_PATH`` y las variables
+    del inventario que declara se copian junto al inventario del run.
     """
     project_dir = run_dir / "project"
     export_tree(source.repository_id, source.commit, project_dir)
@@ -334,7 +359,12 @@ def _materialize_git(
         )
 
     runner_cfg = run_dir / "runner-ansible.cfg"
-    runner_cfg.write_text("", encoding="utf-8")
+    options = load_config_options(playbook_path, project_dir)
+    runner_cfg.write_text(
+        render_config(options.applied) if options else "", encoding="utf-8"
+    )
+    if options is not None:
+        _log_config_options(source, options)
     envvars = {"ANSIBLE_CONFIG": str(runner_cfg)}
     if source.vault_password:
         envvars["ANSIBLE_VAULT_PASSWORD_FILE"] = str(

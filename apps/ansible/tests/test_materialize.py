@@ -159,8 +159,8 @@ class TestMaterialize:
         assert run.project_dir == (run.run_dir / "project").resolve()
         assert run.playbook == "nested/web.yaml"
         assert (run.project_dir / "site.yml").read_text() == PLAY
-        # The repository's own ansible.cfg is ignored in favour of an empty
-        # runner-controlled one.
+        # The repository's own ansible.cfg is not used: the runner writes its own,
+        # empty here because the repository has none (see test_config_options).
         config = Path(run.envvars["ANSIBLE_CONFIG"])
         assert config.parent == run.run_dir
         assert config.read_text() == ""
