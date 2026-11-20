@@ -1,8 +1,8 @@
-name: ansible.cfg se ignora
+name: ansible.cfg solo aplica tiempos y reintentos
 area: disponibilidad
-effect: En Git, ANSIBLE_CONFIG apunta a un fichero vacío; no valen roles_path, collections_path ni remote_user, y de inventory solo se usan sus variables
-do: Poner los roles en un roles/ del árbol
+effect: En Git, ANSIBLE_CONFIG apunta a un fichero del runner que copia del ansible.cfg más cercano solo unos tiempos, reintentos y gathering; plugins, rutas, forks y ssh_args no valen, y de inventory solo se usan sus variables
+do: Poner los roles en un roles/ del árbol y dejar en ansible.cfg solo esos tiempos; una variable ANSIBLE_ del runner gana a lo que declare
 checked: leido
-page: ejecucion/repositorios-git
-source: apps/ansible/app/services/ansible/materialize.py
-updated: 2026-11-05
+page: ejecucion/materializacion
+source: apps/ansible/app/services/ansible/config_options.py
+updated: 2026-11-20

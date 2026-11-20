@@ -3,7 +3,7 @@ title: Materialización
 description: Qué monta el ejecutor para cada run, en qué se diferencian un playbook inline y uno de Git, y cómo se reescribe hosts
 services: [ansible]
 order: 1
-updated: 2026-11-05
+updated: 2026-11-20
 ---
 
 `apps/ansible/app/services/ansible/materialize.py` monta esto para cada ejecución y lo borra siempre al terminar, también tras un error o una cancelación:
@@ -17,7 +17,7 @@ $RUN_SCRATCH_DIR/<playbook>-<id>/
   secret-vars.yml            # 0600, solo si hay secretos
   <playbook>-<hash>.yml      # inline: el contenido guardado
   project/                   # Git: el árbol del commit fijado
-  runner-ansible.cfg         # Git: vacío, para anular el del repositorio
+  runner-ansible.cfg         # Git: solo las opciones permitidas del ansible.cfg del repositorio
   vault-password             # Git: 0600, solo si el repositorio tiene contraseña
 ```
 
@@ -29,7 +29,7 @@ $RUN_SCRATCH_DIR/<playbook>-<id>/
 | Roles, `files/`, `templates/`, `import_playbook` | No | Sí |
 | Edición en la app | Sí | Solo lectura, salvo sus variables secretas |
 | Commit | No aplica | `last_commit_sha`, registrado en `job_runs.commit_sha` |
-| `ansible.cfg` | No hay | Se ignora con `ANSIBLE_CONFIG`, salvo para encontrar las variables del inventario |
+| `ansible.cfg` | No hay | Se sustituye con `ANSIBLE_CONFIG`; solo pasan unos tiempos y reintentos (sección «Opciones del ansible.cfg») y el `inventory` para encontrar sus variables |
 
 ## Variables del inventario del repositorio
 
@@ -50,6 +50,23 @@ server-setup/
 - Los enlaces simbólicos no se copian.
 - Un fichero cifrado necesita [la contraseña del repositorio](variables.mdx#secretos). Sin ella, la ejecución acaba antes de la primera tarea con `Attempting to decrypt but no vault secrets found`, aunque ninguna tarea lea sus variables.
 - [La detección de variables](variables.mdx#variables-detectadas) no mira estas carpetas, así que una variable definida ahí puede seguir saliendo como «Sin definir» al ejecutar.
+
+## Opciones del ansible.cfg
+
+[El `ansible.cfg` del repositorio no se usa tal cual](catalog:reglas/ansible-cfg-ignorado): `ANSIBLE_CONFIG` apunta a un fichero del runner, `runner-ansible.cfg`, y `apps/ansible/app/services/ansible/config_options.py` copia a él solo estas opciones del `ansible.cfg` más cercano al playbook, ya validadas:
+
+| Sección | Opciones |
+| --- | --- |
+| `defaults` | `timeout`, `task_timeout`, `gather_timeout`, `gathering` |
+| `ssh_connection` | `retries`, `pipelining` |
+| `persistent_connection` | `connect_timeout`, `command_timeout`, `connect_retry_timeout` |
+
+- Los tiempos y `retries` son enteros sin signo, `pipelining` un booleano y `gathering` uno de `implicit`, `explicit` o `smart`. Un valor inválido se descarta y la ejecución sigue con el de Ansible.
+- Se usa un solo fichero, el más cercano, sin mezclarlo con los de niveles superiores. Un enlace simbólico o un fichero ilegible cuenta como si no existiera.
+- Todo lo demás se ignora, y sobre todo lo que carga código o rutas (`library`, `*_plugins`, `roles_path`, `collections_path`, `remote_tmp`, `vault_password_file`, `private_key_file`). `forks`, `host_key_checking` y `ssh_args` los decide el runner.
+- Una variable `ANSIBLE_*` del runner o del operador gana a lo que ponga el repositorio, y esto gana a los valores por defecto de Ansible.
+- Cada ejecución registra en el log del ejecutor qué opciones aplicó y cuáles descartó, con el motivo (`not_allowed`, `runner_controlled` o `invalid`), sin el valor de las que no están permitidas. La app no lo muestra.
+- Un `timeout` o un `task_timeout` muy altos alargan la ejecución sin más límite que cancelarla, y como los repositorios se sincronizan cada hora, un cambio en este fichero llega sin revisar a los jobs programados.
 
 ## Destino
 
