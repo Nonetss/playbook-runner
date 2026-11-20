@@ -7,7 +7,7 @@ Lets Git-sourced playbooks use the Ansible roles stored in their repository, and
 ## Requirements
 
 ### Requirement: Resolve repository roles during Git runs
-A run of a Git-sourced playbook SHALL resolve roles from every `roles/` directory between the playbook's directory and the repository root, at the pinned commit, with the directory nearest the playbook taking precedence. The repository's own `ansible.cfg` SHALL remain ignored.
+A run of a Git-sourced playbook SHALL resolve roles from every `roles/` directory between the playbook's directory and the repository root, at the pinned commit, with the directory nearest the playbook taking precedence. The repository's own `ansible.cfg` SHALL NOT change where roles are looked up: its role-related options remain ignored, since only the options of the capability `repository-ansible-config` are honoured.
 
 #### Scenario: Role at the repository root and playbook in a subdirectory
 - **WHEN** a user runs `playbooks/site.yml` and its role exists only in `roles/` at the repository root
